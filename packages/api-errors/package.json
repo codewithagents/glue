@@ -1,0 +1,26 @@
+{
+  "name": "@codewithagents/api-errors",
+  "version": "0.1.0",
+  "description": "Map backend API errors to form field errors. Framework-agnostic core with React Hook Form adapter.",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest run",
+    "lint": "tsc --noEmit"
+  },
+  "keywords": ["api", "errors", "form", "react-hook-form", "validation", "typescript"],
+  "license": "MIT",
+  "devDependencies": {
+    "typescript": "^5.8.0",
+    "vitest": "^3.0.0"
+  }
+}
