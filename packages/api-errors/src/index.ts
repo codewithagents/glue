@@ -61,10 +61,8 @@ function tryParseRfc7807(
       }
     } else if (typeof messages === 'string') {
       result.push({ field, message: messages })
-    } else {
-      // Unknown value shape — use fallback field with stringified message
-      result.push({ field: transformField(fallbackField), message: String(messages) })
     }
+    // null / unknown value shapes are skipped — no partial/garbage errors
   }
 
   return result.length > 0 ? result : null
