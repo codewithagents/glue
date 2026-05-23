@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.0](https://github.com/codewithagents/glue/compare/openapi-gen-v1.1.0...openapi-gen-v1.2.0) (2026-05-23)
+
+
+### Features
+
+* add integration package + ApiError body unwrapping + coverage cleanup ([#31](https://github.com/codewithagents/glue/issues/31)) ([f200c7b](https://github.com/codewithagents/glue/commit/f200c7b662f743c41699c177ce37ab1069404d52))
+
 ## [1.1.0](https://github.com/codewithagents/glue/compare/openapi-gen-v1.0.1...openapi-gen-v1.1.0) (2026-05-23)
 
 

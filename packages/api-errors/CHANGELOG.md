@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.0](https://github.com/codewithagents/glue/compare/api-errors-v0.4.0...api-errors-v0.5.0) (2026-05-23)
+
+
+### Features
+
+* add integration package + ApiError body unwrapping + coverage cleanup ([#31](https://github.com/codewithagents/glue/issues/31)) ([f200c7b](https://github.com/codewithagents/glue/commit/f200c7b662f743c41699c177ce37ab1069404d52))
+
 ## [0.4.0](https://github.com/codewithagents/glue/compare/api-errors-v0.3.1...api-errors-v0.4.0) (2026-05-23)
 
 
