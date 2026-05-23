@@ -16,8 +16,8 @@ export class ApiError extends Error {
   }
 }
 
-export async function getTasks(params?: {
-  page?: number
+export async function getTasks(params: {
+  page: number
   status?: string
   done?: boolean
 }, config?: Partial<ClientConfig>): Promise<Task[]> {

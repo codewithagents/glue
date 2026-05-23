@@ -18,8 +18,9 @@
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
     "lint": "tsc -p tsconfig.build.json --noEmit",
-    "test": "vitest run",
-    "test:coverage": "vitest run --coverage",
+    "test": "vitest run --exclude 'src/__tests__/integration.test.ts'",
+    "test:integration": "vitest run src/__tests__/integration.test.ts",
+    "test:coverage": "vitest run --coverage --exclude 'src/__tests__/integration.test.ts'",
     "dev": "tsc -p tsconfig.build.json --watch"
   },
   "dependencies": {

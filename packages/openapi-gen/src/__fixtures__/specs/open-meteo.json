@@ -1,0 +1,67 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Open-Meteo Weather API",
+    "description": "Free weather API, no authentication required. https://open-meteo.com",
+    "version": "1.0.0"
+  },
+  "servers": [
+    { "url": "https://api.open-meteo.com" }
+  ],
+  "paths": {
+    "/v1/forecast": {
+      "get": {
+        "operationId": "getForecast",
+        "summary": "Get weather forecast",
+        "parameters": [
+          { "name": "latitude", "in": "query", "required": true, "schema": { "type": "number" } },
+          { "name": "longitude", "in": "query", "required": true, "schema": { "type": "number" } },
+          { "name": "current_weather", "in": "query", "schema": { "type": "boolean" } },
+          { "name": "hourly", "in": "query", "schema": { "type": "string" } },
+          { "name": "daily", "in": "query", "schema": { "type": "string" } },
+          { "name": "timezone", "in": "query", "schema": { "type": "string" } },
+          { "name": "forecast_days", "in": "query", "schema": { "type": "integer" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Forecast response",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ForecastResponse" }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "CurrentWeather": {
+        "type": "object",
+        "required": ["temperature", "windspeed", "winddirection", "weathercode", "time"],
+        "properties": {
+          "temperature": { "type": "number" },
+          "windspeed": { "type": "number" },
+          "winddirection": { "type": "number" },
+          "weathercode": { "type": "integer" },
+          "time": { "type": "string" }
+        }
+      },
+      "ForecastResponse": {
+        "type": "object",
+        "required": ["latitude", "longitude", "timezone", "elevation"],
+        "properties": {
+          "latitude": { "type": "number" },
+          "longitude": { "type": "number" },
+          "timezone": { "type": "string" },
+          "timezone_abbreviation": { "type": "string" },
+          "elevation": { "type": "number" },
+          "generationtime_ms": { "type": "number" },
+          "utc_offset_seconds": { "type": "integer" },
+          "current_weather": { "$ref": "#/components/schemas/CurrentWeather" }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,224 @@
+{
+  "openapi": "3.1.0",
+  "info": { "title": "E-Commerce API", "version": "1.0.0" },
+  "paths": {
+    "/products": {
+      "get": {
+        "operationId": "listProducts",
+        "parameters": [
+          { "name": "categoryId", "in": "query", "schema": { "type": "string" } },
+          { "name": "minPrice", "in": "query", "schema": { "type": "number" } },
+          { "name": "maxPrice", "in": "query", "schema": { "type": "number" } },
+          { "name": "inStock", "in": "query", "schema": { "type": "boolean" } },
+          { "name": "page", "in": "query", "required": true, "schema": { "type": "integer" } },
+          { "name": "pageSize", "in": "query", "required": true, "schema": { "type": "integer" } }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": { "type": "array", "items": { "$ref": "#/components/schemas/Product" } }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/products/{id}": {
+      "get": {
+        "operationId": "getProduct",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Product" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/cart": {
+      "get": {
+        "operationId": "getCart",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Cart" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/cart/items": {
+      "post": {
+        "operationId": "addToCart",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/AddToCartRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Cart" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/cart/items/{itemId}": {
+      "delete": {
+        "operationId": "removeFromCart",
+        "parameters": [
+          { "name": "itemId", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Cart" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/orders": {
+      "get": {
+        "operationId": "listOrders",
+        "parameters": [
+          { "name": "status", "in": "query", "schema": { "$ref": "#/components/schemas/OrderStatus" } },
+          { "name": "from", "in": "query", "schema": { "type": "string" } },
+          { "name": "to", "in": "query", "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": { "type": "array", "items": { "$ref": "#/components/schemas/Order" } }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "placeOrder",
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Order" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/orders/{id}": {
+      "get": {
+        "operationId": "getOrder",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Order" }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "OrderStatus": {
+        "type": "string",
+        "enum": ["pending", "confirmed", "shipped", "delivered", "cancelled"]
+      },
+      "Money": {
+        "type": "object",
+        "required": ["amount", "currency"],
+        "properties": {
+          "amount": { "type": "number" },
+          "currency": { "type": "string" }
+        }
+      },
+      "Product": {
+        "type": "object",
+        "required": ["id", "name", "price", "inStock"],
+        "properties": {
+          "id": { "type": "string" },
+          "name": { "type": "string" },
+          "description": { "type": ["string", "null"] },
+          "price": { "$ref": "#/components/schemas/Money" },
+          "inStock": { "type": "boolean" },
+          "imageUrl": { "type": ["string", "null"] },
+          "tags": { "type": "array", "items": { "type": "string" } }
+        }
+      },
+      "CartItem": {
+        "type": "object",
+        "required": ["id", "product", "quantity", "unitPrice"],
+        "properties": {
+          "id": { "type": "string" },
+          "product": { "$ref": "#/components/schemas/Product" },
+          "quantity": { "type": "integer" },
+          "unitPrice": { "$ref": "#/components/schemas/Money" }
+        }
+      },
+      "Cart": {
+        "type": "object",
+        "required": ["id", "items", "total"],
+        "properties": {
+          "id": { "type": "string" },
+          "items": { "type": "array", "items": { "$ref": "#/components/schemas/CartItem" } },
+          "total": { "$ref": "#/components/schemas/Money" }
+        }
+      },
+      "AddToCartRequest": {
+        "type": "object",
+        "required": ["productId", "quantity"],
+        "properties": {
+          "productId": { "type": "string" },
+          "quantity": { "type": "integer" }
+        }
+      },
+      "OrderItem": {
+        "type": "object",
+        "required": ["productId", "productName", "quantity", "unitPrice"],
+        "properties": {
+          "productId": { "type": "string" },
+          "productName": { "type": "string" },
+          "quantity": { "type": "integer" },
+          "unitPrice": { "$ref": "#/components/schemas/Money" }
+        }
+      },
+      "Order": {
+        "type": "object",
+        "required": ["id", "status", "items", "total", "createdAt"],
+        "properties": {
+          "id": { "type": "string" },
+          "status": { "$ref": "#/components/schemas/OrderStatus" },
+          "items": { "type": "array", "items": { "$ref": "#/components/schemas/OrderItem" } },
+          "total": { "$ref": "#/components/schemas/Money" },
+          "createdAt": { "type": "string" },
+          "shippedAt": { "type": ["string", "null"] }
+        }
+      }
+    }
+  }
+}
