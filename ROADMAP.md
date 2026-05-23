@@ -16,34 +16,39 @@ Maps backend API error responses to form field errors. Framework-agnostic core w
 
 ---
 
-### `@codewithagents/openapi-client` — 🔨 in progress
+### `@codewithagents/openapi-gen` — 🔨 in progress
 
-A CLI devDependency that reads an OpenAPI 3.1 spec and generates self-contained TypeScript. No runtime package required — the generated code uses only native `fetch` and whatever peer deps (Zod, React Query) are already in the project.
+A CLI devDependency that reads an OpenAPI 3.1 spec and an optional user-owned Zod schema, and generates self-contained TypeScript. No runtime package required — the generated code uses only native `fetch`.
 
-**Plugins (each is opt-in):**
+**Two inputs:**
 
-| Plugin | Output | Runtime dep |
+| Field | Required | Description |
 |---|---|---|
-| `types` _(default)_ | `models.ts` — TypeScript interfaces | none |
-| `zod` | `schemas.ts` — Zod v4 schemas, types inferred via `z.infer` | `zod` (peer) |
-| `react-query` | `react-query.ts` — `queryOptions` + `useMutation` hooks | `@tanstack/react-query` (peer) |
+| `input_openapi` | ✅ | Path to OpenAPI 3.1 spec (JSON or YAML) |
+| `input_schema` | optional | Path to user-owned Zod schema file. Bootstrapped on first run if absent. |
 
-**The fetch client** (`client.ts`) is always generated. When `zod` is active, responses are parsed and validated at the boundary.
+**Always generated:**
+- `models.ts` — TypeScript interfaces (or types derived from `input_schema` via `z.infer`)
+- `client.ts` — native fetch functions. When `input_schema` is present: pre-send validation + response validation using the user's Zod schemas.
 
 **Usage:**
 ```json
 {
   "scripts": { "generate": "openapi-gen" },
-  "devDependencies": { "@codewithagents/openapi-client": "^1.0.0" }
+  "devDependencies": { "@codewithagents/openapi-gen": "^1.0.0" }
 }
 ```
 ```json
 {
-  "input": "openapi.json",
-  "output": "src/api",
-  "plugins": ["zod", "react-query"]
+  "input_openapi": "openapi.json",
+  "input_schema": "schemas.ts",
+  "output": "src/api"
 }
 ```
+
+**First run (no `input_schema`):** bootstraps `schemas.ts` as a starting point — structural only, ready to customise with error messages and business rules.
+
+**Subsequent runs:** uses `schemas.ts` as the validation layer. Warns on drift between the OpenAPI spec and user's schema.
 
 **Design constraints:**
 - OpenAPI 3.1 only (JSON Schema 2020-12 alignment)
@@ -53,23 +58,33 @@ A CLI devDependency that reads an OpenAPI 3.1 spec and generates self-contained 
 
 ---
 
-### `@codewithagents/openapi-server` — 📋 planned
+### `@codewithagents/openapi-gen-react-query` — 📋 next
 
-The server-side counterpart to `openapi-client`. Same spec, same Zod schemas, but targeted at backend route frameworks.
+Separate package on top of `openapi-gen`. Reads the same `openapi.json` and the output of `openapi-gen`, generates React Query v5 hooks.
 
-**Planned outputs:**
-- `schemas.ts` — identical Zod schemas to what `openapi-client` generates (same source of truth)
-- `routes.ts` — Fastify route definitions using `fastify-type-provider-zod`
+```json
+{
+  "devDependencies": {
+    "@codewithagents/openapi-gen": "^1.0.0",
+    "@codewithagents/openapi-gen-react-query": "^1.0.0"
+  }
+}
+```
+
+Generates `react-query.ts` — `queryOptions` factories for GET endpoints, `useMutation` hooks for writes. Imports from `openapi-gen`'s `client.ts` output. Peer dep: `@tanstack/react-query`.
+
+---
+
+### `@codewithagents/openapi-gen-server` — 📋 planned
+
+Server-side counterpart. Same `openapi.json`, generates Fastify route definitions using the same Zod schemas. Peer dep: `fastify` + `fastify-type-provider-zod`.
 
 **The full-stack story:**
 ```
-openapi.json
-    ├── openapi-client → client validates responses with Zod
-    └── openapi-server → server validates requests with Zod
-                   same schemas, both sides
+openapi.json + schemas.ts
+    ├── openapi-gen        → client validates responses with user's Zod schemas
+    └── openapi-gen-server → server validates requests with same Zod schemas
 ```
-
-The same `CreateCampaignSchema` that validates the API response on the client validates the request body on the server, and validates the form input before the request is even sent.
 
 ---
 
@@ -81,11 +96,14 @@ Every package in this repo is a `devDependency` or generates code that only depe
 **2. Latest only**
 TypeScript 6, OpenAPI 3.1, Zod v4, React Query v5. No legacy compatibility shims. Opinionated cuts mean less code and faster iteration.
 
-**3. Composable, not monolithic**
-Each package solves one problem. `api-errors` doesn't know about `openapi-client`. `openapi-client` doesn't know about `api-errors`. They compose in user code.
+**3. Two inputs, one truth**
+`input_openapi` owns structure. `input_schema` owns validation behaviour and messages. Neither can replace the other. The generator merges them.
 
-**4. Readable output**
-Generated code looks like code a developer would write. No minified magic, no opaque abstractions. If something goes wrong, you can read the generated file and understand it.
+**4. User owns the schema**
+`schemas.ts` is bootstrapped once and never overwritten. The user adds error messages, business rules, cross-field validation. The generator warns when it drifts from the OpenAPI spec.
 
-**5. Agent-friendly**
+**5. Readable output**
+Generated code looks like code a developer would write. No minified magic, no opaque abstractions.
+
+**6. Agent-friendly**
 An AI agent building a TypeScript project should be able to install one devDependency, run one command, and have a fully-typed, validated API client. That's the bar.

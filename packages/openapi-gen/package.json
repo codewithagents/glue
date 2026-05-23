@@ -1,7 +1,7 @@
 {
-  "name": "@codewithagents/openapi-client",
+  "name": "@codewithagents/openapi-gen",
   "version": "0.1.0",
-  "description": "Generate TypeScript types, fetch client, and React Query hooks from OpenAPI 3.1 specs — zero runtime footprint",
+  "description": "Generate TypeScript models, native fetch client and Zod schemas from OpenAPI 3.1 — zero runtime footprint",
   "type": "module",
   "bin": {
     "openapi-gen": "./dist/cli.js"

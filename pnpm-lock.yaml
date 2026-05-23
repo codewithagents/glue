@@ -21,7 +21,7 @@ importers:
         specifier: ^3.0.0
         version: 3.2.4(@types/node@22.19.19)
 
-  packages/openapi-client:
+  packages/openapi-gen:
     dependencies:
       '@apidevtools/swagger-parser':
         specifier: ^10.1.1

@@ -2,9 +2,13 @@ import { readFile } from 'node:fs/promises'
 import { join } from 'node:path'
 
 export interface Config {
-  input: string
+  /** Path to the OpenAPI 3.1 spec file (JSON or YAML) */
+  input_openapi: string
+  /** Path to user-owned Zod schema file (.ts). Optional — bootstrapped on first run if absent. */
+  input_schema?: string
+  /** Directory to write generated files */
   output: string
-  plugins: ('types')[]
+  /** Base URL prefix for generated fetch client (default: '') */
   baseUrl?: string
 }
 
@@ -30,27 +34,23 @@ export async function loadConfig(cwd: string): Promise<Config> {
 
   const config = parsed as Record<string, unknown>
 
-  if (typeof config['input'] !== 'string' || !config['input']) {
-    throw new Error('Config missing required field: "input" (must be a non-empty string)')
+  if (typeof config['input_openapi'] !== 'string' || !config['input_openapi']) {
+    throw new Error('Config missing required field: "input_openapi" (path to OpenAPI 3.1 spec)')
   }
   if (typeof config['output'] !== 'string' || !config['output']) {
-    throw new Error('Config missing required field: "output" (must be a non-empty string)')
+    throw new Error('Config missing required field: "output" (output directory)')
   }
-  if (!Array.isArray(config['plugins'])) {
-    throw new Error('Config missing required field: "plugins" (must be an array)')
-  }
-
-  const validPlugins = ['types']
-  for (const plugin of config['plugins'] as unknown[]) {
-    if (!validPlugins.includes(plugin as string)) {
-      throw new Error(`Unknown plugin: "${plugin}". Valid plugins: ${validPlugins.join(', ')}`)
-    }
+  if (
+    config['input_schema'] !== undefined &&
+    (typeof config['input_schema'] !== 'string' || !config['input_schema'])
+  ) {
+    throw new Error('"input_schema" must be a non-empty string path to your Zod schema file')
   }
 
   return {
-    input: config['input'] as string,
+    input_openapi: config['input_openapi'] as string,
+    input_schema: config['input_schema'] as string | undefined,
     output: config['output'] as string,
-    plugins: config['plugins'] as ('types')[],
     baseUrl: typeof config['baseUrl'] === 'string' ? config['baseUrl'] : undefined,
   }
 }

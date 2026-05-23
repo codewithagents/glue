@@ -8,7 +8,7 @@ export async function generate(cwd: string): Promise<void> {
   console.log('Loading config...')
   const config = await loadConfig(cwd)
 
-  const inputPath = resolve(cwd, config.input)
+  const inputPath = resolve(cwd, config.input_openapi)
   const outputDir = resolve(cwd, config.output)
 
   console.log(`Parsing spec: ${inputPath}`)
@@ -16,12 +16,8 @@ export async function generate(cwd: string): Promise<void> {
 
   const generatedFiles = []
 
-  for (const plugin of config.plugins) {
-    if (plugin === 'types') {
-      console.log('Running plugin: types')
-      generatedFiles.push(generateTypes(spec))
-    }
-  }
+  // Phase 1: always generate types
+  generatedFiles.push(generateTypes(spec))
 
   console.log(`Writing output to: ${outputDir}`)
   await mkdir(outputDir, { recursive: true })
