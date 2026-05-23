@@ -45,6 +45,9 @@ jobs:
       - run: pnpm --filter @codewithagents/api-errors publish --access public --no-git-checks
         env:
           NPM_CONFIG_PROVENANCE: "true"
+          # setup-node sets NODE_AUTH_TOKEN to GITHUB_TOKEN which is NOT a valid npm token.
+          # Clear it so npm uses the OIDC Trusted Publisher exchange instead.
+          NODE_AUTH_TOKEN: ""
 
   publish-openapi-gen:
     name: Publish @codewithagents/openapi-gen
@@ -67,3 +70,6 @@ jobs:
       - run: pnpm --filter @codewithagents/openapi-gen publish --access public --no-git-checks
         env:
           NPM_CONFIG_PROVENANCE: "true"
+          # setup-node sets NODE_AUTH_TOKEN to GITHUB_TOKEN which is NOT a valid npm token.
+          # Clear it so npm uses the OIDC Trusted Publisher exchange instead.
+          NODE_AUTH_TOKEN: ""

@@ -158,6 +158,11 @@ describe('generateClient', () => {
     expect(content).toContain('credentials')
   })
 
+  it('destructures onError from config', () => {
+    expect(content).toContain('onError')
+    expect(content).toContain('onError?.(err)')
+  })
+
   it('generates updateTask with path param and body', () => {
     expect(content).toContain('updateTask')
     expect(content).toContain('CreateTaskRequest')

@@ -17,6 +17,16 @@ export interface ClientConfig {
   credentials?: RequestCredentials
   /** Additional headers sent with every request */
   headers?: Record<string, string>
+  /**
+   * Global error hook — called with every non-2xx response error before it is
+   * thrown. Use for logging, monitoring, or triggering auth refresh flows.
+   *
+   * @example
+   * configureClient({
+   *   onError: (err) => Sentry.captureException(err),
+   * })
+   */
+  onError?: (err: Error) => void
 }
 
 let _config: ClientConfig = {
