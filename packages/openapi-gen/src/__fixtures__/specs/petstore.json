@@ -1,0 +1,53 @@
+{
+  "openapi": "3.1.0",
+  "info": { "title": "Petstore", "version": "1.0.0" },
+  "paths": {},
+  "components": {
+    "schemas": {
+      "Pet": {
+        "type": "object",
+        "required": ["id", "name"],
+        "properties": {
+          "id": { "type": "integer" },
+          "name": { "type": "string" },
+          "tag": { "type": "string" },
+          "status": { "type": "string", "enum": ["available", "pending", "sold"] }
+        }
+      },
+      "NewPet": {
+        "type": "object",
+        "required": ["name"],
+        "properties": {
+          "name": { "type": "string" },
+          "tag": { "type": "string" }
+        }
+      },
+      "PetList": {
+        "type": "array",
+        "items": { "$ref": "#/components/schemas/Pet" }
+      },
+      "Error": {
+        "type": "object",
+        "required": ["code", "message"],
+        "properties": {
+          "code": { "type": "integer" },
+          "message": { "type": "string" }
+        }
+      },
+      "Category": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer" },
+          "name": { "type": "string" }
+        }
+      },
+      "Tag": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer" },
+          "name": { "type": "string" }
+        }
+      }
+    }
+  }
+}

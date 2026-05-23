@@ -1,0 +1,219 @@
+import { describe, it, expect } from 'vitest'
+import { generateTypes } from '../plugins/types.js'
+import type { OpenAPIV3_1 } from 'openapi-types'
+
+// Helper: build a minimal spec with one schema and get the generated output
+function genSingle(name: string, schema: OpenAPIV3_1.SchemaObject): string {
+  const spec: OpenAPIV3_1.Document = {
+    openapi: '3.1.0',
+    info: { title: 'Test', version: '1.0.0' },
+    paths: {},
+    components: { schemas: { [name]: schema } },
+  }
+  return generateTypes(spec).content
+}
+
+describe('primitive types', () => {
+  it('string → string', () => {
+    expect(genSingle('A', { type: 'object', required: ['f'], properties: { f: { type: 'string' } } }))
+      .toContain('f: string')
+  })
+  it('number → number', () => {
+    expect(genSingle('A', { type: 'object', required: ['f'], properties: { f: { type: 'number' } } }))
+      .toContain('f: number')
+  })
+  it('integer → number', () => {
+    expect(genSingle('A', { type: 'object', required: ['f'], properties: { f: { type: 'integer' } } }))
+      .toContain('f: number')
+  })
+  it('boolean → boolean', () => {
+    expect(genSingle('A', { type: 'object', required: ['f'], properties: { f: { type: 'boolean' } } }))
+      .toContain('f: boolean')
+  })
+})
+
+describe('nullable types (OpenAPI 3.1 array syntax)', () => {
+  it('["string","null"] → string | null', () => {
+    expect(genSingle('A', { type: 'object', properties: { f: { type: ['string', 'null'] } } }))
+      .toContain('string | null')
+  })
+  it('["number","null"] → number | null', () => {
+    expect(genSingle('A', { type: 'object', properties: { f: { type: ['number', 'null'] } } }))
+      .toContain('number | null')
+  })
+  it('["string","number"] → string | number', () => {
+    expect(genSingle('A', { type: 'object', properties: { f: { type: ['string', 'number'] } } }))
+      .toContain('string | number')
+  })
+})
+
+describe('enum types', () => {
+  it('string enum → string literal union type alias', () => {
+    const out = genSingle('Status', { type: 'string', enum: ['active', 'inactive'] })
+    expect(out).toContain("export type Status = 'active' | 'inactive'")
+  })
+  it('integer enum → number union type alias', () => {
+    const out = genSingle('Priority', { type: 'integer', enum: [1, 2, 3] })
+    expect(out).toContain('export type Priority = 1 | 2 | 3')
+  })
+  it('enum on object property → inline union', () => {
+    const out = genSingle('A', {
+      type: 'object',
+      required: ['status'],
+      properties: { status: { type: 'string', enum: ['a', 'b'] } },
+    })
+    expect(out).toContain("status: 'a' | 'b'")
+  })
+})
+
+describe('array types', () => {
+  it('array of string → string[]', () => {
+    expect(genSingle('A', { type: 'object', properties: { f: { type: 'array', items: { type: 'string' } } } }))
+      .toContain('string[]')
+  })
+  it('array with no items → unknown[]', () => {
+    expect(genSingle('A', { type: 'object', properties: { f: { type: 'array' } } }))
+      .toContain('unknown[]')
+  })
+  it('array of $ref → TypeName[]', () => {
+    const spec: OpenAPIV3_1.Document = {
+      openapi: '3.1.0',
+      info: { title: 'T', version: '1' },
+      paths: {},
+      components: {
+        schemas: {
+          Tag: { type: 'object', properties: { id: { type: 'string' } } },
+          A: { type: 'object', properties: { tags: { type: 'array', items: { $ref: '#/components/schemas/Tag' } } } },
+        },
+      },
+    }
+    expect(generateTypes(spec).content).toContain('Tag[]')
+  })
+})
+
+describe('object types', () => {
+  it('required fields have no ? modifier', () => {
+    const out = genSingle('A', { type: 'object', required: ['id'], properties: { id: { type: 'string' }, name: { type: 'string' } } })
+    expect(out).toContain('id: string')
+    expect(out).toContain('name?: string')
+  })
+  it('additionalProperties only → Record<string, T>', () => {
+    const out = genSingle('M', { type: 'object', additionalProperties: { type: 'string' } })
+    expect(out).toContain('Record<string, string>')
+  })
+  it('empty object → Record<string, unknown>', () => {
+    const out = genSingle('E', { type: 'object' })
+    expect(out).toContain('Record<string, unknown>')
+  })
+})
+
+describe('composition types', () => {
+  it('allOf → intersection with &', () => {
+    const spec: OpenAPIV3_1.Document = {
+      openapi: '3.1.0', info: { title: 'T', version: '1' }, paths: {},
+      components: { schemas: {
+        A: { type: 'object', properties: { a: { type: 'string' } } },
+        B: { type: 'object', properties: { b: { type: 'string' } } },
+        C: { allOf: [{ $ref: '#/components/schemas/A' }, { $ref: '#/components/schemas/B' }] },
+      }},
+    }
+    expect(generateTypes(spec).content).toContain('A & B')
+  })
+  it('anyOf → union with |', () => {
+    const spec: OpenAPIV3_1.Document = {
+      openapi: '3.1.0', info: { title: 'T', version: '1' }, paths: {},
+      components: { schemas: {
+        A: { type: 'object', properties: { a: { type: 'string' } } },
+        B: { type: 'object', properties: { b: { type: 'string' } } },
+        C: { anyOf: [{ $ref: '#/components/schemas/A' }, { $ref: '#/components/schemas/B' }] },
+      }},
+    }
+    expect(generateTypes(spec).content).toContain('A | B')
+  })
+  it('oneOf → union with |', () => {
+    const spec: OpenAPIV3_1.Document = {
+      openapi: '3.1.0', info: { title: 'T', version: '1' }, paths: {},
+      components: { schemas: {
+        A: { type: 'object', properties: { a: { type: 'string' } } },
+        B: { type: 'object', properties: { b: { type: 'string' } } },
+        C: { oneOf: [{ $ref: '#/components/schemas/A' }, { $ref: '#/components/schemas/B' }] },
+      }},
+    }
+    expect(generateTypes(spec).content).toContain('A | B')
+  })
+})
+
+describe('$ref handling', () => {
+  it('$ref on required property → TypeName (no ?)', () => {
+    const spec: OpenAPIV3_1.Document = {
+      openapi: '3.1.0', info: { title: 'T', version: '1' }, paths: {},
+      components: { schemas: {
+        Status: { type: 'string', enum: ['a', 'b'] },
+        Task: { type: 'object', required: ['status'], properties: { status: { $ref: '#/components/schemas/Status' } } },
+      }},
+    }
+    expect(generateTypes(spec).content).toContain('status: Status')
+  })
+  it('$ref on optional property → TypeName?', () => {
+    const spec: OpenAPIV3_1.Document = {
+      openapi: '3.1.0', info: { title: 'T', version: '1' }, paths: {},
+      components: { schemas: {
+        Status: { type: 'string', enum: ['a', 'b'] },
+        Task: { type: 'object', properties: { status: { $ref: '#/components/schemas/Status' } } },
+      }},
+    }
+    expect(generateTypes(spec).content).toContain('status?: Status')
+  })
+})
+
+describe('special property names', () => {
+  it('property with hyphen is quoted', () => {
+    const out = genSingle('A', { type: 'object', properties: { 'Content-Type': { type: 'string' } } })
+    expect(out).toMatch(/'Content-Type'/)
+  })
+  it('normal camelCase property is not quoted', () => {
+    const out = genSingle('A', { type: 'object', properties: { createdAt: { type: 'string' } } })
+    expect(out).toContain('createdAt')
+    expect(out).not.toMatch(/'createdAt'/)
+  })
+})
+
+describe('self-referential schemas', () => {
+  it('handles circular $ref without infinite loop', () => {
+    const spec: OpenAPIV3_1.Document = {
+      openapi: '3.1.0', info: { title: 'T', version: '1' }, paths: {},
+      components: { schemas: {
+        TreeNode: {
+          type: 'object',
+          properties: {
+            value: { type: 'string' },
+            children: { type: 'array', items: { $ref: '#/components/schemas/TreeNode' } },
+          },
+        },
+      }},
+    }
+    // Should not throw, should contain TreeNode
+    const out = generateTypes(spec).content
+    expect(out).toContain('TreeNode')
+    expect(out).toContain('TreeNode[]')
+  })
+})
+
+describe('output file', () => {
+  it('always starts with the auto-generated header', () => {
+    const out = genSingle('A', { type: 'object' })
+    expect(out.startsWith('// This file is auto-generated by @codewithagents/openapi-gen')).toBe(true)
+  })
+  it('returns filename as models.ts', () => {
+    const spec: OpenAPIV3_1.Document = { openapi: '3.1.0', info: { title: 'T', version: '1' }, paths: {} }
+    expect(generateTypes(spec).filename).toBe('models.ts')
+  })
+  it('handles empty components gracefully', () => {
+    const spec: OpenAPIV3_1.Document = { openapi: '3.1.0', info: { title: 'T', version: '1' }, paths: {} }
+    expect(() => generateTypes(spec)).not.toThrow()
+  })
+  it('handles spec with no components at all', () => {
+    const spec = { openapi: '3.1.0', info: { title: 'T', version: '1' }, paths: {} } as OpenAPIV3_1.Document
+    expect(() => generateTypes(spec)).not.toThrow()
+  })
+})

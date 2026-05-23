@@ -2,10 +2,11 @@
  * Convert a string to PascalCase, handling invalid identifier characters.
  */
 export function toTypeName(name: string): string {
-  return name
+  const result = name
     .replace(/[^a-zA-Z0-9]+(.)/g, (_, char: string) => char.toUpperCase())
     .replace(/^[^a-zA-Z_$]/, '_')
     .replace(/^(.)/, (_, char: string) => char.toUpperCase())
+  return result.length > 0 ? result : '_'
 }
 
 /**
