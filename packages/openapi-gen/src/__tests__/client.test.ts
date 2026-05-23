@@ -492,6 +492,42 @@ describe('enum query params', () => {
   })
 })
 
+describe('$ref parameter resolution', () => {
+  const refParamsFixture = join(__dirname, '../__fixtures__/specs/ref-params.json')
+  let content: string
+
+  beforeAll(async () => {
+    const spec = await parseSpec(refParamsFixture)
+    content = generateClient(spec).content
+  })
+
+  it('resolves $ref path param: uuid appears as positional string arg', () => {
+    expect(content).toContain('uuid: string')
+  })
+
+  it('resolves $ref query param: page appears in optional params object', () => {
+    expect(content).toContain('page?: number')
+  })
+
+  it('compiles cleanly with TypeScript', async () => {
+    const spec = await parseSpec(refParamsFixture)
+    const diagnostics = compileFiles({
+      'client-config.ts': generateClientConfig().content,
+      'client.ts': generateClient(spec).content,
+    })
+    if (diagnostics.length > 0) {
+      const messages = diagnostics
+        .map(
+          (d) =>
+            `${d.file?.fileName}:${d.start} — ${ts.flattenDiagnosticMessageText(d.messageText, '\n')}`,
+        )
+        .join('\n')
+      throw new Error(`TypeScript errors in ref-params client:\n${messages}`)
+    }
+    expect(diagnostics.length).toBe(0)
+  })
+})
+
 describe('YAML spec support', () => {
   it('parses YAML spec without errors', async () => {
     const spec = await parseSpec(join(__dirname, '../__fixtures__/specs/simple-api.yaml'))

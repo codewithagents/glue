@@ -154,10 +154,16 @@ function schemaToZod(schema: SchemaObject | ReferenceObject): string {
   if (type === 'array') {
     const arraySchema = schema as unknown as ArraySchemaObject
     const items = arraySchema.items as SchemaObject | ReferenceObject | undefined
+    let base: string
     if (items !== undefined) {
-      return `z.array(${schemaToZod(items)})`
+      base = `z.array(${schemaToZod(items)})`
+    } else {
+      base = 'z.array(z.unknown())'
     }
-    return 'z.array(z.unknown())'
+    const s = schema as SchemaObject
+    if (typeof s.minItems === 'number') base += `.min(${s.minItems})`
+    if (typeof s.maxItems === 'number') base += `.max(${s.maxItems})`
+    return base
   }
 
   // Object
