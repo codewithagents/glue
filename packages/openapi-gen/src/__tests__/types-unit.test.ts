@@ -199,6 +199,52 @@ describe('self-referential schemas', () => {
   })
 })
 
+describe('uncovered branches', () => {
+  it('schema with no type and no composition → unknown', () => {
+    // Covers: schemaToTypeString fallback `return 'unknown'` (no type, no enum, no allOf/anyOf/oneOf)
+    const out = genSingle('A', { type: 'object', required: ['f'], properties: { f: {} } })
+    expect(out).toContain('f: unknown')
+  })
+
+  it('object property with unknown primitive type → unknown', () => {
+    // Covers: primitiveToTs default branch
+    const out = genSingle('A', {
+      type: 'object',
+      required: ['f'],
+      // @ts-expect-error — intentionally invalid type to hit default branch
+      properties: { f: { type: 'custom-unknown-type' } },
+    })
+    expect(out).toContain('f: unknown')
+  })
+
+  it('top-level $ref schema → type alias', () => {
+    // Covers: generateSchemaDeclaration isRef branch (line 148)
+    const spec: OpenAPIV3_1.Document = {
+      openapi: '3.1.0',
+      info: { title: 'T', version: '1' },
+      paths: {},
+      components: {
+        schemas: {
+          Original: { type: 'object', properties: { id: { type: 'string' } } },
+          Alias: { $ref: '#/components/schemas/Original' },
+        },
+      },
+    }
+    const out = generateTypes(spec).content
+    expect(out).toContain('export type Alias = Original')
+  })
+
+  it('inline object with no properties → Record<string, unknown>', () => {
+    // Covers: inlineObjectType early return when props is empty
+    const out = genSingle('A', {
+      type: 'object',
+      required: ['f'],
+      properties: { f: { type: 'object', properties: {} } },
+    })
+    expect(out).toContain('Record<string, unknown>')
+  })
+})
+
 describe('output file', () => {
   it('always starts with the auto-generated header', () => {
     const out = genSingle('A', { type: 'object' })
