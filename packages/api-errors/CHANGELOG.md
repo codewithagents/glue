@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.0](https://github.com/codewithagents/glue/compare/api-errors-v0.3.1...api-errors-v0.4.0) (2026-05-23)
+
+
+### Features
+
+* **api-errors:** add status filtering and RFC 9457 detail parsing ([#29](https://github.com/codewithagents/glue/issues/29)) ([8c295ad](https://github.com/codewithagents/glue/commit/8c295ad5d5ba5ac479e751646b258791ed9047e0))
+
 ## [0.3.1](https://github.com/codewithagents/glue/compare/api-errors-v0.3.0...api-errors-v0.3.1) (2026-05-23)
 
 

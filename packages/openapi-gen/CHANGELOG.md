@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.0](https://github.com/codewithagents/glue/compare/openapi-gen-v1.0.1...openapi-gen-v1.1.0) (2026-05-23)
+
+
+### Features
+
+* **openapi-gen:** add Zod validation constraints from OpenAPI schema ([#28](https://github.com/codewithagents/glue/issues/28)) ([058bf01](https://github.com/codewithagents/glue/commit/058bf01cf0a4cdaf9e5ba5ac19124cab55f29129))
+
 ## [1.0.1](https://github.com/codewithagents/glue/compare/openapi-gen-v1.0.0...openapi-gen-v1.0.1) (2026-05-23)
 
 
