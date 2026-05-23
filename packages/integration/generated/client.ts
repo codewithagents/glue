@@ -68,6 +68,32 @@ export async function createTask(body: CreateTaskRequest, config?: Partial<Clien
   return res.json()
 }
 
+export async function uploadTaskAttachment(body: { file: File | Blob; label?: string }, config?: Partial<ClientConfig>): Promise<Task> {
+  const { baseUrl, token, credentials, headers, onError } = { ...getConfig(), ...config }
+  const base = baseUrl ? baseUrl.replace(/\/$/, '') : ''
+  const fullUrl = `${base}/api/v1/tasks/upload`
+  const finalUrl = fullUrl
+  const resolvedToken = typeof token === 'function' ? await token() : token
+  const formData = new FormData()
+  if (body.file != null) formData.append('file', body.file)
+  if (body.label != null) formData.append('label', String(body.label))
+  const res = await fetch(finalUrl, {
+    method: 'POST',
+    credentials,
+    headers: {
+      ...headers,
+      ...(resolvedToken ? { Authorization: `Bearer ${resolvedToken}` } : {}),
+    },
+    body: formData,
+  })
+  if (!res.ok) {
+    const err = new ApiError(res.status, await res.json().catch(() => null))
+    onError?.(err)
+    throw err
+  }
+  return res.json()
+}
+
 export async function getTask(id: string, config?: Partial<ClientConfig>): Promise<Task> {
   const { baseUrl, token, credentials, headers, onError } = { ...getConfig(), ...config }
   const base = baseUrl ? baseUrl.replace(/\/$/, '') : ''

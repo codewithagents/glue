@@ -69,6 +69,33 @@
         }
       }
     },
+    "/api/v1/tasks/upload": {
+      "post": {
+        "operationId": "uploadTaskAttachment",
+        "summary": "Upload a file attachment for a task",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "required": ["file"],
+                "properties": {
+                  "file": { "type": "string", "format": "binary" },
+                  "label": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Attachment created",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Task" } } }
+          }
+        }
+      }
+    },
     "/api/v1/tasks/{id}": {
       "get": {
         "operationId": "getTask",

@@ -10,6 +10,7 @@ import { join, dirname } from 'node:path'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const taskApiFixture = join(__dirname, '../__fixtures__/specs/task-api.json')
+const featureShowcaseFixture = join(__dirname, '../__fixtures__/specs/feature-showcase.json')
 
 // TypeScript compilation helper — compiles multiple in-memory files together.
 // Files are keyed by bare names (e.g. 'models.ts') and stored under /virtual/.
@@ -518,5 +519,93 @@ describe('YAML spec support', () => {
     const out = generateClient(spec).content
     expect(out).toContain('deleteItem')
     expect(out).toContain('Promise<void>')
+  })
+})
+
+describe('feature-showcase fixture', () => {
+  let content: string
+
+  beforeAll(async () => {
+    const spec = await parseSpec(featureShowcaseFixture)
+    content = generateClient(spec).content
+  })
+
+  // Feature 1: Query array params — correct serialization
+  it('uses searchParams.append for array query params (tags)', () => {
+    expect(content).toContain("searchParams.append('tags'")
+    expect(content).not.toContain("searchParams.set('tags'")
+  })
+
+  it('uses searchParams.append for array query params (status)', () => {
+    expect(content).toContain("searchParams.append('status'")
+    expect(content).not.toContain("searchParams.set('status'")
+  })
+
+  it('array param type is string[] in the params interface', () => {
+    expect(content).toContain('tags?: string[]')
+  })
+
+  // Feature 2: Header parameters
+  it('header param xStripeSignature is non-optional in params', () => {
+    expect(content).toContain('xStripeSignature: string')
+    expect(content).not.toContain('xStripeSignature?: string')
+  })
+
+  it('header param is forwarded to fetch headers', () => {
+    expect(content).toContain("'X-Stripe-Signature': params.xStripeSignature")
+  })
+
+  // Feature 3: Cookie auth — generateClientConfig with defaultCredentials: 'include'
+  it('generateClientConfig with defaultCredentials include emits credentials: include', () => {
+    const out = generateClientConfig({ defaultCredentials: 'include' }).content
+    expect(out).toContain("credentials: 'include'")
+  })
+
+  it('generateClientConfig with cookie auth has the cookie auth comment', () => {
+    const out = generateClientConfig({ defaultCredentials: 'include' }).content
+    expect(out).toContain('Cookie auth: send session cookie automatically')
+  })
+
+  // Feature 4: multipart/form-data
+  it('upload endpoint uses FormData instead of JSON.stringify', () => {
+    expect(content).toContain('new FormData()')
+    expect(content).toContain("formData.append('file'")
+  })
+
+  it('upload endpoint does NOT contain JSON.stringify(body)', () => {
+    // Extract just the uploadFile function block to avoid false positives
+    const uploadMatch = content.match(/export async function uploadFile[\s\S]*?^\}/m)
+    expect(uploadMatch).toBeTruthy()
+    expect(uploadMatch![0]).not.toContain('JSON.stringify(body)')
+  })
+
+  it('upload endpoint does NOT emit Content-Type application/json', () => {
+    const uploadMatch = content.match(/export async function uploadFile[\s\S]*?^\}/m)
+    expect(uploadMatch).toBeTruthy()
+    expect(uploadMatch![0]).not.toContain("'Content-Type': 'application/json'")
+  })
+
+  // Feature 5: TypeScript compilation
+  it('compiles without TypeScript errors', async () => {
+    const spec = await parseSpec(featureShowcaseFixture)
+    const clientConfigContent = generateClientConfig().content
+    const clientContent = generateClient(spec).content
+
+    const diagnostics = compileFiles({
+      'client-config.ts': clientConfigContent,
+      'client.ts': clientContent,
+    })
+
+    if (diagnostics.length > 0) {
+      const messages = diagnostics
+        .map(
+          (d) =>
+            `${d.file?.fileName}:${d.start} — ${ts.flattenDiagnosticMessageText(d.messageText, '\n')}`,
+        )
+        .join('\n')
+      throw new Error(`TypeScript errors in generated feature-showcase client:\n${messages}`)
+    }
+
+    expect(diagnostics.length).toBe(0)
   })
 })
