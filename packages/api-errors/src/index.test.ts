@@ -295,3 +295,92 @@ describe('mapApiErrors', () => {
     expect(setError).toHaveBeenCalledWith('root', { type: 'server', message: 'Unauthorised' })
   })
 })
+
+// ---------------------------------------------------------------------------
+// statusCodes filtering
+// ---------------------------------------------------------------------------
+
+describe('extractFieldErrors — statusCodes filtering', () => {
+  it('extracts errors when status matches', () => {
+    const err = { status: 422, errors: { email: ['Invalid'] } }
+    expect(extractFieldErrors(err, { statusCodes: [422] })).toEqual([
+      { field: 'email', message: 'Invalid' },
+    ])
+  })
+
+  it('returns [] when status does not match', () => {
+    const err = { status: 404, errors: { email: ['Invalid'] } }
+    expect(extractFieldErrors(err, { statusCodes: [422] })).toEqual([])
+  })
+
+  it('returns [] for 500 when only 422 allowed', () => {
+    const err = { status: 500, message: 'Internal Server Error' }
+    expect(extractFieldErrors(err, { statusCodes: [422] })).toEqual([])
+  })
+
+  it('allows multiple status codes', () => {
+    const err = { status: 400, errors: { name: ['required'] } }
+    expect(extractFieldErrors(err, { statusCodes: [400, 422] })).toEqual([
+      { field: 'name', message: 'required' },
+    ])
+  })
+
+  it('proceeds normally when no status on error', () => {
+    const err = { errors: { email: ['Invalid'] } }
+    expect(extractFieldErrors(err, { statusCodes: [422] })).toEqual([
+      { field: 'email', message: 'Invalid' },
+    ])
+  })
+
+  it('checks response.status for Axios-style errors', () => {
+    const err = { response: { status: 500, data: { errors: { email: ['Invalid'] } } } }
+    expect(extractFieldErrors(err, { statusCodes: [422] })).toEqual([])
+  })
+
+  it('extracts from Axios-style 422 error', () => {
+    const err = { response: { status: 422, data: { errors: { email: ['Invalid'] } } } }
+    expect(extractFieldErrors(err, { statusCodes: [422] })).toEqual([
+      { field: 'email', message: 'Invalid' },
+    ])
+  })
+})
+
+// ---------------------------------------------------------------------------
+// RFC 9457 top-level detail
+// ---------------------------------------------------------------------------
+
+describe('extractFieldErrors — RFC 9457 detail', () => {
+  it('extracts top-level detail as root error', () => {
+    expect(extractFieldErrors({ title: 'Bad Request', detail: 'Email already taken', status: 422 })).toEqual([
+      { field: 'root', message: 'Email already taken' },
+    ])
+  })
+
+  it('works with only detail, no title', () => {
+    expect(extractFieldErrors({ detail: 'Something went wrong' })).toEqual([
+      { field: 'root', message: 'Something went wrong' },
+    ])
+  })
+
+  it('uses custom fallbackField', () => {
+    expect(extractFieldErrors({ detail: 'Invalid input' }, { fallbackField: 'form' })).toEqual([
+      { field: 'form', message: 'Invalid input' },
+    ])
+  })
+
+  it('applies transformField to fallback field name', () => {
+    expect(
+      extractFieldErrors({ detail: 'Error' }, { fallbackField: 'rootError', transformField: (f) => f.toLowerCase() }),
+    ).toEqual([{ field: 'rooterror', message: 'Error' }])
+  })
+
+  it('does not fire when only title, no detail', () => {
+    expect(extractFieldErrors({ title: 'Not Found' })).toEqual([])
+  })
+
+  it('field-specific errors take precedence over top-level detail', () => {
+    // RFC 7807 errors map should be returned, not the detail
+    const err = { errors: { email: ['Invalid'] }, detail: 'Validation failed' }
+    expect(extractFieldErrors(err)).toEqual([{ field: 'email', message: 'Invalid' }])
+  })
+})
