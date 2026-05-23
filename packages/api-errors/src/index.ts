@@ -21,6 +21,18 @@ export interface MapApiErrorsOptions {
    * paths, e.g. `"addressCity"` → `"address.city"`.
    */
   transformField?: (field: string) => string
+  /**
+   * Restrict field error extraction to specific HTTP status codes.
+   * If provided, the error's `status` (or `response.status`) is checked first.
+   * If the status is not in this list, `extractFieldErrors` returns `[]` immediately
+   * without attempting to parse the body.
+   *
+   * Useful to avoid trying to extract field errors from 404 or 500 responses.
+   *
+   * @example
+   * extractFieldErrors(err, { statusCodes: [422] })
+   */
+  statusCodes?: number[]
 }
 
 // ---------------------------------------------------------------------------
@@ -146,6 +158,22 @@ function tryParseFlatArray(
   return result.length > 0 ? result : null
 }
 
+/**
+ * RFC 9457 / RFC 7807 top-level detail field:
+ * { "title": "Bad Request", "detail": "Email is already taken.", "status": 422 }
+ *
+ * Fires as a last-resort fallback when no field-specific errors are found.
+ */
+function tryParseRfc9457Detail(
+  body: Record<string, unknown>,
+  fallbackField: string,
+  transformField: (field: string) => string,
+): FieldError[] | null {
+  const detail = body['detail']
+  if (typeof detail !== 'string') return null
+  return [{ field: transformField(fallbackField), message: detail }]
+}
+
 // ---------------------------------------------------------------------------
 // Public API
 // ---------------------------------------------------------------------------
@@ -154,10 +182,14 @@ function tryParseFlatArray(
  * Extract normalized field errors from an unknown API error response.
  *
  * Supports:
- * - RFC 7807 Problem Details (Spring Boot 3+)
- * - Spring Boot default validation format
+ * - RFC 7807 / RFC 9457 Problem Details (Spring Boot 3+) with `errors` map
+ * - RFC 9457 top-level `detail` field as a root-level error
+ * - Spring Boot default validation format (array of `{ field, defaultMessage }`)
  * - Simple flat `{ field, message }` object
  * - Array of `{ field, message }` objects
+ *
+ * Use `statusCodes` to restrict extraction to specific HTTP status codes —
+ * avoids parsing 404 or 500 bodies as field errors.
  *
  * Never throws — returns an empty array for unrecognized shapes.
  */
@@ -169,6 +201,24 @@ export function extractFieldErrors(
   const transformField = options?.transformField ?? ((f) => f)
 
   try {
+    // Status-code filtering: if statusCodes is provided, check error.status
+    // (or error.response.status for Axios-style errors) before doing anything.
+    if (options?.statusCodes !== undefined) {
+      let status: number | undefined
+      if (isObject(error)) {
+        const e = error as Record<string, unknown>
+        if (typeof e['status'] === 'number') {
+          status = e['status'] as number
+        } else if (isObject(e['response'])) {
+          const r = e['response'] as Record<string, unknown>
+          if (typeof r['status'] === 'number') status = r['status'] as number
+        }
+      }
+      if (status !== undefined && !options.statusCodes.includes(status)) {
+        return []
+      }
+    }
+
     // Unwrap common error wrapper shapes (e.g. Axios response, fetch response body)
     let body: unknown = error
 
@@ -200,6 +250,10 @@ export function extractFieldErrors(
     // Try simple flat object
     const flat = tryParseFlatObject(body, fallbackField, transformField)
     if (flat !== null) return flat
+
+    // Try RFC 9457 top-level detail as a last-resort root error
+    const rfc9457 = tryParseRfc9457Detail(body, fallbackField, transformField)
+    if (rfc9457 !== null) return rfc9457
 
     return []
   } catch {
