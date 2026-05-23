@@ -1,0 +1,235 @@
+import { describe, it, expect } from 'vitest'
+import { generateZodSchemas } from '../plugins/zod.js'
+import type { OpenAPIV3_1 } from 'openapi-types'
+
+function gen(schemas: Record<string, OpenAPIV3_1.SchemaObject | OpenAPIV3_1.ReferenceObject>): string {
+  const spec: OpenAPIV3_1.Document = {
+    openapi: '3.1.0',
+    info: { title: 'Test', version: '1.0.0' },
+    paths: {},
+    components: { schemas },
+  }
+  return generateZodSchemas(spec).content
+}
+
+function genSingle(name: string, schema: OpenAPIV3_1.SchemaObject | OpenAPIV3_1.ReferenceObject): string {
+  return gen({ [name]: schema })
+}
+
+describe('output file', () => {
+  it('returns filename schemas.ts', () => {
+    const spec: OpenAPIV3_1.Document = { openapi: '3.1.0', info: { title: 'T', version: '1' }, paths: {} }
+    expect(generateZodSchemas(spec).filename).toBe('schemas.ts')
+  })
+
+  it('starts with the bootstrap header', () => {
+    const out = genSingle('A', { type: 'object' })
+    expect(out).toContain('Bootstrapped by @codewithagents/openapi-gen')
+    expect(out).toContain("will NOT overwrite")
+  })
+
+  it('imports z from zod', () => {
+    const out = genSingle('A', { type: 'object' })
+    expect(out).toContain("import { z } from 'zod'")
+  })
+
+  it('handles spec with no components gracefully', () => {
+    const spec: OpenAPIV3_1.Document = { openapi: '3.1.0', info: { title: 'T', version: '1' }, paths: {} }
+    expect(() => generateZodSchemas(spec)).not.toThrow()
+  })
+})
+
+describe('primitive types', () => {
+  it('string → z.string()', () => {
+    expect(genSingle('A', { type: 'object', required: ['f'], properties: { f: { type: 'string' } } }))
+      .toContain('z.string()')
+  })
+
+  it('number → z.number()', () => {
+    expect(genSingle('A', { type: 'object', required: ['f'], properties: { f: { type: 'number' } } }))
+      .toContain('z.number()')
+  })
+
+  it('integer → z.number()', () => {
+    expect(genSingle('A', { type: 'object', required: ['f'], properties: { f: { type: 'integer' } } }))
+      .toContain('z.number()')
+  })
+
+  it('boolean → z.boolean()', () => {
+    expect(genSingle('A', { type: 'object', required: ['f'], properties: { f: { type: 'boolean' } } }))
+      .toContain('z.boolean()')
+  })
+
+  it('unknown type → z.unknown()', () => {
+    expect(genSingle('A', {
+      type: 'object', required: ['f'],
+      // @ts-expect-error intentionally invalid type
+      properties: { f: { type: 'custom-type' } },
+    })).toContain('z.unknown()')
+  })
+})
+
+describe('nullable types (OpenAPI 3.1 array syntax)', () => {
+  it('["string","null"] → z.string().nullable()', () => {
+    expect(genSingle('A', { type: 'object', properties: { f: { type: ['string', 'null'] } } }))
+      .toContain('z.string().nullable()')
+  })
+
+  it('["number","null"] → z.number().nullable()', () => {
+    expect(genSingle('A', { type: 'object', properties: { f: { type: ['number', 'null'] } } }))
+      .toContain('z.number().nullable()')
+  })
+
+  it('["string","number"] → z.union([z.string(), z.number()])', () => {
+    expect(genSingle('A', { type: 'object', properties: { f: { type: ['string', 'number'] } } }))
+      .toContain('z.union([z.string(), z.number()])')
+  })
+})
+
+describe('optional fields', () => {
+  it('required field has no .optional()', () => {
+    const out = genSingle('A', { type: 'object', required: ['id'], properties: { id: { type: 'string' } } })
+    expect(out).toContain('id: z.string()')
+    expect(out).not.toContain('id: z.string().optional()')
+  })
+
+  it('optional field has .optional()', () => {
+    const out = genSingle('A', { type: 'object', properties: { name: { type: 'string' } } })
+    expect(out).toContain('name: z.string().optional()')
+  })
+})
+
+describe('enum types', () => {
+  it('string enum → z.enum([...])', () => {
+    const out = genSingle('Status', { type: 'string', enum: ['active', 'inactive'] })
+    expect(out).toContain("z.enum(['active', 'inactive'])")
+  })
+
+  it('integer enum → z.union([z.literal(...), ...])', () => {
+    const out = genSingle('Priority', { type: 'integer', enum: [1, 2, 3] })
+    expect(out).toContain('z.union([z.literal(1), z.literal(2), z.literal(3)])')
+  })
+})
+
+describe('array types', () => {
+  it('array of string → z.array(z.string())', () => {
+    expect(genSingle('A', { type: 'object', properties: { f: { type: 'array', items: { type: 'string' } } } }))
+      .toContain('z.array(z.string())')
+  })
+
+  it('array with no items → z.array(z.unknown())', () => {
+    expect(genSingle('A', { type: 'object', properties: { f: { type: 'array' } } }))
+      .toContain('z.array(z.unknown())')
+  })
+
+  it('array of $ref → z.array(TagSchema)', () => {
+    const out = gen({
+      Tag: { type: 'object', properties: { id: { type: 'string' } } },
+      A: { type: 'object', properties: { tags: { type: 'array', items: { $ref: '#/components/schemas/Tag' } } } },
+    })
+    expect(out).toContain('z.array(TagSchema)')
+  })
+})
+
+describe('object types', () => {
+  it('empty object → z.record(z.string(), z.unknown())', () => {
+    const out = genSingle('E', { type: 'object' })
+    expect(out).toContain('z.record(z.string(), z.unknown())')
+  })
+
+  it('additionalProperties → z.record(z.string(), z.string())', () => {
+    const out = genSingle('M', { type: 'object', additionalProperties: { type: 'string' } })
+    expect(out).toContain('z.record(z.string(), z.string())')
+  })
+
+  it('generates z.object({ ... }) for schemas with properties', () => {
+    const out = genSingle('A', { type: 'object', properties: { name: { type: 'string' } } })
+    expect(out).toContain('z.object({')
+  })
+})
+
+describe('$ref handling', () => {
+  it('top-level $ref → references other schema by name', () => {
+    const out = gen({
+      Status: { type: 'string', enum: ['a', 'b'] },
+      Task: { type: 'object', required: ['status'], properties: { status: { $ref: '#/components/schemas/Status' } } },
+    })
+    expect(out).toContain('StatusSchema')
+    expect(out).toContain('status: StatusSchema')
+  })
+
+  it('$ref alias schema → references by schema name', () => {
+    const out = gen({
+      Original: { type: 'object', properties: { id: { type: 'string' } } },
+      Alias: { $ref: '#/components/schemas/Original' },
+    })
+    expect(out).toContain('AliasSchema = OriginalSchema')
+  })
+})
+
+describe('composition types', () => {
+  it('allOf → .and() chain', () => {
+    const out = gen({
+      A: { type: 'object', properties: { a: { type: 'string' } } },
+      B: { type: 'object', properties: { b: { type: 'string' } } },
+      C: { allOf: [{ $ref: '#/components/schemas/A' }, { $ref: '#/components/schemas/B' }] },
+    })
+    expect(out).toContain('ASchema.and(BSchema)')
+  })
+
+  it('anyOf → z.union([...])', () => {
+    const out = gen({
+      A: { type: 'object', properties: { a: { type: 'string' } } },
+      B: { type: 'object', properties: { b: { type: 'string' } } },
+      C: { anyOf: [{ $ref: '#/components/schemas/A' }, { $ref: '#/components/schemas/B' }] },
+    })
+    expect(out).toContain('z.union([ASchema, BSchema])')
+  })
+
+  it('oneOf → z.union([...])', () => {
+    const out = gen({
+      A: { type: 'object', properties: { a: { type: 'string' } } },
+      B: { type: 'object', properties: { b: { type: 'string' } } },
+      C: { oneOf: [{ $ref: '#/components/schemas/A' }, { $ref: '#/components/schemas/B' }] },
+    })
+    expect(out).toContain('z.union([ASchema, BSchema])')
+  })
+})
+
+describe('circular / self-referential schemas', () => {
+  it('wraps self-referential schema in z.lazy()', () => {
+    const out = gen({
+      TreeNode: {
+        type: 'object',
+        properties: {
+          value: { type: 'string' },
+          children: { type: 'array', items: { $ref: '#/components/schemas/TreeNode' } },
+        },
+      },
+    })
+    expect(out).toContain('z.lazy(')
+    expect(out).toContain('TreeNodeSchema')
+  })
+
+  it('non-circular schema is NOT wrapped in z.lazy()', () => {
+    const out = gen({
+      Tag: { type: 'object', properties: { id: { type: 'string' } } },
+      Task: { type: 'object', properties: { tag: { $ref: '#/components/schemas/Tag' } } },
+    })
+    expect(out).not.toContain('z.lazy(')
+  })
+})
+
+describe('special property names', () => {
+  it('hyphenated property key is quoted', () => {
+    const out = genSingle('A', { type: 'object', properties: { 'Content-Type': { type: 'string' } } })
+    expect(out).toMatch(/'Content-Type'/)
+  })
+})
+
+describe('schema const naming', () => {
+  it('exports const named <TypeName>Schema', () => {
+    const out = genSingle('Task', { type: 'object', properties: { id: { type: 'string' } } })
+    expect(out).toContain('export const TaskSchema')
+  })
+})
