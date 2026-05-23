@@ -373,9 +373,9 @@ export function generateClient(spec: OpenAPIV3_1.Document): GeneratedFile {
 
   if (collectedTypeNames.size > 0) {
     const sortedTypes = Array.from(collectedTypeNames).sort()
-    lines.push(`import type { ${sortedTypes.join(', ')} } from './models'`)
+    lines.push(`import type { ${sortedTypes.join(', ')} } from './models.js'`)
   }
-  lines.push(`import { getConfig, type ClientConfig } from './client-config'`)
+  lines.push(`import { getConfig, type ClientConfig } from './client-config.js'`)
   lines.push('')
 
   // ApiError class

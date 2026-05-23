@@ -384,3 +384,70 @@ describe('extractFieldErrors — RFC 9457 detail', () => {
     expect(extractFieldErrors(err)).toEqual([{ field: 'email', message: 'Invalid' }])
   })
 })
+
+// ---------------------------------------------------------------------------
+// ApiError body unwrapping (openapi-gen integration)
+// ---------------------------------------------------------------------------
+
+describe('extractFieldErrors — ApiError body unwrapping', () => {
+  it('unwraps { status, body } shape and extracts RFC 7807 errors', () => {
+    const apiError = {
+      status: 422,
+      body: { errors: { email: ['must not be blank'], title: ['too short'] } },
+    }
+    const result = extractFieldErrors(apiError)
+    expect(result).toHaveLength(2)
+    expect(result).toContainEqual({ field: 'email', message: 'must not be blank' })
+    expect(result).toContainEqual({ field: 'title', message: 'too short' })
+  })
+
+  it('unwraps { status, body } and extracts RFC 9457 detail', () => {
+    const apiError = {
+      status: 422,
+      body: { title: 'Unprocessable Entity', detail: 'Email already in use', status: 422 },
+    }
+    expect(extractFieldErrors(apiError)).toEqual([
+      { field: 'root', message: 'Email already in use' },
+    ])
+  })
+
+  it('works with statusCodes filtering — passes when status matches', () => {
+    const apiError = {
+      status: 422,
+      body: { errors: { name: ['required'] } },
+    }
+    expect(extractFieldErrors(apiError, { statusCodes: [422] })).toEqual([
+      { field: 'name', message: 'required' },
+    ])
+  })
+
+  it('works with statusCodes filtering — blocked when status does not match', () => {
+    const apiError = {
+      status: 404,
+      body: { title: 'Not Found', detail: 'Task not found', status: 404 },
+    }
+    expect(extractFieldErrors(apiError, { statusCodes: [422] })).toEqual([])
+  })
+
+  it('unwraps { status, body } where body is null and returns []', () => {
+    const apiError = { status: 500, body: null }
+    expect(extractFieldErrors(apiError)).toEqual([])
+  })
+
+  it('does not confuse a plain object with field named body', () => {
+    // Only unwraps when the object also has a numeric status
+    const plain = { body: { errors: { email: ['Invalid'] } } }
+    // No numeric status → NOT treated as ApiError wrapper → tries to parse as flat object → returns []
+    expect(extractFieldErrors(plain)).toEqual([])
+  })
+
+  it('applies transformField after body unwrapping', () => {
+    const apiError = {
+      status: 422,
+      body: { errors: { emailAddress: ['invalid'] } },
+    }
+    expect(
+      extractFieldErrors(apiError, { transformField: (f) => f.replace(/([A-Z])/g, '.$1').toLowerCase() }),
+    ).toEqual([{ field: 'email.address', message: 'invalid' }])
+  })
+})
