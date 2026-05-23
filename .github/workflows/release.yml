@@ -3,6 +3,16 @@ name: Release Please
 on:
   push:
     branches: [main]
+  workflow_dispatch:
+    inputs:
+      publish_openapi_gen:
+        description: 'Re-publish @codewithagents/openapi-gen (for failed release recovery)'
+        type: boolean
+        default: false
+      publish_api_errors:
+        description: 'Re-publish @codewithagents/api-errors (for failed release recovery)'
+        type: boolean
+        default: false
 
 permissions:
   contents: write       # create tags and releases
@@ -27,7 +37,7 @@ jobs:
   publish-api-errors:
     name: Publish @codewithagents/api-errors
     needs: release-please
-    if: ${{ needs.release-please.outputs['api-errors--release_created'] }}
+    if: ${{ needs.release-please.outputs['api-errors--release_created'] || inputs.publish_api_errors }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -50,7 +60,7 @@ jobs:
   publish-openapi-gen:
     name: Publish @codewithagents/openapi-gen
     needs: release-please
-    if: ${{ needs.release-please.outputs['openapi-gen--release_created'] }}
+    if: ${{ needs.release-please.outputs['openapi-gen--release_created'] || inputs.publish_openapi_gen }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
