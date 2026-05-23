@@ -16,7 +16,7 @@
     "dist"
   ],
   "scripts": {
-    "build": "tsc -p tsconfig.build.json",
+    "build": "tsc -p tsconfig.build.json && chmod +x dist/cli.js",
     "lint": "tsc -p tsconfig.build.json --noEmit",
     "test": "vitest run --exclude 'src/__tests__/integration.test.ts'",
     "test:integration": "vitest run src/__tests__/integration.test.ts",
@@ -34,6 +34,10 @@
     "typescript": "^6.0.0"
   },
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/codewithagents/glue"
+  },
   "publishConfig": {
     "access": "public"
   }
