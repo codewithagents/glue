@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.0](https://github.com/codewithagents/glue/compare/openapi-gen-v1.2.0...openapi-gen-v1.3.0) (2026-05-23)
+
+
+### Features
+
+* **openapi-gen:** header params, cookie auth, multipart bodies, array query serialization ([#33](https://github.com/codewithagents/glue/issues/33)) ([dbfc3da](https://github.com/codewithagents/glue/commit/dbfc3da28593521e6c9832507fc684b7d2ca82cd))
+
 ## [1.2.0](https://github.com/codewithagents/glue/compare/openapi-gen-v1.1.0...openapi-gen-v1.2.0) (2026-05-23)
 
 
