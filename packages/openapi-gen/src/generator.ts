@@ -3,6 +3,8 @@ import { join, resolve } from 'node:path'
 import { loadConfig } from './config.js'
 import { parseSpec } from './parser.js'
 import { generateTypes } from './plugins/types.js'
+import { generateClientConfig } from './plugins/client-config.js'
+import { generateClient } from './plugins/client.js'
 
 export async function generate(cwd: string): Promise<void> {
   console.log('Loading config...')
@@ -18,6 +20,10 @@ export async function generate(cwd: string): Promise<void> {
 
   // Phase 1: always generate types
   generatedFiles.push(generateTypes(spec))
+
+  // Phase 2: always generate client config and fetch client
+  generatedFiles.push(generateClientConfig())
+  generatedFiles.push(generateClient(spec))
 
   console.log(`Writing output to: ${outputDir}`)
   await mkdir(outputDir, { recursive: true })
