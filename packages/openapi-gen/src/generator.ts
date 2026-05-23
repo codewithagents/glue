@@ -6,6 +6,7 @@ import { generateTypes } from './plugins/types.js'
 import { generateClientConfig } from './plugins/client-config.js'
 import { generateClient } from './plugins/client.js'
 import { generateZodSchemas } from './plugins/zod.js'
+import { generateIndexBarrel } from './plugins/index-barrel.js'
 
 export async function generate(cwd: string): Promise<void> {
   console.log('Loading config...')
@@ -22,9 +23,10 @@ export async function generate(cwd: string): Promise<void> {
   // Phase 1: always generate types
   generatedFiles.push(generateTypes(spec))
 
-  // Phase 2: always generate client config and fetch client
+  // Phase 2: always generate client config, fetch client, and barrel index
   generatedFiles.push(generateClientConfig())
   generatedFiles.push(generateClient(spec))
+  generatedFiles.push(generateIndexBarrel())
 
   console.log(`Writing output to: ${outputDir}`)
   await mkdir(outputDir, { recursive: true })
