@@ -226,7 +226,7 @@ function generateFunctionCode(
       : `Promise<${returnType.typeName}>`
 
   lines.push(`export async function ${funcName}(${sigParts.join(', ')}): ${returnTs} {`)
-  lines.push(`  const { baseUrl, token, credentials, headers } = { ...getConfig(), ...config }`)
+  lines.push(`  const { baseUrl, token, credentials, headers, onError } = { ...getConfig(), ...config }`)
 
   // Build URL
   const urlExpression = pathToUrlExpression(path)
@@ -283,9 +283,17 @@ function generateFunctionCode(
 
   lines.push(...fetchLines)
   if (returnType.isVoid) {
-    lines.push(`  if (!res.ok) throw new ApiError(res.status, null)`)
+    lines.push(`  if (!res.ok) {`)
+    lines.push(`    const err = new ApiError(res.status, null)`)
+    lines.push(`    onError?.(err)`)
+    lines.push(`    throw err`)
+    lines.push(`  }`)
   } else {
-    lines.push(`  if (!res.ok) throw new ApiError(res.status, await res.json().catch(() => null))`)
+    lines.push(`  if (!res.ok) {`)
+    lines.push(`    const err = new ApiError(res.status, await res.json().catch(() => null))`)
+    lines.push(`    onError?.(err)`)
+    lines.push(`    throw err`)
+    lines.push(`  }`)
     lines.push(`  return res.json()`)
   }
 

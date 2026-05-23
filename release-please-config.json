@@ -11,7 +11,8 @@
       "release-type": "node",
       "package-name": "@codewithagents/openapi-gen",
       "component": "openapi-gen",
-      "changelog-path": "CHANGELOG.md"
+      "changelog-path": "CHANGELOG.md",
+      "bump-major-pre-major": true
     }
   }
 }

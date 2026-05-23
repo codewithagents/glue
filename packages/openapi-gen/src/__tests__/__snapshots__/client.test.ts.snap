@@ -21,7 +21,7 @@ export async function getTasks(params: {
   status?: string
   done?: boolean
 }, config?: Partial<ClientConfig>): Promise<Task[]> {
-  const { baseUrl, token, credentials, headers } = { ...getConfig(), ...config }
+  const { baseUrl, token, credentials, headers, onError } = { ...getConfig(), ...config }
   const base = baseUrl ? baseUrl.replace(/\\/$/, '') : ''
   const fullUrl = \`\${base}/api/v1/tasks\`
   const searchParams = new URLSearchParams()
@@ -39,12 +39,16 @@ export async function getTasks(params: {
       ...(resolvedToken ? { Authorization: \`Bearer \${resolvedToken}\` } : {}),
     },
   })
-  if (!res.ok) throw new ApiError(res.status, await res.json().catch(() => null))
+  if (!res.ok) {
+    const err = new ApiError(res.status, await res.json().catch(() => null))
+    onError?.(err)
+    throw err
+  }
   return res.json()
 }
 
 export async function createTask(body: CreateTaskRequest, config?: Partial<ClientConfig>): Promise<Task> {
-  const { baseUrl, token, credentials, headers } = { ...getConfig(), ...config }
+  const { baseUrl, token, credentials, headers, onError } = { ...getConfig(), ...config }
   const base = baseUrl ? baseUrl.replace(/\\/$/, '') : ''
   const fullUrl = \`\${base}/api/v1/tasks\`
   const finalUrl = fullUrl
@@ -59,12 +63,16 @@ export async function createTask(body: CreateTaskRequest, config?: Partial<Clien
     },
     body: JSON.stringify(body),
   })
-  if (!res.ok) throw new ApiError(res.status, await res.json().catch(() => null))
+  if (!res.ok) {
+    const err = new ApiError(res.status, await res.json().catch(() => null))
+    onError?.(err)
+    throw err
+  }
   return res.json()
 }
 
 export async function getTaskById(id: string, config?: Partial<ClientConfig>): Promise<Task> {
-  const { baseUrl, token, credentials, headers } = { ...getConfig(), ...config }
+  const { baseUrl, token, credentials, headers, onError } = { ...getConfig(), ...config }
   const base = baseUrl ? baseUrl.replace(/\\/$/, '') : ''
   const fullUrl = \`\${base}/api/v1/tasks/\${encodeURIComponent(id)}\`
   const finalUrl = fullUrl
@@ -77,12 +85,16 @@ export async function getTaskById(id: string, config?: Partial<ClientConfig>): P
       ...(resolvedToken ? { Authorization: \`Bearer \${resolvedToken}\` } : {}),
     },
   })
-  if (!res.ok) throw new ApiError(res.status, await res.json().catch(() => null))
+  if (!res.ok) {
+    const err = new ApiError(res.status, await res.json().catch(() => null))
+    onError?.(err)
+    throw err
+  }
   return res.json()
 }
 
 export async function updateTask(id: string, body: CreateTaskRequest, config?: Partial<ClientConfig>): Promise<Task> {
-  const { baseUrl, token, credentials, headers } = { ...getConfig(), ...config }
+  const { baseUrl, token, credentials, headers, onError } = { ...getConfig(), ...config }
   const base = baseUrl ? baseUrl.replace(/\\/$/, '') : ''
   const fullUrl = \`\${base}/api/v1/tasks/\${encodeURIComponent(id)}\`
   const finalUrl = fullUrl
@@ -97,12 +109,16 @@ export async function updateTask(id: string, body: CreateTaskRequest, config?: P
     },
     body: JSON.stringify(body),
   })
-  if (!res.ok) throw new ApiError(res.status, await res.json().catch(() => null))
+  if (!res.ok) {
+    const err = new ApiError(res.status, await res.json().catch(() => null))
+    onError?.(err)
+    throw err
+  }
   return res.json()
 }
 
 export async function deleteTask(id: string, config?: Partial<ClientConfig>): Promise<void> {
-  const { baseUrl, token, credentials, headers } = { ...getConfig(), ...config }
+  const { baseUrl, token, credentials, headers, onError } = { ...getConfig(), ...config }
   const base = baseUrl ? baseUrl.replace(/\\/$/, '') : ''
   const fullUrl = \`\${base}/api/v1/tasks/\${encodeURIComponent(id)}\`
   const finalUrl = fullUrl
@@ -115,11 +131,15 @@ export async function deleteTask(id: string, config?: Partial<ClientConfig>): Pr
       ...(resolvedToken ? { Authorization: \`Bearer \${resolvedToken}\` } : {}),
     },
   })
-  if (!res.ok) throw new ApiError(res.status, null)
+  if (!res.ok) {
+    const err = new ApiError(res.status, null)
+    onError?.(err)
+    throw err
+  }
 }
 
 export async function addTagToTask(id: string, body: Tag, config?: Partial<ClientConfig>): Promise<Task> {
-  const { baseUrl, token, credentials, headers } = { ...getConfig(), ...config }
+  const { baseUrl, token, credentials, headers, onError } = { ...getConfig(), ...config }
   const base = baseUrl ? baseUrl.replace(/\\/$/, '') : ''
   const fullUrl = \`\${base}/api/v1/tasks/\${encodeURIComponent(id)}/tags\`
   const finalUrl = fullUrl
@@ -134,7 +154,11 @@ export async function addTagToTask(id: string, body: Tag, config?: Partial<Clien
     },
     body: JSON.stringify(body),
   })
-  if (!res.ok) throw new ApiError(res.status, await res.json().catch(() => null))
+  if (!res.ok) {
+    const err = new ApiError(res.status, await res.json().catch(() => null))
+    onError?.(err)
+    throw err
+  }
   return res.json()
 }
 "
