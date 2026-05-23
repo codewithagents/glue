@@ -153,11 +153,29 @@ function getReturnType(operation: OperationObject): { typeName: string; isArray:
   return { typeName: 'void', isArray: false, isVoid: true }
 }
 
-function getPathParams(operation: OperationObject): string[] {
+function resolveParamRef(
+  p: ParameterObject | ReferenceObject,
+  spec: OpenAPIV3_1.Document,
+): ParameterObject | null {
+  if (!isRef(p)) return p as ParameterObject
+  const ref = (p as ReferenceObject).$ref
+  // Only support local component refs: #/components/parameters/Name
+  const match = /^#\/components\/parameters\/(.+)$/.exec(ref)
+  if (match === null) return null
+  const name = match[1]!
+  const params = spec.components?.parameters as Record<string, ParameterObject | ReferenceObject> | undefined
+  if (params === undefined) return null
+  const resolved = params[name]
+  if (resolved === undefined || isRef(resolved)) return null
+  return resolved as ParameterObject
+}
+
+function getPathParams(operation: OperationObject, spec: OpenAPIV3_1.Document): string[] {
   const params = operation.parameters as (ParameterObject | ReferenceObject)[] | undefined
   if (params === undefined) return []
   return params
-    .filter((p): p is ParameterObject => !isRef(p) && (p as ParameterObject).in === 'path')
+    .map((p) => resolveParamRef(p, spec))
+    .filter((p): p is ParameterObject => p !== null && p.in === 'path')
     .map((p) => p.name)
 }
 
@@ -167,11 +185,12 @@ interface QueryParam {
   required: boolean
 }
 
-function getQueryParams(operation: OperationObject): QueryParam[] {
+function getQueryParams(operation: OperationObject, spec: OpenAPIV3_1.Document): QueryParam[] {
   const params = operation.parameters as (ParameterObject | ReferenceObject)[] | undefined
   if (params === undefined) return []
   return params
-    .filter((p): p is ParameterObject => !isRef(p) && (p as ParameterObject).in === 'query')
+    .map((p) => resolveParamRef(p, spec))
+    .filter((p): p is ParameterObject => p !== null && p.in === 'query')
     .map((p) => ({
       name: p.name,
       type: queryParamType(p.schema as SchemaObject | ReferenceObject | undefined),
@@ -198,11 +217,12 @@ function headerNameToCamelCase(headerName: string): string {
     .join('')
 }
 
-function getHeaderParams(operation: OperationObject): HeaderParam[] {
+function getHeaderParams(operation: OperationObject, spec: OpenAPIV3_1.Document): HeaderParam[] {
   const params = operation.parameters as (ParameterObject | ReferenceObject)[] | undefined
   if (params === undefined) return []
   return params
-    .filter((p): p is ParameterObject => !isRef(p) && (p as ParameterObject).in === 'header')
+    .map((p) => resolveParamRef(p, spec))
+    .filter((p): p is ParameterObject => p !== null && p.in === 'header')
     .map((p) => ({
       name: headerNameToCamelCase(p.name),
       headerName: p.name,
@@ -472,9 +492,9 @@ export function generateClient(spec: OpenAPIV3_1.Document): GeneratedFile {
           funcName = deriveOperationName(method, path)
         }
 
-        const pathParams = getPathParams(operation)
-        const queryParams = getQueryParams(operation)
-        const headerParams = getHeaderParams(operation)
+        const pathParams = getPathParams(operation, spec)
+        const queryParams = getQueryParams(operation, spec)
+        const headerParams = getHeaderParams(operation, spec)
         const bodyInfo = getRequestBodyInfo(operation)
         const returnType = getReturnType(operation)
 

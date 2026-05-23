@@ -292,6 +292,35 @@ describe('string validation constraints', () => {
   })
 })
 
+describe('array length constraints', () => {
+  it('applies minItems constraint', () => {
+    const out = genSingle('A', { type: 'array', items: { type: 'string' }, minItems: 1 })
+    expect(out).toContain('z.array(z.string()).min(1)')
+  })
+
+  it('applies maxItems constraint', () => {
+    const out = genSingle('A', { type: 'array', items: { type: 'string' }, maxItems: 3 })
+    expect(out).toContain('z.array(z.string()).max(3)')
+  })
+
+  it('applies both minItems and maxItems', () => {
+    const out = genSingle('A', { type: 'array', items: { type: 'string' }, minItems: 1, maxItems: 3 })
+    expect(out).toContain('z.array(z.string()).min(1).max(3)')
+  })
+
+  it('array with no items and minItems → z.array(z.unknown()).min(n)', () => {
+    const out = genSingle('A', { type: 'array', minItems: 2 })
+    expect(out).toContain('z.array(z.unknown()).min(2)')
+  })
+
+  it('array with no constraints → no .min() or .max()', () => {
+    const out = genSingle('A', { type: 'array', items: { type: 'string' } })
+    expect(out).toContain('z.array(z.string())')
+    expect(out).not.toContain('.min(')
+    expect(out).not.toContain('.max(')
+  })
+})
+
 describe('number validation constraints', () => {
   it('minimum → .min(n)', () => {
     expect(genSingle('A', { type: 'number', minimum: 0 })).toContain('z.number().min(0)')

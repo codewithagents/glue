@@ -1,0 +1,37 @@
+{
+  "openapi": "3.1.0",
+  "info": { "title": "Ref Params", "version": "1.0.0" },
+  "components": {
+    "parameters": {
+      "UuidPath": {
+        "name": "uuid",
+        "in": "path",
+        "required": true,
+        "schema": { "type": "string", "format": "uuid" }
+      },
+      "PageQuery": {
+        "name": "page",
+        "in": "query",
+        "required": false,
+        "schema": { "type": "integer" }
+      }
+    }
+  },
+  "paths": {
+    "/resources/{uuid}": {
+      "get": {
+        "operationId": "getResource",
+        "parameters": [
+          { "$ref": "#/components/parameters/UuidPath" },
+          { "$ref": "#/components/parameters/PageQuery" }
+        ],
+        "responses": {
+          "200": {
+            "description": "ok",
+            "content": { "application/json": { "schema": { "type": "object", "properties": { "id": { "type": "string" } } } } }
+          }
+        }
+      }
+    }
+  }
+}
