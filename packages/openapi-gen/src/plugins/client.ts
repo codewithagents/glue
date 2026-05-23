@@ -76,6 +76,10 @@ function queryParamType(schema: SchemaObject | ReferenceObject | undefined): str
   if (isRef(schema)) return 'string'
   const s = schema as SchemaObject
   if (s.type === 'array') return 'string[]'
+  // String enum → union literal type (e.g. 'active' | 'inactive')
+  if (s.type === 'string' && Array.isArray(s.enum) && s.enum.length > 0) {
+    return (s.enum as string[]).map((v) => `'${v}'`).join(' | ')
+  }
   return primitiveToTs(s.type as string | undefined)
 }
 

@@ -458,3 +458,58 @@ describe('fixture: petstore31 (real-world public spec)', () => {
     expect(diagnostics.length).toBe(0)
   })
 })
+
+describe('enum query params', () => {
+  it('string enum query param generates union literal type', async () => {
+    const spec = await parseSpec(join(__dirname, '../__fixtures__/specs/simple-api.yaml'))
+    const out = generateClient(spec).content
+    // category has enum: ["books", "electronics", "clothing"]
+    expect(out).toContain("'books' | 'electronics' | 'clothing'")
+  })
+
+  it('required integer param stays as number (not enum)', async () => {
+    const spec = await parseSpec(join(__dirname, '../__fixtures__/specs/simple-api.yaml'))
+    const out = generateClient(spec).content
+    expect(out).toContain('page: number')
+  })
+
+  it('enum param compiles cleanly with TypeScript', async () => {
+    const spec = await parseSpec(join(__dirname, '../__fixtures__/specs/simple-api.yaml'))
+    const diagnostics = compileFiles({
+      'models.ts': generateTypes(spec).content,
+      'client-config.ts': generateClientConfig().content,
+      'client.ts': generateClient(spec).content,
+    })
+    expect(diagnostics.length).toBe(0)
+  })
+})
+
+describe('YAML spec support', () => {
+  it('parses YAML spec without errors', async () => {
+    const spec = await parseSpec(join(__dirname, '../__fixtures__/specs/simple-api.yaml'))
+    expect(() => generateClient(spec)).not.toThrow()
+    expect(() => generateTypes(spec)).not.toThrow()
+  })
+
+  it('generates listItems from YAML spec', async () => {
+    const spec = await parseSpec(join(__dirname, '../__fixtures__/specs/simple-api.yaml'))
+    const out = generateClient(spec).content
+    expect(out).toContain('listItems')
+    expect(out).toContain('page: number')
+    expect(out).toContain('Promise<Item[]>')
+  })
+
+  it('generates getItem with path param from YAML spec', async () => {
+    const spec = await parseSpec(join(__dirname, '../__fixtures__/specs/simple-api.yaml'))
+    const out = generateClient(spec).content
+    expect(out).toContain('getItem')
+    expect(out).toContain('Promise<Item>')
+  })
+
+  it('generates deleteItem returning void from YAML spec', async () => {
+    const spec = await parseSpec(join(__dirname, '../__fixtures__/specs/simple-api.yaml'))
+    const out = generateClient(spec).content
+    expect(out).toContain('deleteItem')
+    expect(out).toContain('Promise<void>')
+  })
+})
