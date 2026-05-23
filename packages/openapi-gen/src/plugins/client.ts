@@ -20,20 +20,41 @@ function isRef(obj: unknown): obj is ReferenceObject {
   return typeof obj === 'object' && obj !== null && '$ref' in obj
 }
 
+/** Convert an inline schema to a TypeScript type string (for use in return/param positions). */
+function inlineSchemaToTs(schema: SchemaObject | ReferenceObject): string {
+  if (isRef(schema)) return refToTypeName((schema as ReferenceObject).$ref)
+  const s = schema as SchemaObject
+  if (Array.isArray(s.type)) {
+    return (s.type as string[]).map((t) => (t === 'null' ? 'null' : primitiveToTs(t))).join(' | ')
+  }
+  if (s.type === 'array') {
+    const items = (s as OpenAPIV3_1.ArraySchemaObject).items as SchemaObject | ReferenceObject | undefined
+    if (items !== undefined) return `${inlineSchemaToTs(items)}[]`
+    return 'unknown[]'
+  }
+  if (s.type === 'object') return 'Record<string, unknown>'
+  if (s.type !== undefined) return primitiveToTs(s.type as string)
+  return 'unknown'
+}
+
 function resolveSchema(schema: SchemaObject | ReferenceObject): { typeName: string; isArray: boolean } {
   if (isRef(schema)) {
     return { typeName: refToTypeName((schema as ReferenceObject).$ref), isArray: false }
   }
   const s = schema as SchemaObject
-  if (s.type === 'array' && s.items !== undefined) {
-    const items = s.items as SchemaObject | ReferenceObject
-    if (isRef(items)) {
-      return { typeName: refToTypeName((items as ReferenceObject).$ref), isArray: true }
+  if (s.type === 'array') {
+    const items = (s as OpenAPIV3_1.ArraySchemaObject).items as SchemaObject | ReferenceObject | undefined
+    if (items !== undefined) {
+      if (isRef(items)) {
+        return { typeName: refToTypeName((items as ReferenceObject).$ref), isArray: true }
+      }
+      // primitive array
+      return { typeName: primitiveToTs((items as SchemaObject).type as string), isArray: true }
     }
-    // primitive array — return inline type
-    return { typeName: primitiveToTs((items as SchemaObject).type as string), isArray: true }
   }
-  return { typeName: 'unknown', isArray: false }
+  // For inline objects and primitives, emit the full inline type string
+  const inlineTs = inlineSchemaToTs(s)
+  return { typeName: inlineTs, isArray: false }
 }
 
 function primitiveToTs(type: string | undefined): string {
@@ -133,6 +154,7 @@ function getPathParams(operation: OperationObject): string[] {
 interface QueryParam {
   name: string
   type: string
+  required: boolean
 }
 
 function getQueryParams(operation: OperationObject): QueryParam[] {
@@ -143,6 +165,7 @@ function getQueryParams(operation: OperationObject): QueryParam[] {
     .map((p) => ({
       name: p.name,
       type: queryParamType(p.schema as SchemaObject | ReferenceObject | undefined),
+      required: p.required === true,
     }))
 }
 
@@ -159,9 +182,7 @@ function getRequestBodyType(operation: OperationObject): string | undefined {
   if (jsonContent === undefined || jsonContent.schema === undefined) return undefined
 
   const schema = jsonContent.schema
-  if (isRef(schema)) return refToTypeName((schema as ReferenceObject).$ref)
-
-  return 'unknown'
+  return inlineSchemaToTs(schema)
 }
 
 function generateFunctionCode(
@@ -185,10 +206,11 @@ function generateFunctionCode(
   if (bodyTypeName !== undefined) {
     sigParts.push(`body: ${bodyTypeName}`)
   }
-  // Query params as optional object
+  // Query params — required if any param is required, fields marked individually
   if (queryParams.length > 0) {
-    const qpFields = queryParams.map((qp) => `  ${qp.name}?: ${qp.type}`).join('\n')
-    sigParts.push(`params?: {\n${qpFields}\n}`)
+    const hasRequired = queryParams.some((qp) => qp.required)
+    const qpFields = queryParams.map((qp) => `  ${qp.name}${qp.required ? '' : '?'}: ${qp.type}`).join('\n')
+    sigParts.push(`params${hasRequired ? '' : '?'}: {\n${qpFields}\n}`)
   }
   // Per-request config override — enables SSR without mutating the global singleton
   sigParts.push(`config?: Partial<ClientConfig>`)
@@ -268,6 +290,21 @@ function generateFunctionCode(
   return lines.join('\n')
 }
 
+/** Built-in TypeScript types that must NOT be imported from ./models */
+const BUILTIN_TS_TYPES = new Set([
+  'string', 'number', 'boolean', 'unknown', 'void', 'null', 'undefined', 'any', 'never',
+])
+
+/**
+ * Returns true only for simple identifiers (e.g. "Task", "CreateTaskRequest") that are
+ * safe to include in an `import type { … }` statement.
+ * Filters out inline type expressions ("Record<string, unknown>"), arrays ("Task[]"),
+ * union types ("string | null"), and built-in TS primitives.
+ */
+function isImportableType(name: string): boolean {
+  return /^[A-Za-z_$][A-Za-z0-9_$]*$/.test(name) && !BUILTIN_TS_TYPES.has(name)
+}
+
 export function generateClient(spec: OpenAPIV3_1.Document): GeneratedFile {
   const paths = spec.paths as Record<string, Record<string, OperationObject>> | undefined
 
@@ -294,11 +331,12 @@ export function generateClient(spec: OpenAPIV3_1.Document): GeneratedFile {
         const bodyTypeName = getRequestBodyType(operation)
         const returnType = getReturnType(operation)
 
-        // Collect type names for import
-        if (bodyTypeName !== undefined && bodyTypeName !== 'unknown') {
+        // Collect type names for import — only simple schema identifiers (e.g. "Task"),
+        // never inline type expressions (e.g. "Record<string, unknown>") or primitives.
+        if (bodyTypeName !== undefined && isImportableType(bodyTypeName)) {
           collectedTypeNames.add(bodyTypeName)
         }
-        if (!returnType.isVoid && returnType.typeName !== 'unknown') {
+        if (!returnType.isVoid && isImportableType(returnType.typeName)) {
           collectedTypeNames.add(returnType.typeName)
         }
 

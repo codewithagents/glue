@@ -3,6 +3,7 @@ import { parseSpec } from '../parser.js'
 import { generateClient } from '../plugins/client.js'
 import { generateClientConfig } from '../plugins/client-config.js'
 import { generateTypes } from '../plugins/types.js'
+import type { OpenAPIV3_1 } from 'openapi-types'
 import ts from 'typescript'
 import { fileURLToPath } from 'node:url'
 import { join, dirname } from 'node:path'
@@ -212,13 +213,14 @@ describe('generateClient', () => {
     const clientContent = generateClient(spec).content
 
     // Simulate SSR consumer code that uses per-request config overrides
+    // Note: page is required in the task-api fixture, so params arg is required
     const usageContent = `
 import { getTasks, getTaskById, createTask, deleteTask } from './client'
 import type { CreateTaskRequest } from './models'
 
 async function serverSideExample() {
   // SSR: absolute base URL + session token, no global mutation
-  const tasks = await getTasks(undefined, {
+  const tasks = await getTasks({ page: 1 }, {
     baseUrl: 'https://api.example.com',
     token: 'server-session-token',
     credentials: 'omit',
@@ -240,7 +242,7 @@ async function serverSideExample() {
   const csrTasks = await getTasks({ page: 1 })
 
   // Type check: config is Partial — all fields optional
-  const withPartialOverride = await getTasks(undefined, { baseUrl: 'https://override.com' })
+  const withPartialOverride = await getTasks({ page: 2 }, { baseUrl: 'https://override.com' })
 
   return { tasks, filtered, task, csrTasks, withPartialOverride }
 }
@@ -267,6 +269,62 @@ async function serverSideExample() {
   })
 })
 
+describe('required query params', () => {
+  it('required param has no ? in the params object', async () => {
+    const spec = await parseSpec(taskApiFixture)
+    const out = generateClient(spec).content
+    // page is required in task-api.json — should be `page: number` not `page?: number`
+    expect(out).toContain('page: number')
+    expect(out).not.toContain('page?: number')
+  })
+
+  it('optional param still has ? in the params object', async () => {
+    const spec = await parseSpec(taskApiFixture)
+    const out = generateClient(spec).content
+    expect(out).toContain('status?: string')
+  })
+
+  it('params object itself is required when any param is required', async () => {
+    const spec = await parseSpec(taskApiFixture)
+    const out = generateClient(spec).content
+    // getTasks has required page — params arg must not be optional
+    expect(out).toMatch(/getTasks\(params: \{/)
+    expect(out).not.toMatch(/getTasks\(params\?: \{/)
+  })
+})
+
+describe('inline response schemas', () => {
+  it('inline object response → Record<string, unknown>', async () => {
+    // searchPosts in blog-api has an inline object response
+    const spec = await parseSpec(join(__dirname, '../__fixtures__/specs/blog-api.json'))
+    const out = generateClient(spec).content
+    expect(out).toContain('searchPosts')
+    // inline object: Record<string, unknown> (not 'unknown')
+    expect(out).toContain('Promise<Record<string, unknown>>')
+  })
+
+  it('primitive response schema → correct primitive type', async () => {
+    const spec: OpenAPIV3_1.Document = {
+      openapi: '3.1.0',
+      info: { title: 'T', version: '1' },
+      paths: {
+        '/ping': {
+          get: {
+            operationId: 'ping',
+            responses: {
+              '200': {
+                content: { 'application/json': { schema: { type: 'string' } } },
+              },
+            },
+          },
+        },
+      },
+    }
+    const out = generateClient(spec as OpenAPIV3_1.Document).content
+    expect(out).toContain('Promise<string>')
+  })
+})
+
 describe('generateClient with empty paths', () => {
   it('handles spec with no paths gracefully', async () => {
     const spec = await parseSpec(join(__dirname, '../__fixtures__/specs/task-manager.json'))
@@ -276,5 +334,127 @@ describe('generateClient with empty paths', () => {
   it('still exports ApiError when no paths', async () => {
     const spec = await parseSpec(join(__dirname, '../__fixtures__/specs/task-manager.json'))
     expect(generateClient(spec).content).toContain('ApiError')
+  })
+})
+
+describe('fixture: blog-api', () => {
+  let content: string
+  beforeAll(async () => {
+    const spec = await parseSpec(join(__dirname, '../__fixtures__/specs/blog-api.json'))
+    content = generateClient(spec).content
+  })
+
+  it('generates listPosts with 2 required + 2 optional params', () => {
+    expect(content).toContain('listPosts')
+    expect(content).toContain('page: number')
+    expect(content).toContain('limit: number')
+    expect(content).toContain('tag?: string')
+    expect(content).toContain('published?: boolean')
+  })
+
+  it('generates searchPosts with required q param', () => {
+    expect(content).toContain('searchPosts')
+    expect(content).toContain('q: string')
+  })
+
+  it('generates deletePost returning void', () => {
+    expect(content).toContain('deletePost')
+    expect(content).toContain('Promise<void>')
+  })
+
+  it('generates publishPost with path param, no body', () => {
+    expect(content).toContain('publishPost')
+  })
+
+  it('compiles cleanly with TypeScript', async () => {
+    const spec = await parseSpec(join(__dirname, '../__fixtures__/specs/blog-api.json'))
+    const diagnostics = compileFiles({
+      'models.ts': generateTypes(spec).content,
+      'client-config.ts': generateClientConfig().content,
+      'client.ts': generateClient(spec).content,
+    })
+    expect(diagnostics.length).toBe(0)
+  })
+})
+
+describe('fixture: auth-api', () => {
+  let content: string
+  beforeAll(async () => {
+    const spec = await parseSpec(join(__dirname, '../__fixtures__/specs/auth-api.json'))
+    content = generateClient(spec).content
+  })
+
+  it('generates login, logout, getMe', () => {
+    expect(content).toContain('login')
+    expect(content).toContain('logout')
+    expect(content).toContain('getMe')
+  })
+
+  it('generates logout returning void (204)', () => {
+    const match = content.match(/export async function logout[\s\S]*?^\}/m)
+    expect(match).toBeTruthy()
+    expect(match![0]).toContain('Promise<void>')
+  })
+
+  it('compiles cleanly with TypeScript', async () => {
+    const spec = await parseSpec(join(__dirname, '../__fixtures__/specs/auth-api.json'))
+    const diagnostics = compileFiles({
+      'models.ts': generateTypes(spec).content,
+      'client-config.ts': generateClientConfig().content,
+      'client.ts': generateClient(spec).content,
+    })
+    expect(diagnostics.length).toBe(0)
+  })
+})
+
+describe('fixture: ecommerce-api', () => {
+  let content: string
+  beforeAll(async () => {
+    const spec = await parseSpec(join(__dirname, '../__fixtures__/specs/ecommerce-api.json'))
+    content = generateClient(spec).content
+  })
+
+  it('generates listProducts with required page + pageSize', () => {
+    expect(content).toContain('listProducts')
+    expect(content).toContain('page: number')
+    expect(content).toContain('pageSize: number')
+    expect(content).toContain('minPrice?: number')
+    expect(content).toContain('inStock?: boolean')
+  })
+
+  it('generates full cart + order lifecycle', () => {
+    expect(content).toContain('getCart')
+    expect(content).toContain('addToCart')
+    expect(content).toContain('removeFromCart')
+    expect(content).toContain('placeOrder')
+    expect(content).toContain('getOrder')
+  })
+
+  it('compiles cleanly with TypeScript', async () => {
+    const spec = await parseSpec(join(__dirname, '../__fixtures__/specs/ecommerce-api.json'))
+    const diagnostics = compileFiles({
+      'models.ts': generateTypes(spec).content,
+      'client-config.ts': generateClientConfig().content,
+      'client.ts': generateClient(spec).content,
+    })
+    expect(diagnostics.length).toBe(0)
+  })
+})
+
+describe('fixture: petstore31 (real-world public spec)', () => {
+  it('parses and generates without errors', async () => {
+    const spec = await parseSpec(join(__dirname, '../__fixtures__/specs/petstore31.json'))
+    expect(() => generateTypes(spec)).not.toThrow()
+    expect(() => generateClient(spec)).not.toThrow()
+  })
+
+  it('compiles cleanly with TypeScript', async () => {
+    const spec = await parseSpec(join(__dirname, '../__fixtures__/specs/petstore31.json'))
+    const diagnostics = compileFiles({
+      'models.ts': generateTypes(spec).content,
+      'client-config.ts': generateClientConfig().content,
+      'client.ts': generateClient(spec).content,
+    })
+    expect(diagnostics.length).toBe(0)
   })
 })

@@ -1,0 +1,59 @@
+{
+  "openapi": "3.1.0",
+  "info": { "title": "Petstore", "version": "1.0.0" },
+  "paths": {
+    "/pets": {
+      "get": {
+        "operationId": "listPets",
+        "parameters": [
+          { "name": "limit", "in": "query", "schema": { "type": "integer" } },
+          { "name": "tags", "in": "query", "schema": { "type": "string" } }
+        ],
+        "responses": { "200": { "content": { "application/json": { "schema": { "type": "array", "items": { "$ref": "#/components/schemas/Pet" } } } } } }
+      },
+      "post": {
+        "operationId": "createPet",
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/NewPet" } } } },
+        "responses": { "201": { "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Pet" } } } } }
+      }
+    },
+    "/pets/{id}": {
+      "get": {
+        "operationId": "getPet",
+        "parameters": [ { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } } ],
+        "responses": { "200": { "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Pet" } } } } }
+      },
+      "delete": {
+        "operationId": "deletePet",
+        "parameters": [ { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } } ],
+        "responses": { "204": { "description": "Deleted" } }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Category": { "type": "object", "required": ["id","name"], "properties": { "id": { "type": "integer" }, "name": { "type": "string" } } },
+      "Tag": { "type": "object", "properties": { "id": { "type": "integer" }, "name": { "type": "string" } } },
+      "PetStatus": { "type": "string", "enum": ["available","pending","sold"] },
+      "Pet": {
+        "type": "object", "required": ["id","name","status"],
+        "properties": {
+          "id": { "type": "integer" }, "name": { "type": "string" },
+          "category": { "$ref": "#/components/schemas/Category" },
+          "photoUrls": { "type": "array", "items": { "type": "string" } },
+          "tags": { "type": "array", "items": { "$ref": "#/components/schemas/Tag" } },
+          "status": { "$ref": "#/components/schemas/PetStatus" }
+        }
+      },
+      "NewPet": {
+        "type": "object", "required": ["name","status"],
+        "properties": {
+          "name": { "type": "string" },
+          "categoryId": { "type": ["integer","null"] },
+          "photoUrls": { "type": "array", "items": { "type": "string" } },
+          "status": { "$ref": "#/components/schemas/PetStatus" }
+        }
+      }
+    }
+  }
+}
