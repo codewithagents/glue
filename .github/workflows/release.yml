@@ -42,9 +42,10 @@ jobs:
           registry-url: https://registry.npmjs.org
       - run: pnpm install --frozen-lockfile
       - run: pnpm build
-      - run: pnpm --filter @codewithagents/api-errors publish --access public --no-git-checks
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      # Use `npm publish` (not pnpm) — only npm CLI implements the OIDC
+      # Trusted Publisher token exchange required for tokenless publishing.
+      - run: npm publish --access public
+        working-directory: packages/api-errors
 
   publish-openapi-gen:
     name: Publish @codewithagents/openapi-gen
@@ -64,6 +65,7 @@ jobs:
           registry-url: https://registry.npmjs.org
       - run: pnpm install --frozen-lockfile
       - run: pnpm --filter @codewithagents/openapi-gen build
-      - run: pnpm --filter @codewithagents/openapi-gen publish --access public --no-git-checks
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      # Use `npm publish` (not pnpm) — only npm CLI implements the OIDC
+      # Trusted Publisher token exchange required for tokenless publishing.
+      - run: npm publish --access public
+        working-directory: packages/openapi-gen
