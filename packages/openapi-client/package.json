@@ -1,0 +1,34 @@
+{
+  "name": "@codewithagents/openapi-client",
+  "version": "0.1.0",
+  "description": "Generate TypeScript types, fetch client, and React Query hooks from OpenAPI 3.1 specs — zero runtime footprint",
+  "type": "module",
+  "bin": {
+    "openapi-gen": "./dist/cli.js"
+  },
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "test": "vitest run",
+    "dev": "tsc -p tsconfig.build.json --watch"
+  },
+  "dependencies": {
+    "@apidevtools/swagger-parser": "^10.1.1",
+    "openapi-types": "^12.1.3"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "vitest": "^4.0.0",
+    "typescript": "^5.9.0"
+  },
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  }
+}

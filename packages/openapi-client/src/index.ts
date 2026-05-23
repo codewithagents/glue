@@ -1,0 +1,7 @@
+export type { Config } from './config.js'
+export { loadConfig } from './config.js'
+export { parseSpec } from './parser.js'
+export type { GeneratedFile } from './plugins/types.js'
+export { generateTypes } from './plugins/types.js'
+export { generate } from './generator.js'
+export { toTypeName, toPropertyKey } from './utils/naming.js'
