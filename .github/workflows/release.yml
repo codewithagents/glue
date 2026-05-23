@@ -56,9 +56,9 @@ jobs:
         run: npm config delete //registry.npmjs.org/:_authToken
       - run: pnpm install --frozen-lockfile
       - run: pnpm build
-      # Use `npm publish` (not pnpm) — only npm CLI implements the OIDC
-      # Trusted Publisher token exchange required for tokenless publishing.
-      - run: npm publish --access public
+      # Use `npm publish --provenance` (not pnpm): --provenance triggers the OIDC
+      # token exchange that authenticates with npm Trusted Publishing (no token needed).
+      - run: npm publish --access public --provenance
         working-directory: packages/api-errors
 
   publish-openapi-gen:
@@ -83,7 +83,7 @@ jobs:
         run: npm config delete //registry.npmjs.org/:_authToken
       - run: pnpm install --frozen-lockfile
       - run: pnpm --filter @codewithagents/openapi-gen build
-      # Use `npm publish` (not pnpm) — only npm CLI implements the OIDC
-      # Trusted Publisher token exchange required for tokenless publishing.
-      - run: npm publish --access public
+      # --provenance triggers the OIDC token exchange that authenticates with
+      # npm Trusted Publishing (no long-lived token needed).
+      - run: npm publish --access public --provenance
         working-directory: packages/openapi-gen
