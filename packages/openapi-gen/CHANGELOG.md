@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.1](https://github.com/codewithagents/glue/compare/openapi-gen-v1.0.0...openapi-gen-v1.0.1) (2026-05-23)
+
+
+### Bug Fixes
+
+* **openapi-gen:** add repository URL and executable bit for npm provenance ([#25](https://github.com/codewithagents/glue/issues/25)) ([53ce21d](https://github.com/codewithagents/glue/commit/53ce21d7d7c964ab49ec588378c12b5225f1b6a8))
+
 ## [1.0.0](https://github.com/codewithagents/glue/compare/openapi-gen-v0.3.0...openapi-gen-v1.0.0) (2026-05-23)
 
 
