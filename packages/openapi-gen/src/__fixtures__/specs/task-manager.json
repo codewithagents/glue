@@ -1,0 +1,88 @@
+{
+  "openapi": "3.1.0",
+  "info": { "title": "Task Manager API", "version": "1.0.0" },
+  "paths": {},
+  "components": {
+    "schemas": {
+      "TaskStatus": {
+        "type": "string",
+        "enum": ["pending", "in_progress", "done", "cancelled"]
+      },
+      "Tag": {
+        "type": "object",
+        "required": ["id", "name"],
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "name": { "type": "string" }
+        }
+      },
+      "Task": {
+        "type": "object",
+        "required": ["id", "title", "status"],
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "title": { "type": "string" },
+          "description": { "type": ["string", "null"] },
+          "status": { "$ref": "#/components/schemas/TaskStatus" },
+          "tags": { "type": "array", "items": { "$ref": "#/components/schemas/Tag" } },
+          "metadata": { "type": "object", "additionalProperties": { "type": "string" } },
+          "priority": { "type": "integer" },
+          "completed": { "type": "boolean" }
+        }
+      },
+      "CreateTaskRequest": {
+        "type": "object",
+        "required": ["title"],
+        "properties": {
+          "title": { "type": "string" },
+          "description": { "type": ["string", "null"] },
+          "status": { "$ref": "#/components/schemas/TaskStatus" },
+          "priority": { "type": "integer" }
+        }
+      },
+      "PagedTasks": {
+        "allOf": [
+          { "$ref": "#/components/schemas/Pagination" },
+          {
+            "type": "object",
+            "required": ["items"],
+            "properties": {
+              "items": { "type": "array", "items": { "$ref": "#/components/schemas/Task" } }
+            }
+          }
+        ]
+      },
+      "Pagination": {
+        "type": "object",
+        "required": ["total", "page", "pageSize"],
+        "properties": {
+          "total": { "type": "integer" },
+          "page": { "type": "integer" },
+          "pageSize": { "type": "integer" }
+        }
+      },
+      "ValidationError": {
+        "type": "object",
+        "required": ["field", "message"],
+        "properties": {
+          "field": { "type": "string" },
+          "message": { "type": "string" }
+        }
+      },
+      "NotFoundError": {
+        "type": "object",
+        "required": ["id", "resource"],
+        "properties": {
+          "id": { "type": "string" },
+          "resource": { "type": "string" }
+        }
+      },
+      "ErrorDetail": {
+        "anyOf": [
+          { "$ref": "#/components/schemas/ValidationError" },
+          { "$ref": "#/components/schemas/NotFoundError" }
+        ]
+      }
+    }
+  }
+}

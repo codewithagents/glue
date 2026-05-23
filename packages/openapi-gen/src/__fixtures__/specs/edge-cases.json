@@ -1,0 +1,87 @@
+{
+  "openapi": "3.1.0",
+  "info": { "title": "Edge Cases API", "version": "1.0.0" },
+  "paths": {},
+  "components": {
+    "schemas": {
+      "TreeNode": {
+        "type": "object",
+        "properties": {
+          "value": { "type": "string" },
+          "children": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/TreeNode" }
+          }
+        }
+      },
+      "Priority": {
+        "type": "integer",
+        "enum": [1, 2, 3, 4, 5]
+      },
+      "StringMap": {
+        "type": "object",
+        "additionalProperties": { "type": "string" }
+      },
+      "NumberMap": {
+        "type": "object",
+        "additionalProperties": { "type": "number" }
+      },
+      "EmptyObject": {
+        "type": "object"
+      },
+      "NullableRef": {
+        "anyOf": [
+          { "$ref": "#/components/schemas/TreeNode" },
+          { "type": "null" }
+        ]
+      },
+      "Circle": {
+        "type": "object",
+        "required": ["kind", "radius"],
+        "properties": {
+          "kind": { "type": "string" },
+          "radius": { "type": "number" }
+        }
+      },
+      "Rectangle": {
+        "type": "object",
+        "required": ["kind", "width", "height"],
+        "properties": {
+          "kind": { "type": "string" },
+          "width": { "type": "number" },
+          "height": { "type": "number" }
+        }
+      },
+      "Shape": {
+        "oneOf": [
+          { "$ref": "#/components/schemas/Circle" },
+          { "$ref": "#/components/schemas/Rectangle" }
+        ]
+      },
+      "SpecialPropertyNames": {
+        "type": "object",
+        "properties": {
+          "normal": { "type": "string" },
+          "Content-Type": { "type": "string" },
+          "x-request-id": { "type": "string" },
+          "camelCase": { "type": "boolean" }
+        }
+      },
+      "MultiTypeUnion": {
+        "type": ["string", "number"]
+      },
+      "NullableString": {
+        "type": ["string", "null"]
+      },
+      "AnyArray": {
+        "type": "array"
+      },
+      "DeepNested": {
+        "allOf": [
+          { "$ref": "#/components/schemas/Circle" },
+          { "$ref": "#/components/schemas/Rectangle" }
+        ]
+      }
+    }
+  }
+}

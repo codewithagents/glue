@@ -5,6 +5,11 @@
       "release-type": "node",
       "package-name": "@codewithagents/api-errors",
       "changelog-path": "CHANGELOG.md"
+    },
+    "packages/openapi-gen": {
+      "release-type": "node",
+      "package-name": "@codewithagents/openapi-gen",
+      "changelog-path": "CHANGELOG.md"
     }
   }
 }
