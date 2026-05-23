@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.1](https://github.com/codewithagents/glue/compare/openapi-gen-v1.3.0...openapi-gen-v1.3.1) (2026-05-23)
+
+
+### Bug Fixes
+
+* **openapi-gen:** resolve $ref parameters from components, add minItems/maxItems to Zod arrays ([#35](https://github.com/codewithagents/glue/issues/35)) ([2076c24](https://github.com/codewithagents/glue/commit/2076c2499a10a35bcbea997b30afec6134528378))
+
 ## [1.3.0](https://github.com/codewithagents/glue/compare/openapi-gen-v1.2.0...openapi-gen-v1.3.0) (2026-05-23)
 
 
