@@ -23,11 +23,11 @@ function compileFiles(files: Record<string, string>): readonly ts.Diagnostic[] {
   const { options } = ts.convertCompilerOptionsFromJson(
     {
       strict: true,
-      target: 'ES2022',
+      target: 'ES2025',
       moduleResolution: 'Bundler',
       noEmit: true,
       skipLibCheck: true,
-      lib: ['ES2022', 'DOM'],
+      lib: ['ES2025', 'DOM'],
     },
     '.',
   )
