@@ -8,6 +8,6 @@
     "lint": "pnpm -r run lint"
   },
   "devDependencies": {
-    "typescript": "^5.8.0"
+    "typescript": "^6.0.0"
   }
 }
