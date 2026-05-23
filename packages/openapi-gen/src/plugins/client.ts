@@ -190,6 +190,8 @@ function generateFunctionCode(
     const qpFields = queryParams.map((qp) => `  ${qp.name}?: ${qp.type}`).join('\n')
     sigParts.push(`params?: {\n${qpFields}\n}`)
   }
+  // Per-request config override — enables SSR without mutating the global singleton
+  sigParts.push(`config?: Partial<ClientConfig>`)
 
   const returnTs = returnType.isVoid
     ? 'Promise<void>'
@@ -198,7 +200,7 @@ function generateFunctionCode(
       : `Promise<${returnType.typeName}>`
 
   lines.push(`export async function ${funcName}(${sigParts.join(', ')}): ${returnTs} {`)
-  lines.push(`  const { baseUrl, token, credentials, headers } = getConfig()`)
+  lines.push(`  const { baseUrl, token, credentials, headers } = { ...getConfig(), ...config }`)
 
   // Build URL
   const urlExpression = pathToUrlExpression(path)
@@ -323,7 +325,7 @@ export function generateClient(spec: OpenAPIV3_1.Document): GeneratedFile {
     const sortedTypes = Array.from(collectedTypeNames).sort()
     lines.push(`import type { ${sortedTypes.join(', ')} } from './models'`)
   }
-  lines.push(`import { getConfig } from './client-config'`)
+  lines.push(`import { getConfig, type ClientConfig } from './client-config'`)
   lines.push('')
 
   // ApiError class
