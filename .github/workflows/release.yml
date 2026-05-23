@@ -50,14 +50,18 @@ jobs:
           node-version: 22
           cache: pnpm
           registry-url: https://registry.npmjs.org
+      # Node 22 ships with npm 10.x which does not implement OIDC Trusted Publishing auth.
+      # npm 11.x added native OIDC auth support — upgrade before publishing.
+      - name: Upgrade npm to v11 (required for OIDC Trusted Publishing auth)
+        run: npm install -g npm@11
       # setup-node injects NODE_AUTH_TOKEN=$GITHUB_TOKEN into .npmrc, which blocks
       # OIDC Trusted Publishing. Remove it so npm falls back to OIDC token exchange.
       - name: Remove injected auth token (npm will use OIDC Trusted Publishing)
         run: npm config delete //registry.npmjs.org/:_authToken
       - run: pnpm install --frozen-lockfile
       - run: pnpm build
-      # Use `npm publish --provenance` (not pnpm): --provenance triggers the OIDC
-      # token exchange that authenticates with npm Trusted Publishing (no token needed).
+      # --provenance adds supply-chain attestation and triggers OIDC auth exchange.
+      # Use npm (not pnpm) — only npm CLI implements the Trusted Publishing flow.
       - run: npm publish --access public --provenance
         working-directory: packages/api-errors
 
@@ -77,13 +81,17 @@ jobs:
           node-version: 22
           cache: pnpm
           registry-url: https://registry.npmjs.org
+      # Node 22 ships with npm 10.x which does not implement OIDC Trusted Publishing auth.
+      # npm 11.x added native OIDC auth support — upgrade before publishing.
+      - name: Upgrade npm to v11 (required for OIDC Trusted Publishing auth)
+        run: npm install -g npm@11
       # setup-node injects NODE_AUTH_TOKEN=$GITHUB_TOKEN into .npmrc, which blocks
       # OIDC Trusted Publishing. Remove it so npm falls back to OIDC token exchange.
       - name: Remove injected auth token (npm will use OIDC Trusted Publishing)
         run: npm config delete //registry.npmjs.org/:_authToken
       - run: pnpm install --frozen-lockfile
       - run: pnpm --filter @codewithagents/openapi-gen build
-      # --provenance triggers the OIDC token exchange that authenticates with
-      # npm Trusted Publishing (no long-lived token needed).
+      # --provenance adds supply-chain attestation and triggers OIDC auth exchange.
+      # Use npm (not pnpm) — only npm CLI implements the Trusted Publishing flow.
       - run: npm publish --access public --provenance
         working-directory: packages/openapi-gen
