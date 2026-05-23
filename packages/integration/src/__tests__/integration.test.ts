@@ -11,7 +11,7 @@
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { extractFieldErrors, mapApiErrors } from '@codewithagents/api-errors'
-import { ApiError, createTask, deleteTask, getTask, updateTask } from '../../generated/client.js'
+import { ApiError, createTask, deleteTask, getTask, updateTask, uploadTaskAttachment } from '../../generated/client.js'
 import { configureClient } from '../../generated/client-config.js'
 
 // ---------------------------------------------------------------------------
@@ -241,5 +241,27 @@ describe('ApiError → mapApiErrors (React Hook Form adapter)', () => {
     expect(onError).toHaveBeenCalledOnce()
     expect(onError).toHaveBeenCalledWith(expect.objectContaining({ status: 422 }))
     expect(caughtError).toBeInstanceOf(ApiError)
+  })
+})
+
+// ---------------------------------------------------------------------------
+// Multipart upload: generated client sends FormData body
+// ---------------------------------------------------------------------------
+
+describe('multipart upload — uploadTaskAttachment', () => {
+  it('uploadTaskAttachment sends FormData body', async () => {
+    mockFetch(200, { id: '1', title: 'x', status: 'pending', createdAt: '2026-01-01T00:00:00Z' })
+    const file = new File(['content'], 'test.txt', { type: 'text/plain' })
+    await uploadTaskAttachment({ file, label: 'my attachment' })
+    const [, init] = vi.mocked(fetch).mock.calls[0]!
+    expect(init?.body).toBeInstanceOf(FormData)
+  })
+
+  it('uploadTaskAttachment returns the task on success', async () => {
+    const task = { id: '1', title: 'Upload task', status: 'pending', createdAt: '2026-01-01T00:00:00Z' }
+    mockFetch(200, task)
+    const file = new File(['content'], 'test.txt', { type: 'text/plain' })
+    const result = await uploadTaskAttachment({ file })
+    expect(result).toEqual(task)
   })
 })

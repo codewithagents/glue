@@ -4,7 +4,7 @@ import { loadConfig } from './config.js'
 import { parseSpec } from './parser.js'
 import { generateTypes } from './plugins/types.js'
 import { generateClientConfig } from './plugins/client-config.js'
-import { generateClient } from './plugins/client.js'
+import { generateClient, hasCookieAuth } from './plugins/client.js'
 import { generateZodSchemas } from './plugins/zod.js'
 import { generateIndexBarrel } from './plugins/index-barrel.js'
 
@@ -24,7 +24,8 @@ export async function generate(cwd: string): Promise<void> {
   generatedFiles.push(generateTypes(spec))
 
   // Phase 2: always generate client config, fetch client, and barrel index
-  generatedFiles.push(generateClientConfig())
+  const cookieAuth = hasCookieAuth(spec)
+  generatedFiles.push(generateClientConfig(cookieAuth ? { defaultCredentials: 'include' } : undefined))
   generatedFiles.push(generateClient(spec))
   generatedFiles.push(generateIndexBarrel())
 

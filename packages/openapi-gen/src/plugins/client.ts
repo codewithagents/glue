@@ -75,7 +75,13 @@ function queryParamType(schema: SchemaObject | ReferenceObject | undefined): str
   if (schema === undefined) return 'string'
   if (isRef(schema)) return 'string'
   const s = schema as SchemaObject
-  if (s.type === 'array') return 'string[]'
+  if (s.type === 'array') {
+    const items = (s as OpenAPIV3_1.ArraySchemaObject).items as SchemaObject | undefined
+    if (items !== undefined && (items.type === 'integer' || items.type === 'number')) {
+      return 'number[]'
+    }
+    return 'string[]'
+  }
   // String enum → union literal type (e.g. 'active' | 'inactive')
   if (s.type === 'string' && Array.isArray(s.enum) && s.enum.length > 0) {
     return (s.enum as string[]).map((v) => `'${v}'`).join(' | ')
@@ -173,7 +179,52 @@ function getQueryParams(operation: OperationObject): QueryParam[] {
     }))
 }
 
-function getRequestBodyType(operation: OperationObject): string | undefined {
+// Feature 2: Header parameters
+interface HeaderParam {
+  name: string       // camelCase JS identifier (e.g. xStripeSignature)
+  headerName: string // original HTTP header name (e.g. 'X-Stripe-Signature')
+  required: boolean
+  type: string
+}
+
+function headerNameToCamelCase(headerName: string): string {
+  const parts = headerName.split('-')
+  return parts
+    .map((part, i) => {
+      const lower = part.toLowerCase()
+      if (i === 0) return lower
+      return lower.charAt(0).toUpperCase() + lower.slice(1)
+    })
+    .join('')
+}
+
+function getHeaderParams(operation: OperationObject): HeaderParam[] {
+  const params = operation.parameters as (ParameterObject | ReferenceObject)[] | undefined
+  if (params === undefined) return []
+  return params
+    .filter((p): p is ParameterObject => !isRef(p) && (p as ParameterObject).in === 'header')
+    .map((p) => ({
+      name: headerNameToCamelCase(p.name),
+      headerName: p.name,
+      required: p.required === true,
+      type: queryParamType(p.schema as SchemaObject | ReferenceObject | undefined),
+    }))
+}
+
+// Feature 4: Multipart/form-data request body info
+interface MultipartField {
+  name: string
+  required: boolean
+  isBinary: boolean
+}
+
+interface RequestBodyInfo {
+  typeName: string
+  kind: 'json' | 'multipart'
+  multipartFields?: MultipartField[]
+}
+
+function getRequestBodyInfo(operation: OperationObject): RequestBodyInfo | undefined {
   const requestBody = operation.requestBody as RequestBodyObject | ReferenceObject | undefined
   if (requestBody === undefined) return undefined
   if (isRef(requestBody)) return undefined
@@ -182,11 +233,50 @@ function getRequestBodyType(operation: OperationObject): string | undefined {
   const content = rb.content as Record<string, { schema?: SchemaObject | ReferenceObject }> | undefined
   if (content === undefined) return undefined
 
+  // Check for multipart/form-data first
+  const multipartContent = content['multipart/form-data']
+  if (multipartContent !== undefined && multipartContent.schema !== undefined) {
+    const schema = multipartContent.schema
+    if (!isRef(schema)) {
+      const s = schema as SchemaObject
+      const properties = s.properties as Record<string, SchemaObject | ReferenceObject> | undefined
+      const required = (s.required as string[]) ?? []
+
+      const fields: MultipartField[] = []
+      const tsParts: string[] = []
+
+      if (properties !== undefined) {
+        for (const [fieldName, fieldSchema] of Object.entries(properties)) {
+          const isRequired = required.includes(fieldName)
+          let isBinary = false
+          let tsType = 'string'
+
+          if (!isRef(fieldSchema)) {
+            const fs = fieldSchema as SchemaObject
+            if (fs.format === 'binary') {
+              isBinary = true
+              tsType = 'File | Blob'
+            } else {
+              tsType = primitiveToTs(fs.type as string | undefined)
+            }
+          }
+
+          fields.push({ name: fieldName, required: isRequired, isBinary })
+          tsParts.push(`  ${fieldName}${isRequired ? '' : '?'}: ${tsType}`)
+        }
+      }
+
+      const typeName = `{ ${tsParts.map((p) => p.trim()).join('; ')} }`
+      return { typeName, kind: 'multipart', multipartFields: fields }
+    }
+  }
+
+  // Fall back to JSON
   const jsonContent = content['application/json']
   if (jsonContent === undefined || jsonContent.schema === undefined) return undefined
 
   const schema = jsonContent.schema
-  return inlineSchemaToTs(schema)
+  return { typeName: inlineSchemaToTs(schema), kind: 'json' }
 }
 
 function generateFunctionCode(
@@ -195,7 +285,8 @@ function generateFunctionCode(
   path: string,
   pathParams: string[],
   queryParams: QueryParam[],
-  bodyTypeName: string | undefined,
+  headerParams: HeaderParam[],
+  bodyInfo: RequestBodyInfo | undefined,
   returnType: { typeName: string; isArray: boolean; isVoid: boolean },
 ): string {
   const lines: string[] = []
@@ -207,15 +298,25 @@ function generateFunctionCode(
     sigParts.push(`${param}: string`)
   }
   // Body param
-  if (bodyTypeName !== undefined) {
-    sigParts.push(`body: ${bodyTypeName}`)
+  if (bodyInfo !== undefined) {
+    sigParts.push(`body: ${bodyInfo.typeName}`)
   }
-  // Query params — required if any param is required, fields marked individually
-  if (queryParams.length > 0) {
-    const hasRequired = queryParams.some((qp) => qp.required)
-    const qpFields = queryParams.map((qp) => `  ${qp.name}${qp.required ? '' : '?'}: ${qp.type}`).join('\n')
-    sigParts.push(`params${hasRequired ? '' : '?'}: {\n${qpFields}\n}`)
+
+  // Query params + header params share the same params object
+  const allParamFields: string[] = []
+  for (const qp of queryParams) {
+    allParamFields.push(`  ${qp.name}${qp.required ? '' : '?'}: ${qp.type}`)
   }
+  for (const hp of headerParams) {
+    allParamFields.push(`  ${hp.name}${hp.required ? '' : '?'}: ${hp.type}`)
+  }
+
+  if (allParamFields.length > 0) {
+    const hasRequired =
+      queryParams.some((qp) => qp.required) || headerParams.some((hp) => hp.required)
+    sigParts.push(`params${hasRequired ? '' : '?'}: {\n${allParamFields.join('\n')}\n}`)
+  }
+
   // Per-request config override — enables SSR without mutating the global singleton
   sigParts.push(`config?: Partial<ClientConfig>`)
 
@@ -243,7 +344,10 @@ function generateFunctionCode(
   if (queryParams.length > 0) {
     lines.push(`  const searchParams = new URLSearchParams()`)
     for (const qp of queryParams) {
-      if (qp.type === 'number') {
+      if (qp.type.endsWith('[]')) {
+        // Array params: use append in a loop
+        lines.push(`  if (params?.${qp.name} != null) { for (const v of params.${qp.name}) searchParams.append('${qp.name}', String(v)) }`)
+      } else if (qp.type === 'number') {
         lines.push(`  if (params?.${qp.name} != null) searchParams.set('${qp.name}', String(params.${qp.name}))`)
       } else if (qp.type === 'boolean') {
         lines.push(`  if (params?.${qp.name} != null) searchParams.set('${qp.name}', String(params.${qp.name}))`)
@@ -262,11 +366,28 @@ function generateFunctionCode(
 
   // Build fetch headers
   const fetchHeaders: string[] = []
-  if (bodyTypeName !== undefined) {
+  if (bodyInfo !== undefined && bodyInfo.kind === 'json') {
     fetchHeaders.push(`      'Content-Type': 'application/json',`)
   }
   fetchHeaders.push(`      ...headers,`)
   fetchHeaders.push(`      ...(resolvedToken ? { Authorization: \`Bearer \${resolvedToken}\` } : {}),`)
+
+  // Add header params to fetch headers
+  for (const hp of headerParams) {
+    fetchHeaders.push(`      ...(params?.${hp.name} != null ? { '${hp.headerName}': params.${hp.name} } : {}),`)
+  }
+
+  // Build multipart FormData if applicable
+  if (bodyInfo !== undefined && bodyInfo.kind === 'multipart' && bodyInfo.multipartFields !== undefined) {
+    lines.push(`  const formData = new FormData()`)
+    for (const field of bodyInfo.multipartFields) {
+      if (field.isBinary) {
+        lines.push(`  if (body.${field.name} != null) formData.append('${field.name}', body.${field.name})`)
+      } else {
+        lines.push(`  if (body.${field.name} != null) formData.append('${field.name}', String(body.${field.name}))`)
+      }
+    }
+  }
 
   // Build fetch options
   const fetchLines: string[] = []
@@ -276,8 +397,12 @@ function generateFunctionCode(
   fetchLines.push(`    headers: {`)
   fetchLines.push(...fetchHeaders)
   fetchLines.push(`    },`)
-  if (bodyTypeName !== undefined) {
-    fetchLines.push(`    body: JSON.stringify(body),`)
+  if (bodyInfo !== undefined) {
+    if (bodyInfo.kind === 'multipart') {
+      fetchLines.push(`    body: formData,`)
+    } else {
+      fetchLines.push(`    body: JSON.stringify(body),`)
+    }
   }
   fetchLines.push(`  })`)
 
@@ -317,6 +442,15 @@ function isImportableType(name: string): boolean {
   return /^[A-Za-z_$][A-Za-z0-9_$]*$/.test(name) && !BUILTIN_TS_TYPES.has(name)
 }
 
+// Feature 3: Cookie auth detection
+export function hasCookieAuth(spec: OpenAPIV3_1.Document): boolean {
+  const schemes = spec.components?.securitySchemes
+  if (!schemes) return false
+  return Object.values(schemes).some(
+    (s) => !isRef(s) && (s as any).type === 'apiKey' && (s as any).in === 'cookie'
+  )
+}
+
 export function generateClient(spec: OpenAPIV3_1.Document): GeneratedFile {
   const paths = spec.paths as Record<string, Record<string, OperationObject>> | undefined
 
@@ -340,13 +474,14 @@ export function generateClient(spec: OpenAPIV3_1.Document): GeneratedFile {
 
         const pathParams = getPathParams(operation)
         const queryParams = getQueryParams(operation)
-        const bodyTypeName = getRequestBodyType(operation)
+        const headerParams = getHeaderParams(operation)
+        const bodyInfo = getRequestBodyInfo(operation)
         const returnType = getReturnType(operation)
 
         // Collect type names for import — only simple schema identifiers (e.g. "Task"),
         // never inline type expressions (e.g. "Record<string, unknown>") or primitives.
-        if (bodyTypeName !== undefined && isImportableType(bodyTypeName)) {
-          collectedTypeNames.add(bodyTypeName)
+        if (bodyInfo !== undefined && bodyInfo.kind === 'json' && isImportableType(bodyInfo.typeName)) {
+          collectedTypeNames.add(bodyInfo.typeName)
         }
         if (!returnType.isVoid && isImportableType(returnType.typeName)) {
           collectedTypeNames.add(returnType.typeName)
@@ -358,7 +493,8 @@ export function generateClient(spec: OpenAPIV3_1.Document): GeneratedFile {
           path,
           pathParams,
           queryParams,
-          bodyTypeName,
+          headerParams,
+          bodyInfo,
           returnType,
         )
         functionBlocks.push(fnCode)
