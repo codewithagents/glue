@@ -50,6 +50,10 @@ jobs:
           node-version: 22
           cache: pnpm
           registry-url: https://registry.npmjs.org
+      # setup-node injects NODE_AUTH_TOKEN=$GITHUB_TOKEN into .npmrc, which blocks
+      # OIDC Trusted Publishing. Remove it so npm falls back to OIDC token exchange.
+      - name: Remove injected auth token (npm will use OIDC Trusted Publishing)
+        run: npm config delete //registry.npmjs.org/:_authToken
       - run: pnpm install --frozen-lockfile
       - run: pnpm build
       # Use `npm publish` (not pnpm) — only npm CLI implements the OIDC
@@ -73,6 +77,10 @@ jobs:
           node-version: 22
           cache: pnpm
           registry-url: https://registry.npmjs.org
+      # setup-node injects NODE_AUTH_TOKEN=$GITHUB_TOKEN into .npmrc, which blocks
+      # OIDC Trusted Publishing. Remove it so npm falls back to OIDC token exchange.
+      - name: Remove injected auth token (npm will use OIDC Trusted Publishing)
+        run: npm config delete //registry.npmjs.org/:_authToken
       - run: pnpm install --frozen-lockfile
       - run: pnpm --filter @codewithagents/openapi-gen build
       # Use `npm publish` (not pnpm) — only npm CLI implements the OIDC
