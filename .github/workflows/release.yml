@@ -52,8 +52,10 @@ jobs:
           registry-url: https://registry.npmjs.org
       # Node 22 ships with npm 10.x which does not implement OIDC Trusted Publishing auth.
       # npm 11.x added native OIDC auth support — upgrade before publishing.
-      - name: Upgrade npm to v11 (required for OIDC Trusted Publishing auth)
-        run: npm install -g npm@11
+      # OIDC Trusted Publishing auth requires npm 11.5.1+. Node 22 ships with
+      # npm 10.x — upgrade to latest to guarantee the minimum version.
+      - name: Upgrade npm to latest (OIDC Trusted Publishing requires ≥11.5.1)
+        run: npm install -g npm@latest
       # setup-node injects NODE_AUTH_TOKEN=$GITHUB_TOKEN into .npmrc, which blocks
       # OIDC Trusted Publishing. Remove it so npm falls back to OIDC token exchange.
       - name: Remove injected auth token (npm will use OIDC Trusted Publishing)
@@ -83,8 +85,10 @@ jobs:
           registry-url: https://registry.npmjs.org
       # Node 22 ships with npm 10.x which does not implement OIDC Trusted Publishing auth.
       # npm 11.x added native OIDC auth support — upgrade before publishing.
-      - name: Upgrade npm to v11 (required for OIDC Trusted Publishing auth)
-        run: npm install -g npm@11
+      # OIDC Trusted Publishing auth requires npm 11.5.1+. Node 22 ships with
+      # npm 10.x — upgrade to latest to guarantee the minimum version.
+      - name: Upgrade npm to latest (OIDC Trusted Publishing requires ≥11.5.1)
+        run: npm install -g npm@latest
       # setup-node injects NODE_AUTH_TOKEN=$GITHUB_TOKEN into .npmrc, which blocks
       # OIDC Trusted Publishing. Remove it so npm falls back to OIDC token exchange.
       - name: Remove injected auth token (npm will use OIDC Trusted Publishing)
