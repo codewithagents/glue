@@ -74,6 +74,29 @@ function primitiveToZod(type: string): string {
   }
 }
 
+/** Chain OpenAPI string constraints onto a base Zod string expression. */
+function applyStringConstraints(base: string, schema: SchemaObject): string {
+  let s = base
+  if (typeof schema.minLength === 'number') s += `.min(${schema.minLength})`
+  if (typeof schema.maxLength === 'number') s += `.max(${schema.maxLength})`
+  if (typeof schema.pattern === 'string') s += `.regex(new RegExp(${JSON.stringify(schema.pattern)}))`
+  const format = schema.format as string | undefined
+  if (format === 'email') s += '.email()'
+  else if (format === 'url') s += '.url()'
+  else if (format === 'uuid') s += '.uuid()'
+  return s
+}
+
+/** Chain OpenAPI numeric range constraints onto a base Zod number expression. */
+function applyNumberConstraints(base: string, schema: SchemaObject): string {
+  let s = base
+  const min = schema.minimum ?? (typeof schema.exclusiveMinimum === 'number' ? schema.exclusiveMinimum : undefined)
+  const max = schema.maximum ?? (typeof schema.exclusiveMaximum === 'number' ? schema.exclusiveMaximum : undefined)
+  if (typeof min === 'number') s += `.min(${min})`
+  if (typeof max === 'number') s += `.max(${max})`
+  return s
+}
+
 function schemaToZod(schema: SchemaObject | ReferenceObject): string {
   if (isRef(schema)) {
     return refToSchemaName(schema.$ref)
@@ -85,7 +108,9 @@ function schemaToZod(schema: SchemaObject | ReferenceObject): string {
     const isNullable = types.includes('null')
     const nonNull = types.filter((t) => t !== 'null')
     if (nonNull.length === 1) {
-      const base = primitiveToZod(nonNull[0]!)
+      let base = primitiveToZod(nonNull[0]!)
+      if (nonNull[0] === 'string') base = applyStringConstraints(base, schema)
+      else if (nonNull[0] === 'number' || nonNull[0] === 'integer') base = applyNumberConstraints(base, schema)
       return isNullable ? `${base}.nullable()` : base
     }
     const parts = types.map((t) => (t === 'null' ? 'z.null()' : primitiveToZod(t)))
@@ -156,7 +181,10 @@ function schemaToZod(schema: SchemaObject | ReferenceObject): string {
   }
 
   if (type !== undefined) {
-    return primitiveToZod(type)
+    const base = primitiveToZod(type)
+    if (type === 'string') return applyStringConstraints(base, schema)
+    if (type === 'number' || type === 'integer') return applyNumberConstraints(base, schema)
+    return base
   }
 
   return 'z.unknown()'

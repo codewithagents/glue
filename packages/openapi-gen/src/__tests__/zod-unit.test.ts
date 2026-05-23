@@ -233,3 +233,91 @@ describe('schema const naming', () => {
     expect(out).toContain('export const TaskSchema')
   })
 })
+
+describe('string validation constraints', () => {
+  it('minLength → .min(n)', () => {
+    expect(genSingle('A', { type: 'string', minLength: 1 })).toContain('z.string().min(1)')
+  })
+
+  it('maxLength → .max(n)', () => {
+    expect(genSingle('A', { type: 'string', maxLength: 255 })).toContain('z.string().max(255)')
+  })
+
+  it('minLength + maxLength → chained', () => {
+    expect(genSingle('A', { type: 'string', minLength: 2, maxLength: 100 })).toContain('z.string().min(2).max(100)')
+  })
+
+  it('pattern → .regex(new RegExp(...))', () => {
+    const out = genSingle('A', { type: 'string', pattern: '^[a-z]+$' })
+    expect(out).toContain("z.string().regex(new RegExp(\"^[a-z]+$\"))")
+  })
+
+  it('format: email → .email()', () => {
+    expect(genSingle('A', { type: 'string', format: 'email' })).toContain('z.string().email()')
+  })
+
+  it('format: url → .url()', () => {
+    expect(genSingle('A', { type: 'string', format: 'url' })).toContain('z.string().url()')
+  })
+
+  it('format: uuid → .uuid()', () => {
+    expect(genSingle('A', { type: 'string', format: 'uuid' })).toContain('z.string().uuid()')
+  })
+
+  it('combined: maxLength + email', () => {
+    const out = genSingle('A', { type: 'string', maxLength: 255, format: 'email' })
+    expect(out).toContain('z.string().max(255).email()')
+  })
+
+  it('string property in object gets constraints', () => {
+    const out = genSingle('User', {
+      type: 'object',
+      required: ['email'],
+      properties: { email: { type: 'string', format: 'email', maxLength: 255 } },
+    })
+    expect(out).toContain('email: z.string().max(255).email()')
+  })
+
+  it('nullable string with constraint: type: [string, null] + minLength', () => {
+    const out = genSingle('A', { type: 'object', properties: { f: { type: ['string', 'null'], minLength: 1 } } })
+    expect(out).toContain('z.string().min(1).nullable()')
+  })
+
+  it('no constraints → plain z.string()', () => {
+    const out = genSingle('A', { type: 'string' })
+    expect(out).toContain('z.string()')
+    expect(out).not.toContain('.min(')
+    expect(out).not.toContain('.max(')
+    expect(out).not.toContain('.email(')
+  })
+})
+
+describe('number validation constraints', () => {
+  it('minimum → .min(n)', () => {
+    expect(genSingle('A', { type: 'number', minimum: 0 })).toContain('z.number().min(0)')
+  })
+
+  it('maximum → .max(n)', () => {
+    expect(genSingle('A', { type: 'integer', maximum: 100 })).toContain('z.number().max(100)')
+  })
+
+  it('minimum + maximum → chained', () => {
+    expect(genSingle('A', { type: 'integer', minimum: 0, maximum: 100 })).toContain('z.number().min(0).max(100)')
+  })
+
+  it('number property in object gets range constraints', () => {
+    const out = genSingle('Score', {
+      type: 'object',
+      required: ['value'],
+      properties: { value: { type: 'integer', minimum: 1, maximum: 10 } },
+    })
+    expect(out).toContain('value: z.number().min(1).max(10)')
+  })
+
+  it('no constraints → plain z.number()', () => {
+    const out = genSingle('A', { type: 'number' })
+    expect(out).toContain('z.number()')
+    expect(out).not.toContain('.min(')
+    expect(out).not.toContain('.max(')
+  })
+})
