@@ -153,8 +153,14 @@ Standard squash merge. CI must be green first.
 **Why manual?** OIDC Trusted Publishing only works for packages that already exist on npm. The very first publish must be done by a human with 2FA.
 
 ```bash
+# From the monorepo root — build deps first
+pnpm --filter @codewithagents/<name> build
+
+# ⚠️ cd into the package — NOT the monorepo root
+# Running npm publish from the root fails with:
+#   "Cannot read properties of null (reading 'prerelease')"
+# because the root package.json has no version field.
 cd packages/<name>
-pnpm build
 npm publish --access public
 # npm will prompt for 2FA OTP
 ```
