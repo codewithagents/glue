@@ -1,0 +1,6 @@
+{
+  "input_openapi": "spec/api.json",
+  "output": "generated",
+  "stale_time": 30000,
+  "gc_time": 300000
+}

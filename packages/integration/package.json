@@ -5,14 +5,17 @@
   "type": "module",
   "scripts": {
     "generate": "openapi-gen",
+    "generate:hooks": "openapi-react-query",
     "test": "vitest run",
     "lint": "tsc --noEmit"
   },
   "dependencies": {
     "@codewithagents/api-errors": "workspace:*",
-    "@codewithagents/openapi-gen": "workspace:*"
+    "@codewithagents/openapi-gen": "workspace:*",
+    "@codewithagents/openapi-react-query": "workspace:*"
   },
   "devDependencies": {
+    "@tanstack/react-query": "^5.0.0",
     "@types/node": "^22.0.0",
     "typescript": "^6.0.0",
     "vitest": "^4.0.0"

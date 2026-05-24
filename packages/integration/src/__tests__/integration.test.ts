@@ -9,6 +9,7 @@
  * for handling validation errors from a generated TypeScript client.
  */
 
+import * as hooks from '../../generated/hooks.js'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { extractFieldErrors, mapApiErrors } from '@codewithagents/api-errors'
 import { ApiError, createTask, deleteTask, getTask, updateTask, uploadTaskAttachment } from '../../generated/client.js'
@@ -263,5 +264,18 @@ describe('multipart upload — uploadTaskAttachment', () => {
     const file = new File(['content'], 'test.txt', { type: 'text/plain' })
     const result = await uploadTaskAttachment({ file })
     expect(result).toEqual(task)
+  })
+})
+
+// ---------------------------------------------------------------------------
+// Generated hooks: module-level shape checks
+// ---------------------------------------------------------------------------
+
+describe('generated hooks', () => {
+  it('exports useListTasks', () => expect(typeof hooks.useListTasks).toBe('function'))
+  it('exports useCreateTask', () => expect(typeof hooks.useCreateTask).toBe('function'))
+  it('exports taskKeys', () => {
+    expect(Array.isArray(hooks.taskKeys.all())).toBe(true)
+    expect(hooks.taskKeys.all()[0]).toBe('tasks')
   })
 })
