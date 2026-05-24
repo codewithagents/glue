@@ -1,5 +1,8 @@
 # @codewithagents/api-errors
 
+[![npm](https://img.shields.io/npm/v/@codewithagents/api-errors.svg)](https://npmjs.com/package/@codewithagents/api-errors)
+[![codecov](https://codecov.io/gh/codewithagents/glue/graph/badge.svg?flag=api-errors)](https://codecov.io/gh/codewithagents/glue)
+
 Backend API errors don't automatically map to form field errors. Every project writes the same glue code from scratch: catch the error, inspect its shape, figure out which field each message belongs to, then call your form library's error setter. This package does that for you — framework-agnostic core with a first-class React Hook Form adapter.
 
 ## Installation
