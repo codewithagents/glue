@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.4.0](https://github.com/codewithagents/glue/compare/openapi-gen-v1.3.1...openapi-gen-v1.4.0) (2026-05-24)
+
+
+### Features
+
+* **cli:** add --config flag to openapi-gen and openapi-react-query with path security validation ([#38](https://github.com/codewithagents/glue/issues/38)) ([56c4352](https://github.com/codewithagents/glue/commit/56c435213dd59fd856e11102a22c12eb0d7aa0e4))
+
 ## [1.3.1](https://github.com/codewithagents/glue/compare/openapi-gen-v1.3.0...openapi-gen-v1.3.1) (2026-05-23)
 
 
