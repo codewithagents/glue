@@ -135,7 +135,11 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm --filter @codewithagents/openapi-gen build
       - run: pnpm --filter @codewithagents/openapi-react-query build
-      # --provenance adds supply-chain attestation and triggers OIDC auth exchange.
-      # Use npm (not pnpm) — only npm CLI implements the Trusted Publishing flow.
-      - run: npm publish --access public --provenance
+      # pnpm pack resolves workspace:* references to actual versions before creating the tarball.
+      # npm publish then publishes that pre-packed tarball with OIDC Trusted Publishing auth.
+      # Using npm publish directly (without pnpm pack first) leaves workspace:* unresolved in
+      # the published package.json, causing EUNSUPPORTEDPROTOCOL errors for consumers.
+      - run: pnpm pack
+        working-directory: packages/openapi-react-query
+      - run: npm publish --access public --provenance *.tgz
         working-directory: packages/openapi-react-query
