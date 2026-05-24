@@ -1,0 +1,450 @@
+import type { OpenAPIV3_1 } from 'openapi-types'
+
+type OperationObject = OpenAPIV3_1.OperationObject
+type ReferenceObject = OpenAPIV3_1.ReferenceObject
+
+export interface HookGenOptions {
+  staleTime: number
+  gcTime: number
+}
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+
+function isRef(obj: unknown): obj is ReferenceObject {
+  return typeof obj === 'object' && obj !== null && '$ref' in obj
+}
+
+function refToName(ref: string): string {
+  const parts = ref.split('/')
+  return parts[parts.length - 1]!
+}
+
+function capitalize(s: string): string {
+  return s.charAt(0).toUpperCase() + s.slice(1)
+}
+
+const SUPPORTED_METHODS = ['get', 'post', 'put', 'patch', 'delete'] as const
+type SupportedMethod = (typeof SUPPORTED_METHODS)[number]
+
+// Mirrors deriveOperationName from openapi-gen/src/plugins/client.ts
+function deriveOperationName(method: string, path: string): string {
+  const prefixMap: Record<string, string> = {
+    get: 'get',
+    post: 'create',
+    put: 'update',
+    patch: 'patch',
+    delete: 'delete',
+  }
+  const prefix = prefixMap[method] ?? method
+
+  // Strip /api/v1/ prefix
+  let segments = path.replace(/^\/api\/v\d+\//, '').replace(/^\//, '')
+
+  const parts = segments.split('/').map((seg) => {
+    if (seg.startsWith('{') && seg.endsWith('}')) {
+      const name = seg.slice(1, -1)
+      return 'By' + name.charAt(0).toUpperCase() + name.slice(1)
+    }
+    return seg.charAt(0).toUpperCase() + seg.slice(1)
+  })
+
+  const joined = parts.join('')
+  return prefix + joined
+}
+
+function extractPathParams(path: string): string[] {
+  const matches = path.match(/\{([^}]+)\}/g)
+  if (matches === null) return []
+  return matches.map((m) => m.slice(1, -1))
+}
+
+/** Extract primary resource name from path (first static segment after stripping API prefix) */
+function primaryResource(path: string): string {
+  // Strip /api/v{N}/ prefix or leading /
+  const stripped = path.replace(/^\/api\/v\d+\//, '').replace(/^\//, '')
+  const firstSegment = stripped.split('/')[0] ?? 'resource'
+  // Remove any path param braces if somehow first seg is param
+  return firstSegment.replace(/[{}]/g, '')
+}
+
+/** singularize resource name for key factory naming, e.g. tasks → task */
+function toKeyFactoryName(resource: string): string {
+  // simple pluralization removal: trailing 's'
+  return resource.endsWith('s') ? resource.slice(0, -1) : resource
+}
+
+interface OperationMeta {
+  funcName: string
+  hookName: string
+  method: SupportedMethod
+  path: string
+  pathParams: string[]
+  hasBody: boolean
+  bodyTypeName: string | undefined
+}
+
+function getBodyInfo(operation: OperationObject): { hasBody: boolean; bodyTypeName: string | undefined } {
+  const requestBody = operation.requestBody as OpenAPIV3_1.RequestBodyObject | ReferenceObject | undefined
+  if (requestBody === undefined) return { hasBody: false, bodyTypeName: undefined }
+  if (isRef(requestBody)) return { hasBody: true, bodyTypeName: undefined }
+
+  const rb = requestBody as OpenAPIV3_1.RequestBodyObject
+  const content = rb.content as Record<string, { schema?: OpenAPIV3_1.SchemaObject | ReferenceObject }> | undefined
+  if (content === undefined) return { hasBody: true, bodyTypeName: undefined }
+
+  // Check multipart first
+  if (content['multipart/form-data'] !== undefined) {
+    return { hasBody: true, bodyTypeName: undefined }
+  }
+
+  const jsonContent = content['application/json']
+  if (jsonContent === undefined || jsonContent.schema === undefined) {
+    return { hasBody: true, bodyTypeName: undefined }
+  }
+
+  const schema = jsonContent.schema
+  if (isRef(schema)) {
+    return { hasBody: true, bodyTypeName: refToName((schema as ReferenceObject).$ref) }
+  }
+
+  // Inline schema
+  const s = schema as OpenAPIV3_1.SchemaObject
+  if (s.type === 'object') {
+    return { hasBody: true, bodyTypeName: 'Record<string, unknown>' }
+  }
+  return { hasBody: true, bodyTypeName: undefined }
+}
+
+// ── Key factory generation ─────────────────────────────────────────────────────
+
+interface KeyEntry {
+  key: string         // e.g. 'list' | 'detail' | operationId-derived
+  funcName: string    // function to use in key factory
+  pathParams: string[]
+  hasQueryParams: boolean
+}
+
+function buildKeyFactory(resource: string, entries: KeyEntry[]): string {
+  const factoryName = `${toKeyFactoryName(resource)}Keys`
+  const lines: string[] = []
+  lines.push(`export const ${factoryName} = {`)
+  lines.push(`  all: () => ['${resource}'] as const,`)
+
+  for (const entry of entries) {
+    if (entry.pathParams.length === 0 && entry.hasQueryParams) {
+      // list: (params?) => ['resource', 'list', params]
+      lines.push(`  ${entry.key}: (params?: Parameters<typeof ${entry.funcName}>[0]) => ['${resource}', '${entry.key}', params] as const,`)
+    } else if (entry.pathParams.length === 0 && !entry.hasQueryParams) {
+      // list with no params
+      lines.push(`  ${entry.key}: () => ['${resource}', '${entry.key}'] as const,`)
+    } else if (entry.pathParams.length === 1) {
+      // detail: (id: string) => ['resource', id]
+      const param = entry.pathParams[0]!
+      lines.push(`  ${entry.key}: (${param}: string) => ['${resource}', ${param}] as const,`)
+    } else {
+      // multiple path params
+      const paramList = entry.pathParams.map((p) => `${p}: string`).join(', ')
+      const paramValues = entry.pathParams.join(', ')
+      lines.push(`  ${entry.key}: (${paramList}) => ['${resource}', ${paramValues}] as const,`)
+    }
+  }
+
+  lines.push(`}`)
+  return lines.join('\n')
+}
+
+// ── Query hook generation ──────────────────────────────────────────────────────
+
+function buildQueryHook(
+  op: OperationMeta,
+  keyFactoryName: string,
+  keyEntry: KeyEntry,
+  staleTime: number,
+  gcTime: number,
+): string {
+  const lines: string[] = []
+
+  const hasQueryParams = keyEntry.hasQueryParams
+  const pathParams = op.pathParams
+
+  // Build parameter list
+  const sigParts: string[] = []
+  for (const p of pathParams) {
+    sigParts.push(`${p}: string`)
+  }
+  if (hasQueryParams) {
+    sigParts.push(`params?: Parameters<typeof ${op.funcName}>[${pathParams.length}]`)
+  }
+  sigParts.push(`options?: Omit<UseQueryOptions<Awaited<ReturnType<typeof ${op.funcName}>>, ApiError>, 'queryKey' | 'queryFn'>`)
+
+  // Build queryKey call
+  let queryKeyCall: string
+  if (pathParams.length === 0 && hasQueryParams) {
+    queryKeyCall = `${keyFactoryName}.${keyEntry.key}(params)`
+  } else if (pathParams.length === 0 && !hasQueryParams) {
+    queryKeyCall = `${keyFactoryName}.${keyEntry.key}()`
+  } else if (pathParams.length === 1 && !hasQueryParams) {
+    queryKeyCall = `${keyFactoryName}.${keyEntry.key}(${pathParams[0]})`
+  } else if (pathParams.length === 1 && hasQueryParams) {
+    // path param + query params
+    queryKeyCall = `${keyFactoryName}.${keyEntry.key}(${pathParams[0]}, params)`
+  } else {
+    const paramValues = pathParams.join(', ')
+    queryKeyCall = `${keyFactoryName}.${keyEntry.key}(${paramValues})`
+  }
+
+  // Build queryFn call
+  let queryFnArgs: string[] = [...pathParams]
+  if (hasQueryParams) queryFnArgs.push('params')
+  const queryFnCall = `${op.funcName}(${queryFnArgs.join(', ')})`
+
+  lines.push(`export function ${op.hookName}(`)
+  lines.push(`  ${sigParts.join(',\n  ')},`)
+  lines.push(`) {`)
+  lines.push(`  return useQuery<Awaited<ReturnType<typeof ${op.funcName}>>, ApiError>({`)
+  lines.push(`    queryKey: ${queryKeyCall},`)
+  lines.push(`    queryFn: () => ${queryFnCall},`)
+  lines.push(`    staleTime: ${staleTime},`)
+  lines.push(`    gcTime: ${gcTime},`)
+  lines.push(`    ...options,`)
+  lines.push(`  })`)
+  lines.push(`}`)
+
+  return lines.join('\n')
+}
+
+// ── Mutation hook generation ───────────────────────────────────────────────────
+
+function buildMutationHook(op: OperationMeta): string {
+  const lines: string[] = []
+  const { funcName, hookName, pathParams, hasBody } = op
+
+  // Determine variables type and mutationFn
+  let variablesType: string
+  let mutationFnBody: string
+
+  if (pathParams.length === 0 && !hasBody) {
+    variablesType = 'void'
+    mutationFnBody = `() => ${funcName}()`
+  } else if (pathParams.length === 0 && hasBody) {
+    variablesType = `Parameters<typeof ${funcName}>[0]`
+    mutationFnBody = `(vars) => ${funcName}(vars)`
+  } else if (pathParams.length === 1 && !hasBody) {
+    variablesType = 'string'
+    mutationFnBody = `(${pathParams[0]}) => ${funcName}(${pathParams[0]})`
+  } else if (pathParams.length === 1 && hasBody) {
+    const param = pathParams[0]!
+    variablesType = `{ ${param}: string; body: Parameters<typeof ${funcName}>[1] }`
+    mutationFnBody = `({ ${param}, body }) => ${funcName}(${param}, body)`
+  } else if (pathParams.length > 1 && !hasBody) {
+    const fields = pathParams.map((p) => `${p}: string`).join('; ')
+    variablesType = `{ ${fields} }`
+    const destructured = pathParams.join(', ')
+    mutationFnBody = `({ ${destructured} }) => ${funcName}(${destructured})`
+  } else {
+    // multiple path params + body
+    const fields = pathParams.map((p) => `${p}: string`).join('; ')
+    variablesType = `{ ${fields}; body: Parameters<typeof ${funcName}>[${pathParams.length}] }`
+    const destructured = [...pathParams, 'body'].join(', ')
+    mutationFnBody = `({ ${destructured} }) => ${funcName}(${[...pathParams, 'body'].join(', ')})`
+  }
+
+  lines.push(`export function ${hookName}(`)
+  lines.push(`  options?: Omit<UseMutationOptions<Awaited<ReturnType<typeof ${funcName}>>, ApiError, ${variablesType}>, 'mutationFn'>,`)
+  lines.push(`) {`)
+  lines.push(`  return useMutation<Awaited<ReturnType<typeof ${funcName}>>, ApiError, ${variablesType}>({`)
+  lines.push(`    mutationFn: ${mutationFnBody},`)
+  lines.push(`    ...options,`)
+  lines.push(`  })`)
+  lines.push(`}`)
+
+  return lines.join('\n')
+}
+
+// ── hasQueryParams detection ───────────────────────────────────────────────────
+
+function operationHasQueryParams(operation: OperationObject): boolean {
+  const params = operation.parameters as (OpenAPIV3_1.ParameterObject | ReferenceObject)[] | undefined
+  if (params === undefined) return false
+  return params.some((p) => {
+    if (isRef(p)) return false
+    const param = p as OpenAPIV3_1.ParameterObject
+    return param.in === 'query'
+  })
+}
+
+// ── Main generator ─────────────────────────────────────────────────────────────
+
+export function generateHooks(
+  spec: OpenAPIV3_1.Document,
+  options: HookGenOptions,
+): { filename: string; content: string } {
+  const { staleTime, gcTime } = options
+  const paths = spec.paths as Record<string, Record<string, OperationObject>> | undefined
+
+  // Collect all operations
+  const operations: OperationMeta[] = []
+
+  if (paths !== undefined) {
+    for (const [path, pathItem] of Object.entries(paths)) {
+      for (const method of SUPPORTED_METHODS) {
+        const operation = pathItem[method] as OperationObject | undefined
+        if (operation === undefined) continue
+
+        let funcName: string
+        if (operation.operationId !== undefined) {
+          const id = operation.operationId
+          funcName = id.charAt(0).toLowerCase() + id.slice(1)
+        } else {
+          funcName = deriveOperationName(method, path)
+        }
+
+        const hookName = 'use' + capitalize(funcName)
+        const pathParams = extractPathParams(path)
+        const { hasBody, bodyTypeName } = getBodyInfo(operation)
+
+        operations.push({
+          funcName,
+          hookName,
+          method,
+          path,
+          pathParams,
+          hasBody,
+          bodyTypeName,
+        })
+      }
+    }
+  }
+
+  // Separate GET vs mutation operations
+  const getOps = operations.filter((op) => op.method === 'get')
+  const mutationOps = operations.filter((op) => op.method !== 'get')
+
+  // Group GET ops by resource for key factories
+  const resourceToGetOps = new Map<string, OperationMeta[]>()
+  for (const op of getOps) {
+    const resource = primaryResource(op.path)
+    const existing = resourceToGetOps.get(resource) ?? []
+    existing.push(op)
+    resourceToGetOps.set(resource, existing)
+  }
+
+  // Build key factories and track which key factory + entry each GET op uses
+  const opToKeyInfo = new Map<string, { factoryName: string; keyEntry: KeyEntry }>()
+  const keyFactoryBlocks: string[] = []
+
+  for (const [resource, ops] of resourceToGetOps.entries()) {
+    const factoryName = `${toKeyFactoryName(resource)}Keys`
+
+    // Determine entry keys — list vs detail, or operationId-derived if ambiguous
+    const listOps = ops.filter((op) => op.pathParams.length === 0)
+    const detailOps = ops.filter((op) => op.pathParams.length > 0)
+
+    const entries: KeyEntry[] = []
+
+    if (listOps.length === 1) {
+      const op = listOps[0]!
+      const hasQueryParams = operationHasQueryParams(
+        (paths![op.path] as Record<string, OperationObject>)[op.method]!,
+      )
+      const entry: KeyEntry = { key: 'list', funcName: op.funcName, pathParams: [], hasQueryParams }
+      entries.push(entry)
+      opToKeyInfo.set(op.funcName, { factoryName, keyEntry: entry })
+    } else if (listOps.length > 1) {
+      for (const op of listOps) {
+        const hasQueryParams = operationHasQueryParams(
+          (paths![op.path] as Record<string, OperationObject>)[op.method]!,
+        )
+        const entry: KeyEntry = { key: op.funcName, funcName: op.funcName, pathParams: [], hasQueryParams }
+        entries.push(entry)
+        opToKeyInfo.set(op.funcName, { factoryName, keyEntry: entry })
+      }
+    }
+
+    if (detailOps.length === 1) {
+      const op = detailOps[0]!
+      const hasQueryParams = operationHasQueryParams(
+        (paths![op.path] as Record<string, OperationObject>)[op.method]!,
+      )
+      const entry: KeyEntry = { key: 'detail', funcName: op.funcName, pathParams: op.pathParams, hasQueryParams }
+      entries.push(entry)
+      opToKeyInfo.set(op.funcName, { factoryName, keyEntry: entry })
+    } else if (detailOps.length > 1) {
+      for (const op of detailOps) {
+        const hasQueryParams = operationHasQueryParams(
+          (paths![op.path] as Record<string, OperationObject>)[op.method]!,
+        )
+        const entry: KeyEntry = { key: op.funcName, funcName: op.funcName, pathParams: op.pathParams, hasQueryParams }
+        entries.push(entry)
+        opToKeyInfo.set(op.funcName, { factoryName, keyEntry: entry })
+      }
+    }
+
+    keyFactoryBlocks.push(buildKeyFactory(resource, entries))
+  }
+
+  // Build query hooks
+  const queryHookBlocks: string[] = []
+  for (const op of getOps) {
+    const info = opToKeyInfo.get(op.funcName)
+    if (info === undefined) continue
+    const { factoryName, keyEntry } = info
+    queryHookBlocks.push(buildQueryHook(op, factoryName, keyEntry, staleTime, gcTime))
+  }
+
+  // Build mutation hooks
+  const mutationHookBlocks: string[] = []
+  for (const op of mutationOps) {
+    mutationHookBlocks.push(buildMutationHook(op))
+  }
+
+  // Determine which react-query exports to import
+  const needsUseQuery = getOps.length > 0
+  const needsUseMutation = mutationOps.length > 0
+  const rqImports: string[] = []
+  if (needsUseQuery) rqImports.push('useQuery', 'type UseQueryOptions')
+  if (needsUseMutation) rqImports.push('useMutation', 'type UseMutationOptions')
+
+  // Collect all function names for client import
+  const allFuncNames = operations.map((op) => op.funcName).sort()
+
+  // Build file content
+  const lines: string[] = []
+  lines.push('// This file is auto-generated by @codewithagents/openapi-react-query — do not edit')
+  lines.push('')
+  if (rqImports.length > 0) {
+    lines.push(`import { ${rqImports.join(', ')} } from '@tanstack/react-query'`)
+  }
+  if (allFuncNames.length > 0) {
+    lines.push(`import { ${allFuncNames.join(', ')}, type ApiError } from './client.js'`)
+  } else {
+    lines.push(`import { type ApiError } from './client.js'`)
+  }
+  lines.push('')
+
+  if (keyFactoryBlocks.length > 0) {
+    lines.push('// ── Query key factories ──────────────────────────────────────')
+    lines.push('')
+    lines.push(keyFactoryBlocks.join('\n\n'))
+    lines.push('')
+  }
+
+  if (queryHookBlocks.length > 0) {
+    lines.push('// ── Queries ──────────────────────────────────────────────────')
+    lines.push('')
+    lines.push(queryHookBlocks.join('\n\n'))
+    lines.push('')
+  }
+
+  if (mutationHookBlocks.length > 0) {
+    lines.push('// ── Mutations ────────────────────────────────────────────────')
+    lines.push('')
+    lines.push(mutationHookBlocks.join('\n\n'))
+    lines.push('')
+  }
+
+  return {
+    filename: 'hooks.ts',
+    content: lines.join('\n'),
+  }
+}
