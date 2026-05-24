@@ -1,11 +1,15 @@
 {
   "name": "@codewithagents/openapi-react-query",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Generate typed React Query v5 hooks from OpenAPI 3.1 specs",
   "type": "module",
-  "bin": { "openapi-react-query": "dist/cli.js" },
+  "bin": {
+    "openapi-react-query": "dist/cli.js"
+  },
   "main": "./dist/index.js",
-  "exports": { ".": "./dist/index.js" },
+  "exports": {
+    ".": "./dist/index.js"
+  },
   "scripts": {
     "build": "tsc -p tsconfig.build.json && chmod +x dist/cli.js",
     "test": "vitest run",
@@ -26,7 +30,10 @@
     "vitest": "^4.0.0"
   },
   "license": "MIT",
-  "repository": { "type": "git", "url": "https://github.com/codewithagents/glue" },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/codewithagents/glue"
+  },
   "publishConfig": {
     "access": "public"
   }
