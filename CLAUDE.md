@@ -15,7 +15,7 @@
 
 ## Key rules
 - **OpenAPI 3.1 only** — no 3.0.x support
-- **Never commit real API specs** (CouponDude, Liberty) — all fixtures must be fictional
+- **Never commit real/internal API specs** — all fixtures must be fictional
 - Build order matters: `openapi-gen` must be built before `openapi-react-query`
 - `pnpm -r run build` / `pnpm -r run test` / `pnpm -r run lint` at root
 
