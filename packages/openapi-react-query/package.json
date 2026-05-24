@@ -9,6 +9,7 @@
   "scripts": {
     "build": "tsc -p tsconfig.build.json && chmod +x dist/cli.js",
     "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
     "lint": "tsc -p tsconfig.build.json --noEmit"
   },
   "dependencies": {
@@ -20,6 +21,7 @@
   },
   "devDependencies": {
     "@types/node": "^22.0.0",
+    "@vitest/coverage-v8": "^4.0.0",
     "typescript": "^6.0.0",
     "vitest": "^4.0.0"
   },
