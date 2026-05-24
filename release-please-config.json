@@ -13,6 +13,13 @@
       "component": "openapi-gen",
       "changelog-path": "CHANGELOG.md",
       "bump-major-pre-major": true
+    },
+    "packages/openapi-react-query": {
+      "release-type": "node",
+      "package-name": "@codewithagents/openapi-react-query",
+      "component": "openapi-react-query",
+      "changelog-path": "CHANGELOG.md",
+      "bump-major-pre-major": true
     }
   }
 }
