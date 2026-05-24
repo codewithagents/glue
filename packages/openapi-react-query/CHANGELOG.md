@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.0.0](https://github.com/codewithagents/glue/compare/openapi-react-query-v0.2.0...openapi-react-query-v1.0.0) (2026-05-24)
+
+
+### ⚠ BREAKING CHANGES
+
+* major version bump from 0.x — update your version range from ^0.x to ^1.0.0.
+
+### Features
+
+* promote api-errors and openapi-react-query to stable 1.0.0 ([#47](https://github.com/codewithagents/glue/issues/47)) ([075be06](https://github.com/codewithagents/glue/commit/075be063b4588080f94dc7f228ca8f30ea8aa5e8))
+
 ## [0.2.0](https://github.com/codewithagents/glue/compare/openapi-react-query-v0.1.0...openapi-react-query-v0.2.0) (2026-05-24)
 
 
