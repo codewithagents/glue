@@ -1,5 +1,5 @@
 import { readFile } from 'node:fs/promises'
-import { join } from 'node:path'
+import { join, resolve } from 'node:path'
 
 export interface Config {
   /** Path to the OpenAPI 3.1 spec file (JSON or YAML) */
@@ -12,20 +12,69 @@ export interface Config {
   baseUrl?: string
 }
 
-export async function loadConfig(cwd: string): Promise<Config> {
-  const configPath = join(cwd, 'openapi-gen.config.json')
+const FORBIDDEN_OUTPUT_PREFIXES = [
+  '/etc', '/usr', '/bin', '/sbin', '/lib', '/lib64',
+  '/sys', '/proc', '/dev', '/boot', '/run',
+  'C:\\Windows', 'C:\\Program Files',
+]
+
+const FORBIDDEN_INPUT_PREFIXES = [
+  '/etc', '/usr', '/bin', '/sbin', '/lib', '/lib64',
+  '/sys', '/proc', '/dev',
+  'C:\\Windows', 'C:\\Program Files',
+]
+
+export function validateConfigPath(configPath: string): void {
+  // Must end in .json — prevents accidentally loading non-config files
+  if (!configPath.endsWith('.json')) {
+    throw new Error(`Config file must be a .json file, got: ${configPath}`)
+  }
+}
+
+export function validateOutputPath(resolvedOutput: string): void {
+  const normalized = resolvedOutput.replace(/\\/g, '/')
+  for (const forbidden of FORBIDDEN_OUTPUT_PREFIXES) {
+    if (normalized.startsWith(forbidden.replace(/\\/g, '/'))) {
+      throw new Error(
+        `Output path resolves to a system directory: "${resolvedOutput}". ` +
+        `This looks like a misconfiguration — please check your config file.`
+      )
+    }
+  }
+}
+
+export function validateInputPath(resolvedInput: string): void {
+  const normalized = resolvedInput.replace(/\\/g, '/')
+  for (const forbidden of FORBIDDEN_INPUT_PREFIXES) {
+    if (normalized.startsWith(forbidden.replace(/\\/g, '/'))) {
+      throw new Error(
+        `Input spec path resolves to a system directory: "${resolvedInput}". ` +
+        `This looks like a misconfiguration — please check your config file.`
+      )
+    }
+  }
+}
+
+export async function loadConfig(cwd: string, configPath?: string): Promise<Config> {
+  const resolvedConfigPath = configPath ?? join(cwd, 'openapi-gen.config.json')
+
+  // Security: validate config path extension when explicitly provided
+  if (configPath !== undefined) {
+    validateConfigPath(configPath)
+  }
+
   let raw: string
   try {
-    raw = await readFile(configPath, 'utf-8')
+    raw = await readFile(resolvedConfigPath, 'utf-8')
   } catch {
-    throw new Error(`Config file not found: ${configPath}`)
+    throw new Error(`Config file not found: ${resolvedConfigPath}`)
   }
 
   let parsed: unknown
   try {
     parsed = JSON.parse(raw)
   } catch {
-    throw new Error(`Config file is not valid JSON: ${configPath}`)
+    throw new Error(`Config file is not valid JSON: ${resolvedConfigPath}`)
   }
 
   if (typeof parsed !== 'object' || parsed === null) {
@@ -46,6 +95,12 @@ export async function loadConfig(cwd: string): Promise<Config> {
   ) {
     throw new Error('"input_schema" must be a non-empty string path to your Zod schema file')
   }
+
+  // Security: validate resolved input and output paths
+  const resolvedInput = resolve(cwd, config['input_openapi'] as string)
+  const resolvedOutput = resolve(cwd, config['output'] as string)
+  validateInputPath(resolvedInput)
+  validateOutputPath(resolvedOutput)
 
   return {
     input_openapi: config['input_openapi'] as string,

@@ -8,7 +8,7 @@ describe('loadConfig', () => {
   let tmpDir: string
 
   beforeEach(() => {
-    tmpDir = mkdtempSync(join(tmpdir(), 'openapi-gen-config-'))
+    tmpDir = mkdtempSync(join(tmpdir(), 'openapi-react-query-config-'))
   })
 
   afterEach(() => {
@@ -16,30 +16,30 @@ describe('loadConfig', () => {
   })
 
   function writeConfig(content: unknown) {
-    writeFileSync(join(tmpDir, 'openapi-gen.config.json'), JSON.stringify(content))
+    writeFileSync(join(tmpDir, 'openapi-react-query.config.json'), JSON.stringify(content))
   }
 
   it('loads a valid minimal config', async () => {
-    writeConfig({ input_openapi: 'openapi.json', output: 'src/api' })
+    writeConfig({ input_openapi: 'openapi.json', output: 'src/hooks' })
     const config = await loadConfig(tmpDir)
     expect(config.input_openapi).toBe('openapi.json')
-    expect(config.output).toBe('src/api')
-    expect(config.input_schema).toBeUndefined()
-    expect(config.baseUrl).toBeUndefined()
+    expect(config.output).toBe('src/hooks')
+    expect(config.stale_time).toBeUndefined()
+    expect(config.gc_time).toBeUndefined()
   })
 
   it('loads a full config with all fields', async () => {
     writeConfig({
       input_openapi: 'api/openapi.json',
-      input_schema: 'schemas.ts',
       output: 'src/generated',
-      baseUrl: 'https://api.example.com',
+      stale_time: 5000,
+      gc_time: 600000,
     })
     const config = await loadConfig(tmpDir)
     expect(config.input_openapi).toBe('api/openapi.json')
-    expect(config.input_schema).toBe('schemas.ts')
     expect(config.output).toBe('src/generated')
-    expect(config.baseUrl).toBe('https://api.example.com')
+    expect(config.stale_time).toBe(5000)
+    expect(config.gc_time).toBe(600000)
   })
 
   it('throws when config file is missing', async () => {
@@ -47,22 +47,17 @@ describe('loadConfig', () => {
   })
 
   it('throws when config is not valid JSON', async () => {
-    writeFileSync(join(tmpDir, 'openapi-gen.config.json'), 'not json {{{')
+    writeFileSync(join(tmpDir, 'openapi-react-query.config.json'), 'not json {{{')
     await expect(loadConfig(tmpDir)).rejects.toThrow('not valid JSON')
   })
 
   it('throws when config is not an object', async () => {
-    writeFileSync(join(tmpDir, 'openapi-gen.config.json'), '"just a string"')
+    writeFileSync(join(tmpDir, 'openapi-react-query.config.json'), '"just a string"')
     await expect(loadConfig(tmpDir)).rejects.toThrow('JSON object')
   })
 
   it('throws when input_openapi is missing', async () => {
-    writeConfig({ output: 'src/api' })
-    await expect(loadConfig(tmpDir)).rejects.toThrow('input_openapi')
-  })
-
-  it('throws when input_openapi is empty string', async () => {
-    writeConfig({ input_openapi: '', output: 'src/api' })
+    writeConfig({ output: 'src/hooks' })
     await expect(loadConfig(tmpDir)).rejects.toThrow('input_openapi')
   })
 
@@ -71,28 +66,33 @@ describe('loadConfig', () => {
     await expect(loadConfig(tmpDir)).rejects.toThrow('output')
   })
 
-  it('throws when input_schema is an empty string', async () => {
-    writeConfig({ input_openapi: 'openapi.json', output: 'src/api', input_schema: '' })
-    await expect(loadConfig(tmpDir)).rejects.toThrow('input_schema')
+  it('throws when stale_time is not a number', async () => {
+    writeConfig({ input_openapi: 'openapi.json', output: 'src/hooks', stale_time: 'fast' })
+    await expect(loadConfig(tmpDir)).rejects.toThrow('stale_time')
+  })
+
+  it('throws when gc_time is not a number', async () => {
+    writeConfig({ input_openapi: 'openapi.json', output: 'src/hooks', gc_time: true })
+    await expect(loadConfig(tmpDir)).rejects.toThrow('gc_time')
   })
 
   it('ignores unknown config fields', async () => {
-    writeConfig({ input_openapi: 'openapi.json', output: 'src/api', unknown_field: 'ignored' })
+    writeConfig({ input_openapi: 'openapi.json', output: 'src/hooks', unknown_field: 'ignored' })
     const config = await loadConfig(tmpDir)
     expect(config.input_openapi).toBe('openapi.json')
   })
 
   it('accepts a config loaded via explicit configPath', async () => {
     const configFile = join(tmpDir, 'custom.config.json')
-    writeFileSync(configFile, JSON.stringify({ input_openapi: 'openapi.json', output: 'src/api' }))
+    writeFileSync(configFile, JSON.stringify({ input_openapi: 'openapi.json', output: 'src/hooks' }))
     const config = await loadConfig(tmpDir, configFile)
     expect(config.input_openapi).toBe('openapi.json')
-    expect(config.output).toBe('src/api')
+    expect(config.output).toBe('src/hooks')
   })
 
   it('rejects explicit configPath that is not .json', async () => {
     const configFile = join(tmpDir, 'config.ts')
-    writeFileSync(configFile, JSON.stringify({ input_openapi: 'openapi.json', output: 'src/api' }))
+    writeFileSync(configFile, JSON.stringify({ input_openapi: 'openapi.json', output: 'src/hooks' }))
     await expect(loadConfig(tmpDir, configFile)).rejects.toThrow('Config file must be a .json file')
   })
 })
@@ -150,11 +150,11 @@ describe('config security validation', () => {
     })
 
     it('accepts absolute path within home directory', () => {
-      expect(() => validateOutputPath('/Users/someone/myproject/src/api')).not.toThrow()
+      expect(() => validateOutputPath('/Users/someone/myproject/src/hooks')).not.toThrow()
     })
 
     it('accepts dist/api style path', () => {
-      expect(() => validateOutputPath('/home/user/project/dist/api')).not.toThrow()
+      expect(() => validateOutputPath('/home/user/project/dist/hooks')).not.toThrow()
     })
   })
 

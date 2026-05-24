@@ -4,8 +4,8 @@
   "description": "Cross-package integration tests and live sample code for @codewithagents/openapi-gen + @codewithagents/api-errors.",
   "type": "module",
   "scripts": {
-    "generate": "openapi-gen",
-    "generate:hooks": "openapi-react-query",
+    "generate": "openapi-gen --config openapi-gen.config.json",
+    "generate:hooks": "openapi-react-query --config openapi-react-query.config.json",
     "test": "vitest run",
     "lint": "tsc --noEmit"
   },
