@@ -83,6 +83,8 @@ interface OperationMeta {
   pathParams: string[]
   hasBody: boolean
   bodyTypeName: string | undefined
+  hasQueryParams: boolean
+  hasRequiredQueryParams: boolean
 }
 
 function getBodyInfo(operation: OperationObject): { hasBody: boolean; bodyTypeName: string | undefined } {
@@ -124,6 +126,7 @@ interface KeyEntry {
   funcName: string    // function to use in key factory
   pathParams: string[]
   hasQueryParams: boolean
+  hasRequiredQueryParams: boolean
 }
 
 function buildKeyFactory(resource: string, entries: KeyEntry[]): string {
@@ -133,21 +136,35 @@ function buildKeyFactory(resource: string, entries: KeyEntry[]): string {
   lines.push(`  all: () => ['${resource}'] as const,`)
 
   for (const entry of entries) {
+    const paramsOptional = !entry.hasRequiredQueryParams
+    const paramsArg = paramsOptional
+      ? `params?: Parameters<typeof ${entry.funcName}>[${entry.pathParams.length}]`
+      : `params: Parameters<typeof ${entry.funcName}>[${entry.pathParams.length}]`
+
     if (entry.pathParams.length === 0 && entry.hasQueryParams) {
       // list: (params?) => ['resource', 'list', params]
-      lines.push(`  ${entry.key}: (params?: Parameters<typeof ${entry.funcName}>[0]) => ['${resource}', '${entry.key}', params] as const,`)
+      lines.push(`  ${entry.key}: (${paramsArg}) => ['${resource}', '${entry.key}', params] as const,`)
     } else if (entry.pathParams.length === 0 && !entry.hasQueryParams) {
       // list with no params
       lines.push(`  ${entry.key}: () => ['${resource}', '${entry.key}'] as const,`)
-    } else if (entry.pathParams.length === 1) {
+    } else if (entry.pathParams.length === 1 && !entry.hasQueryParams) {
       // detail: (id: string) => ['resource', id]
       const param = entry.pathParams[0]!
       lines.push(`  ${entry.key}: (${param}: string) => ['${resource}', ${param}] as const,`)
-    } else {
-      // multiple path params
+    } else if (entry.pathParams.length === 1 && entry.hasQueryParams) {
+      // detail with query params: (id: string, params?) => ['resource', id, params]
+      const param = entry.pathParams[0]!
+      lines.push(`  ${entry.key}: (${param}: string, ${paramsArg}) => ['${resource}', ${param}, params] as const,`)
+    } else if (!entry.hasQueryParams) {
+      // multiple path params, no query params
       const paramList = entry.pathParams.map((p) => `${p}: string`).join(', ')
       const paramValues = entry.pathParams.join(', ')
       lines.push(`  ${entry.key}: (${paramList}) => ['${resource}', ${paramValues}] as const,`)
+    } else {
+      // multiple path params + query params
+      const paramList = entry.pathParams.map((p) => `${p}: string`).join(', ')
+      const paramValues = entry.pathParams.join(', ')
+      lines.push(`  ${entry.key}: (${paramList}, ${paramsArg}) => ['${resource}', ${paramValues}, params] as const,`)
     }
   }
 
@@ -167,6 +184,7 @@ function buildQueryHook(
   const lines: string[] = []
 
   const hasQueryParams = keyEntry.hasQueryParams
+  const paramsRequired = keyEntry.hasRequiredQueryParams
   const pathParams = op.pathParams
 
   // Build parameter list
@@ -175,7 +193,8 @@ function buildQueryHook(
     sigParts.push(`${p}: string`)
   }
   if (hasQueryParams) {
-    sigParts.push(`params?: Parameters<typeof ${op.funcName}>[${pathParams.length}]`)
+    const paramsToken = paramsRequired ? 'params' : 'params?'
+    sigParts.push(`${paramsToken}: Parameters<typeof ${op.funcName}>[${pathParams.length}]`)
   }
   sigParts.push(`options?: Omit<UseQueryOptions<Awaited<ReturnType<typeof ${op.funcName}>>, ApiError>, 'queryKey' | 'queryFn'>`)
 
@@ -190,9 +209,14 @@ function buildQueryHook(
   } else if (pathParams.length === 1 && hasQueryParams) {
     // path param + query params
     queryKeyCall = `${keyFactoryName}.${keyEntry.key}(${pathParams[0]}, params)`
-  } else {
+  } else if (!hasQueryParams) {
+    // multiple path params, no query params
     const paramValues = pathParams.join(', ')
     queryKeyCall = `${keyFactoryName}.${keyEntry.key}(${paramValues})`
+  } else {
+    // multiple path params + query params
+    const paramValues = pathParams.join(', ')
+    queryKeyCall = `${keyFactoryName}.${keyEntry.key}(${paramValues}, params)`
   }
 
   // Build queryFn call
@@ -219,36 +243,72 @@ function buildQueryHook(
 
 function buildMutationHook(op: OperationMeta): string {
   const lines: string[] = []
-  const { funcName, hookName, pathParams, hasBody } = op
+  const { funcName, hookName, pathParams, hasBody, hasQueryParams } = op
 
   // Determine variables type and mutationFn
+  // The client function argument order is: ...pathParams, body?, params?
+  // We must match exactly what the generated client function expects.
   let variablesType: string
   let mutationFnBody: string
 
-  if (pathParams.length === 0 && !hasBody) {
+  // Compute the index of the params argument in the client function signature
+  const paramsArgIndex = pathParams.length + (hasBody ? 1 : 0)
+
+  if (pathParams.length === 0 && !hasBody && !hasQueryParams) {
     variablesType = 'void'
     mutationFnBody = `() => ${funcName}()`
-  } else if (pathParams.length === 0 && hasBody) {
+  } else if (pathParams.length === 0 && !hasBody && hasQueryParams) {
+    // params-only mutation: fn(params)
     variablesType = `Parameters<typeof ${funcName}>[0]`
     mutationFnBody = `(vars) => ${funcName}(vars)`
-  } else if (pathParams.length === 1 && !hasBody) {
+  } else if (pathParams.length === 0 && hasBody && !hasQueryParams) {
+    // body-only mutation: fn(body)
+    variablesType = `Parameters<typeof ${funcName}>[0]`
+    mutationFnBody = `(vars) => ${funcName}(vars)`
+  } else if (pathParams.length === 0 && hasBody && hasQueryParams) {
+    // body + params: fn(body, params)
+    variablesType = `{ body: Parameters<typeof ${funcName}>[0]; params: Parameters<typeof ${funcName}>[${paramsArgIndex}] }`
+    mutationFnBody = `({ body, params }) => ${funcName}(body, params)`
+  } else if (pathParams.length === 1 && !hasBody && !hasQueryParams) {
     variablesType = 'string'
     mutationFnBody = `(${pathParams[0]}) => ${funcName}(${pathParams[0]})`
-  } else if (pathParams.length === 1 && hasBody) {
+  } else if (pathParams.length === 1 && !hasBody && hasQueryParams) {
+    // 1 path param + params only
+    const param = pathParams[0]!
+    variablesType = `{ ${param}: string; params: Parameters<typeof ${funcName}>[${paramsArgIndex}] }`
+    mutationFnBody = `({ ${param}, params }) => ${funcName}(${param}, params)`
+  } else if (pathParams.length === 1 && hasBody && !hasQueryParams) {
     const param = pathParams[0]!
     variablesType = `{ ${param}: string; body: Parameters<typeof ${funcName}>[1] }`
     mutationFnBody = `({ ${param}, body }) => ${funcName}(${param}, body)`
-  } else if (pathParams.length > 1 && !hasBody) {
+  } else if (pathParams.length === 1 && hasBody && hasQueryParams) {
+    // 1 path param + body + params
+    const param = pathParams[0]!
+    variablesType = `{ ${param}: string; body: Parameters<typeof ${funcName}>[1]; params: Parameters<typeof ${funcName}>[${paramsArgIndex}] }`
+    mutationFnBody = `({ ${param}, body, params }) => ${funcName}(${param}, body, params)`
+  } else if (pathParams.length > 1 && !hasBody && !hasQueryParams) {
     const fields = pathParams.map((p) => `${p}: string`).join('; ')
     variablesType = `{ ${fields} }`
     const destructured = pathParams.join(', ')
     mutationFnBody = `({ ${destructured} }) => ${funcName}(${destructured})`
-  } else {
+  } else if (pathParams.length > 1 && !hasBody && hasQueryParams) {
+    // multiple path params + params only
+    const fields = pathParams.map((p) => `${p}: string`).join('; ')
+    variablesType = `{ ${fields}; params: Parameters<typeof ${funcName}>[${paramsArgIndex}] }`
+    const destructured = [...pathParams, 'params'].join(', ')
+    mutationFnBody = `({ ${destructured} }) => ${funcName}(${[...pathParams, 'params'].join(', ')})`
+  } else if (pathParams.length > 1 && hasBody && !hasQueryParams) {
     // multiple path params + body
     const fields = pathParams.map((p) => `${p}: string`).join('; ')
     variablesType = `{ ${fields}; body: Parameters<typeof ${funcName}>[${pathParams.length}] }`
     const destructured = [...pathParams, 'body'].join(', ')
     mutationFnBody = `({ ${destructured} }) => ${funcName}(${[...pathParams, 'body'].join(', ')})`
+  } else {
+    // multiple path params + body + params
+    const fields = pathParams.map((p) => `${p}: string`).join('; ')
+    variablesType = `{ ${fields}; body: Parameters<typeof ${funcName}>[${pathParams.length}]; params: Parameters<typeof ${funcName}>[${paramsArgIndex}] }`
+    const destructured = [...pathParams, 'body', 'params'].join(', ')
+    mutationFnBody = `({ ${destructured} }) => ${funcName}(${[...pathParams, 'body', 'params'].join(', ')})`
   }
 
   lines.push(`export function ${hookName}(`)
@@ -272,6 +332,17 @@ function operationHasQueryParams(operation: OperationObject): boolean {
     if (isRef(p)) return false
     const param = p as OpenAPIV3_1.ParameterObject
     return param.in === 'query'
+  })
+}
+
+/** Returns true if any query parameter has required: true */
+function operationHasRequiredQueryParams(operation: OperationObject): boolean {
+  const params = operation.parameters as (OpenAPIV3_1.ParameterObject | ReferenceObject)[] | undefined
+  if (params === undefined) return false
+  return params.some((p) => {
+    if (isRef(p)) return false
+    const param = p as OpenAPIV3_1.ParameterObject
+    return param.in === 'query' && param.required === true
   })
 }
 
@@ -304,6 +375,8 @@ export function generateHooks(
         const hookName = 'use' + capitalize(funcName)
         const pathParams = extractPathParams(path)
         const { hasBody, bodyTypeName } = getBodyInfo(operation)
+        const hasQueryParams = operationHasQueryParams(operation)
+        const hasRequiredQueryParams = operationHasRequiredQueryParams(operation)
 
         operations.push({
           funcName,
@@ -313,6 +386,8 @@ export function generateHooks(
           pathParams,
           hasBody,
           bodyTypeName,
+          hasQueryParams,
+          hasRequiredQueryParams,
         })
       }
     }
@@ -346,18 +421,24 @@ export function generateHooks(
 
     if (listOps.length === 1) {
       const op = listOps[0]!
-      const hasQueryParams = operationHasQueryParams(
-        (paths![op.path] as Record<string, OperationObject>)[op.method]!,
-      )
-      const entry: KeyEntry = { key: 'list', funcName: op.funcName, pathParams: [], hasQueryParams }
+      const entry: KeyEntry = {
+        key: 'list',
+        funcName: op.funcName,
+        pathParams: [],
+        hasQueryParams: op.hasQueryParams,
+        hasRequiredQueryParams: op.hasRequiredQueryParams,
+      }
       entries.push(entry)
       opToKeyInfo.set(op.funcName, { factoryName, keyEntry: entry })
     } else if (listOps.length > 1) {
       for (const op of listOps) {
-        const hasQueryParams = operationHasQueryParams(
-          (paths![op.path] as Record<string, OperationObject>)[op.method]!,
-        )
-        const entry: KeyEntry = { key: op.funcName, funcName: op.funcName, pathParams: [], hasQueryParams }
+        const entry: KeyEntry = {
+          key: op.funcName,
+          funcName: op.funcName,
+          pathParams: [],
+          hasQueryParams: op.hasQueryParams,
+          hasRequiredQueryParams: op.hasRequiredQueryParams,
+        }
         entries.push(entry)
         opToKeyInfo.set(op.funcName, { factoryName, keyEntry: entry })
       }
@@ -365,18 +446,24 @@ export function generateHooks(
 
     if (detailOps.length === 1) {
       const op = detailOps[0]!
-      const hasQueryParams = operationHasQueryParams(
-        (paths![op.path] as Record<string, OperationObject>)[op.method]!,
-      )
-      const entry: KeyEntry = { key: 'detail', funcName: op.funcName, pathParams: op.pathParams, hasQueryParams }
+      const entry: KeyEntry = {
+        key: 'detail',
+        funcName: op.funcName,
+        pathParams: op.pathParams,
+        hasQueryParams: op.hasQueryParams,
+        hasRequiredQueryParams: op.hasRequiredQueryParams,
+      }
       entries.push(entry)
       opToKeyInfo.set(op.funcName, { factoryName, keyEntry: entry })
     } else if (detailOps.length > 1) {
       for (const op of detailOps) {
-        const hasQueryParams = operationHasQueryParams(
-          (paths![op.path] as Record<string, OperationObject>)[op.method]!,
-        )
-        const entry: KeyEntry = { key: op.funcName, funcName: op.funcName, pathParams: op.pathParams, hasQueryParams }
+        const entry: KeyEntry = {
+          key: op.funcName,
+          funcName: op.funcName,
+          pathParams: op.pathParams,
+          hasQueryParams: op.hasQueryParams,
+          hasRequiredQueryParams: op.hasRequiredQueryParams,
+        }
         entries.push(entry)
         opToKeyInfo.set(op.funcName, { factoryName, keyEntry: entry })
       }

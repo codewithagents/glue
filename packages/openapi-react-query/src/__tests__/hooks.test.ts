@@ -100,6 +100,261 @@ describe('generateHooks — task-hooks.json fixture', () => {
   })
 })
 
+// ── Bug #1: Params optionality ──────────────────────────────────────────────────
+
+describe('generateHooks — Bug #52: params optionality based on required query params', () => {
+  // Spec with a required query param
+  const specWithRequiredQueryParam: OpenAPIV3_1.Document = {
+    openapi: '3.1.0',
+    info: { title: 'Test', version: '1.0.0' },
+    paths: {
+      '/templates': {
+        get: {
+          operationId: 'listTemplates',
+          parameters: [
+            { name: 'platform', in: 'query', required: true, schema: { type: 'string' } },
+            { name: 'page', in: 'query', schema: { type: 'integer' } },
+          ],
+          responses: { '200': { description: 'ok' } },
+        },
+      },
+    },
+  }
+
+  // Spec with only optional query params
+  const specWithOptionalQueryParams: OpenAPIV3_1.Document = {
+    openapi: '3.1.0',
+    info: { title: 'Test', version: '1.0.0' },
+    paths: {
+      '/templates': {
+        get: {
+          operationId: 'listTemplates',
+          parameters: [
+            { name: 'page', in: 'query', schema: { type: 'integer' } },
+            { name: 'size', in: 'query', schema: { type: 'integer' } },
+          ],
+          responses: { '200': { description: 'ok' } },
+        },
+      },
+    },
+  }
+
+  it('hook marks params as required when any query param has required: true', () => {
+    const { content } = generateHooks(specWithRequiredQueryParam, { staleTime: 0, gcTime: 0 })
+    // params should NOT be optional (no ?)
+    expect(content).toContain('params: Parameters<typeof listTemplates>')
+    expect(content).not.toContain('params?: Parameters<typeof listTemplates>')
+  })
+
+  it('key factory marks params as required when any query param has required: true', () => {
+    const { content } = generateHooks(specWithRequiredQueryParam, { staleTime: 0, gcTime: 0 })
+    // key factory list entry should have required params
+    expect(content).toContain('params: Parameters<typeof listTemplates>[0]')
+    expect(content).not.toContain('params?: Parameters<typeof listTemplates>[0]')
+  })
+
+  it('hook marks params as optional when all query params are optional', () => {
+    const { content } = generateHooks(specWithOptionalQueryParams, { staleTime: 0, gcTime: 0 })
+    expect(content).toContain('params?: Parameters<typeof listTemplates>')
+  })
+
+  it('key factory marks params as optional when all query params are optional', () => {
+    const { content } = generateHooks(specWithOptionalQueryParams, { staleTime: 0, gcTime: 0 })
+    expect(content).toContain('params?: Parameters<typeof listTemplates>[0]')
+  })
+})
+
+// ── Bug #2: Key factory missing query params for multi-arg endpoints ────────────
+
+describe('generateHooks — Bug #53: key factory includes query params when operation has both path and query params', () => {
+  const specWithPathAndQueryParams: OpenAPIV3_1.Document = {
+    openapi: '3.1.0',
+    info: { title: 'Test', version: '1.0.0' },
+    paths: {
+      '/templates/{uuid}': {
+        get: {
+          operationId: 'readTemplateDetails',
+          parameters: [
+            { name: 'uuid', in: 'path', required: true, schema: { type: 'string' } },
+            { name: 'platform', in: 'query', schema: { type: 'string' } },
+          ],
+          responses: { '200': { description: 'ok' } },
+        },
+      },
+    },
+  }
+
+  const specWithPathAndRequiredQueryParams: OpenAPIV3_1.Document = {
+    openapi: '3.1.0',
+    info: { title: 'Test', version: '1.0.0' },
+    paths: {
+      '/reports/{id}': {
+        get: {
+          operationId: 'getReport',
+          parameters: [
+            { name: 'id', in: 'path', required: true, schema: { type: 'string' } },
+            { name: 'format', in: 'query', required: true, schema: { type: 'string' } },
+          ],
+          responses: { '200': { description: 'ok' } },
+        },
+      },
+    },
+  }
+
+  it('key factory detail entry includes optional params when path + optional query params', () => {
+    const { content } = generateHooks(specWithPathAndQueryParams, { staleTime: 0, gcTime: 0 })
+    // Key factory should accept (uuid: string, params?)
+    expect(content).toContain('(uuid: string, params?: Parameters<typeof readTemplateDetails>[1])')
+  })
+
+  it('key factory detail entry includes params value in tuple', () => {
+    const { content } = generateHooks(specWithPathAndQueryParams, { staleTime: 0, gcTime: 0 })
+    // Key tuple should include params
+    expect(content).toContain("['templates', uuid, params]")
+  })
+
+  it('hook calls key factory with both path and query params', () => {
+    const { content } = generateHooks(specWithPathAndQueryParams, { staleTime: 0, gcTime: 0 })
+    expect(content).toContain('templateKeys.detail(uuid, params)')
+  })
+
+  it('key factory detail entry includes required params when path + required query params', () => {
+    const { content } = generateHooks(specWithPathAndRequiredQueryParams, { staleTime: 0, gcTime: 0 })
+    // Key factory should accept required params (no ?)
+    expect(content).toContain('(id: string, params: Parameters<typeof getReport>[1])')
+  })
+
+  it('hook marks params as required when path param + required query param', () => {
+    const { content } = generateHooks(specWithPathAndRequiredQueryParams, { staleTime: 0, gcTime: 0 })
+    expect(content).toContain('params: Parameters<typeof getReport>[1]')
+    expect(content).not.toContain('params?: Parameters<typeof getReport>[1]')
+  })
+})
+
+// ── Bug #3: Mutation hook argument shapes ───────────────────────────────────────
+
+describe('generateHooks — Bug #54: mutation hook handles all argument shapes', () => {
+  const makeSpec = (pathSegment: string, method: string, hasBody: boolean, queryParams: Array<{name: string; required?: boolean}>): OpenAPIV3_1.Document => ({
+    openapi: '3.1.0',
+    info: { title: 'Test', version: '1.0.0' },
+    paths: {
+      [pathSegment]: {
+        [method]: {
+          operationId: `${method}Op`,
+          parameters: queryParams.map((p) => ({ name: p.name, in: 'query' as const, required: p.required, schema: { type: 'string' as const } })),
+          ...(hasBody ? {
+            requestBody: {
+              required: true,
+              content: { 'application/json': { schema: { $ref: '#/components/schemas/Body' } } },
+            },
+          } : {}),
+          responses: { '200': { description: 'ok' } },
+        },
+      },
+    },
+    components: { schemas: { Body: { type: 'object' as const, properties: { name: { type: 'string' as const } } } } },
+  })
+
+  it('mutation with query params only (no body, no path): variables type is Parameters[0], mutationFn is (vars) => fn(vars)', () => {
+    const spec = makeSpec('/resources', 'post', false, [{ name: 'filter', required: false }])
+    const { content } = generateHooks(spec, { staleTime: 0, gcTime: 0 })
+    // Variables type should be Parameters<typeof postOp>[0]
+    expect(content).toContain('Parameters<typeof postOp>[0]')
+    // mutationFn should pass vars through
+    expect(content).toContain('(vars) => postOp(vars)')
+  })
+
+  it('mutation with body + query params (no path): variables is { body, params }, mutationFn destructures', () => {
+    const spec = makeSpec('/resources', 'post', true, [{ name: 'dryRun', required: false }])
+    const { content } = generateHooks(spec, { staleTime: 0, gcTime: 0 })
+    // Variables type includes both body and params
+    expect(content).toContain('body: Parameters<typeof postOp>[0]')
+    expect(content).toContain('params: Parameters<typeof postOp>[1]')
+    // mutationFn destructures and passes both
+    expect(content).toContain('({ body, params }) => postOp(body, params)')
+  })
+
+  it('mutation with path + body + query params: variables is { id, body, params }, mutationFn destructures all', () => {
+    const spec: OpenAPIV3_1.Document = {
+      openapi: '3.1.0',
+      info: { title: 'Test', version: '1.0.0' },
+      paths: {
+        '/resources/{id}': {
+          patch: {
+            operationId: 'patchOp',
+            parameters: [
+              { name: 'id', in: 'path', required: true, schema: { type: 'string' } },
+              { name: 'dryRun', in: 'query', schema: { type: 'string' } },
+            ],
+            requestBody: {
+              required: true,
+              content: { 'application/json': { schema: { $ref: '#/components/schemas/Body' } } },
+            },
+            responses: { '200': { description: 'ok' } },
+          },
+        },
+      },
+      components: { schemas: { Body: { type: 'object', properties: { name: { type: 'string' } } } } },
+    }
+    const { content } = generateHooks(spec, { staleTime: 0, gcTime: 0 })
+    // Variables includes id, body, and params
+    expect(content).toContain('id: string')
+    expect(content).toContain('body: Parameters<typeof patchOp>[1]')
+    expect(content).toContain('params: Parameters<typeof patchOp>[2]')
+    // mutationFn destructures all three and passes in correct order
+    expect(content).toContain('({ id, body, params }) => patchOp(id, body, params)')
+  })
+
+  it('mutation with path + query params only (no body): variables is { id, params }, mutationFn uses both', () => {
+    const spec: OpenAPIV3_1.Document = {
+      openapi: '3.1.0',
+      info: { title: 'Test', version: '1.0.0' },
+      paths: {
+        '/resources/{id}': {
+          delete: {
+            operationId: 'deleteOp',
+            parameters: [
+              { name: 'id', in: 'path', required: true, schema: { type: 'string' } },
+              { name: 'cascade', in: 'query', schema: { type: 'string' } },
+            ],
+            responses: { '204': { description: 'deleted' } },
+          },
+        },
+      },
+    }
+    const { content } = generateHooks(spec, { staleTime: 0, gcTime: 0 })
+    // Variables includes id and params
+    expect(content).toContain('id: string')
+    expect(content).toContain('params: Parameters<typeof deleteOp>[1]')
+    // mutationFn destructures and passes both
+    expect(content).toContain('({ id, params }) => deleteOp(id, params)')
+  })
+
+  it('existing body-only mutation still works: variables is Parameters[0], mutationFn is (vars) => fn(vars)', () => {
+    // Regression: existing behavior must be preserved
+    const spec: OpenAPIV3_1.Document = {
+      openapi: '3.1.0',
+      info: { title: 'Test', version: '1.0.0' },
+      paths: {
+        '/tasks': {
+          post: {
+            operationId: 'createTask',
+            requestBody: {
+              required: true,
+              content: { 'application/json': { schema: { $ref: '#/components/schemas/CreateTask' } } },
+            },
+            responses: { '201': { description: 'created' } },
+          },
+        },
+      },
+      components: { schemas: { CreateTask: { type: 'object', properties: { title: { type: 'string' } } } } },
+    }
+    const { content } = generateHooks(spec, { staleTime: 0, gcTime: 0 })
+    expect(content).toContain('Parameters<typeof createTask>[0]')
+    expect(content).toContain('(vars) => createTask(vars)')
+  })
+})
+
 describe('generateHooks — tag name to camelCase key factory', () => {
   // Resource name comes from the path segment, not the tag — use tag name as path to test conversion
   const makeSpec = (pathSegment: string): OpenAPIV3_1.Document => ({
