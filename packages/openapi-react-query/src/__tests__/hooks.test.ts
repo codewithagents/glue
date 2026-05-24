@@ -99,3 +99,42 @@ describe('generateHooks — task-hooks.json fixture', () => {
     expect(spreadIdx).toBeGreaterThan(gcTimeIdx)
   })
 })
+
+describe('generateHooks — tag name to camelCase key factory', () => {
+  // Resource name comes from the path segment, not the tag — use tag name as path to test conversion
+  const makeSpec = (pathSegment: string): OpenAPIV3_1.Document => ({
+    openapi: '3.1.0',
+    info: { title: 'Test', version: '1.0.0' },
+    paths: {
+      [`/${pathSegment}`]: {
+        get: {
+          operationId: `list${pathSegment}`,
+          responses: { '200': { description: 'ok', content: { 'application/json': { schema: { type: 'array', items: { type: 'object' } } } } } },
+        },
+      },
+    },
+  })
+
+  it('kebab-case path /page-selections → pageSelectionKeys (valid JS identifier)', () => {
+    const { content } = generateHooks(makeSpec('page-selections'), { staleTime: 0, gcTime: 0 })
+    expect(content).toContain('export const pageSelectionKeys')
+    expect(content).not.toContain('page-selectionKeys')
+  })
+
+  it('snake_case path /group_reservations → groupReservationKeys', () => {
+    const { content } = generateHooks(makeSpec('group_reservations'), { staleTime: 0, gcTime: 0 })
+    expect(content).toContain('export const groupReservationKeys')
+    expect(content).not.toContain('group_reservationKeys')
+  })
+
+  it('plain path /tasks → taskKeys (unchanged)', () => {
+    const { content } = generateHooks(makeSpec('tasks'), { staleTime: 0, gcTime: 0 })
+    expect(content).toContain('export const taskKeys')
+  })
+
+  it('kebab-case path /ad-settings → adSettingKeys', () => {
+    const { content } = generateHooks(makeSpec('ad-settings'), { staleTime: 0, gcTime: 0 })
+    expect(content).toContain('export const adSettingKeys')
+    expect(content).not.toContain('ad-settingKeys')
+  })
+})

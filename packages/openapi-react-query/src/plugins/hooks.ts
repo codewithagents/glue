@@ -67,10 +67,12 @@ function primaryResource(path: string): string {
   return firstSegment.replace(/[{}]/g, '')
 }
 
-/** singularize resource name for key factory naming, e.g. tasks → task */
+/** Convert tag to valid camelCase identifier, then singularize. e.g. page-selections → pageSelection */
 function toKeyFactoryName(resource: string): string {
-  // simple pluralization removal: trailing 's'
-  return resource.endsWith('s') ? resource.slice(0, -1) : resource
+  // kebab-case and snake_case → camelCase
+  const camel = resource.replace(/[-_](.)/g, (_, c: string) => c.toUpperCase())
+  // simple singularization: trailing 's'
+  return camel.endsWith('s') ? camel.slice(0, -1) : camel
 }
 
 interface OperationMeta {
