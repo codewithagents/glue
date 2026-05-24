@@ -1,0 +1,24 @@
+coverage:
+  status:
+    project:
+      default:
+        target: auto
+        threshold: 5%
+
+flag_management:
+  default_rules:
+    carryforward: true
+
+flags:
+  api-errors:
+    paths:
+      - packages/api-errors/src/
+    carryforward: true
+  openapi-gen:
+    paths:
+      - packages/openapi-gen/src/
+    carryforward: true
+  openapi-react-query:
+    paths:
+      - packages/openapi-react-query/src/
+    carryforward: true

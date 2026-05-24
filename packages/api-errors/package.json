@@ -17,6 +17,7 @@
   "scripts": {
     "build": "tsc",
     "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
     "lint": "tsc --noEmit"
   },
   "keywords": [
@@ -33,6 +34,7 @@
     "url": "https://github.com/codewithagents/glue"
   },
   "devDependencies": {
+    "@vitest/coverage-v8": "^3.0.0",
     "typescript": "^6.0.0",
     "vitest": "^3.0.0"
   }
