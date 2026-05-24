@@ -4,8 +4,8 @@ import { parseSpec } from '@codewithagents/openapi-gen'
 import { loadConfig } from './config.js'
 import { generateHooks } from './plugins/hooks.js'
 
-export async function generate(cwd: string): Promise<void> {
-  const config = await loadConfig(cwd)
+export async function generate(cwd: string, configPath?: string): Promise<void> {
+  const config = await loadConfig(cwd, configPath)
   const inputPath = resolve(cwd, config.input_openapi)
   const outputDir = resolve(cwd, config.output)
   const spec = await parseSpec(inputPath)

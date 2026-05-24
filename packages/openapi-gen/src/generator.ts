@@ -8,9 +8,9 @@ import { generateClient, hasCookieAuth } from './plugins/client.js'
 import { generateZodSchemas } from './plugins/zod.js'
 import { generateIndexBarrel } from './plugins/index-barrel.js'
 
-export async function generate(cwd: string): Promise<void> {
+export async function generate(cwd: string, configPath?: string): Promise<void> {
   console.log('Loading config...')
-  const config = await loadConfig(cwd)
+  const config = await loadConfig(cwd, configPath)
 
   const inputPath = resolve(cwd, config.input_openapi)
   const outputDir = resolve(cwd, config.output)
