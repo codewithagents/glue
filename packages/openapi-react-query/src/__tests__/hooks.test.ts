@@ -821,3 +821,362 @@ describe('auto-invalidate mutations (#58)', () => {
     expect(deleteContent).not.toContain('const [, variables] = args')
   })
 })
+
+// ── All 12 mutation hook variable shapes ────────────────────────────────────────
+
+describe('mutation hook variables type — all 12 shapes', () => {
+  // Single spec covering all 12 (pathParams × hasBody × hasQueryParams) branches
+  const allShapesSpec: OpenAPIV3_1.Document = {
+    openapi: '3.1.0',
+    info: { title: 'Test', version: '1.0.0' },
+    paths: {
+      // Case 1: 0 path params, no body, no query → void
+      '/a': {
+        delete: {
+          operationId: 'deleteA',
+          responses: { '204': { description: 'no content' } },
+        },
+      },
+      // Case 2: 0 path params, no body, has query → Parameters<typeof fn>[0]
+      '/b': {
+        post: {
+          operationId: 'postB',
+          parameters: [{ name: 'filter', in: 'query', schema: { type: 'string' } }],
+          responses: { '200': { description: 'ok' } },
+        },
+      },
+      // Case 3: 0 path params, has body, no query → Parameters<typeof fn>[0]
+      '/c': {
+        post: {
+          operationId: 'postC',
+          requestBody: {
+            required: true,
+            content: { 'application/json': { schema: { type: 'object' as const, properties: { name: { type: 'string' as const } } } } },
+          },
+          responses: { '201': { description: 'created' } },
+        },
+      },
+      // Case 4: 0 path params, has body, has query → { body: ...[0]; params: ...[1] }
+      '/d': {
+        post: {
+          operationId: 'postD',
+          parameters: [{ name: 'dryRun', in: 'query', schema: { type: 'string' } }],
+          requestBody: {
+            required: true,
+            content: { 'application/json': { schema: { type: 'object' as const, properties: { name: { type: 'string' as const } } } } },
+          },
+          responses: { '200': { description: 'ok' } },
+        },
+      },
+      // Case 5: 1 path param, no body, no query → string
+      '/e/{id}': {
+        delete: {
+          operationId: 'deleteE',
+          parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }],
+          responses: { '204': { description: 'no content' } },
+        },
+      },
+      // Case 6: 1 path param, no body, has query → { id: string; params: ...[1] }
+      '/f/{id}': {
+        delete: {
+          operationId: 'deleteF',
+          parameters: [
+            { name: 'id', in: 'path', required: true, schema: { type: 'string' } },
+            { name: 'cascade', in: 'query', schema: { type: 'string' } },
+          ],
+          responses: { '204': { description: 'no content' } },
+        },
+      },
+      // Case 7: 1 path param, has body, no query → { id: string; body: ...[1] }
+      '/g/{id}': {
+        put: {
+          operationId: 'putG',
+          parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }],
+          requestBody: {
+            required: true,
+            content: { 'application/json': { schema: { type: 'object' as const, properties: { name: { type: 'string' as const } } } } },
+          },
+          responses: { '200': { description: 'ok' } },
+        },
+      },
+      // Case 8: 1 path param, has body, has query → { id: string; body: ...[1]; params: ...[2] }
+      '/h/{id}': {
+        put: {
+          operationId: 'putH',
+          parameters: [
+            { name: 'id', in: 'path', required: true, schema: { type: 'string' } },
+            { name: 'dryRun', in: 'query', schema: { type: 'string' } },
+          ],
+          requestBody: {
+            required: true,
+            content: { 'application/json': { schema: { type: 'object' as const, properties: { name: { type: 'string' as const } } } } },
+          },
+          responses: { '200': { description: 'ok' } },
+        },
+      },
+      // Case 9: 2+ path params, no body, no query → { projectId: string; taskId: string }
+      '/i/{projectId}/{taskId}': {
+        delete: {
+          operationId: 'deleteI',
+          parameters: [
+            { name: 'projectId', in: 'path', required: true, schema: { type: 'string' } },
+            { name: 'taskId', in: 'path', required: true, schema: { type: 'string' } },
+          ],
+          responses: { '204': { description: 'no content' } },
+        },
+      },
+      // Case 10: 2+ path params, no body, has query → { projectId: string; taskId: string; params: ...[2] }
+      '/j/{projectId}/{taskId}': {
+        delete: {
+          operationId: 'deleteJ',
+          parameters: [
+            { name: 'projectId', in: 'path', required: true, schema: { type: 'string' } },
+            { name: 'taskId', in: 'path', required: true, schema: { type: 'string' } },
+            { name: 'recursive', in: 'query', schema: { type: 'string' } },
+          ],
+          responses: { '204': { description: 'no content' } },
+        },
+      },
+      // Case 11: 2+ path params, has body, no query → { projectId: string; taskId: string; body: ...[2] }
+      '/k/{projectId}/{taskId}': {
+        put: {
+          operationId: 'putK',
+          parameters: [
+            { name: 'projectId', in: 'path', required: true, schema: { type: 'string' } },
+            { name: 'taskId', in: 'path', required: true, schema: { type: 'string' } },
+          ],
+          requestBody: {
+            required: true,
+            content: { 'application/json': { schema: { type: 'object' as const, properties: { name: { type: 'string' as const } } } } },
+          },
+          responses: { '200': { description: 'ok' } },
+        },
+      },
+      // Case 12: 2+ path params, has body, has query → { projectId: string; taskId: string; body: ...[2]; params: ...[3] }
+      '/l/{projectId}/{taskId}': {
+        put: {
+          operationId: 'putL',
+          parameters: [
+            { name: 'projectId', in: 'path', required: true, schema: { type: 'string' } },
+            { name: 'taskId', in: 'path', required: true, schema: { type: 'string' } },
+            { name: 'dryRun', in: 'query', schema: { type: 'string' } },
+          ],
+          requestBody: {
+            required: true,
+            content: { 'application/json': { schema: { type: 'object' as const, properties: { name: { type: 'string' as const } } } } },
+          },
+          responses: { '200': { description: 'ok' } },
+        },
+      },
+    },
+  }
+
+  const { content: shapesContent } = generateHooks(allShapesSpec, { staleTime: 0, gcTime: 0 })
+
+  it('case 1 (0 params, no body, no query): variablesType is void, mutationFn is () => fn()', () => {
+    // UseMutationOptions<..., ApiError, void> — void is the variables type
+    expect(shapesContent).toContain('UseMutationOptions<Awaited<ReturnType<typeof deleteA>>, ApiError, void>')
+    expect(shapesContent).toContain('mutationFn: () => deleteA()')
+  })
+
+  it('case 2 (0 params, no body, has query): variablesType is Parameters<typeof fn>[0], mutationFn is (vars) => fn(vars)', () => {
+    expect(shapesContent).toContain('UseMutationOptions<Awaited<ReturnType<typeof postB>>, ApiError, Parameters<typeof postB>[0]>')
+    expect(shapesContent).toContain('mutationFn: (vars) => postB(vars)')
+  })
+
+  it('case 3 (0 params, has body, no query): variablesType is Parameters<typeof fn>[0], mutationFn is (vars) => fn(vars)', () => {
+    expect(shapesContent).toContain('UseMutationOptions<Awaited<ReturnType<typeof postC>>, ApiError, Parameters<typeof postC>[0]>')
+    expect(shapesContent).toContain('mutationFn: (vars) => postC(vars)')
+  })
+
+  it('case 4 (0 params, has body, has query): variablesType is { body: ...[0]; params: ...[1] }, mutationFn destructures both', () => {
+    expect(shapesContent).toContain('body: Parameters<typeof postD>[0]; params: Parameters<typeof postD>[1]')
+    expect(shapesContent).toContain('mutationFn: ({ body, params }) => postD(body, params)')
+  })
+
+  it('case 5 (1 path param, no body, no query): variablesType is string, mutationFn is (id) => fn(id)', () => {
+    // string is the entire variables type — only case that uses literal 'string'
+    expect(shapesContent).toContain('UseMutationOptions<Awaited<ReturnType<typeof deleteE>>, ApiError, string>')
+    expect(shapesContent).toContain('mutationFn: (id) => deleteE(id)')
+  })
+
+  it('case 6 (1 path param, no body, has query): variablesType is { id: string; params: ...[1] }, mutationFn destructures { id, params }', () => {
+    expect(shapesContent).toContain('id: string; params: Parameters<typeof deleteF>[1]')
+    expect(shapesContent).toContain('mutationFn: ({ id, params }) => deleteF(id, params)')
+  })
+
+  it('case 7 (1 path param, has body, no query): variablesType is { id: string; body: ...[1] }, mutationFn destructures { id, body }', () => {
+    expect(shapesContent).toContain('id: string; body: Parameters<typeof putG>[1]')
+    expect(shapesContent).toContain('mutationFn: ({ id, body }) => putG(id, body)')
+  })
+
+  it('case 8 (1 path param, has body, has query): variablesType is { id: string; body: ...[1]; params: ...[2] }, mutationFn destructures all', () => {
+    expect(shapesContent).toContain('id: string; body: Parameters<typeof putH>[1]; params: Parameters<typeof putH>[2]')
+    expect(shapesContent).toContain('mutationFn: ({ id, body, params }) => putH(id, body, params)')
+  })
+
+  it('case 9 (2+ params, no body, no query): variablesType is { projectId: string; taskId: string }, mutationFn destructures both path params', () => {
+    expect(shapesContent).toContain('projectId: string; taskId: string }')
+    expect(shapesContent).toContain('mutationFn: ({ projectId, taskId }) => deleteI(projectId, taskId)')
+  })
+
+  it('case 10 (2+ params, no body, has query): variablesType includes both path params and params, mutationFn passes all', () => {
+    expect(shapesContent).toContain('projectId: string; taskId: string; params: Parameters<typeof deleteJ>[2]')
+    expect(shapesContent).toContain('mutationFn: ({ projectId, taskId, params }) => deleteJ(projectId, taskId, params)')
+  })
+
+  it('case 11 (2+ params, has body, no query): variablesType includes both path params and body at index [2]', () => {
+    expect(shapesContent).toContain('projectId: string; taskId: string; body: Parameters<typeof putK>[2]')
+    expect(shapesContent).toContain('mutationFn: ({ projectId, taskId, body }) => putK(projectId, taskId, body)')
+  })
+
+  it('case 12 (2+ params, has body, has query): variablesType includes both path params, body at [2], params at [3]', () => {
+    expect(shapesContent).toContain('projectId: string; taskId: string; body: Parameters<typeof putL>[2]; params: Parameters<typeof putL>[3]')
+    expect(shapesContent).toContain('mutationFn: ({ projectId, taskId, body, params }) => putL(projectId, taskId, body, params)')
+  })
+})
+
+// ── Auto-invalidate: method-based detail invalidation ───────────────────────────
+
+describe('auto-invalidate: method-based detail invalidation', () => {
+  const thingsSpec: OpenAPIV3_1.Document = {
+    openapi: '3.1.0',
+    info: { title: 'Test', version: '1.0.0' },
+    paths: {
+      // GET list — establishes the resource key factory with all(), list(), detail()
+      '/things': {
+        get: {
+          operationId: 'listThings',
+          responses: { '200': { description: 'ok' } },
+        },
+      },
+      '/things/{id}': {
+        // GET detail — needed so detailKeyName = 'detail' (exactly 1 detail op)
+        get: {
+          operationId: 'getThing',
+          parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }],
+          responses: { '200': { description: 'ok' } },
+        },
+        // PUT — should invalidate all() AND detail() (method === 'put', pathParams.length >= 1)
+        put: {
+          operationId: 'updateThing',
+          parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }],
+          requestBody: {
+            required: true,
+            content: { 'application/json': { schema: { type: 'object' as const, properties: { name: { type: 'string' as const } } } } },
+          },
+          responses: { '200': { description: 'ok' } },
+        },
+        // PATCH — should invalidate all() AND detail() (method === 'patch', pathParams.length >= 1)
+        patch: {
+          operationId: 'patchThing',
+          parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }],
+          requestBody: {
+            required: true,
+            content: { 'application/json': { schema: { type: 'object' as const, properties: { name: { type: 'string' as const } } } } },
+          },
+          responses: { '200': { description: 'ok' } },
+        },
+        // DELETE — should invalidate all() ONLY (method !== 'put'/'patch')
+        delete: {
+          operationId: 'deleteThing',
+          parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }],
+          responses: { '204': { description: 'no content' } },
+        },
+      },
+    },
+  }
+
+  const { content: thingsContent } = generateHooks(thingsSpec, { staleTime: 0, gcTime: 0, autoInvalidate: true })
+
+  it('thingKeys key factory has a detail entry (exactly one detail GET op)', () => {
+    expect(thingsContent).toContain('export const thingKeys')
+    expect(thingsContent).toContain('detail:')
+  })
+
+  it('useUpdateThing (PUT) invalidates thingKeys.all() AND thingKeys.detail(', () => {
+    const updateStart = thingsContent.indexOf('export function useUpdateThing')
+    const updateEnd = thingsContent.indexOf('\n}', updateStart) + 2
+    const updateHookContent = thingsContent.slice(updateStart, updateEnd)
+    expect(updateHookContent).toContain('thingKeys.all()')
+    expect(updateHookContent).toContain('thingKeys.detail(')
+  })
+
+  it('usePatchThing (PATCH) invalidates thingKeys.all() AND thingKeys.detail(', () => {
+    const patchStart = thingsContent.indexOf('export function usePatchThing')
+    const patchEnd = thingsContent.indexOf('\n}', patchStart) + 2
+    const patchHookContent = thingsContent.slice(patchStart, patchEnd)
+    expect(patchHookContent).toContain('thingKeys.all()')
+    expect(patchHookContent).toContain('thingKeys.detail(')
+  })
+
+  it('useDeleteThing (DELETE) invalidates thingKeys.all() but NOT thingKeys.detail(', () => {
+    const deleteStart = thingsContent.indexOf('export function useDeleteThing')
+    const deleteEnd = thingsContent.indexOf('\n}', deleteStart) + 2
+    const deleteHookContent = thingsContent.slice(deleteStart, deleteEnd)
+    expect(deleteHookContent).toContain('thingKeys.all()')
+    expect(deleteHookContent).not.toContain('thingKeys.detail(')
+  })
+
+  it('PUT hook uses const [, variables] = args to extract id for detail invalidation', () => {
+    const updateStart = thingsContent.indexOf('export function useUpdateThing')
+    const updateEnd = thingsContent.indexOf('\n}', updateStart) + 2
+    const updateHookContent = thingsContent.slice(updateStart, updateEnd)
+    expect(updateHookContent).toContain('const [, variables] = args')
+  })
+
+  it('PATCH hook uses const [, variables] = args to extract id for detail invalidation', () => {
+    const patchStart = thingsContent.indexOf('export function usePatchThing')
+    const patchEnd = thingsContent.indexOf('\n}', patchStart) + 2
+    const patchHookContent = thingsContent.slice(patchStart, patchEnd)
+    expect(patchHookContent).toContain('const [, variables] = args')
+  })
+
+  it('DELETE hook does NOT use const [, variables] = args (no detail invalidation)', () => {
+    const deleteStart = thingsContent.indexOf('export function useDeleteThing')
+    const deleteEnd = thingsContent.indexOf('\n}', deleteStart) + 2
+    const deleteHookContent = thingsContent.slice(deleteStart, deleteEnd)
+    expect(deleteHookContent).not.toContain('const [, variables] = args')
+  })
+})
+
+// ── Query hook key builder — 2+ path params with query params ───────────────────
+
+describe('query hook key builder — 2+ path params with query params', () => {
+  const multiParamQuerySpec: OpenAPIV3_1.Document = {
+    openapi: '3.1.0',
+    info: { title: 'Test', version: '1.0.0' },
+    paths: {
+      '/projects/{projectId}/tasks/{taskId}': {
+        get: {
+          operationId: 'getProjectTask',
+          parameters: [
+            { name: 'projectId', in: 'path', required: true, schema: { type: 'string' } },
+            { name: 'taskId', in: 'path', required: true, schema: { type: 'string' } },
+            { name: 'format', in: 'query', schema: { type: 'string' } },
+          ],
+          responses: { '200': { description: 'ok' } },
+        },
+      },
+    },
+  }
+
+  const { content: multiParamContent } = generateHooks(multiParamQuerySpec, { staleTime: 0, gcTime: 0 })
+
+  it('key factory detail entry accepts both path params as typed args', () => {
+    expect(multiParamContent).toContain('(projectId: string, taskId: string,')
+  })
+
+  it('hook signature includes both path params as string | undefined | null', () => {
+    expect(multiParamContent).toContain('projectId: string | undefined | null')
+    expect(multiParamContent).toContain('taskId: string | undefined | null')
+  })
+
+  it('enabled guard ANDs both path params', () => {
+    expect(multiParamContent).toContain('enabled: projectId != null && taskId != null && (options?.enabled ?? true)')
+  })
+
+  it('queryKey call includes both path params with non-null assertions and query params', () => {
+    expect(multiParamContent).toContain('projectId!, taskId!, params')
+  })
+})
