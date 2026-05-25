@@ -1,5 +1,6 @@
 {
   "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
+  "bootstrap-sha": "c3cadf2",
   "packages": {
     "packages/api-errors": {
       "release-type": "node",
@@ -11,15 +12,13 @@
       "release-type": "node",
       "package-name": "@codewithagents/openapi-gen",
       "component": "openapi-gen",
-      "changelog-path": "CHANGELOG.md",
-      "bump-major-pre-major": true
+      "changelog-path": "CHANGELOG.md"
     },
     "packages/openapi-react-query": {
       "release-type": "node",
       "package-name": "@codewithagents/openapi-react-query",
       "component": "openapi-react-query",
-      "changelog-path": "CHANGELOG.md",
-      "bump-major-pre-major": true
+      "changelog-path": "CHANGELOG.md"
     }
   }
 }
