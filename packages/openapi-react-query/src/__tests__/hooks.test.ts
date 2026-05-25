@@ -598,6 +598,68 @@ describe('generateHooks — Feature #59: per-resource cache timing overrides', (
   })
 })
 
+// ── Bug #75: Auto-invalidation key name with multiple detail ops ───────────────
+
+describe('generateHooks — Bug #75: auto-invalidation skips detail when multiple detail ops exist', () => {
+  const multiDetailSpec: OpenAPIV3_1.Document = {
+    openapi: '3.1.0',
+    info: { title: 'Test', version: '1.0.0' },
+    paths: {
+      '/items': {
+        get: {
+          operationId: 'listItems',
+          responses: { '200': { description: 'ok' } },
+        },
+      },
+      '/items/{id}': {
+        get: {
+          operationId: 'getItem',
+          parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }],
+          responses: { '200': { description: 'ok' } },
+        },
+        put: {
+          operationId: 'updateItem',
+          parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }],
+          requestBody: {
+            required: true,
+            content: { 'application/json': { schema: { type: 'object', properties: { name: { type: 'string' } } } } },
+          },
+          responses: { '200': { description: 'ok' } },
+        },
+      },
+      '/items/{id}/summary': {
+        get: {
+          operationId: 'getItemSummary',
+          parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }],
+          responses: { '200': { description: 'ok' } },
+        },
+      },
+    },
+  }
+
+  it('key factory does NOT use "detail:" when there are multiple detail ops', () => {
+    const { content } = generateHooks(multiDetailSpec, { staleTime: 0, gcTime: 0, autoInvalidate: true })
+    // With 2 detail ops (getItem + getItemSummary), the key factory uses operation-derived names
+    expect(content).not.toContain('detail:')
+  })
+
+  it('mutation hook does NOT reference itemKeys.detail( when there are multiple detail ops', () => {
+    const { content } = generateHooks(multiDetailSpec, { staleTime: 0, gcTime: 0, autoInvalidate: true })
+    const updateStart = content.indexOf('export function useUpdateItem')
+    const updateEnd = content.indexOf('\n}', updateStart) + 2
+    const updateContent = content.slice(updateStart, updateEnd)
+    expect(updateContent).not.toContain('itemKeys.detail(')
+  })
+
+  it('mutation hook DOES contain itemKeys.all() for broad invalidation', () => {
+    const { content } = generateHooks(multiDetailSpec, { staleTime: 0, gcTime: 0, autoInvalidate: true })
+    const updateStart = content.indexOf('export function useUpdateItem')
+    const updateEnd = content.indexOf('\n}', updateStart) + 2
+    const updateContent = content.slice(updateStart, updateEnd)
+    expect(updateContent).toContain('queryClient.invalidateQueries({ queryKey: itemKeys.all() })')
+  })
+})
+
 describe('auto-invalidate mutations (#58)', () => {
   it('autoInvalidate: false — no useQueryClient or invalidateQueries in output', () => {
     const { content } = generateHooks(spec, { staleTime: 0, gcTime: 300_000, autoInvalidate: false })
