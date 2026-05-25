@@ -1,4 +1,5 @@
 {
   "input_openapi": "spec/api.json",
-  "output": "generated"
+  "output": "generated",
+  "server_client": true
 }
