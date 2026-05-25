@@ -22,8 +22,9 @@
 ## Release pipeline
 - **Release Please** — automatic versioning from conventional commits; config in `release-please-config.json`
 - **npm publish** via OIDC Trusted Publishing (no stored token) — triggered by Release Please release creation
-- Manifest seeded in `.release-please-manifest.json`; `bump-major-pre-major: true` on 0.x packages
+- Manifest seeded in `.release-please-manifest.json`; `bootstrap-sha` in config prevents unbounded history scans
 - **Never bump versions manually** — merge your PR, wait for Release Please to open its release PR, merge that; the publish workflow fires automatically
+- **No major version increases without human approval** — if Release Please proposes a major bump, stop and confirm with Benjamin before merging
 
 ## CI
 - GitHub Actions: `Build, Lint & Test` + `CodeQL Advanced` on every PR
