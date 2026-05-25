@@ -36,7 +36,8 @@ export function validateConfigPath(configPath: string): void {
 export function validateOutputPath(resolvedOutput: string): void {
   const normalized = resolvedOutput.replace(/\\/g, '/')
   for (const forbidden of FORBIDDEN_OUTPUT_PREFIXES) {
-    if (normalized.startsWith(forbidden.replace(/\\/g, '/'))) {
+    const normalizedForbidden = forbidden.replace(/\\/g, '/')
+    if (normalized === normalizedForbidden || normalized.startsWith(normalizedForbidden + '/')) {
       throw new Error(
         `Output path resolves to a system directory: "${resolvedOutput}". ` +
         `This looks like a misconfiguration — please check your config file.`
@@ -48,7 +49,8 @@ export function validateOutputPath(resolvedOutput: string): void {
 export function validateInputPath(resolvedInput: string): void {
   const normalized = resolvedInput.replace(/\\/g, '/')
   for (const forbidden of FORBIDDEN_INPUT_PREFIXES) {
-    if (normalized.startsWith(forbidden.replace(/\\/g, '/'))) {
+    const normalizedForbidden = forbidden.replace(/\\/g, '/')
+    if (normalized === normalizedForbidden || normalized.startsWith(normalizedForbidden + '/')) {
       throw new Error(
         `Input spec path resolves to a system directory: "${resolvedInput}". ` +
         `This looks like a misconfiguration — please check your config file.`
