@@ -1,5 +1,5 @@
 {
   "packages/api-errors": "1.0.0",
-  "packages/openapi-gen": "1.5.0",
+  "packages/openapi-gen": "1.5.1",
   "packages/openapi-react-query": "1.0.3"
 }
