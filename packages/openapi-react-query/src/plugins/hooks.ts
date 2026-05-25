@@ -328,7 +328,7 @@ function buildSuspenseQueryHook(
 
 interface MutationInvalidateInfo {
   keyFactoryName: string
-  hasDetailKey: boolean
+  detailKeyName: string | undefined
 }
 
 function buildMutationHook(
@@ -422,9 +422,9 @@ function buildMutationHook(
   lines.push(`    mutationFn: ${mutationFnBody},`)
 
   if (shouldInvalidate) {
-    const { keyFactoryName, hasDetailKey } = invalidateInfo
+    const { keyFactoryName, detailKeyName } = invalidateInfo
     const canInvalidateDetail =
-      hasDetailKey &&
+      detailKeyName !== undefined &&
       pathParams.length >= 1 &&
       (op.method === 'put' || op.method === 'patch')
 
@@ -446,7 +446,7 @@ function buildMutationHook(
     }
     lines.push(`      queryClient.invalidateQueries({ queryKey: ${keyFactoryName}.all() })`)
     if (canInvalidateDetail) {
-      lines.push(`      queryClient.invalidateQueries({ queryKey: ${keyFactoryName}.detail(${detailIdRef}) })`)
+      lines.push(`      queryClient.invalidateQueries({ queryKey: ${keyFactoryName}.${detailKeyName}(${detailIdRef}) })`)
     }
     lines.push(`      options?.onSuccess?.(...args)`)
     lines.push(`    },`)
@@ -626,10 +626,13 @@ export function generateHooks(
     }
   }
 
-  // Build resource → hasDetailKey map for auto-invalidate
-  const resourceHasDetailKey = new Map<string, boolean>()
+  // Build resource → detailKeyName map for auto-invalidate
+  // detailKeyName is 'detail' when exactly one detail op exists (canonical name),
+  // or undefined when zero or multiple detail ops exist (ambiguous — skip detail invalidation)
+  const resourceDetailKeyName = new Map<string, string | undefined>()
   for (const [resource, ops] of resourceToGetOps.entries()) {
-    resourceHasDetailKey.set(resource, ops.some((op) => op.pathParams.length > 0))
+    const detailOps = ops.filter((op) => op.pathParams.length > 0)
+    resourceDetailKeyName.set(resource, detailOps.length === 1 ? 'detail' : undefined)
   }
 
   // Build mutation hooks
@@ -639,8 +642,8 @@ export function generateHooks(
     if (autoInvalidate) {
       const resource = primaryResource(op.path)
       const keyFactoryName = `${toKeyFactoryName(resource)}Keys`
-      const hasDetailKey = resourceHasDetailKey.get(resource) ?? false
-      invalidateInfo = { keyFactoryName, hasDetailKey }
+      const detailKeyName = resourceDetailKeyName.get(resource)
+      invalidateInfo = { keyFactoryName, detailKeyName }
     }
     mutationHookBlocks.push(buildMutationHook(op, autoInvalidate, invalidateInfo))
   }
