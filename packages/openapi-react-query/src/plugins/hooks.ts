@@ -7,6 +7,7 @@ export interface HookGenOptions {
   staleTime: number
   gcTime: number
   suspense?: boolean
+  overrides?: Record<string, { staleTime: number; gcTime: number }>
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -567,9 +568,13 @@ export function generateHooks(
     const info = opToKeyInfo.get(op.funcName)
     if (info === undefined) continue
     const { factoryName, keyEntry } = info
-    queryHookBlocks.push(buildQueryHook(op, factoryName, keyEntry, staleTime, gcTime))
+    const resource = primaryResource(op.path)
+    const resourceOverride = options.overrides?.[resource]
+    const effectiveStaleTime = resourceOverride?.staleTime ?? staleTime
+    const effectiveGcTime = resourceOverride?.gcTime ?? gcTime
+    queryHookBlocks.push(buildQueryHook(op, factoryName, keyEntry, effectiveStaleTime, effectiveGcTime))
     if (suspense) {
-      queryHookBlocks.push(buildSuspenseQueryHook(op, factoryName, keyEntry, staleTime, gcTime))
+      queryHookBlocks.push(buildSuspenseQueryHook(op, factoryName, keyEntry, effectiveStaleTime, effectiveGcTime))
     }
   }
 

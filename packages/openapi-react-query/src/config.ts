@@ -12,6 +12,8 @@ export interface ReactQueryConfig {
   gc_time?: number
   /** When true, generates useSuspense* variants alongside each useQuery hook (default: false) */
   suspense?: boolean
+  /** Per-resource cache timing overrides. Key is the resource name (e.g. "tasks", "platforms"). */
+  overrides?: Record<string, { stale_time?: number; gc_time?: number }>
 }
 
 const FORBIDDEN_OUTPUT_PREFIXES = [
@@ -100,6 +102,23 @@ export async function loadConfig(cwd: string, configPath?: string): Promise<Reac
   if (config['suspense'] !== undefined && typeof config['suspense'] !== 'boolean') {
     throw new Error('"suspense" must be a boolean')
   }
+  if (config['overrides'] !== undefined) {
+    if (typeof config['overrides'] !== 'object' || config['overrides'] === null || Array.isArray(config['overrides'])) {
+      throw new Error('"overrides" must be an object')
+    }
+    for (const [resource, timing] of Object.entries(config['overrides'] as Record<string, unknown>)) {
+      if (typeof timing !== 'object' || timing === null) {
+        throw new Error(`"overrides.${resource}" must be an object`)
+      }
+      const t = timing as Record<string, unknown>
+      if (t['stale_time'] !== undefined && typeof t['stale_time'] !== 'number') {
+        throw new Error(`"overrides.${resource}.stale_time" must be a number`)
+      }
+      if (t['gc_time'] !== undefined && typeof t['gc_time'] !== 'number') {
+        throw new Error(`"overrides.${resource}.gc_time" must be a number`)
+      }
+    }
+  }
 
   // Security: validate resolved input and output paths
   const resolvedInput = resolve(cwd, config['input_openapi'] as string)
@@ -113,5 +132,6 @@ export async function loadConfig(cwd: string, configPath?: string): Promise<Reac
     stale_time: config['stale_time'] as number | undefined,
     gc_time: config['gc_time'] as number | undefined,
     suspense: config['suspense'] as boolean | undefined,
+    overrides: config['overrides'] as Record<string, { stale_time?: number; gc_time?: number }> | undefined,
   }
 }

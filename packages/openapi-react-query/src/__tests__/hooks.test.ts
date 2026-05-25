@@ -515,3 +515,85 @@ describe('generateHooks — Feature #60: suspense query variants', () => {
     expect(content).not.toContain('useSuspenseQuery')
   })
 })
+
+// ── Feature #59: Per-resource staleTime and gcTime overrides ───────────────────
+
+describe('generateHooks — Feature #59: per-resource cache timing overrides', () => {
+  const multiResourceSpec: OpenAPIV3_1.Document = {
+    openapi: '3.1.0',
+    info: { title: 'Test', version: '1.0.0' },
+    paths: {
+      '/api/v1/tasks': {
+        get: {
+          operationId: 'listTasks',
+          responses: { '200': { description: 'ok' } },
+        },
+      },
+      '/api/v1/tasks/{id}': {
+        get: {
+          operationId: 'getTask',
+          parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }],
+          responses: { '200': { description: 'ok' } },
+        },
+      },
+      '/api/v1/platforms': {
+        get: {
+          operationId: 'listPlatforms',
+          responses: { '200': { description: 'ok' } },
+        },
+      },
+    },
+  }
+
+  it('overridden resource uses override staleTime and gcTime', () => {
+    const { content } = generateHooks(multiResourceSpec, {
+      staleTime: 0,
+      gcTime: 300_000,
+      overrides: { tasks: { staleTime: 5000, gcTime: 60_000 } },
+    })
+    // useListTasks should use override staleTime 5000
+    const listTasksStart = content.indexOf('export function useListTasks')
+    const listTasksEnd = content.indexOf('\n}', listTasksStart) + 2
+    const listTasksContent = content.slice(listTasksStart, listTasksEnd)
+    expect(listTasksContent).toContain('staleTime: 5000,')
+    expect(listTasksContent).toContain('gcTime: 60000,')
+  })
+
+  it('non-overridden resource uses global defaults', () => {
+    const { content } = generateHooks(multiResourceSpec, {
+      staleTime: 0,
+      gcTime: 300_000,
+      overrides: { tasks: { staleTime: 5000, gcTime: 60_000 } },
+    })
+    // useListPlatforms should use global staleTime 0
+    const listPlatformsStart = content.indexOf('export function useListPlatforms')
+    const listPlatformsEnd = content.indexOf('\n}', listPlatformsStart) + 2
+    const listPlatformsContent = content.slice(listPlatformsStart, listPlatformsEnd)
+    expect(listPlatformsContent).toContain('staleTime: 0,')
+    expect(listPlatformsContent).toContain('gcTime: 300000,')
+  })
+
+  it('overrides apply to both list and detail hooks of the same resource', () => {
+    const { content } = generateHooks(multiResourceSpec, {
+      staleTime: 0,
+      gcTime: 300_000,
+      overrides: { tasks: { staleTime: 5000, gcTime: 60_000 } },
+    })
+    // useGetTask (detail) should also use override staleTime
+    const getTaskStart = content.indexOf('export function useGetTask')
+    const getTaskEnd = content.indexOf('\n}', getTaskStart) + 2
+    const getTaskContent = content.slice(getTaskStart, getTaskEnd)
+    expect(getTaskContent).toContain('staleTime: 5000,')
+    expect(getTaskContent).toContain('gcTime: 60000,')
+  })
+
+  it('no overrides — all hooks use global staleTime and gcTime', () => {
+    const { content } = generateHooks(multiResourceSpec, {
+      staleTime: 1000,
+      gcTime: 120_000,
+    })
+    // Count staleTime: 1000, occurrences — should appear for each query hook
+    const occurrences = content.split('staleTime: 1000,').length - 1
+    expect(occurrences).toBeGreaterThanOrEqual(3) // listTasks, getTask, listPlatforms
+  })
+})
