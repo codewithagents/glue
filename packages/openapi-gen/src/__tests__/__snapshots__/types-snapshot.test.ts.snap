@@ -9,6 +9,7 @@ export interface TreeNode {
 }
 
 export type Priority = 1 | 2 | 3 | 4 | 5
+export const PriorityValues = [1, 2, 3, 4, 5] as const
 
 export type StringMap = Record<string, string>
 

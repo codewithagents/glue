@@ -58,18 +58,21 @@ describe('enum types', () => {
     const out = genSingle('Status', { type: 'string', enum: ['active', 'inactive'] })
     expect(out).toContain("export type Status = 'active' | 'inactive'")
   })
-  it('integer enum → number union type alias', () => {
+  it('integer enum → number union type alias + values array', () => {
     const out = genSingle('Priority', { type: 'integer', enum: [1, 2, 3] })
     expect(out).toContain('export type Priority = 1 | 2 | 3')
+    expect(out).toContain('export const PriorityValues = [1, 2, 3] as const')
   })
-  it('number (float) enum → number literal union type alias', () => {
+  it('number (float) enum → number literal union type alias + values array', () => {
     const out = genSingle('Score', { type: 'number', enum: [0.5, 1.0, 1.5] })
     expect(out).toContain('export type Score = 0.5 | 1 | 1.5')
+    expect(out).toContain('export const ScoreValues = [0.5, 1, 1.5] as const')
   })
-  it('mixed enum (string + number + null) → union with null literal', () => {
+  it('mixed enum (string + number + null) → union only, no values array', () => {
     // @ts-expect-error — null in enum is valid OpenAPI 3.1, type definitions lag
     const out = genSingle('Mixed', { enum: ['active', 0, null] })
     expect(out).toContain("export type Mixed = 'active' | 0 | null")
+    expect(out).not.toContain('MixedValues')  // mixed enums don't get a values array
   })
   it('enum on object property → inline union', () => {
     const out = genSingle('A', {
