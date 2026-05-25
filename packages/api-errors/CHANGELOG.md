@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.1](https://github.com/codewithagents/glue/compare/api-errors-v1.0.0...api-errors-v1.0.1) (2026-05-25)
+
+
+### Bug Fixes
+
+* CI path false positive, onSuccess spread, explicit server client signatures ([#73](https://github.com/codewithagents/glue/issues/73)) ([f21d93d](https://github.com/codewithagents/glue/commit/f21d93d63e57ed97380820788a3ed9ad75e4adc9))
+
 ## [1.0.0](https://github.com/codewithagents/glue/compare/api-errors-v0.5.0...api-errors-v1.0.0) (2026-05-24)
 
 
