@@ -9,7 +9,7 @@ export interface Task {
   status: TaskStatus
   priority?: number
   assigneeEmail?: string | null
-  createdAt: string
+  createdAt: string /* date-time */
 }
 
 export interface CreateTaskRequest {

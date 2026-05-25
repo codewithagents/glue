@@ -168,6 +168,18 @@ describe('config security validation', () => {
     it('accepts dist/api style path', () => {
       expect(() => validateOutputPath('/home/user/project/dist/api')).not.toThrow()
     })
+
+    it('accepts GitHub Actions home runner output path', () => {
+      expect(() => validateOutputPath('/home/runner/work/my-repo/my-repo/src/generated')).not.toThrow()
+    })
+
+    it('accepts GitLab runner build output path', () => {
+      expect(() => validateOutputPath('/var/lib/gitlab-runner/builds/project/src/generated')).not.toThrow()
+    })
+
+    it('accepts common CI workspace output path', () => {
+      expect(() => validateOutputPath('/workspace/project/src/generated')).not.toThrow()
+    })
   })
 
   describe('validateInputPath', () => {
@@ -193,6 +205,14 @@ describe('config security validation', () => {
 
     it('accepts input spec in /tmp', () => {
       expect(() => validateInputPath('/tmp/openapi.json')).not.toThrow()
+    })
+
+    it('accepts GitHub Actions home runner input path', () => {
+      expect(() => validateInputPath('/home/runner/work/my-repo/my-repo/spec/api.json')).not.toThrow()
+    })
+
+    it('accepts common CI workspace input path', () => {
+      expect(() => validateInputPath('/workspace/project/spec/openapi.json')).not.toThrow()
     })
   })
 })

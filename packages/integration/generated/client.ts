@@ -44,6 +44,9 @@ export async function listTasks(params?: {
   return res.json()
 }
 
+/**
+ * @throws {ApiError<422, ValidationProblem>}
+ */
 export async function createTask(body: CreateTaskRequest, config?: Partial<ClientConfig>): Promise<Task> {
   const { baseUrl, token, credentials, headers, onError } = { ...getConfig(), ...config }
   const base = baseUrl ? baseUrl.replace(/\/$/, '') : ''
@@ -94,6 +97,9 @@ export async function uploadTaskAttachment(body: { file: File | Blob; label?: st
   return res.json()
 }
 
+/**
+ * @throws {ApiError<404, ProblemDetail>}
+ */
 export async function getTask(id: string, config?: Partial<ClientConfig>): Promise<Task> {
   const { baseUrl, token, credentials, headers, onError } = { ...getConfig(), ...config }
   const base = baseUrl ? baseUrl.replace(/\/$/, '') : ''
