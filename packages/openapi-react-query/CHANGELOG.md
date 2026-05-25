@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.0.1](https://github.com/codewithagents/glue/compare/openapi-react-query-v2.0.0...openapi-react-query-v2.0.1) (2026-05-25)
+
+
+### Bug Fixes
+
+* CI path false positive, onSuccess spread, explicit server client signatures ([#72](https://github.com/codewithagents/glue/issues/72)) ([ec25bb0](https://github.com/codewithagents/glue/commit/ec25bb0c0f5df8a20c2b31a1aa499408a0ed3fcc))
+
 ## [2.0.0](https://github.com/codewithagents/glue/compare/openapi-react-query-v1.0.3...openapi-react-query-v2.0.0) (2026-05-25)
 
 
