@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.1.1](https://github.com/codewithagents/glue/compare/openapi-react-query-v3.1.0...openapi-react-query-v3.1.1) (2026-05-25)
+
+
+### Bug Fixes
+
+* **openapi-react-query:** skip auto-invalidation for mutation-only resources ([#86](https://github.com/codewithagents/glue/issues/86)) ([f8366e5](https://github.com/codewithagents/glue/commit/f8366e5c77b2fe3367bccdedb0651da457532e4a))
+
 ## [3.1.0](https://github.com/codewithagents/glue/compare/openapi-react-query-v3.0.0...openapi-react-query-v3.1.0) (2026-05-25)
 
 

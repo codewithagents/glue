@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.1.1](https://github.com/codewithagents/glue/compare/openapi-gen-v3.1.0...openapi-gen-v3.1.1) (2026-05-25)
+
+
+### Bug Fixes
+
+* **openapi-gen:** bundle CLI with esbuild to prevent ajv hoisting crash ([#85](https://github.com/codewithagents/glue/issues/85)) ([#88](https://github.com/codewithagents/glue/issues/88)) ([7ca2e1c](https://github.com/codewithagents/glue/commit/7ca2e1c130e2f0639ab060b3bb495acbc6fe09a2))
+
 ## [3.1.0](https://github.com/codewithagents/glue/compare/openapi-gen-v3.0.0...openapi-gen-v3.1.0) (2026-05-25)
 
 
