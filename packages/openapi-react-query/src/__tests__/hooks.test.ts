@@ -617,7 +617,11 @@ describe('auto-invalidate mutations (#58)', () => {
     const createEnd = content.indexOf('\n}', createStart) + 2
     const createContent = content.slice(createStart, createEnd)
     expect(createContent).toContain('queryClient.invalidateQueries({ queryKey: taskKeys.all() })')
-    expect(createContent).toContain('options?.onSuccess?.(data, variables, context)')
+    // Uses spread pattern — no named (data, variables, context) args
+    expect(createContent).toContain('onSuccess: (...args) =>')
+    expect(createContent).toContain('options?.onSuccess?.(...args)')
+    // No detail invalidation for POST — no destructure needed
+    expect(createContent).not.toContain('const [, variables] = args')
   })
 
   it('autoInvalidate: true — useUpdateTask invalidates taskKeys.all() and taskKeys.detail()', () => {
@@ -627,7 +631,11 @@ describe('auto-invalidate mutations (#58)', () => {
     const updateContent = content.slice(updateStart, updateEnd)
     expect(updateContent).toContain('queryClient.invalidateQueries({ queryKey: taskKeys.all() })')
     expect(updateContent).toContain('taskKeys.detail(')
-    expect(updateContent).toContain('options?.onSuccess?.(data, variables, context)')
+    // Uses spread pattern
+    expect(updateContent).toContain('onSuccess: (...args) =>')
+    expect(updateContent).toContain('options?.onSuccess?.(...args)')
+    // PUT with path param — destructures variables from args for detail invalidation
+    expect(updateContent).toContain('const [, variables] = args')
   })
 
   it('autoInvalidate: true — useDeleteTask invalidates taskKeys.all() but not detail', () => {
@@ -638,5 +646,10 @@ describe('auto-invalidate mutations (#58)', () => {
     expect(deleteContent).toContain('queryClient.invalidateQueries({ queryKey: taskKeys.all() })')
     // DELETE should NOT invalidate detail (only PUT/PATCH do)
     expect(deleteContent).not.toContain('taskKeys.detail(')
+    // Uses spread pattern
+    expect(deleteContent).toContain('onSuccess: (...args) =>')
+    expect(deleteContent).toContain('options?.onSuccess?.(...args)')
+    // No detail invalidation for DELETE — no destructure needed
+    expect(deleteContent).not.toContain('const [, variables] = args')
   })
 })

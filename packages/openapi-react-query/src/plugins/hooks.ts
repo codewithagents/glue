@@ -440,12 +440,15 @@ function buildMutationHook(
       detailIdRef = 'variables'
     }
 
-    lines.push(`    onSuccess: (data, variables, context) => {`)
+    lines.push(`    onSuccess: (...args) => {`)
+    if (canInvalidateDetail) {
+      lines.push(`      const [, variables] = args`)
+    }
     lines.push(`      queryClient.invalidateQueries({ queryKey: ${keyFactoryName}.all() })`)
     if (canInvalidateDetail) {
       lines.push(`      queryClient.invalidateQueries({ queryKey: ${keyFactoryName}.detail(${detailIdRef}) })`)
     }
-    lines.push(`      options?.onSuccess?.(data, variables, context)`)
+    lines.push(`      options?.onSuccess?.(...args)`)
     lines.push(`    },`)
   }
 

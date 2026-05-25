@@ -145,6 +145,18 @@ describe('config security validation', () => {
       expect(() => validateOutputPath('/boot/generated')).toThrow('system directory')
     })
 
+    it('rejects output path that is exactly /run', () => {
+      expect(() => validateOutputPath('/run')).toThrow('system directory')
+    })
+
+    it('rejects output path under /run/', () => {
+      expect(() => validateOutputPath('/run/lock/something')).toThrow('system directory')
+    })
+
+    it('does NOT reject /runner/_work/... (CI runner path)', () => {
+      expect(() => validateOutputPath('/runner/_work/project/src/generated')).not.toThrow()
+    })
+
     it('accepts normal project-relative resolved path', () => {
       expect(() => validateOutputPath('/Users/someone/project/generated')).not.toThrow()
     })

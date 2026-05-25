@@ -47,9 +47,9 @@ describe('generateServer — output file', () => {
     expect(content).toContain('deleteTask')
   })
 
-  it('defines the DropLast helper type', () => {
+  it('does NOT define the DropLast helper type', () => {
     const { content } = generateServer(taskSpec)
-    expect(content).toContain('type DropLast<T extends unknown[]> = T extends [...infer U, unknown] ? U : never')
+    expect(content).not.toContain('DropLast')
   })
 
   it('exports createServerClient function', () => {
@@ -57,13 +57,93 @@ describe('generateServer — output file', () => {
     expect(content).toContain('export function createServerClient(config: Partial<ClientConfig>)')
   })
 
-  it('each function uses DropLast<Parameters<typeof fn>> spread pattern', () => {
+  it('functions with no params (no path/body/query) use () => fn(config) pattern', () => {
+    // In taskSpec, listTasks and createTask have no path params, no body, no query params
     const { content } = generateServer(taskSpec)
-    expect(content).toContain('listTasks: (...args: DropLast<Parameters<typeof listTasks>>) => listTasks(...args, config),')
-    expect(content).toContain('getTask: (...args: DropLast<Parameters<typeof getTask>>) => getTask(...args, config),')
-    expect(content).toContain('createTask: (...args: DropLast<Parameters<typeof createTask>>) => createTask(...args, config),')
-    expect(content).toContain('updateTask: (...args: DropLast<Parameters<typeof updateTask>>) => updateTask(...args, config),')
-    expect(content).toContain('deleteTask: (...args: DropLast<Parameters<typeof deleteTask>>) => deleteTask(...args, config),')
+    expect(content).toContain('listTasks: () => listTasks(config),')
+    expect(content).toContain('createTask: () => createTask(config),')
+  })
+
+  it('functions with path param only use explicit Parameters<typeof fn>[N] signature', () => {
+    const { content } = generateServer(taskSpec)
+    // getTask, updateTask, deleteTask all have path param 'id'
+    expect(content).toContain('getTask: (id: Parameters<typeof getTask>[0]) => getTask(id, config),')
+    expect(content).toContain('deleteTask: (id: Parameters<typeof deleteTask>[0]) => deleteTask(id, config),')
+  })
+
+  it('config is NOT included as a typed parameter in any factory method', () => {
+    const { content } = generateServer(taskSpec)
+    // No function should expose config as a typed param (it's always the trailing arg in the call, not the sig)
+    expect(content).not.toContain('Parameters<typeof listTasks>[1]')
+    expect(content).not.toContain('Parameters<typeof createTask>[1]')
+    // Single-path-param functions: config is index 1, should not appear as typed sig param
+    expect(content).not.toContain('Parameters<typeof getTask>[1]')
+    expect(content).not.toContain('Parameters<typeof deleteTask>[1]')
+  })
+})
+
+describe('generateServer — explicit params with body and query', () => {
+  const specWithBody = makeSpec({
+    '/tasks': {
+      get: {
+        operationId: 'listTasks',
+        parameters: [{ name: 'status', in: 'query', schema: { type: 'string' } }],
+        responses: { '200': { description: 'ok' } },
+      },
+      post: {
+        operationId: 'createTask',
+        requestBody: {
+          required: true,
+          content: { 'application/json': { schema: { $ref: '#/components/schemas/Task' } } },
+        },
+        responses: { '201': { description: 'created' } },
+      },
+    },
+    '/tasks/{id}': {
+      put: {
+        operationId: 'updateTask',
+        requestBody: {
+          required: true,
+          content: { 'application/json': { schema: { $ref: '#/components/schemas/Task' } } },
+        },
+        responses: { '200': { description: 'ok' } },
+      },
+    },
+  })
+
+  it('body-only mutation uses (body: Parameters<typeof fn>[0]) signature', () => {
+    const { content } = generateServer(specWithBody)
+    expect(content).toContain('createTask: (body: Parameters<typeof createTask>[0]) => createTask(body, config),')
+  })
+
+  it('path param + body uses explicit positional signatures', () => {
+    const { content } = generateServer(specWithBody)
+    expect(content).toContain(
+      'updateTask: (id: Parameters<typeof updateTask>[0], body: Parameters<typeof updateTask>[1]) => updateTask(id, body, config),'
+    )
+  })
+
+  it('optional query params use params? signature', () => {
+    const { content } = generateServer(specWithBody)
+    expect(content).toContain('listTasks: (params?: Parameters<typeof listTasks>[0]) => listTasks(params, config),')
+  })
+})
+
+describe('generateServer — required query params', () => {
+  const specWithRequiredQuery = makeSpec({
+    '/search': {
+      get: {
+        operationId: 'searchItems',
+        parameters: [{ name: 'q', in: 'query', required: true, schema: { type: 'string' } }],
+        responses: { '200': { description: 'ok' } },
+      },
+    },
+  })
+
+  it('required query params use params (non-optional) signature', () => {
+    const { content } = generateServer(specWithRequiredQuery)
+    expect(content).toContain('searchItems: (params: Parameters<typeof searchItems>[0]) => searchItems(params, config),')
+    expect(content).not.toContain('params?:')
   })
 })
 
@@ -95,10 +175,11 @@ describe('generateServer — derived operation names (no operationId)', () => {
       },
     })
     const { content } = generateServer(spec)
-    // GET /api/v1/items → getItems, POST → createItems, GET /{id} → getItemsById, DELETE /{id} → deleteItemsById
-    expect(content).toContain('getItems: (...args: DropLast<Parameters<typeof getItems>>)')
-    expect(content).toContain('createItems: (...args: DropLast<Parameters<typeof createItems>>)')
-    expect(content).toContain('getItemsById: (...args: DropLast<Parameters<typeof getItemsById>>)')
-    expect(content).toContain('deleteItemsById: (...args: DropLast<Parameters<typeof deleteItemsById>>)')
+    // No path params, no body, no query params → () => fn(config)
+    expect(content).toContain('getItems: () => getItems(config),')
+    expect(content).toContain('createItems: () => createItems(config),')
+    // With path param 'id' → explicit param signature
+    expect(content).toContain('getItemsById: (id: Parameters<typeof getItemsById>[0]) => getItemsById(id, config),')
+    expect(content).toContain('deleteItemsById: (id: Parameters<typeof deleteItemsById>[0]) => deleteItemsById(id, config),')
   })
 })
