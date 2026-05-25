@@ -4,7 +4,7 @@
   "description": "Generate TypeScript models, native fetch client and Zod schemas from OpenAPI 3.1 — zero runtime footprint",
   "type": "module",
   "bin": {
-    "openapi-gen": "./dist/cli.js"
+    "openapi-gen": "./dist/cli.cjs"
   },
   "exports": {
     ".": {
@@ -16,7 +16,7 @@
     "dist"
   ],
   "scripts": {
-    "build": "tsc -p tsconfig.build.json && chmod +x dist/cli.js",
+    "build": "rm -f dist/cli.js dist/cli.js.map dist/cli.d.ts dist/cli.d.ts.map && tsc -p tsconfig.build.json && esbuild src/cli.ts --bundle --platform=node --format=cjs --target=node22 --outfile=dist/cli.cjs && chmod +x dist/cli.cjs",
     "lint": "tsc -p tsconfig.build.json --noEmit",
     "test": "vitest run --exclude 'src/__tests__/integration.test.ts'",
     "test:integration": "vitest run src/__tests__/integration.test.ts",
@@ -30,6 +30,7 @@
   },
   "devDependencies": {
     "@stryker-mutator/core": "^9.6.1",
+    "esbuild": "^0.25.0",
     "@stryker-mutator/vitest-runner": "^9.6.1",
     "@types/node": "^22.0.0",
     "@vitest/coverage-v8": "^4.0.0",
