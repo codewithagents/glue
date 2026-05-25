@@ -85,6 +85,7 @@ interface OperationMeta {
   bodyTypeName: string | undefined
   hasQueryParams: boolean
   hasRequiredQueryParams: boolean
+  deprecated: boolean
 }
 
 function getBodyInfo(operation: OperationObject): { hasBody: boolean; bodyTypeName: string | undefined } {
@@ -224,6 +225,10 @@ function buildQueryHook(
   if (hasQueryParams) queryFnArgs.push('params')
   const queryFnCall = `${op.funcName}(${queryFnArgs.join(', ')})`
 
+  // Feature 1: @deprecated JSDoc on deprecated operations
+  if (op.deprecated) {
+    lines.push(`/** @deprecated */`)
+  }
   lines.push(`export function ${op.hookName}(`)
   lines.push(`  ${sigParts.join(',\n  ')},`)
   lines.push(`) {`)
@@ -311,6 +316,10 @@ function buildMutationHook(op: OperationMeta): string {
     mutationFnBody = `({ ${destructured} }) => ${funcName}(${[...pathParams, 'body', 'params'].join(', ')})`
   }
 
+  // Feature 1: @deprecated JSDoc on deprecated operations
+  if (op.deprecated) {
+    lines.push(`/** @deprecated */`)
+  }
   lines.push(`export function ${hookName}(`)
   lines.push(`  options?: Omit<UseMutationOptions<Awaited<ReturnType<typeof ${funcName}>>, ApiError, ${variablesType}>, 'mutationFn'>,`)
   lines.push(`) {`)
@@ -377,6 +386,7 @@ export function generateHooks(
         const { hasBody, bodyTypeName } = getBodyInfo(operation)
         const hasQueryParams = operationHasQueryParams(operation)
         const hasRequiredQueryParams = operationHasRequiredQueryParams(operation)
+        const deprecated = operation.deprecated === true
 
         operations.push({
           funcName,
@@ -388,6 +398,7 @@ export function generateHooks(
           bodyTypeName,
           hasQueryParams,
           hasRequiredQueryParams,
+          deprecated,
         })
       }
     }

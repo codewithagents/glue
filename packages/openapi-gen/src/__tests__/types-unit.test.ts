@@ -56,6 +56,15 @@ describe('enum types', () => {
     const out = genSingle('Priority', { type: 'integer', enum: [1, 2, 3] })
     expect(out).toContain('export type Priority = 1 | 2 | 3')
   })
+  it('number (float) enum → number literal union type alias', () => {
+    const out = genSingle('Score', { type: 'number', enum: [0.5, 1.0, 1.5] })
+    expect(out).toContain('export type Score = 0.5 | 1 | 1.5')
+  })
+  it('mixed enum (string + number + null) → union with null literal', () => {
+    // @ts-expect-error — null in enum is valid OpenAPI 3.1, type definitions lag
+    const out = genSingle('Mixed', { enum: ['active', 0, null] })
+    expect(out).toContain("export type Mixed = 'active' | 0 | null")
+  })
   it('enum on object property → inline union', () => {
     const out = genSingle('A', {
       type: 'object',

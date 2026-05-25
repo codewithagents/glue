@@ -20,6 +20,15 @@ function refToTypeName(ref: string): string {
   return parts[parts.length - 1]!
 }
 
+/** Feature 3: Return an inline comment for date/date-time formats, or '' for others. */
+function formatComment(schema: SchemaObject): string {
+  if (schema.type !== 'string') return ''
+  const fmt = schema.format as string | undefined
+  if (fmt === 'date-time') return ' /* date-time */'
+  if (fmt === 'date') return ' /* date */'
+  return ''
+}
+
 function schemaToTypeString(schema: SchemaObject | ReferenceObject): string {
   if (isRef(schema)) {
     return refToTypeName(schema.$ref)
@@ -34,10 +43,14 @@ function schemaToTypeString(schema: SchemaObject | ReferenceObject): string {
     return types.join(' | ')
   }
 
-  // enum
+  // enum — handles string, integer, number, mixed (null values rendered as "null" literal)
   if (schema.enum !== undefined && schema.enum.length > 0) {
     return schema.enum
-      .map((v: unknown) => (typeof v === 'string' ? `'${v}'` : String(v)))
+      .map((v: unknown) => {
+        if (v === null) return 'null'
+        if (typeof v === 'string') return `'${v}'`
+        return String(v)
+      })
       .join(' | ')
   }
 
@@ -126,13 +139,20 @@ function inlineObjectType(schema: SchemaObject): string {
     const optional = !required.has(key)
     const propKey = toPropertyKey(key)
     const typStr = schemaToTypeString(propSchema)
-    return `  ${propKey}${optional ? '?' : ''}: ${typStr}`
+    // Feature 3: add inline format comment for date/date-time string properties
+    const comment = isRef(propSchema) ? '' : formatComment(propSchema as SchemaObject)
+    return `  ${propKey}${optional ? '?' : ''}: ${typStr}${comment}`
   })
   return `{\n${lines.join('\n')}\n}`
 }
 
 function isEnumSchema(schema: SchemaObject): boolean {
-  return schema.enum !== undefined && schema.enum.length > 0 && schema.type === 'string'
+  if (schema.enum === undefined || schema.enum.length === 0) return false
+  // String enums, numeric enums (integer/number), and mixed/untyped enums
+  if (schema.type === 'string' || schema.type === 'integer' || schema.type === 'number') return true
+  // Mixed enums: no explicit type but enum values present
+  if (schema.type === undefined) return true
+  return false
 }
 
 function isObjectSchema(schema: SchemaObject): boolean {
@@ -143,6 +163,24 @@ function isObjectSchema(schema: SchemaObject): boolean {
   return schema.type === 'object' || schema.properties !== undefined
 }
 
+/** Feature 5: derive the discriminator literal value for a variant ref */
+function discriminatorLiteralFor(
+  ref: string,
+  mapping: Record<string, string> | undefined,
+): string {
+  if (mapping !== undefined) {
+    // Find the key whose value matches the ref
+    for (const [key, val] of Object.entries(mapping)) {
+      if (val === ref || val.endsWith(`/${ref.split('/').pop()!}`)) {
+        return key
+      }
+    }
+  }
+  // Fall back: extract the type name from the ref and lowercase it
+  const typeName = refToTypeName(ref)
+  return typeName.charAt(0).toLowerCase() + typeName.slice(1)
+}
+
 function generateSchemaDeclaration(name: string, schema: SchemaObject | ReferenceObject): string {
   if (isRef(schema)) {
     return `export type ${name} = ${refToTypeName(schema.$ref)}`
@@ -150,7 +188,11 @@ function generateSchemaDeclaration(name: string, schema: SchemaObject | Referenc
 
   if (isEnumSchema(schema)) {
     const union = schema.enum!
-      .map((v: unknown) => (typeof v === 'string' ? `'${v}'` : String(v)))
+      .map((v: unknown) => {
+        if (v === null) return 'null'
+        if (typeof v === 'string') return `'${v}'`
+        return String(v)
+      })
       .join(' | ')
     return `export type ${name} = ${union}`
   }
@@ -176,13 +218,39 @@ function generateSchemaDeclaration(name: string, schema: SchemaObject | Referenc
         const optional = !required.has(key)
         const propKey = toPropertyKey(key)
         const typStr = schemaToTypeString(propSchema)
-        propLines.push(`  ${propKey}${optional ? '?' : ''}: ${typStr}`)
+        // Feature 3: add inline format comment for date/date-time string properties
+        const comment = isRef(propSchema) ? '' : formatComment(propSchema as SchemaObject)
+        propLines.push(`  ${propKey}${optional ? '?' : ''}: ${typStr}${comment}`)
       }
     }
     if (propLines.length === 0) {
       return `export type ${name} = Record<string, unknown>`
     }
     return `export interface ${name} {\n${propLines.join('\n')}\n}`
+  }
+
+  // Feature 5: discriminated union via oneOf/anyOf + discriminator
+  const discriminator = (schema as SchemaObject & { discriminator?: { propertyName: string; mapping?: Record<string, string> } }).discriminator
+  const compositeVariants = schema.oneOf ?? schema.anyOf
+  if (
+    discriminator !== undefined &&
+    compositeVariants !== undefined &&
+    compositeVariants.length > 0
+  ) {
+    const { propertyName, mapping } = discriminator
+    const variants = (compositeVariants as (SchemaObject | ReferenceObject)[])
+      .map((variant) => {
+        if (!isRef(variant)) {
+          // Inline schema in discriminated union — emit as plain variant
+          return schemaToTypeString(variant)
+        }
+        const ref = (variant as ReferenceObject).$ref
+        const typeName = refToTypeName(ref)
+        const literalValue = discriminatorLiteralFor(ref, mapping)
+        return `(${typeName} & { ${propertyName}: '${literalValue}' })`
+      })
+    const lines = variants.map((v, i) => (i === 0 ? `  | ${v}` : `  | ${v}`))
+    return `export type ${name} =\n${lines.join('\n')}`
   }
 
   // allOf / anyOf / oneOf or other -> type alias
