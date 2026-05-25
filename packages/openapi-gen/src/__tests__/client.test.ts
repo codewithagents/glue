@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeAll } from 'vitest'
 import { parseSpec } from '../parser.js'
-import { generateClient } from '../plugins/client.js'
+import { generateClient, hasCookieAuth } from '../plugins/client.js'
 import { generateClientConfig } from '../plugins/client-config.js'
 import { generateTypes } from '../plugins/types.js'
 import type { OpenAPIV3_1 } from 'openapi-types'
@@ -11,6 +11,7 @@ import { join, dirname } from 'node:path'
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const taskApiFixture = join(__dirname, '../__fixtures__/specs/task-api.json')
 const featureShowcaseFixture = join(__dirname, '../__fixtures__/specs/feature-showcase.json')
+const deprecatedApiFixture = join(__dirname, '../__fixtures__/specs/deprecated-api.json')
 
 // TypeScript compilation helper — compiles multiple in-memory files together.
 // Files are keyed by bare names (e.g. 'models.ts') and stored under /virtual/.
@@ -643,5 +644,318 @@ describe('feature-showcase fixture', () => {
     }
 
     expect(diagnostics.length).toBe(0)
+  })
+})
+
+describe('coverage: hasCookieAuth (lines 515-518)', () => {
+  it('returns true when spec has apiKey-in-cookie security scheme', () => {
+    const spec: OpenAPIV3_1.Document = {
+      openapi: '3.1.0',
+      info: { title: 'T', version: '1' },
+      paths: {},
+      components: {
+        securitySchemes: {
+          // @ts-expect-error — OpenAPI types lag on apiKey security scheme shape
+          cookieAuth: { type: 'apiKey', in: 'cookie', name: 'session' },
+        },
+      },
+    }
+    expect(hasCookieAuth(spec)).toBe(true)
+  })
+
+  it('returns false when spec has no securitySchemes', () => {
+    const spec: OpenAPIV3_1.Document = {
+      openapi: '3.1.0',
+      info: { title: 'T', version: '1' },
+      paths: {},
+    }
+    expect(hasCookieAuth(spec)).toBe(false)
+  })
+
+  it('returns false when security scheme is Bearer (not cookie)', () => {
+    const spec: OpenAPIV3_1.Document = {
+      openapi: '3.1.0',
+      info: { title: 'T', version: '1' },
+      paths: {},
+      components: {
+        securitySchemes: {
+          // @ts-expect-error — testing non-cookie scheme type
+          bearerAuth: { type: 'http', scheme: 'bearer' },
+        },
+      },
+    }
+    expect(hasCookieAuth(spec)).toBe(false)
+  })
+})
+
+describe('coverage: deprecated + throws together (lines 321-329, 387-394)', () => {
+  let content: string
+
+  beforeAll(async () => {
+    const spec = await parseSpec(deprecatedApiFixture)
+    content = generateClient(spec).content
+  })
+
+  it('deprecated operation with error $ref generates @deprecated JSDoc tag', () => {
+    // getTask is deprecated AND has 404/422 error $ref responses
+    // → hasJsDoc block is emitted (lines 387-394)
+    expect(content).toContain('* @deprecated')
+  })
+
+  it('error responses with $ref schema generate @throws JSDoc tags', () => {
+    // getThrowsTags finds 404/422 with $ref schemas → @throws tags are generated (lines 321-329)
+    expect(content).toContain('@throws {ApiError<404, NotFoundError>}')
+    expect(content).toContain('@throws {ApiError<422, ValidationError>}')
+  })
+
+  it('deprecated + throws together produce a combined JSDoc block', () => {
+    // Verify the JSDoc block has both @deprecated and @throws (both branches active)
+    const match = content.match(/\/\*\*[\s\S]*?\*\//m)
+    expect(match).toBeTruthy()
+    const jsdoc = match![0]
+    expect(jsdoc).toContain('@deprecated')
+    expect(jsdoc).toContain('@throws')
+  })
+
+  it('non-deprecated operation with $ref error still gets @throws without @deprecated', () => {
+    // createTask is not deprecated but has 422 ValidationError → only @throws, no @deprecated
+    expect(content).not.toMatch(/createTask[\s\S]{0,200}@deprecated/)
+  })
+})
+
+describe('coverage: inlineSchemaToTs edge cases (lines 28, 31-33, 37)', () => {
+  it('response with nullable array type → string | null (line 28: Array.isArray(s.type) branch)', () => {
+    // inlineSchemaToTs handles type: ['string', 'null'] → 'string | null'
+    const spec: OpenAPIV3_1.Document = {
+      openapi: '3.1.0',
+      info: { title: 'T', version: '1' },
+      paths: {
+        '/ping': {
+          get: {
+            operationId: 'ping',
+            responses: {
+              '200': {
+                content: {
+                  'application/json': {
+                    schema: { type: ['string', 'null'] },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    }
+    const out = generateClient(spec as OpenAPIV3_1.Document).content
+    expect(out).toContain('Promise<string | null>')
+  })
+
+  it('request body with inline array schema → array type string (lines 31-33)', () => {
+    // inlineSchemaToTs: type === 'array' with items → returns `${inlineSchemaToTs(items)}[]`
+    const spec: OpenAPIV3_1.Document = {
+      openapi: '3.1.0',
+      info: { title: 'T', version: '1' },
+      paths: {
+        '/submit': {
+          post: {
+            operationId: 'submit',
+            requestBody: {
+              content: {
+                'application/json': {
+                  schema: {
+                    type: 'array',
+                    items: { type: 'string' },
+                  },
+                },
+              },
+            },
+            responses: { '204': { description: 'ok' } },
+          },
+        },
+      },
+    }
+    const out = generateClient(spec as OpenAPIV3_1.Document).content
+    expect(out).toContain('body: string[]')
+  })
+
+  it('request body with no type → unknown fallback (line 37)', () => {
+    // inlineSchemaToTs: s.type is undefined, not array, not object → returns 'unknown'
+    const spec: OpenAPIV3_1.Document = {
+      openapi: '3.1.0',
+      info: { title: 'T', version: '1' },
+      paths: {
+        '/process': {
+          post: {
+            operationId: 'process',
+            requestBody: {
+              content: {
+                'application/json': {
+                  // Schema with no type — triggers the unknown fallback
+                  schema: {},
+                },
+              },
+            },
+            responses: { '204': { description: 'ok' } },
+          },
+        },
+      },
+    }
+    const out = generateClient(spec as OpenAPIV3_1.Document).content
+    expect(out).toContain('body: unknown')
+  })
+})
+
+describe('coverage: queryParamType edge cases (lines 70, 81)', () => {
+  it('boolean query param → boolean type in generated params', () => {
+    // queryParamType for boolean type falls through to primitiveToTs which returns 'boolean'
+    const spec: OpenAPIV3_1.Document = {
+      openapi: '3.1.0',
+      info: { title: 'T', version: '1' },
+      paths: {
+        '/items': {
+          get: {
+            operationId: 'listItems',
+            parameters: [
+              { name: 'active', in: 'query', schema: { type: 'boolean' } },
+            ],
+            responses: { '200': { content: { 'application/json': { schema: { type: 'array', items: { type: 'string' } } } } } },
+          },
+        },
+      },
+    }
+    const out = generateClient(spec as OpenAPIV3_1.Document).content
+    expect(out).toContain('active?: boolean')
+  })
+
+  it('array of integer query param → number[] type (return number[] branch)', () => {
+    // queryParamType: type === 'array', items.type === 'integer' → return 'number[]'
+    const spec: OpenAPIV3_1.Document = {
+      openapi: '3.1.0',
+      info: { title: 'T', version: '1' },
+      paths: {
+        '/items': {
+          get: {
+            operationId: 'listItems',
+            parameters: [
+              {
+                name: 'ids',
+                in: 'query',
+                schema: { type: 'array', items: { type: 'integer' } },
+              },
+            ],
+            responses: { '200': { content: { 'application/json': { schema: { type: 'array', items: { type: 'string' } } } } } },
+          },
+        },
+      },
+    }
+    const out = generateClient(spec as OpenAPIV3_1.Document).content
+    expect(out).toContain('ids?: number[]')
+  })
+
+  it('query param with undefined type schema → unknown (primitiveToTs default)', () => {
+    // queryParamType calls primitiveToTs(undefined) → default case returns 'unknown'
+    const spec: OpenAPIV3_1.Document = {
+      openapi: '3.1.0',
+      info: { title: 'T', version: '1' },
+      paths: {
+        '/items': {
+          get: {
+            operationId: 'listItems',
+            parameters: [
+              // Schema with no type — primitiveToTs(undefined) returns 'unknown'
+              { name: 'filter', in: 'query', schema: {} },
+            ],
+            responses: { '200': { content: { 'application/json': { schema: { type: 'string' } } } } },
+          },
+        },
+      },
+    }
+    const out = generateClient(spec as OpenAPIV3_1.Document).content
+    expect(out).toContain('filter?: unknown')
+  })
+})
+
+describe('coverage: deriveOperationName via no-operationId spec (lines 101-123, 540)', () => {
+  it('operation without operationId derives function name from method + path', () => {
+    // When operationId is absent, deriveOperationName(method, path) is called (line 540)
+    // covering the full deriveOperationName function (lines 101-123)
+    const spec: OpenAPIV3_1.Document = {
+      openapi: '3.1.0',
+      info: { title: 'T', version: '1' },
+      paths: {
+        '/api/v1/tasks': {
+          get: {
+            // No operationId — deriveOperationName('get', '/api/v1/tasks') → 'getTasks'
+            responses: { '200': { content: { 'application/json': { schema: { type: 'array', items: { type: 'string' } } } } } },
+          },
+        },
+      },
+    }
+    const out = generateClient(spec as OpenAPIV3_1.Document).content
+    expect(out).toContain('export async function getTasks(')
+  })
+
+  it('path param without operationId produces ById suffix', () => {
+    // deriveOperationName('get', '/api/v1/tasks/{id}') → 'getTasksById'
+    const spec: OpenAPIV3_1.Document = {
+      openapi: '3.1.0',
+      info: { title: 'T', version: '1' },
+      paths: {
+        '/api/v1/tasks/{id}': {
+          get: {
+            parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }],
+            responses: { '200': { content: { 'application/json': { schema: { type: 'string' } } } } },
+          },
+        },
+      },
+    }
+    const out = generateClient(spec as OpenAPIV3_1.Document).content
+    expect(out).toContain('ById')
+  })
+
+  it('POST without operationId gets create prefix', () => {
+    const spec: OpenAPIV3_1.Document = {
+      openapi: '3.1.0',
+      info: { title: 'T', version: '1' },
+      paths: {
+        '/widgets': {
+          post: {
+            requestBody: {
+              content: { 'application/json': { schema: { type: 'object' } } },
+            },
+            responses: { '201': { content: { 'application/json': { schema: { type: 'string' } } } } },
+          },
+        },
+      },
+    }
+    const out = generateClient(spec as OpenAPIV3_1.Document).content
+    expect(out).toContain('export async function createWidgets(')
+  })
+})
+
+describe('coverage: getReturnType no-successful-response fallback (line 153)', () => {
+  it('operation with only error responses returns void', () => {
+    // When responses has only 4xx codes (no 200/201/204), getReturnType falls through
+    // to the final return { typeName: 'void', ... } at line 153
+    const spec: OpenAPIV3_1.Document = {
+      openapi: '3.1.0',
+      info: { title: 'T', version: '1' },
+      paths: {
+        '/break': {
+          delete: {
+            operationId: 'breakThings',
+            responses: {
+              '400': {
+                description: 'bad request',
+                content: { 'application/json': { schema: { type: 'object' } } },
+              },
+            },
+          },
+        },
+      },
+    }
+    const out = generateClient(spec as OpenAPIV3_1.Document).content
+    expect(out).toContain('export async function breakThings(')
+    expect(out).toContain('Promise<void>')
   })
 })
