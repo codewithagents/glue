@@ -7,6 +7,7 @@ import { generateClientConfig } from './plugins/client-config.js'
 import { generateClient, hasCookieAuth } from './plugins/client.js'
 import { generateZodSchemas } from './plugins/zod.js'
 import { generateIndexBarrel } from './plugins/index-barrel.js'
+import { generateServer } from './plugins/server.js'
 
 export async function generate(cwd: string, configPath?: string): Promise<void> {
   console.log('Loading config...')
@@ -38,7 +39,15 @@ export async function generate(cwd: string, configPath?: string): Promise<void> 
     console.log(`  ✓ ${file.filename}`)
   }
 
-  // Phase 3: Zod schema bootstrap — write once, never overwrite
+  // Phase 3: optional server client factory
+  if (config.server_client === true) {
+    const serverFile = generateServer(spec)
+    const serverFilePath = join(outputDir, serverFile.filename)
+    await writeFile(serverFilePath, serverFile.content, 'utf-8')
+    console.log(`  ✓ ${serverFile.filename}`)
+  }
+
+  // Phase 4: Zod schema bootstrap — write once, never overwrite
   if (config.input_schema !== undefined) {
     const schemaPath = resolve(cwd, config.input_schema)
     let schemaExists = false

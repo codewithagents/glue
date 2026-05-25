@@ -10,6 +10,8 @@ export interface Config {
   output: string
   /** Base URL prefix for generated fetch client (default: '') */
   baseUrl?: string
+  /** When true, generates server.ts with a createServerClient() factory for Next.js RSC (default: false) */
+  server_client?: boolean
 }
 
 const FORBIDDEN_OUTPUT_PREFIXES = [
@@ -95,6 +97,9 @@ export async function loadConfig(cwd: string, configPath?: string): Promise<Conf
   ) {
     throw new Error('"input_schema" must be a non-empty string path to your Zod schema file')
   }
+  if (config['server_client'] !== undefined && typeof config['server_client'] !== 'boolean') {
+    throw new Error('"server_client" must be a boolean')
+  }
 
   // Security: validate resolved input and output paths
   const resolvedInput = resolve(cwd, config['input_openapi'] as string)
@@ -107,5 +112,6 @@ export async function loadConfig(cwd: string, configPath?: string): Promise<Conf
     input_schema: config['input_schema'] as string | undefined,
     output: config['output'] as string,
     baseUrl: typeof config['baseUrl'] === 'string' ? config['baseUrl'] : undefined,
+    server_client: config['server_client'] as boolean | undefined,
   }
 }
