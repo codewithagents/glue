@@ -57,10 +57,10 @@ describe('generateHooks — task-hooks.json fixture', () => {
     expect(content).toContain('gcTime: 300000,')
   })
 
-  it('useGetTask accepts id as positional arg and uses taskKeys.detail(id)', () => {
+  it('useGetTask accepts id as positional arg and uses taskKeys.detail(id!)', () => {
     expect(content).toContain('useGetTask')
-    expect(content).toContain('id: string')
-    expect(content).toContain('queryKey: taskKeys.detail(id)')
+    expect(content).toContain('id: string | undefined | null')
+    expect(content).toContain('queryKey: taskKeys.detail(id!)')
   })
 
   it('useCreateTask variables type is Parameters<typeof createTask>[0]', () => {
@@ -97,6 +97,56 @@ describe('generateHooks — task-hooks.json fixture', () => {
     expect(staleTimeIdx).toBeGreaterThan(-1)
     expect(gcTimeIdx).toBeGreaterThan(staleTimeIdx)
     expect(spreadIdx).toBeGreaterThan(gcTimeIdx)
+  })
+})
+
+// ── Feature #61: Auto-disable detail hooks when path param is nullish ─────────
+
+describe('generateHooks — Feature #61: nullish path params auto-disable', () => {
+  it('useGetTask signature contains string | undefined | null for id', () => {
+    expect(content).toContain('id: string | undefined | null')
+  })
+
+  it('useGetTask generated hook contains enabled: id != null guard', () => {
+    expect(content).toContain('enabled: id != null && (options?.enabled ?? true)')
+  })
+
+  it('enabled guard comes before ...options spread', () => {
+    const enabledIdx = content.indexOf('enabled: id != null')
+    const spreadIdx = content.indexOf('...options,', enabledIdx)
+    expect(enabledIdx).toBeGreaterThan(-1)
+    expect(spreadIdx).toBeGreaterThan(enabledIdx)
+  })
+
+  it('hooks without path params do NOT have an enabled guard', () => {
+    // useListTasks has no path params — should not generate an enabled guard
+    const listHookStart = content.indexOf('export function useListTasks')
+    const listHookEnd = content.indexOf('\n}', listHookStart) + 2
+    const listHookContent = content.slice(listHookStart, listHookEnd)
+    expect(listHookContent).not.toContain('enabled:')
+  })
+
+  it('multiple path params generate AND-chained enabled guard', () => {
+    const specMultiParam: OpenAPIV3_1.Document = {
+      openapi: '3.1.0',
+      info: { title: 'Test', version: '1.0.0' },
+      paths: {
+        '/items/{projectId}/{id}': {
+          get: {
+            operationId: 'getItem',
+            parameters: [
+              { name: 'projectId', in: 'path', required: true, schema: { type: 'string' } },
+              { name: 'id', in: 'path', required: true, schema: { type: 'string' } },
+            ],
+            responses: { '200': { description: 'ok' } },
+          },
+        },
+      },
+    }
+    const { content: c } = generateHooks(specMultiParam, { staleTime: 0, gcTime: 0 })
+    expect(c).toContain('projectId: string | undefined | null')
+    expect(c).toContain('id: string | undefined | null')
+    expect(c).toContain('enabled: projectId != null && id != null && (options?.enabled ?? true)')
   })
 })
 
@@ -215,7 +265,7 @@ describe('generateHooks — Bug #53: key factory includes query params when oper
 
   it('hook calls key factory with both path and query params', () => {
     const { content } = generateHooks(specWithPathAndQueryParams, { staleTime: 0, gcTime: 0 })
-    expect(content).toContain('templateKeys.detail(uuid, params)')
+    expect(content).toContain('templateKeys.detail(uuid!, params)')
   })
 
   it('key factory detail entry includes required params when path + required query params', () => {

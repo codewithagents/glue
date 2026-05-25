@@ -187,11 +187,13 @@ function buildQueryHook(
   const hasQueryParams = keyEntry.hasQueryParams
   const paramsRequired = keyEntry.hasRequiredQueryParams
   const pathParams = op.pathParams
+  const hasPathParams = pathParams.length > 0
 
   // Build parameter list
   const sigParts: string[] = []
   for (const p of pathParams) {
-    sigParts.push(`${p}: string`)
+    // Widen path param types to allow nullish values — enables auto-disable without !!id boilerplate
+    sigParts.push(`${p}: string | undefined | null`)
   }
   if (hasQueryParams) {
     const paramsToken = paramsRequired ? 'params' : 'params?'
@@ -199,33 +201,38 @@ function buildQueryHook(
   }
   sigParts.push(`options?: Omit<UseQueryOptions<Awaited<ReturnType<typeof ${op.funcName}>>, ApiError>, 'queryKey' | 'queryFn'>`)
 
-  // Build queryKey call
+  // Build queryKey call — use non-null assertions since enabled guard ensures non-null at runtime
   let queryKeyCall: string
   if (pathParams.length === 0 && hasQueryParams) {
     queryKeyCall = `${keyFactoryName}.${keyEntry.key}(params)`
   } else if (pathParams.length === 0 && !hasQueryParams) {
     queryKeyCall = `${keyFactoryName}.${keyEntry.key}()`
   } else if (pathParams.length === 1 && !hasQueryParams) {
-    queryKeyCall = `${keyFactoryName}.${keyEntry.key}(${pathParams[0]})`
+    queryKeyCall = `${keyFactoryName}.${keyEntry.key}(${pathParams[0]}!)`
   } else if (pathParams.length === 1 && hasQueryParams) {
     // path param + query params
-    queryKeyCall = `${keyFactoryName}.${keyEntry.key}(${pathParams[0]}, params)`
+    queryKeyCall = `${keyFactoryName}.${keyEntry.key}(${pathParams[0]}!, params)`
   } else if (!hasQueryParams) {
     // multiple path params, no query params
-    const paramValues = pathParams.join(', ')
+    const paramValues = pathParams.map((p) => `${p}!`).join(', ')
     queryKeyCall = `${keyFactoryName}.${keyEntry.key}(${paramValues})`
   } else {
     // multiple path params + query params
-    const paramValues = pathParams.join(', ')
+    const paramValues = pathParams.map((p) => `${p}!`).join(', ')
     queryKeyCall = `${keyFactoryName}.${keyEntry.key}(${paramValues}, params)`
   }
 
-  // Build queryFn call
-  let queryFnArgs: string[] = [...pathParams]
+  // Build queryFn call — use non-null assertions
+  let queryFnArgs: string[] = pathParams.map((p) => `${p}!`)
   if (hasQueryParams) queryFnArgs.push('params')
   const queryFnCall = `${op.funcName}(${queryFnArgs.join(', ')})`
 
-  // Feature 1: @deprecated JSDoc on deprecated operations
+  // Build enabled expression for path-param hooks
+  const enabledExpr = hasPathParams
+    ? `${pathParams.map((p) => `${p} != null`).join(' && ')} && (options?.enabled ?? true)`
+    : undefined
+
+  // @deprecated JSDoc on deprecated operations
   if (op.deprecated) {
     lines.push(`/** @deprecated */`)
   }
@@ -237,6 +244,9 @@ function buildQueryHook(
   lines.push(`    queryFn: () => ${queryFnCall},`)
   lines.push(`    staleTime: ${staleTime},`)
   lines.push(`    gcTime: ${gcTime},`)
+  if (enabledExpr !== undefined) {
+    lines.push(`    enabled: ${enabledExpr},`)
+  }
   lines.push(`    ...options,`)
   lines.push(`  })`)
   lines.push(`}`)
