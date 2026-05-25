@@ -660,6 +660,112 @@ describe('generateHooks — Bug #75: auto-invalidation skips detail when multipl
   })
 })
 
+// ── Snapshot: full generated output ───────────────────────────────────────────
+
+describe('snapshot: full generated output', () => {
+  it('default options (staleTime: 0, gcTime: 300_000) — baseline', () => {
+    const { content } = generateHooks(spec, { staleTime: 0, gcTime: 300_000 })
+    expect(content).toMatchSnapshot()
+  })
+
+  it('autoInvalidate: true — auto-invalidation wiring', () => {
+    const { content } = generateHooks(spec, { staleTime: 0, gcTime: 300_000, autoInvalidate: true })
+    expect(content).toMatchSnapshot()
+  })
+
+  it('suspense: true — suspense hook variants', () => {
+    const { content } = generateHooks(spec, { staleTime: 0, gcTime: 300_000, suspense: true })
+    expect(content).toMatchSnapshot()
+  })
+
+  it('overrides: { tasks: { staleTime: 60_000, gcTime: 600_000 } } — per-resource timing', () => {
+    const { content } = generateHooks(spec, {
+      staleTime: 0,
+      gcTime: 300_000,
+      overrides: { tasks: { staleTime: 60_000, gcTime: 600_000 } },
+    })
+    expect(content).toMatchSnapshot()
+  })
+
+  it('autoInvalidate: true, suspense: true, overrides: { tasks: { staleTime: 60_000 } } — all features combined', () => {
+    const { content } = generateHooks(spec, {
+      staleTime: 0,
+      gcTime: 300_000,
+      autoInvalidate: true,
+      suspense: true,
+      overrides: { tasks: { staleTime: 60_000 } },
+    })
+    expect(content).toMatchSnapshot()
+  })
+})
+
+// ── Feature interactions ────────────────────────────────────────────────────────
+
+describe('feature interactions', () => {
+  it('Test A: suspense + overrides apply correct staleTime to suspense and regular hooks', () => {
+    const { content } = generateHooks(spec, {
+      staleTime: 0,
+      gcTime: 300_000,
+      suspense: true,
+      overrides: { tasks: { staleTime: 60_000, gcTime: 600_000 } },
+    })
+
+    // Suspense hook for getTask should exist and contain the overridden staleTime
+    const suspenseHookStart = content.indexOf('export function useSuspenseGetTask')
+    const suspenseHookEnd = content.indexOf('\n}', suspenseHookStart) + 2
+    const suspenseHookContent = content.slice(suspenseHookStart, suspenseHookEnd)
+    expect(suspenseHookContent).toContain('staleTime: 60000,')
+
+    // Regular useGetTask hook should also get the override
+    const regularHookStart = content.indexOf('export function useGetTask')
+    const regularHookEnd = content.indexOf('\n}', regularHookStart) + 2
+    const regularHookContent = content.slice(regularHookStart, regularHookEnd)
+    expect(regularHookContent).toContain('staleTime: 60000,')
+  })
+
+  it('Test B: autoInvalidate + overrides coexist without conflict', () => {
+    const { content } = generateHooks(spec, {
+      staleTime: 0,
+      gcTime: 300_000,
+      autoInvalidate: true,
+      overrides: { tasks: { staleTime: 30_000 } },
+    })
+
+    // Mutation hook still has invalidateQueries (auto-invalidation works)
+    const createHookStart = content.indexOf('export function useCreateTask')
+    const createHookEnd = content.indexOf('\n}', createHookStart) + 2
+    const createHookContent = content.slice(createHookStart, createHookEnd)
+    expect(createHookContent).toContain('invalidateQueries')
+
+    // Query hook still has the overridden staleTime (overrides work)
+    const listHookStart = content.indexOf('export function useListTasks')
+    const listHookEnd = content.indexOf('\n}', listHookStart) + 2
+    const listHookContent = content.slice(listHookStart, listHookEnd)
+    expect(listHookContent).toContain('staleTime: 30000,')
+  })
+
+  it('Test C: suspense + autoInvalidate produces both variants and invalidation', () => {
+    const { content } = generateHooks(spec, {
+      staleTime: 0,
+      gcTime: 300_000,
+      suspense: true,
+      autoInvalidate: true,
+    })
+
+    // Both regular and suspense hooks are generated
+    expect(content).toContain('export function useListTasks')
+    expect(content).toContain('export function useSuspenseListTasks')
+    expect(content).toContain('export function useGetTask')
+    expect(content).toContain('export function useSuspenseGetTask')
+
+    // Mutation hooks still have invalidateQueries
+    const createHookStart = content.indexOf('export function useCreateTask')
+    const createHookEnd = content.indexOf('\n}', createHookStart) + 2
+    const createHookContent = content.slice(createHookStart, createHookEnd)
+    expect(createHookContent).toContain('invalidateQueries')
+  })
+})
+
 describe('auto-invalidate mutations (#58)', () => {
   it('autoInvalidate: false — no useQueryClient or invalidateQueries in output', () => {
     const { content } = generateHooks(spec, { staleTime: 0, gcTime: 300_000, autoInvalidate: false })
