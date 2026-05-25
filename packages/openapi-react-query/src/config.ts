@@ -14,6 +14,8 @@ export interface ReactQueryConfig {
   suspense?: boolean
   /** Per-resource cache timing overrides. Key is the resource name (e.g. "tasks", "platforms"). */
   overrides?: Record<string, { stale_time?: number; gc_time?: number }>
+  /** When true, mutation hooks auto-invalidate related resource queries on success (default: false) */
+  auto_invalidate?: boolean
 }
 
 const FORBIDDEN_OUTPUT_PREFIXES = [
@@ -102,6 +104,9 @@ export async function loadConfig(cwd: string, configPath?: string): Promise<Reac
   if (config['suspense'] !== undefined && typeof config['suspense'] !== 'boolean') {
     throw new Error('"suspense" must be a boolean')
   }
+  if (config['auto_invalidate'] !== undefined && typeof config['auto_invalidate'] !== 'boolean') {
+    throw new Error('"auto_invalidate" must be a boolean')
+  }
   if (config['overrides'] !== undefined) {
     if (typeof config['overrides'] !== 'object' || config['overrides'] === null || Array.isArray(config['overrides'])) {
       throw new Error('"overrides" must be an object')
@@ -133,5 +138,6 @@ export async function loadConfig(cwd: string, configPath?: string): Promise<Reac
     gc_time: config['gc_time'] as number | undefined,
     suspense: config['suspense'] as boolean | undefined,
     overrides: config['overrides'] as Record<string, { stale_time?: number; gc_time?: number }> | undefined,
+    auto_invalidate: config['auto_invalidate'] as boolean | undefined,
   }
 }

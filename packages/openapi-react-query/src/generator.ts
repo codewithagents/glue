@@ -28,6 +28,7 @@ export async function generate(cwd: string, configPath?: string): Promise<void> 
     gcTime: globalGcTime,
     suspense: config.suspense,
     overrides: Object.keys(overrides).length > 0 ? overrides : undefined,
+    autoInvalidate: config.auto_invalidate,
   })
   await mkdir(outputDir, { recursive: true })
   const filePath = join(outputDir, file.filename)

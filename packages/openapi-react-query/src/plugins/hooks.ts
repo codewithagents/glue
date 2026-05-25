@@ -8,6 +8,7 @@ export interface HookGenOptions {
   gcTime: number
   suspense?: boolean
   overrides?: Record<string, { staleTime: number; gcTime: number }>
+  autoInvalidate?: boolean
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -325,7 +326,16 @@ function buildSuspenseQueryHook(
 
 // ── Mutation hook generation ───────────────────────────────────────────────────
 
-function buildMutationHook(op: OperationMeta): string {
+interface MutationInvalidateInfo {
+  keyFactoryName: string
+  hasDetailKey: boolean
+}
+
+function buildMutationHook(
+  op: OperationMeta,
+  autoInvalidate: boolean,
+  invalidateInfo: MutationInvalidateInfo | undefined,
+): string {
   const lines: string[] = []
   const { funcName, hookName, pathParams, hasBody, hasQueryParams } = op
 
@@ -395,15 +405,50 @@ function buildMutationHook(op: OperationMeta): string {
     mutationFnBody = `({ ${destructured} }) => ${funcName}(${[...pathParams, 'body', 'params'].join(', ')})`
   }
 
-  // Feature 1: @deprecated JSDoc on deprecated operations
+  // @deprecated JSDoc on deprecated operations
   if (op.deprecated) {
     lines.push(`/** @deprecated */`)
   }
   lines.push(`export function ${hookName}(`)
   lines.push(`  options?: Omit<UseMutationOptions<Awaited<ReturnType<typeof ${funcName}>>, ApiError, ${variablesType}>, 'mutationFn'>,`)
   lines.push(`) {`)
+
+  const shouldInvalidate = autoInvalidate && invalidateInfo !== undefined
+  if (shouldInvalidate) {
+    lines.push(`  const queryClient = useQueryClient()`)
+  }
+
   lines.push(`  return useMutation<Awaited<ReturnType<typeof ${funcName}>>, ApiError, ${variablesType}>({`)
   lines.push(`    mutationFn: ${mutationFnBody},`)
+
+  if (shouldInvalidate) {
+    const { keyFactoryName, hasDetailKey } = invalidateInfo
+    const canInvalidateDetail =
+      hasDetailKey &&
+      pathParams.length >= 1 &&
+      (op.method === 'put' || op.method === 'patch')
+
+    // Determine how to reference the first path param from variables in onSuccess
+    let detailIdRef: string
+    if (pathParams.length === 1 && !hasBody && !hasQueryParams) {
+      // variablesType is 'string' — variables IS the id directly
+      detailIdRef = 'variables'
+    } else if (pathParams.length >= 1) {
+      // variablesType is an object — access via property name
+      detailIdRef = `variables.${pathParams[0]}`
+    } else {
+      detailIdRef = 'variables'
+    }
+
+    lines.push(`    onSuccess: (data, variables, context) => {`)
+    lines.push(`      queryClient.invalidateQueries({ queryKey: ${keyFactoryName}.all() })`)
+    if (canInvalidateDetail) {
+      lines.push(`      queryClient.invalidateQueries({ queryKey: ${keyFactoryName}.detail(${detailIdRef}) })`)
+    }
+    lines.push(`      options?.onSuccess?.(data, variables, context)`)
+    lines.push(`    },`)
+  }
+
   lines.push(`    ...options,`)
   lines.push(`  })`)
   lines.push(`}`)
@@ -440,7 +485,7 @@ export function generateHooks(
   spec: OpenAPIV3_1.Document,
   options: HookGenOptions,
 ): { filename: string; content: string } {
-  const { staleTime, gcTime, suspense = false } = options
+  const { staleTime, gcTime, suspense = false, autoInvalidate = false } = options
   const paths = spec.paths as Record<string, Record<string, OperationObject>> | undefined
 
   // Collect all operations
@@ -578,20 +623,35 @@ export function generateHooks(
     }
   }
 
+  // Build resource → hasDetailKey map for auto-invalidate
+  const resourceHasDetailKey = new Map<string, boolean>()
+  for (const [resource, ops] of resourceToGetOps.entries()) {
+    resourceHasDetailKey.set(resource, ops.some((op) => op.pathParams.length > 0))
+  }
+
   // Build mutation hooks
   const mutationHookBlocks: string[] = []
   for (const op of mutationOps) {
-    mutationHookBlocks.push(buildMutationHook(op))
+    let invalidateInfo: MutationInvalidateInfo | undefined
+    if (autoInvalidate) {
+      const resource = primaryResource(op.path)
+      const keyFactoryName = `${toKeyFactoryName(resource)}Keys`
+      const hasDetailKey = resourceHasDetailKey.get(resource) ?? false
+      invalidateInfo = { keyFactoryName, hasDetailKey }
+    }
+    mutationHookBlocks.push(buildMutationHook(op, autoInvalidate, invalidateInfo))
   }
 
   // Determine which react-query exports to import
   const needsUseQuery = getOps.length > 0
   const needsUseMutation = mutationOps.length > 0
   const needsUseSuspenseQuery = suspense && getOps.length > 0
+  const needsUseQueryClient = autoInvalidate && needsUseMutation
   const rqImports: string[] = []
   if (needsUseQuery) rqImports.push('useQuery', 'type UseQueryOptions')
   if (needsUseSuspenseQuery) rqImports.push('useSuspenseQuery', 'type UseSuspenseQueryOptions')
   if (needsUseMutation) rqImports.push('useMutation', 'type UseMutationOptions')
+  if (needsUseQueryClient) rqImports.push('useQueryClient')
 
   // Collect all function names for client import
   const allFuncNames = operations.map((op) => op.funcName).sort()

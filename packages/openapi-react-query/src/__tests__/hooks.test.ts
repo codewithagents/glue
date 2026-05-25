@@ -597,3 +597,46 @@ describe('generateHooks — Feature #59: per-resource cache timing overrides', (
     expect(occurrences).toBeGreaterThanOrEqual(3) // listTasks, getTask, listPlatforms
   })
 })
+
+describe('auto-invalidate mutations (#58)', () => {
+  it('autoInvalidate: false — no useQueryClient or invalidateQueries in output', () => {
+    const { content } = generateHooks(spec, { staleTime: 0, gcTime: 300_000, autoInvalidate: false })
+    expect(content).not.toContain('useQueryClient')
+    expect(content).not.toContain('invalidateQueries')
+  })
+
+  it('autoInvalidate: true — imports useQueryClient from @tanstack/react-query', () => {
+    const { content } = generateHooks(spec, { staleTime: 0, gcTime: 300_000, autoInvalidate: true })
+    expect(content).toContain('useQueryClient')
+    expect(content).toContain("from '@tanstack/react-query'")
+  })
+
+  it('autoInvalidate: true — useCreateTask invalidates taskKeys.all()', () => {
+    const { content } = generateHooks(spec, { staleTime: 0, gcTime: 300_000, autoInvalidate: true })
+    const createStart = content.indexOf('export function useCreateTask')
+    const createEnd = content.indexOf('\n}', createStart) + 2
+    const createContent = content.slice(createStart, createEnd)
+    expect(createContent).toContain('queryClient.invalidateQueries({ queryKey: taskKeys.all() })')
+    expect(createContent).toContain('options?.onSuccess?.(data, variables, context)')
+  })
+
+  it('autoInvalidate: true — useUpdateTask invalidates taskKeys.all() and taskKeys.detail()', () => {
+    const { content } = generateHooks(spec, { staleTime: 0, gcTime: 300_000, autoInvalidate: true })
+    const updateStart = content.indexOf('export function useUpdateTask')
+    const updateEnd = content.indexOf('\n}', updateStart) + 2
+    const updateContent = content.slice(updateStart, updateEnd)
+    expect(updateContent).toContain('queryClient.invalidateQueries({ queryKey: taskKeys.all() })')
+    expect(updateContent).toContain('taskKeys.detail(')
+    expect(updateContent).toContain('options?.onSuccess?.(data, variables, context)')
+  })
+
+  it('autoInvalidate: true — useDeleteTask invalidates taskKeys.all() but not detail', () => {
+    const { content } = generateHooks(spec, { staleTime: 0, gcTime: 300_000, autoInvalidate: true })
+    const deleteStart = content.indexOf('export function useDeleteTask')
+    const deleteEnd = content.indexOf('\n}', deleteStart) + 2
+    const deleteContent = content.slice(deleteStart, deleteEnd)
+    expect(deleteContent).toContain('queryClient.invalidateQueries({ queryKey: taskKeys.all() })')
+    // DELETE should NOT invalidate detail (only PUT/PATCH do)
+    expect(deleteContent).not.toContain('taskKeys.detail(')
+  })
+})
