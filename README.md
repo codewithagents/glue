@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/codewithagents/glue/actions/workflows/ci.yml/badge.svg)](https://github.com/codewithagents/glue/actions/workflows/ci.yml)
 [![CodeQL](https://github.com/codewithagents/glue/actions/workflows/codeql.yml/badge.svg)](https://github.com/codewithagents/glue/actions/workflows/codeql.yml)
-[![codecov](https://codecov.io/gh/codewithagents/glue/graph/badge.svg)](https://codecov.io/gh/codewithagents/glue)
+[![codecov](https://codecov.io/gh/codewithagents/glue/graph/badge.svg?branch=main)](https://codecov.io/gh/codewithagents/glue)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](./packages/openapi-gen/LICENSE)
 
 > TypeScript glue between your OpenAPI spec and your frontend — zero runtime footprint.
