@@ -155,6 +155,11 @@ function isEnumSchema(schema: SchemaObject): boolean {
   return false
 }
 
+/** True when every enum value is a number (no strings, no nulls). */
+function isNumericEnum(schema: SchemaObject): boolean {
+  return (schema.enum ?? []).every((v: unknown) => typeof v === 'number')
+}
+
 function isObjectSchema(schema: SchemaObject): boolean {
   // Has allOf/anyOf/oneOf - treated as type alias
   if (schema.allOf !== undefined || schema.anyOf !== undefined || schema.oneOf !== undefined) {
@@ -194,7 +199,14 @@ function generateSchemaDeclaration(name: string, schema: SchemaObject | Referenc
         return String(v)
       })
       .join(' | ')
-    return `export type ${name} = ${union}`
+    const typeDecl = `export type ${name} = ${union}`
+    // For pure numeric enums, also emit a values array so consumers can
+    // iterate valid values (e.g. to build a <select>) without inventing labels.
+    if (isNumericEnum(schema)) {
+      const arr = (schema.enum as number[]).join(', ')
+      return `${typeDecl}\nexport const ${name}Values = [${arr}] as const`
+    }
+    return typeDecl
   }
 
   if (isObjectSchema(schema)) {
