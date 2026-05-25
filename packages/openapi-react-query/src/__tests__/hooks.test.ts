@@ -443,3 +443,75 @@ describe('generateHooks — tag name to camelCase key factory', () => {
     expect(content).not.toContain('ad-settingKeys')
   })
 })
+
+// ── Feature #60: useSuspenseQuery variants ─────────────────────────────────────
+
+describe('generateHooks — Feature #60: suspense query variants', () => {
+  const suspenseSpec: OpenAPIV3_1.Document = {
+    openapi: '3.1.0',
+    info: { title: 'Test', version: '1.0.0' },
+    paths: {
+      '/api/v1/tasks': {
+        get: {
+          operationId: 'listTasks',
+          responses: { '200': { description: 'ok' } },
+        },
+      },
+      '/api/v1/tasks/{id}': {
+        get: {
+          operationId: 'getTask',
+          parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }],
+          responses: { '200': { description: 'ok' } },
+        },
+      },
+    },
+  }
+
+  it('when suspense: true, output contains useSuspenseGetTask', () => {
+    const { content } = generateHooks(suspenseSpec, { staleTime: 0, gcTime: 0, suspense: true })
+    expect(content).toContain('export function useSuspenseGetTask')
+  })
+
+  it('when suspense: true, output contains useSuspenseListTasks', () => {
+    const { content } = generateHooks(suspenseSpec, { staleTime: 0, gcTime: 0, suspense: true })
+    expect(content).toContain('export function useSuspenseListTasks')
+  })
+
+  it('when suspense: true, output imports useSuspenseQuery from @tanstack/react-query', () => {
+    const { content } = generateHooks(suspenseSpec, { staleTime: 0, gcTime: 0, suspense: true })
+    expect(content).toContain('useSuspenseQuery')
+    expect(content).toContain("from '@tanstack/react-query'")
+  })
+
+  it('when suspense: true, output imports UseSuspenseQueryOptions type', () => {
+    const { content } = generateHooks(suspenseSpec, { staleTime: 0, gcTime: 0, suspense: true })
+    expect(content).toContain('type UseSuspenseQueryOptions')
+  })
+
+  it('suspense variant uses useSuspenseQuery call', () => {
+    const { content } = generateHooks(suspenseSpec, { staleTime: 0, gcTime: 0, suspense: true })
+    expect(content).toContain('return useSuspenseQuery<')
+  })
+
+  it('suspense detail hook path params are required string (not nullish)', () => {
+    const { content } = generateHooks(suspenseSpec, { staleTime: 0, gcTime: 0, suspense: true })
+    // useSuspenseGetTask should have id: string (not string | undefined | null)
+    const suspenseHookStart = content.indexOf('export function useSuspenseGetTask')
+    const suspenseHookEnd = content.indexOf('\n}', suspenseHookStart) + 2
+    const suspenseHookContent = content.slice(suspenseHookStart, suspenseHookEnd)
+    expect(suspenseHookContent).toContain('id: string')
+    expect(suspenseHookContent).not.toContain('id: string | undefined | null')
+  })
+
+  it('when suspense: false (default), no useSuspense* hooks generated', () => {
+    const { content } = generateHooks(suspenseSpec, { staleTime: 0, gcTime: 0 })
+    expect(content).not.toContain('useSuspenseGetTask')
+    expect(content).not.toContain('useSuspenseListTasks')
+    expect(content).not.toContain('useSuspenseQuery')
+  })
+
+  it('when suspense: false explicitly, no useSuspense* hooks generated', () => {
+    const { content } = generateHooks(suspenseSpec, { staleTime: 0, gcTime: 0, suspense: false })
+    expect(content).not.toContain('useSuspenseQuery')
+  })
+})

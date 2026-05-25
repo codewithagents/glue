@@ -10,6 +10,8 @@ export interface ReactQueryConfig {
   stale_time?: number
   /** gcTime in ms for all useQuery hooks (default: 300000) */
   gc_time?: number
+  /** When true, generates useSuspense* variants alongside each useQuery hook (default: false) */
+  suspense?: boolean
 }
 
 const FORBIDDEN_OUTPUT_PREFIXES = [
@@ -95,6 +97,9 @@ export async function loadConfig(cwd: string, configPath?: string): Promise<Reac
   if (config['gc_time'] !== undefined && typeof config['gc_time'] !== 'number') {
     throw new Error('"gc_time" must be a number (milliseconds)')
   }
+  if (config['suspense'] !== undefined && typeof config['suspense'] !== 'boolean') {
+    throw new Error('"suspense" must be a boolean')
+  }
 
   // Security: validate resolved input and output paths
   const resolvedInput = resolve(cwd, config['input_openapi'] as string)
@@ -107,5 +112,6 @@ export async function loadConfig(cwd: string, configPath?: string): Promise<Reac
     output: config['output'] as string,
     stale_time: config['stale_time'] as number | undefined,
     gc_time: config['gc_time'] as number | undefined,
+    suspense: config['suspense'] as boolean | undefined,
   }
 }

@@ -12,6 +12,7 @@ export async function generate(cwd: string, configPath?: string): Promise<void> 
   const file = generateHooks(spec, {
     staleTime: config.stale_time ?? 0,
     gcTime: config.gc_time ?? 300_000,
+    suspense: config.suspense,
   })
   await mkdir(outputDir, { recursive: true })
   const filePath = join(outputDir, file.filename)

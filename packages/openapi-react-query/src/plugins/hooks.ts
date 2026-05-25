@@ -6,6 +6,7 @@ type ReferenceObject = OpenAPIV3_1.ReferenceObject
 export interface HookGenOptions {
   staleTime: number
   gcTime: number
+  suspense?: boolean
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -254,6 +255,73 @@ function buildQueryHook(
   return lines.join('\n')
 }
 
+function buildSuspenseQueryHook(
+  op: OperationMeta,
+  keyFactoryName: string,
+  keyEntry: KeyEntry,
+  staleTime: number,
+  gcTime: number,
+): string {
+  const lines: string[] = []
+
+  const hasQueryParams = keyEntry.hasQueryParams
+  const paramsRequired = keyEntry.hasRequiredQueryParams
+  const pathParams = op.pathParams
+
+  // Suspense hooks require path params (no nullish widening — suspense doesn't support enabled)
+  const sigParts: string[] = []
+  for (const p of pathParams) {
+    sigParts.push(`${p}: string`)
+  }
+  if (hasQueryParams) {
+    const paramsToken = paramsRequired ? 'params' : 'params?'
+    sigParts.push(`${paramsToken}: Parameters<typeof ${op.funcName}>[${pathParams.length}]`)
+  }
+  sigParts.push(`options?: Omit<UseSuspenseQueryOptions<Awaited<ReturnType<typeof ${op.funcName}>>, ApiError>, 'queryKey' | 'queryFn'>`)
+
+  // Build queryKey call
+  let queryKeyCall: string
+  if (pathParams.length === 0 && hasQueryParams) {
+    queryKeyCall = `${keyFactoryName}.${keyEntry.key}(params)`
+  } else if (pathParams.length === 0 && !hasQueryParams) {
+    queryKeyCall = `${keyFactoryName}.${keyEntry.key}()`
+  } else if (pathParams.length === 1 && !hasQueryParams) {
+    queryKeyCall = `${keyFactoryName}.${keyEntry.key}(${pathParams[0]})`
+  } else if (pathParams.length === 1 && hasQueryParams) {
+    queryKeyCall = `${keyFactoryName}.${keyEntry.key}(${pathParams[0]}, params)`
+  } else if (!hasQueryParams) {
+    const paramValues = pathParams.join(', ')
+    queryKeyCall = `${keyFactoryName}.${keyEntry.key}(${paramValues})`
+  } else {
+    const paramValues = pathParams.join(', ')
+    queryKeyCall = `${keyFactoryName}.${keyEntry.key}(${paramValues}, params)`
+  }
+
+  // Build queryFn call
+  const queryFnArgs: string[] = [...pathParams]
+  if (hasQueryParams) queryFnArgs.push('params')
+  const queryFnCall = `${op.funcName}(${queryFnArgs.join(', ')})`
+
+  const suspenseHookName = `useSuspense${capitalize(op.funcName)}`
+
+  if (op.deprecated) {
+    lines.push(`/** @deprecated */`)
+  }
+  lines.push(`export function ${suspenseHookName}(`)
+  lines.push(`  ${sigParts.join(',\n  ')},`)
+  lines.push(`) {`)
+  lines.push(`  return useSuspenseQuery<Awaited<ReturnType<typeof ${op.funcName}>>, ApiError>({`)
+  lines.push(`    queryKey: ${queryKeyCall},`)
+  lines.push(`    queryFn: () => ${queryFnCall},`)
+  lines.push(`    staleTime: ${staleTime},`)
+  lines.push(`    gcTime: ${gcTime},`)
+  lines.push(`    ...options,`)
+  lines.push(`  })`)
+  lines.push(`}`)
+
+  return lines.join('\n')
+}
+
 // ── Mutation hook generation ───────────────────────────────────────────────────
 
 function buildMutationHook(op: OperationMeta): string {
@@ -371,7 +439,7 @@ export function generateHooks(
   spec: OpenAPIV3_1.Document,
   options: HookGenOptions,
 ): { filename: string; content: string } {
-  const { staleTime, gcTime } = options
+  const { staleTime, gcTime, suspense = false } = options
   const paths = spec.paths as Record<string, Record<string, OperationObject>> | undefined
 
   // Collect all operations
@@ -493,13 +561,16 @@ export function generateHooks(
     keyFactoryBlocks.push(buildKeyFactory(resource, entries))
   }
 
-  // Build query hooks
+  // Build query hooks (and suspense variants if enabled)
   const queryHookBlocks: string[] = []
   for (const op of getOps) {
     const info = opToKeyInfo.get(op.funcName)
     if (info === undefined) continue
     const { factoryName, keyEntry } = info
     queryHookBlocks.push(buildQueryHook(op, factoryName, keyEntry, staleTime, gcTime))
+    if (suspense) {
+      queryHookBlocks.push(buildSuspenseQueryHook(op, factoryName, keyEntry, staleTime, gcTime))
+    }
   }
 
   // Build mutation hooks
@@ -511,8 +582,10 @@ export function generateHooks(
   // Determine which react-query exports to import
   const needsUseQuery = getOps.length > 0
   const needsUseMutation = mutationOps.length > 0
+  const needsUseSuspenseQuery = suspense && getOps.length > 0
   const rqImports: string[] = []
   if (needsUseQuery) rqImports.push('useQuery', 'type UseQueryOptions')
+  if (needsUseSuspenseQuery) rqImports.push('useSuspenseQuery', 'type UseSuspenseQueryOptions')
   if (needsUseMutation) rqImports.push('useMutation', 'type UseMutationOptions')
 
   // Collect all function names for client import
