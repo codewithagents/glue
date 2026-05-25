@@ -6,6 +6,9 @@ type ReferenceObject = OpenAPIV3_1.ReferenceObject
 export interface HookGenOptions {
   staleTime: number
   gcTime: number
+  suspense?: boolean
+  overrides?: Record<string, { staleTime: number; gcTime: number }>
+  autoInvalidate?: boolean
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -187,8 +190,87 @@ function buildQueryHook(
   const hasQueryParams = keyEntry.hasQueryParams
   const paramsRequired = keyEntry.hasRequiredQueryParams
   const pathParams = op.pathParams
+  const hasPathParams = pathParams.length > 0
 
   // Build parameter list
+  const sigParts: string[] = []
+  for (const p of pathParams) {
+    // Widen path param types to allow nullish values — enables auto-disable without !!id boilerplate
+    sigParts.push(`${p}: string | undefined | null`)
+  }
+  if (hasQueryParams) {
+    const paramsToken = paramsRequired ? 'params' : 'params?'
+    sigParts.push(`${paramsToken}: Parameters<typeof ${op.funcName}>[${pathParams.length}]`)
+  }
+  sigParts.push(`options?: Omit<UseQueryOptions<Awaited<ReturnType<typeof ${op.funcName}>>, ApiError>, 'queryKey' | 'queryFn'>`)
+
+  // Build queryKey call — use non-null assertions since enabled guard ensures non-null at runtime
+  let queryKeyCall: string
+  if (pathParams.length === 0 && hasQueryParams) {
+    queryKeyCall = `${keyFactoryName}.${keyEntry.key}(params)`
+  } else if (pathParams.length === 0 && !hasQueryParams) {
+    queryKeyCall = `${keyFactoryName}.${keyEntry.key}()`
+  } else if (pathParams.length === 1 && !hasQueryParams) {
+    queryKeyCall = `${keyFactoryName}.${keyEntry.key}(${pathParams[0]}!)`
+  } else if (pathParams.length === 1 && hasQueryParams) {
+    // path param + query params
+    queryKeyCall = `${keyFactoryName}.${keyEntry.key}(${pathParams[0]}!, params)`
+  } else if (!hasQueryParams) {
+    // multiple path params, no query params
+    const paramValues = pathParams.map((p) => `${p}!`).join(', ')
+    queryKeyCall = `${keyFactoryName}.${keyEntry.key}(${paramValues})`
+  } else {
+    // multiple path params + query params
+    const paramValues = pathParams.map((p) => `${p}!`).join(', ')
+    queryKeyCall = `${keyFactoryName}.${keyEntry.key}(${paramValues}, params)`
+  }
+
+  // Build queryFn call — use non-null assertions
+  let queryFnArgs: string[] = pathParams.map((p) => `${p}!`)
+  if (hasQueryParams) queryFnArgs.push('params')
+  const queryFnCall = `${op.funcName}(${queryFnArgs.join(', ')})`
+
+  // Build enabled expression for path-param hooks
+  const enabledExpr = hasPathParams
+    ? `${pathParams.map((p) => `${p} != null`).join(' && ')} && (options?.enabled ?? true)`
+    : undefined
+
+  // @deprecated JSDoc on deprecated operations
+  if (op.deprecated) {
+    lines.push(`/** @deprecated */`)
+  }
+  lines.push(`export function ${op.hookName}(`)
+  lines.push(`  ${sigParts.join(',\n  ')},`)
+  lines.push(`) {`)
+  lines.push(`  return useQuery<Awaited<ReturnType<typeof ${op.funcName}>>, ApiError>({`)
+  lines.push(`    queryKey: ${queryKeyCall},`)
+  lines.push(`    queryFn: () => ${queryFnCall},`)
+  lines.push(`    staleTime: ${staleTime},`)
+  lines.push(`    gcTime: ${gcTime},`)
+  if (enabledExpr !== undefined) {
+    lines.push(`    enabled: ${enabledExpr},`)
+  }
+  lines.push(`    ...options,`)
+  lines.push(`  })`)
+  lines.push(`}`)
+
+  return lines.join('\n')
+}
+
+function buildSuspenseQueryHook(
+  op: OperationMeta,
+  keyFactoryName: string,
+  keyEntry: KeyEntry,
+  staleTime: number,
+  gcTime: number,
+): string {
+  const lines: string[] = []
+
+  const hasQueryParams = keyEntry.hasQueryParams
+  const paramsRequired = keyEntry.hasRequiredQueryParams
+  const pathParams = op.pathParams
+
+  // Suspense hooks require path params (no nullish widening — suspense doesn't support enabled)
   const sigParts: string[] = []
   for (const p of pathParams) {
     sigParts.push(`${p}: string`)
@@ -197,7 +279,7 @@ function buildQueryHook(
     const paramsToken = paramsRequired ? 'params' : 'params?'
     sigParts.push(`${paramsToken}: Parameters<typeof ${op.funcName}>[${pathParams.length}]`)
   }
-  sigParts.push(`options?: Omit<UseQueryOptions<Awaited<ReturnType<typeof ${op.funcName}>>, ApiError>, 'queryKey' | 'queryFn'>`)
+  sigParts.push(`options?: Omit<UseSuspenseQueryOptions<Awaited<ReturnType<typeof ${op.funcName}>>, ApiError>, 'queryKey' | 'queryFn'>`)
 
   // Build queryKey call
   let queryKeyCall: string
@@ -208,31 +290,29 @@ function buildQueryHook(
   } else if (pathParams.length === 1 && !hasQueryParams) {
     queryKeyCall = `${keyFactoryName}.${keyEntry.key}(${pathParams[0]})`
   } else if (pathParams.length === 1 && hasQueryParams) {
-    // path param + query params
     queryKeyCall = `${keyFactoryName}.${keyEntry.key}(${pathParams[0]}, params)`
   } else if (!hasQueryParams) {
-    // multiple path params, no query params
     const paramValues = pathParams.join(', ')
     queryKeyCall = `${keyFactoryName}.${keyEntry.key}(${paramValues})`
   } else {
-    // multiple path params + query params
     const paramValues = pathParams.join(', ')
     queryKeyCall = `${keyFactoryName}.${keyEntry.key}(${paramValues}, params)`
   }
 
   // Build queryFn call
-  let queryFnArgs: string[] = [...pathParams]
+  const queryFnArgs: string[] = [...pathParams]
   if (hasQueryParams) queryFnArgs.push('params')
   const queryFnCall = `${op.funcName}(${queryFnArgs.join(', ')})`
 
-  // Feature 1: @deprecated JSDoc on deprecated operations
+  const suspenseHookName = `useSuspense${capitalize(op.funcName)}`
+
   if (op.deprecated) {
     lines.push(`/** @deprecated */`)
   }
-  lines.push(`export function ${op.hookName}(`)
+  lines.push(`export function ${suspenseHookName}(`)
   lines.push(`  ${sigParts.join(',\n  ')},`)
   lines.push(`) {`)
-  lines.push(`  return useQuery<Awaited<ReturnType<typeof ${op.funcName}>>, ApiError>({`)
+  lines.push(`  return useSuspenseQuery<Awaited<ReturnType<typeof ${op.funcName}>>, ApiError>({`)
   lines.push(`    queryKey: ${queryKeyCall},`)
   lines.push(`    queryFn: () => ${queryFnCall},`)
   lines.push(`    staleTime: ${staleTime},`)
@@ -246,7 +326,16 @@ function buildQueryHook(
 
 // ── Mutation hook generation ───────────────────────────────────────────────────
 
-function buildMutationHook(op: OperationMeta): string {
+interface MutationInvalidateInfo {
+  keyFactoryName: string
+  hasDetailKey: boolean
+}
+
+function buildMutationHook(
+  op: OperationMeta,
+  autoInvalidate: boolean,
+  invalidateInfo: MutationInvalidateInfo | undefined,
+): string {
   const lines: string[] = []
   const { funcName, hookName, pathParams, hasBody, hasQueryParams } = op
 
@@ -316,15 +405,50 @@ function buildMutationHook(op: OperationMeta): string {
     mutationFnBody = `({ ${destructured} }) => ${funcName}(${[...pathParams, 'body', 'params'].join(', ')})`
   }
 
-  // Feature 1: @deprecated JSDoc on deprecated operations
+  // @deprecated JSDoc on deprecated operations
   if (op.deprecated) {
     lines.push(`/** @deprecated */`)
   }
   lines.push(`export function ${hookName}(`)
   lines.push(`  options?: Omit<UseMutationOptions<Awaited<ReturnType<typeof ${funcName}>>, ApiError, ${variablesType}>, 'mutationFn'>,`)
   lines.push(`) {`)
+
+  const shouldInvalidate = autoInvalidate && invalidateInfo !== undefined
+  if (shouldInvalidate) {
+    lines.push(`  const queryClient = useQueryClient()`)
+  }
+
   lines.push(`  return useMutation<Awaited<ReturnType<typeof ${funcName}>>, ApiError, ${variablesType}>({`)
   lines.push(`    mutationFn: ${mutationFnBody},`)
+
+  if (shouldInvalidate) {
+    const { keyFactoryName, hasDetailKey } = invalidateInfo
+    const canInvalidateDetail =
+      hasDetailKey &&
+      pathParams.length >= 1 &&
+      (op.method === 'put' || op.method === 'patch')
+
+    // Determine how to reference the first path param from variables in onSuccess
+    let detailIdRef: string
+    if (pathParams.length === 1 && !hasBody && !hasQueryParams) {
+      // variablesType is 'string' — variables IS the id directly
+      detailIdRef = 'variables'
+    } else if (pathParams.length >= 1) {
+      // variablesType is an object — access via property name
+      detailIdRef = `variables.${pathParams[0]}`
+    } else {
+      detailIdRef = 'variables'
+    }
+
+    lines.push(`    onSuccess: (data, variables, context) => {`)
+    lines.push(`      queryClient.invalidateQueries({ queryKey: ${keyFactoryName}.all() })`)
+    if (canInvalidateDetail) {
+      lines.push(`      queryClient.invalidateQueries({ queryKey: ${keyFactoryName}.detail(${detailIdRef}) })`)
+    }
+    lines.push(`      options?.onSuccess?.(data, variables, context)`)
+    lines.push(`    },`)
+  }
+
   lines.push(`    ...options,`)
   lines.push(`  })`)
   lines.push(`}`)
@@ -361,7 +485,7 @@ export function generateHooks(
   spec: OpenAPIV3_1.Document,
   options: HookGenOptions,
 ): { filename: string; content: string } {
-  const { staleTime, gcTime } = options
+  const { staleTime, gcTime, suspense = false, autoInvalidate = false } = options
   const paths = spec.paths as Record<string, Record<string, OperationObject>> | undefined
 
   // Collect all operations
@@ -483,27 +607,51 @@ export function generateHooks(
     keyFactoryBlocks.push(buildKeyFactory(resource, entries))
   }
 
-  // Build query hooks
+  // Build query hooks (and suspense variants if enabled)
   const queryHookBlocks: string[] = []
   for (const op of getOps) {
     const info = opToKeyInfo.get(op.funcName)
     if (info === undefined) continue
     const { factoryName, keyEntry } = info
-    queryHookBlocks.push(buildQueryHook(op, factoryName, keyEntry, staleTime, gcTime))
+    const resource = primaryResource(op.path)
+    const resourceOverride = options.overrides?.[resource]
+    const effectiveStaleTime = resourceOverride?.staleTime ?? staleTime
+    const effectiveGcTime = resourceOverride?.gcTime ?? gcTime
+    queryHookBlocks.push(buildQueryHook(op, factoryName, keyEntry, effectiveStaleTime, effectiveGcTime))
+    if (suspense) {
+      queryHookBlocks.push(buildSuspenseQueryHook(op, factoryName, keyEntry, effectiveStaleTime, effectiveGcTime))
+    }
+  }
+
+  // Build resource → hasDetailKey map for auto-invalidate
+  const resourceHasDetailKey = new Map<string, boolean>()
+  for (const [resource, ops] of resourceToGetOps.entries()) {
+    resourceHasDetailKey.set(resource, ops.some((op) => op.pathParams.length > 0))
   }
 
   // Build mutation hooks
   const mutationHookBlocks: string[] = []
   for (const op of mutationOps) {
-    mutationHookBlocks.push(buildMutationHook(op))
+    let invalidateInfo: MutationInvalidateInfo | undefined
+    if (autoInvalidate) {
+      const resource = primaryResource(op.path)
+      const keyFactoryName = `${toKeyFactoryName(resource)}Keys`
+      const hasDetailKey = resourceHasDetailKey.get(resource) ?? false
+      invalidateInfo = { keyFactoryName, hasDetailKey }
+    }
+    mutationHookBlocks.push(buildMutationHook(op, autoInvalidate, invalidateInfo))
   }
 
   // Determine which react-query exports to import
   const needsUseQuery = getOps.length > 0
   const needsUseMutation = mutationOps.length > 0
+  const needsUseSuspenseQuery = suspense && getOps.length > 0
+  const needsUseQueryClient = autoInvalidate && needsUseMutation
   const rqImports: string[] = []
   if (needsUseQuery) rqImports.push('useQuery', 'type UseQueryOptions')
+  if (needsUseSuspenseQuery) rqImports.push('useSuspenseQuery', 'type UseSuspenseQueryOptions')
   if (needsUseMutation) rqImports.push('useMutation', 'type UseMutationOptions')
+  if (needsUseQueryClient) rqImports.push('useQueryClient')
 
   // Collect all function names for client import
   const allFuncNames = operations.map((op) => op.funcName).sort()

@@ -57,10 +57,10 @@ describe('generateHooks — task-hooks.json fixture', () => {
     expect(content).toContain('gcTime: 300000,')
   })
 
-  it('useGetTask accepts id as positional arg and uses taskKeys.detail(id)', () => {
+  it('useGetTask accepts id as positional arg and uses taskKeys.detail(id!)', () => {
     expect(content).toContain('useGetTask')
-    expect(content).toContain('id: string')
-    expect(content).toContain('queryKey: taskKeys.detail(id)')
+    expect(content).toContain('id: string | undefined | null')
+    expect(content).toContain('queryKey: taskKeys.detail(id!)')
   })
 
   it('useCreateTask variables type is Parameters<typeof createTask>[0]', () => {
@@ -97,6 +97,56 @@ describe('generateHooks — task-hooks.json fixture', () => {
     expect(staleTimeIdx).toBeGreaterThan(-1)
     expect(gcTimeIdx).toBeGreaterThan(staleTimeIdx)
     expect(spreadIdx).toBeGreaterThan(gcTimeIdx)
+  })
+})
+
+// ── Feature #61: Auto-disable detail hooks when path param is nullish ─────────
+
+describe('generateHooks — Feature #61: nullish path params auto-disable', () => {
+  it('useGetTask signature contains string | undefined | null for id', () => {
+    expect(content).toContain('id: string | undefined | null')
+  })
+
+  it('useGetTask generated hook contains enabled: id != null guard', () => {
+    expect(content).toContain('enabled: id != null && (options?.enabled ?? true)')
+  })
+
+  it('enabled guard comes before ...options spread', () => {
+    const enabledIdx = content.indexOf('enabled: id != null')
+    const spreadIdx = content.indexOf('...options,', enabledIdx)
+    expect(enabledIdx).toBeGreaterThan(-1)
+    expect(spreadIdx).toBeGreaterThan(enabledIdx)
+  })
+
+  it('hooks without path params do NOT have an enabled guard', () => {
+    // useListTasks has no path params — should not generate an enabled guard
+    const listHookStart = content.indexOf('export function useListTasks')
+    const listHookEnd = content.indexOf('\n}', listHookStart) + 2
+    const listHookContent = content.slice(listHookStart, listHookEnd)
+    expect(listHookContent).not.toContain('enabled:')
+  })
+
+  it('multiple path params generate AND-chained enabled guard', () => {
+    const specMultiParam: OpenAPIV3_1.Document = {
+      openapi: '3.1.0',
+      info: { title: 'Test', version: '1.0.0' },
+      paths: {
+        '/items/{projectId}/{id}': {
+          get: {
+            operationId: 'getItem',
+            parameters: [
+              { name: 'projectId', in: 'path', required: true, schema: { type: 'string' } },
+              { name: 'id', in: 'path', required: true, schema: { type: 'string' } },
+            ],
+            responses: { '200': { description: 'ok' } },
+          },
+        },
+      },
+    }
+    const { content: c } = generateHooks(specMultiParam, { staleTime: 0, gcTime: 0 })
+    expect(c).toContain('projectId: string | undefined | null')
+    expect(c).toContain('id: string | undefined | null')
+    expect(c).toContain('enabled: projectId != null && id != null && (options?.enabled ?? true)')
   })
 })
 
@@ -215,7 +265,7 @@ describe('generateHooks — Bug #53: key factory includes query params when oper
 
   it('hook calls key factory with both path and query params', () => {
     const { content } = generateHooks(specWithPathAndQueryParams, { staleTime: 0, gcTime: 0 })
-    expect(content).toContain('templateKeys.detail(uuid, params)')
+    expect(content).toContain('templateKeys.detail(uuid!, params)')
   })
 
   it('key factory detail entry includes required params when path + required query params', () => {
@@ -391,5 +441,202 @@ describe('generateHooks — tag name to camelCase key factory', () => {
     const { content } = generateHooks(makeSpec('ad-settings'), { staleTime: 0, gcTime: 0 })
     expect(content).toContain('export const adSettingKeys')
     expect(content).not.toContain('ad-settingKeys')
+  })
+})
+
+// ── Feature #60: useSuspenseQuery variants ─────────────────────────────────────
+
+describe('generateHooks — Feature #60: suspense query variants', () => {
+  const suspenseSpec: OpenAPIV3_1.Document = {
+    openapi: '3.1.0',
+    info: { title: 'Test', version: '1.0.0' },
+    paths: {
+      '/api/v1/tasks': {
+        get: {
+          operationId: 'listTasks',
+          responses: { '200': { description: 'ok' } },
+        },
+      },
+      '/api/v1/tasks/{id}': {
+        get: {
+          operationId: 'getTask',
+          parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }],
+          responses: { '200': { description: 'ok' } },
+        },
+      },
+    },
+  }
+
+  it('when suspense: true, output contains useSuspenseGetTask', () => {
+    const { content } = generateHooks(suspenseSpec, { staleTime: 0, gcTime: 0, suspense: true })
+    expect(content).toContain('export function useSuspenseGetTask')
+  })
+
+  it('when suspense: true, output contains useSuspenseListTasks', () => {
+    const { content } = generateHooks(suspenseSpec, { staleTime: 0, gcTime: 0, suspense: true })
+    expect(content).toContain('export function useSuspenseListTasks')
+  })
+
+  it('when suspense: true, output imports useSuspenseQuery from @tanstack/react-query', () => {
+    const { content } = generateHooks(suspenseSpec, { staleTime: 0, gcTime: 0, suspense: true })
+    expect(content).toContain('useSuspenseQuery')
+    expect(content).toContain("from '@tanstack/react-query'")
+  })
+
+  it('when suspense: true, output imports UseSuspenseQueryOptions type', () => {
+    const { content } = generateHooks(suspenseSpec, { staleTime: 0, gcTime: 0, suspense: true })
+    expect(content).toContain('type UseSuspenseQueryOptions')
+  })
+
+  it('suspense variant uses useSuspenseQuery call', () => {
+    const { content } = generateHooks(suspenseSpec, { staleTime: 0, gcTime: 0, suspense: true })
+    expect(content).toContain('return useSuspenseQuery<')
+  })
+
+  it('suspense detail hook path params are required string (not nullish)', () => {
+    const { content } = generateHooks(suspenseSpec, { staleTime: 0, gcTime: 0, suspense: true })
+    // useSuspenseGetTask should have id: string (not string | undefined | null)
+    const suspenseHookStart = content.indexOf('export function useSuspenseGetTask')
+    const suspenseHookEnd = content.indexOf('\n}', suspenseHookStart) + 2
+    const suspenseHookContent = content.slice(suspenseHookStart, suspenseHookEnd)
+    expect(suspenseHookContent).toContain('id: string')
+    expect(suspenseHookContent).not.toContain('id: string | undefined | null')
+  })
+
+  it('when suspense: false (default), no useSuspense* hooks generated', () => {
+    const { content } = generateHooks(suspenseSpec, { staleTime: 0, gcTime: 0 })
+    expect(content).not.toContain('useSuspenseGetTask')
+    expect(content).not.toContain('useSuspenseListTasks')
+    expect(content).not.toContain('useSuspenseQuery')
+  })
+
+  it('when suspense: false explicitly, no useSuspense* hooks generated', () => {
+    const { content } = generateHooks(suspenseSpec, { staleTime: 0, gcTime: 0, suspense: false })
+    expect(content).not.toContain('useSuspenseQuery')
+  })
+})
+
+// ── Feature #59: Per-resource staleTime and gcTime overrides ───────────────────
+
+describe('generateHooks — Feature #59: per-resource cache timing overrides', () => {
+  const multiResourceSpec: OpenAPIV3_1.Document = {
+    openapi: '3.1.0',
+    info: { title: 'Test', version: '1.0.0' },
+    paths: {
+      '/api/v1/tasks': {
+        get: {
+          operationId: 'listTasks',
+          responses: { '200': { description: 'ok' } },
+        },
+      },
+      '/api/v1/tasks/{id}': {
+        get: {
+          operationId: 'getTask',
+          parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }],
+          responses: { '200': { description: 'ok' } },
+        },
+      },
+      '/api/v1/platforms': {
+        get: {
+          operationId: 'listPlatforms',
+          responses: { '200': { description: 'ok' } },
+        },
+      },
+    },
+  }
+
+  it('overridden resource uses override staleTime and gcTime', () => {
+    const { content } = generateHooks(multiResourceSpec, {
+      staleTime: 0,
+      gcTime: 300_000,
+      overrides: { tasks: { staleTime: 5000, gcTime: 60_000 } },
+    })
+    // useListTasks should use override staleTime 5000
+    const listTasksStart = content.indexOf('export function useListTasks')
+    const listTasksEnd = content.indexOf('\n}', listTasksStart) + 2
+    const listTasksContent = content.slice(listTasksStart, listTasksEnd)
+    expect(listTasksContent).toContain('staleTime: 5000,')
+    expect(listTasksContent).toContain('gcTime: 60000,')
+  })
+
+  it('non-overridden resource uses global defaults', () => {
+    const { content } = generateHooks(multiResourceSpec, {
+      staleTime: 0,
+      gcTime: 300_000,
+      overrides: { tasks: { staleTime: 5000, gcTime: 60_000 } },
+    })
+    // useListPlatforms should use global staleTime 0
+    const listPlatformsStart = content.indexOf('export function useListPlatforms')
+    const listPlatformsEnd = content.indexOf('\n}', listPlatformsStart) + 2
+    const listPlatformsContent = content.slice(listPlatformsStart, listPlatformsEnd)
+    expect(listPlatformsContent).toContain('staleTime: 0,')
+    expect(listPlatformsContent).toContain('gcTime: 300000,')
+  })
+
+  it('overrides apply to both list and detail hooks of the same resource', () => {
+    const { content } = generateHooks(multiResourceSpec, {
+      staleTime: 0,
+      gcTime: 300_000,
+      overrides: { tasks: { staleTime: 5000, gcTime: 60_000 } },
+    })
+    // useGetTask (detail) should also use override staleTime
+    const getTaskStart = content.indexOf('export function useGetTask')
+    const getTaskEnd = content.indexOf('\n}', getTaskStart) + 2
+    const getTaskContent = content.slice(getTaskStart, getTaskEnd)
+    expect(getTaskContent).toContain('staleTime: 5000,')
+    expect(getTaskContent).toContain('gcTime: 60000,')
+  })
+
+  it('no overrides — all hooks use global staleTime and gcTime', () => {
+    const { content } = generateHooks(multiResourceSpec, {
+      staleTime: 1000,
+      gcTime: 120_000,
+    })
+    // Count staleTime: 1000, occurrences — should appear for each query hook
+    const occurrences = content.split('staleTime: 1000,').length - 1
+    expect(occurrences).toBeGreaterThanOrEqual(3) // listTasks, getTask, listPlatforms
+  })
+})
+
+describe('auto-invalidate mutations (#58)', () => {
+  it('autoInvalidate: false — no useQueryClient or invalidateQueries in output', () => {
+    const { content } = generateHooks(spec, { staleTime: 0, gcTime: 300_000, autoInvalidate: false })
+    expect(content).not.toContain('useQueryClient')
+    expect(content).not.toContain('invalidateQueries')
+  })
+
+  it('autoInvalidate: true — imports useQueryClient from @tanstack/react-query', () => {
+    const { content } = generateHooks(spec, { staleTime: 0, gcTime: 300_000, autoInvalidate: true })
+    expect(content).toContain('useQueryClient')
+    expect(content).toContain("from '@tanstack/react-query'")
+  })
+
+  it('autoInvalidate: true — useCreateTask invalidates taskKeys.all()', () => {
+    const { content } = generateHooks(spec, { staleTime: 0, gcTime: 300_000, autoInvalidate: true })
+    const createStart = content.indexOf('export function useCreateTask')
+    const createEnd = content.indexOf('\n}', createStart) + 2
+    const createContent = content.slice(createStart, createEnd)
+    expect(createContent).toContain('queryClient.invalidateQueries({ queryKey: taskKeys.all() })')
+    expect(createContent).toContain('options?.onSuccess?.(data, variables, context)')
+  })
+
+  it('autoInvalidate: true — useUpdateTask invalidates taskKeys.all() and taskKeys.detail()', () => {
+    const { content } = generateHooks(spec, { staleTime: 0, gcTime: 300_000, autoInvalidate: true })
+    const updateStart = content.indexOf('export function useUpdateTask')
+    const updateEnd = content.indexOf('\n}', updateStart) + 2
+    const updateContent = content.slice(updateStart, updateEnd)
+    expect(updateContent).toContain('queryClient.invalidateQueries({ queryKey: taskKeys.all() })')
+    expect(updateContent).toContain('taskKeys.detail(')
+    expect(updateContent).toContain('options?.onSuccess?.(data, variables, context)')
+  })
+
+  it('autoInvalidate: true — useDeleteTask invalidates taskKeys.all() but not detail', () => {
+    const { content } = generateHooks(spec, { staleTime: 0, gcTime: 300_000, autoInvalidate: true })
+    const deleteStart = content.indexOf('export function useDeleteTask')
+    const deleteEnd = content.indexOf('\n}', deleteStart) + 2
+    const deleteContent = content.slice(deleteStart, deleteEnd)
+    expect(deleteContent).toContain('queryClient.invalidateQueries({ queryKey: taskKeys.all() })')
+    // DELETE should NOT invalidate detail (only PUT/PATCH do)
+    expect(deleteContent).not.toContain('taskKeys.detail(')
   })
 })

@@ -9,9 +9,26 @@ export async function generate(cwd: string, configPath?: string): Promise<void> 
   const inputPath = resolve(cwd, config.input_openapi)
   const outputDir = resolve(cwd, config.output)
   const spec = await parseSpec(inputPath)
+  const globalStaleTime = config.stale_time ?? 0
+  const globalGcTime = config.gc_time ?? 300_000
+
+  // Convert snake_case config overrides to camelCase options
+  const overrides: Record<string, { staleTime: number; gcTime: number }> = {}
+  if (config.overrides) {
+    for (const [resource, timing] of Object.entries(config.overrides)) {
+      overrides[resource] = {
+        staleTime: timing.stale_time ?? globalStaleTime,
+        gcTime: timing.gc_time ?? globalGcTime,
+      }
+    }
+  }
+
   const file = generateHooks(spec, {
-    staleTime: config.stale_time ?? 0,
-    gcTime: config.gc_time ?? 300_000,
+    staleTime: globalStaleTime,
+    gcTime: globalGcTime,
+    suspense: config.suspense,
+    overrides: Object.keys(overrides).length > 0 ? overrides : undefined,
+    autoInvalidate: config.auto_invalidate,
   })
   await mkdir(outputDir, { recursive: true })
   const filePath = join(outputDir, file.filename)
