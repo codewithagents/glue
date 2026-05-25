@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.1.0](https://github.com/codewithagents/glue/compare/openapi-gen-v3.0.0...openapi-gen-v3.1.0) (2026-05-25)
+
+
+### Features
+
+* **integration:** consumer type simulation + CI path validation tests ([#77](https://github.com/codewithagents/glue/issues/77)) ([8a4a2b4](https://github.com/codewithagents/glue/commit/8a4a2b40987fcd25fdf5fe5d5f5a6f84fd9b95df))
+
 ## [3.0.0](https://github.com/codewithagents/glue/compare/openapi-gen-v2.0.1...openapi-gen-v3.0.0) (2026-05-25)
 
 
