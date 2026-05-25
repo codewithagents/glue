@@ -641,9 +641,14 @@ export function generateHooks(
     let invalidateInfo: MutationInvalidateInfo | undefined
     if (autoInvalidate) {
       const resource = primaryResource(op.path)
-      const keyFactoryName = `${toKeyFactoryName(resource)}Keys`
-      const detailKeyName = resourceDetailKeyName.get(resource)
-      invalidateInfo = { keyFactoryName, detailKeyName }
+      // Only invalidate if a key factory exists for this resource (i.e. it has at least one GET op).
+      // A mutation-only resource has no key factory — emitting invalidateQueries against it would
+      // reference an undefined variable and crash at runtime.
+      if (resourceToGetOps.has(resource)) {
+        const keyFactoryName = `${toKeyFactoryName(resource)}Keys`
+        const detailKeyName = resourceDetailKeyName.get(resource)
+        invalidateInfo = { keyFactoryName, detailKeyName }
+      }
     }
     mutationHookBlocks.push(buildMutationHook(op, autoInvalidate, invalidateInfo))
   }

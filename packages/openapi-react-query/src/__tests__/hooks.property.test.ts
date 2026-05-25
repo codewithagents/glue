@@ -205,19 +205,11 @@ describe('property-based tests — generateHooks invariants', () => {
     )
   })
 
-  // Property 6 (KNOWN BUG): with autoInvalidate, mutations always reference a defined key factory.
-  //
-  // BUG: When autoInvalidate: true, the generator emits `${resource}Keys.all()` inside mutation
-  // onSuccess handlers for EVERY mutation — even when there are no GET operations for that resource.
-  // This means the generated code references a key factory (e.g. `itemKeys`) that is never exported,
-  // producing a TypeScript compile error and a runtime ReferenceError.
-  //
-  // Minimal counterexample: DELETE /items/{id} with autoInvalidate: true and no GET /items[/{id}].
-  // Generated mutation hook contains `itemKeys.all()` but `itemKeys` is never defined.
-  //
-  // Fix: in generateHooks(), only emit invalidation code when the resource has at least one GET op
-  // (i.e. only when the resource already appears in resourceToGetOps).
-  it.fails('with autoInvalidate, mutation hooks only reference key factories that are generated', () => {
+  // Property 6: with autoInvalidate, mutations only reference key factories that are generated.
+  // Previously buggy: the generator emitted `${resource}Keys.all()` even for mutation-only
+  // resources (no GET ops), producing a ReferenceError because the key factory was never defined.
+  // Fixed by gating invalidateInfo on resourceToGetOps.has(resource).
+  it('with autoInvalidate, mutation hooks only reference key factories that are generated', () => {
     fc.assert(
       fc.property(arbSpec, (spec) => {
         const { content } = generateHooks(spec, { staleTime: 0, gcTime: 0, autoInvalidate: true })
