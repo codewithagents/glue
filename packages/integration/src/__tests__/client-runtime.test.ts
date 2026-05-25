@@ -16,7 +16,9 @@ import {
   getTask,
   listTasks,
   updateTask,
+  uploadTaskAttachment,
 } from '../../generated/client.js'
+import { configureClient } from '../../generated/client-config.js'
 import { createServerClient } from '../../generated/server.js'
 import type { Task, TaskPage } from '../../generated/models.js'
 
@@ -436,6 +438,138 @@ describe('error handling', () => {
     expect(onError).toHaveBeenCalledOnce()
     expect(thrownError).toBeInstanceOf(ApiError)
     expect((thrownError as ApiError).status).toBe(500)
+  })
+})
+
+// ---------------------------------------------------------------------------
+// uploadTaskAttachment
+// ---------------------------------------------------------------------------
+
+describe('uploadTaskAttachment', () => {
+  it('calls POST /api/v1/tasks/upload', async () => {
+    let capturedRequest: Request | undefined
+
+    server.use(
+      http.post(`${BASE}/api/v1/tasks/upload`, ({ request }) => {
+        capturedRequest = request
+        return HttpResponse.json(TASK)
+      }),
+    )
+
+    await uploadTaskAttachment({ file: new Blob(['data'], { type: 'text/plain' }) }, { baseUrl: BASE })
+
+    expect(capturedRequest).toBeDefined()
+    expect(capturedRequest!.method).toBe('POST')
+    expect(new URL(capturedRequest!.url).pathname).toBe('/api/v1/tasks/upload')
+  })
+
+  it('sends multipart/form-data (no manual Content-Type — fetch sets boundary)', async () => {
+    let capturedContentType: string | null = null
+
+    server.use(
+      http.post(`${BASE}/api/v1/tasks/upload`, ({ request }) => {
+        capturedContentType = request.headers.get('content-type')
+        return HttpResponse.json(TASK)
+      }),
+    )
+
+    await uploadTaskAttachment({ file: new Blob(['data']) }, { baseUrl: BASE })
+
+    // fetch sets multipart/form-data with boundary automatically — never application/json
+    expect(capturedContentType).toContain('multipart/form-data')
+    expect(capturedContentType).not.toContain('application/json')
+  })
+
+  it('includes file and optional label fields in the form body', async () => {
+    let capturedFormData: FormData | undefined
+
+    server.use(
+      http.post(`${BASE}/api/v1/tasks/upload`, async ({ request }) => {
+        capturedFormData = await request.formData()
+        return HttpResponse.json(TASK)
+      }),
+    )
+
+    const file = new Blob(['file-content'], { type: 'image/png' })
+    await uploadTaskAttachment({ file, label: 'screenshot' }, { baseUrl: BASE })
+
+    expect(capturedFormData).toBeDefined()
+    expect(capturedFormData!.get('file')).toBeInstanceOf(Blob)
+    expect(capturedFormData!.get('label')).toBe('screenshot')
+  })
+
+  it('omits label field when not provided', async () => {
+    let capturedFormData: FormData | undefined
+
+    server.use(
+      http.post(`${BASE}/api/v1/tasks/upload`, async ({ request }) => {
+        capturedFormData = await request.formData()
+        return HttpResponse.json(TASK)
+      }),
+    )
+
+    await uploadTaskAttachment({ file: new Blob(['data']) }, { baseUrl: BASE })
+
+    expect(capturedFormData!.has('label')).toBe(false)
+  })
+})
+
+// ---------------------------------------------------------------------------
+// configureClient — global state path
+// ---------------------------------------------------------------------------
+
+describe('configureClient (global state)', () => {
+  afterEach(() => {
+    // Reset global config after each test to avoid state leak
+    configureClient({ baseUrl: '', credentials: 'same-origin' })
+  })
+
+  it('functions use globally configured baseUrl without per-call config', async () => {
+    let capturedPathname: string | undefined
+
+    server.use(
+      http.get(`${BASE}/api/v1/tasks`, ({ request }) => {
+        capturedPathname = new URL(request.url).pathname
+        return HttpResponse.json(TASK_PAGE)
+      }),
+    )
+
+    configureClient({ baseUrl: BASE })
+    await listTasks() // no per-call config
+
+    expect(capturedPathname).toBe('/api/v1/tasks')
+  })
+
+  it('functions use globally configured token without per-call config', async () => {
+    let capturedAuth: string | null = null
+
+    server.use(
+      http.get(`${BASE}/api/v1/tasks`, ({ request }) => {
+        capturedAuth = request.headers.get('authorization')
+        return HttpResponse.json(TASK_PAGE)
+      }),
+    )
+
+    configureClient({ baseUrl: BASE, token: 'global-token' })
+    await listTasks() // no per-call config
+
+    expect(capturedAuth).toBe('Bearer global-token')
+  })
+
+  it('per-call config overrides global config', async () => {
+    let capturedAuth: string | null = null
+
+    server.use(
+      http.get(`${BASE}/api/v1/tasks`, ({ request }) => {
+        capturedAuth = request.headers.get('authorization')
+        return HttpResponse.json(TASK_PAGE)
+      }),
+    )
+
+    configureClient({ baseUrl: BASE, token: 'global-token' })
+    await listTasks(undefined, { token: 'per-call-token' }) // override
+
+    expect(capturedAuth).toBe('Bearer per-call-token')
   })
 })
 
