@@ -1,5 +1,5 @@
 {
-  "packages/api-errors": "1.0.0",
-  "packages/openapi-gen": "2.0.1",
-  "packages/openapi-react-query": "2.0.1"
+  "packages/api-errors": "1.0.1",
+  "packages/openapi-gen": "3.0.0",
+  "packages/openapi-react-query": "3.0.0"
 }
