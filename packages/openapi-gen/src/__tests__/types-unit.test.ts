@@ -1,6 +1,12 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, beforeAll } from 'vitest'
 import { generateTypes } from '../plugins/types.js'
 import type { OpenAPIV3_1 } from 'openapi-types'
+import { parseSpec } from '../parser.js'
+import { fileURLToPath } from 'node:url'
+import { join, dirname } from 'node:path'
+
+const __dirname = dirname(fileURLToPath(import.meta.url))
+const advancedTypesFixture = join(__dirname, '../__fixtures__/specs/advanced-types.json')
 
 // Helper: build a minimal spec with one schema and get the generated output
 function genSingle(name: string, schema: OpenAPIV3_1.SchemaObject): string {
@@ -55,6 +61,15 @@ describe('enum types', () => {
   it('integer enum → number union type alias', () => {
     const out = genSingle('Priority', { type: 'integer', enum: [1, 2, 3] })
     expect(out).toContain('export type Priority = 1 | 2 | 3')
+  })
+  it('number (float) enum → number literal union type alias', () => {
+    const out = genSingle('Score', { type: 'number', enum: [0.5, 1.0, 1.5] })
+    expect(out).toContain('export type Score = 0.5 | 1 | 1.5')
+  })
+  it('mixed enum (string + number + null) → union with null literal', () => {
+    // @ts-expect-error — null in enum is valid OpenAPI 3.1, type definitions lag
+    const out = genSingle('Mixed', { enum: ['active', 0, null] })
+    expect(out).toContain("export type Mixed = 'active' | 0 | null")
   })
   it('enum on object property → inline union', () => {
     const out = genSingle('A', {
@@ -261,5 +276,71 @@ describe('output file', () => {
   it('handles spec with no components at all', () => {
     const spec = { openapi: '3.1.0', info: { title: 'T', version: '1' }, paths: {} } as OpenAPIV3_1.Document
     expect(() => generateTypes(spec)).not.toThrow()
+  })
+})
+
+describe('coverage: schemaToTypeString numeric enum inline (line 52)', () => {
+  it('numeric enum as object property → inline number literal union', () => {
+    // Covers schemaToTypeString enum branch for non-string values: return String(v)
+    // When { type: 'integer', enum: [1, 2, 3] } is used as a property type, schemaToTypeString
+    // is called (not generateSchemaDeclaration) so the String(v) path is exercised inline.
+    const out = genSingle('A', {
+      type: 'object',
+      properties: {
+        priority: { type: 'integer', enum: [1, 2, 3] },
+      },
+    })
+    expect(out).toContain('priority?: 1 | 2 | 3')
+  })
+})
+
+describe('coverage: schemaToTypeString object no-properties fallback (line 106)', () => {
+  it('inline object property with no properties key → Record<string, unknown>', () => {
+    // Covers schemaToTypeString: type === 'object', no additionalProperties, no properties key
+    // → returns 'Record<string, unknown>' at the fallback line
+    const out = genSingle('A', {
+      type: 'object',
+      properties: {
+        meta: { type: 'object' },  // no 'properties' key → schemaToTypeString fallback
+      },
+    })
+    expect(out).toContain('meta?: Record<string, unknown>')
+  })
+})
+
+describe('coverage: isEnumSchema returns false for array type with enum (line 155)', () => {
+  it('array schema with enum values → isEnumSchema returns false, falls through to type alias', () => {
+    // isEnumSchema: type is 'array' (not string/integer/number/undefined) → returns false
+    // generateSchemaDeclaration then falls through to schemaToTypeString which renders the enum branch
+    // @ts-expect-error — enum on array is unusual but valid to test the isEnumSchema branch
+    const out = genSingle('Flags', { type: 'array', enum: ['x', 'y'] })
+    // schemaToTypeString renders the enum values since it checks enum before array
+    expect(out).toContain("export type Flags = 'x' | 'y'")
+  })
+})
+
+describe('coverage: discriminated union with explicit mapping (lines 171-181, 240-253)', () => {
+  let content: string
+
+  beforeAll(async () => {
+    const spec = await parseSpec(advancedTypesFixture)
+    content = generateTypes(spec).content
+  })
+
+  it('generates Shape as discriminated union with mapping-derived literals', () => {
+    // Shape has oneOf + discriminator.mapping — exercises discriminatorLiteralFor with mapping
+    // and the discriminated union generation block in generateSchemaDeclaration
+    expect(content).toContain('export type Shape =')
+    expect(content).toContain("Circle & { kind: 'circle' }")
+    expect(content).toContain("Rectangle & { kind: 'rectangle' }")
+    expect(content).toContain("Triangle & { kind: 'triangle' }")
+  })
+
+  it('generates Animal as discriminated union without mapping (lowercase fallback)', () => {
+    // Animal has anyOf + discriminator without mapping — exercises the fallback path
+    expect(content).toContain('export type Animal =')
+    // Fallback: type name lowercased first char
+    expect(content).toContain("Circle & { type: 'circle' }")
+    expect(content).toContain("Rectangle & { type: 'rectangle' }")
   })
 })

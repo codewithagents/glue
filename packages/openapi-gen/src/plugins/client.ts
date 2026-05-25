@@ -299,6 +299,39 @@ function getRequestBodyInfo(operation: OperationObject): RequestBodyInfo | undef
   return { typeName: inlineSchemaToTs(schema), kind: 'json' }
 }
 
+/** Feature 4: Collect non-2xx error responses that have a JSON $ref schema and return @throws tags */
+function getThrowsTags(
+  operation: OperationObject,
+): string[] {
+  const responses = operation.responses as Record<string, ResponseObject | ReferenceObject> | undefined
+  if (responses === undefined) return []
+
+  const errorStatusCodes = ['400', '401', '403', '404', '409', '422', '429', '500']
+  const tags: string[] = []
+
+  for (const code of errorStatusCodes) {
+    const response = responses[code]
+    if (response === undefined) continue
+    if (isRef(response)) continue
+
+    const resp = response as ResponseObject
+    const content = resp.content as Record<string, { schema?: SchemaObject | ReferenceObject }> | undefined
+    if (content === undefined) continue
+
+    const jsonContent = content['application/json']
+    if (jsonContent === undefined || jsonContent.schema === undefined) continue
+
+    const schema = jsonContent.schema
+    // Only include $ref-based schemas (inline schemas are too complex to name)
+    if (!isRef(schema)) continue
+
+    const typeName = refToTypeName((schema as ReferenceObject).$ref)
+    tags.push(` * @throws {ApiError<${code}, ${typeName}>}`)
+  }
+
+  return tags
+}
+
 function generateFunctionCode(
   funcName: string,
   method: string,
@@ -308,6 +341,8 @@ function generateFunctionCode(
   headerParams: HeaderParam[],
   bodyInfo: RequestBodyInfo | undefined,
   returnType: { typeName: string; isArray: boolean; isVoid: boolean },
+  deprecated: boolean,
+  throwsTags: string[],
 ): string {
   const lines: string[] = []
 
@@ -345,6 +380,19 @@ function generateFunctionCode(
     : returnType.isArray
       ? `Promise<${returnType.typeName}[]>`
       : `Promise<${returnType.typeName}>`
+
+  // Feature 1 + 4: JSDoc block with @deprecated and/or @throws tags
+  const hasJsDoc = deprecated || throwsTags.length > 0
+  if (hasJsDoc) {
+    lines.push(`/**`)
+    if (deprecated) {
+      lines.push(` * @deprecated`)
+    }
+    for (const tag of throwsTags) {
+      lines.push(tag)
+    }
+    lines.push(` */`)
+  }
 
   lines.push(`export async function ${funcName}(${sigParts.join(', ')}): ${returnTs} {`)
   lines.push(`  const { baseUrl, token, credentials, headers, onError } = { ...getConfig(), ...config }`)
@@ -497,6 +545,8 @@ export function generateClient(spec: OpenAPIV3_1.Document): GeneratedFile {
         const headerParams = getHeaderParams(operation, spec)
         const bodyInfo = getRequestBodyInfo(operation)
         const returnType = getReturnType(operation)
+        const deprecated = operation.deprecated === true
+        const throwsTags = getThrowsTags(operation)
 
         // Collect type names for import — only simple schema identifiers (e.g. "Task"),
         // never inline type expressions (e.g. "Record<string, unknown>") or primitives.
@@ -516,6 +566,8 @@ export function generateClient(spec: OpenAPIV3_1.Document): GeneratedFile {
           headerParams,
           bodyInfo,
           returnType,
+          deprecated,
+          throwsTags,
         )
         functionBlocks.push(fnCode)
       }
