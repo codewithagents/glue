@@ -4,3 +4,5 @@ dist/
 *.tsbuildinfo
 .DS_Store
 coverage/
+.stryker-tmp/
+reports/mutation/
