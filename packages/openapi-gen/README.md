@@ -36,13 +36,14 @@ npm install -D @codewithagents/openapi-gen
 npx openapi-gen
 ```
 
-**3. Three files appear in `./src/api/`:**
+**3. Files appear in `./src/api/`:**
 
 | File | What it contains |
 |---|---|
 | `models.ts` | TypeScript types for every schema in `components.schemas` |
 | `client-config.ts` | `configureClient()` — call once at startup to set your base URL and auth |
 | `client.ts` | One `async function` per API operation, using native `fetch` |
+| `server.ts` *(optional)* | `createServerClient()` factory — generated when `server_client: true` |
 
 ---
 
@@ -137,14 +138,58 @@ const tasks = await getTasks({ page: 1 })
 
 ---
 
+## Next.js RSC — server client factory
+
+When `server_client: true` in config, the generator also writes `server.ts` alongside the other files. It exports `createServerClient()` — a factory that pre-binds a per-request `ClientConfig` to every function:
+
+```ts
+// Generated: src/api/server.ts
+export function createServerClient(config: Partial<ClientConfig>) {
+  return {
+    listTasks: (...args) => listTasks(...args, config),
+    getTask: (...args) => getTask(...args, config),
+    createTask: (...args) => createTask(...args, config),
+    // ... all functions
+  }
+}
+```
+
+Usage in a Next.js Server Component:
+
+```ts
+// app/tasks/page.tsx
+import { createServerClient } from '@/api/server'
+
+async function getServerConfig(): Promise<Partial<ClientConfig>> {
+  const session = await getServerSession()
+  return { baseUrl: process.env.API_URL, token: session.accessToken }
+}
+
+export default async function TasksPage() {
+  const api = createServerClient(await getServerConfig())
+
+  const tasks = await api.listTasks()
+  const featured = await api.getTask('featured-id')
+
+  return <TaskList tasks={tasks} featured={featured} />
+}
+```
+
+Without this, you'd pass config to every call manually. With it, bind once per request, call freely.
+
+---
+
 ## Config reference
 
 `openapi-gen.config.json`:
 
 ```json
 {
-  "input_openapi": "./openapi.json",   // required — path to OpenAPI 3.1 spec (JSON or YAML)
-  "output": "./src/api"                // required — directory for generated files
+  "input_openapi": "./openapi.json",   // required
+  "output": "./src/api",               // required
+  "input_schema": "./src/api/zod.ts",  // optional — Zod bootstrap (write-once)
+  "baseUrl": "https://api.example.com", // optional — sets default base URL in generated client-config
+  "server_client": false               // optional — generate server.ts factory (default: false)
 }
 ```
 
