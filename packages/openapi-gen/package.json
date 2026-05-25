@@ -1,6 +1,6 @@
 {
   "name": "@codewithagents/openapi-gen",
-  "version": "3.1.0",
+  "version": "3.1.1",
   "description": "Generate TypeScript models, native fetch client and Zod schemas from OpenAPI 3.1 — zero runtime footprint",
   "type": "module",
   "bin": {
