@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.2](https://github.com/codewithagents/glue/compare/api-errors-v1.0.1...api-errors-v1.0.2) (2026-05-26)
+
+
+### Bug Fixes
+
+* **api-errors:** bump vitest to v4 to fix Codecov coverage reporting ([#111](https://github.com/codewithagents/glue/issues/111)) ([7fab3ea](https://github.com/codewithagents/glue/commit/7fab3ea2bdc117cb579493a3b2be3f63c3ca41d3))
+
 ## [1.0.1](https://github.com/codewithagents/glue/compare/api-errors-v1.0.0...api-errors-v1.0.1) (2026-05-25)
 
 
