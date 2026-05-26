@@ -138,6 +138,34 @@ importers:
         specifier: ^4.0.0
         version: 4.1.7(@types/node@22.19.19)(@vitest/coverage-v8@4.1.7)(jsdom@26.1.0)(msw@2.14.6(@types/node@22.19.19)(typescript@6.0.3))(vite@7.3.3(@types/node@22.19.19))
 
+  packages/openapi-server:
+    dependencies:
+      '@codewithagents/openapi-gen':
+        specifier: workspace:*
+        version: link:../openapi-gen
+      openapi-types:
+        specifier: ^12.1.3
+        version: 12.1.3
+    devDependencies:
+      '@types/node':
+        specifier: ^22.0.0
+        version: 22.19.19
+      '@vitest/coverage-v8':
+        specifier: ^4.0.0
+        version: 4.1.7(vitest@4.1.7)
+      esbuild:
+        specifier: ^0.25.0
+        version: 0.25.12
+      fast-check:
+        specifier: ^4.0.0
+        version: 4.8.0
+      typescript:
+        specifier: ^6.0.0
+        version: 6.0.3
+      vitest:
+        specifier: ^4.0.0
+        version: 4.1.7(@types/node@22.19.19)(@vitest/coverage-v8@4.1.7)(jsdom@26.1.0)(msw@2.14.6(@types/node@22.19.19)(typescript@6.0.3))(vite@7.3.3(@types/node@22.19.19))
+
 packages:
 
   '@ampproject/remapping@2.3.0':
