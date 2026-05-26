@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.3.1](https://github.com/codewithagents/glue/compare/openapi-gen-v3.3.0...openapi-gen-v3.3.1) (2026-05-26)
+
+
+### Bug Fixes
+
+* **openapi-gen:** topological sort schemas to prevent forward reference errors ([#114](https://github.com/codewithagents/glue/issues/114)) ([81329f3](https://github.com/codewithagents/glue/commit/81329f390f0b401cd7acfa103ec7a3dc33341ee0)), closes [#110](https://github.com/codewithagents/glue/issues/110)
+
 ## [3.3.0](https://github.com/codewithagents/glue/compare/openapi-gen-v3.2.0...openapi-gen-v3.3.0) (2026-05-26)
 
 
