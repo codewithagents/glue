@@ -18,8 +18,25 @@ You consume a REST API. You need TypeScript types, a fetch client, form error ma
 | [`@codewithagents/api-errors`](./packages/api-errors) | [![npm](https://img.shields.io/npm/v/@codewithagents/api-errors.svg)](https://npmjs.com/package/@codewithagents/api-errors) | [![codecov](https://codecov.io/gh/codewithagents/glue/graph/badge.svg?flag=api-errors)](https://codecov.io/gh/codewithagents/glue) | Map API error responses to form field errors — framework-agnostic core + React Hook Form adapter |
 | [`@codewithagents/openapi-gen`](./packages/openapi-gen) | [![npm](https://img.shields.io/npm/v/@codewithagents/openapi-gen.svg)](https://npmjs.com/package/@codewithagents/openapi-gen) | [![codecov](https://codecov.io/gh/codewithagents/glue/graph/badge.svg?flag=openapi-gen)](https://codecov.io/gh/codewithagents/glue) | Generate TypeScript models + native `fetch` client + Zod schemas from an OpenAPI 3.1 spec |
 | [`@codewithagents/openapi-react-query`](./packages/openapi-react-query) | [![npm](https://img.shields.io/npm/v/@codewithagents/openapi-react-query.svg)](https://npmjs.com/package/@codewithagents/openapi-react-query) | [![codecov](https://codecov.io/gh/codewithagents/glue/graph/badge.svg?flag=openapi-react-query)](https://codecov.io/gh/codewithagents/glue) | Generate typed React Query v5 hooks — `useQuery`, `useMutation`, key factories |
+| [`@codewithagents/openapi-server`](./packages/openapi-server) | [![npm](https://img.shields.io/npm/v/@codewithagents/openapi-server.svg)](https://npmjs.com/package/@codewithagents/openapi-server) | [![codecov](https://codecov.io/gh/codewithagents/glue/graph/badge.svg?flag=openapi-server)](https://codecov.io/gh/codewithagents/glue) | Generate typed server-side service interfaces and Hono routers from OpenAPI 3.1 |
 
 Each package has its own README with full usage docs and configuration reference.
+
+---
+
+## Full pipeline
+
+One spec, four generators:
+
+```
+spec/api.json
+  ├── openapi-gen          → models.ts, client.ts       (TypeScript types + fetch client)
+  ├── openapi-server       → service.ts, router.ts      (server interface + Hono router)
+  └── openapi-react-query  → hooks.ts                   (React Query v5 hooks)
+```
+
+You write: your business logic (implement the service interface).
+Everything else is generated and stays in sync when the spec changes.
 
 ---
 
