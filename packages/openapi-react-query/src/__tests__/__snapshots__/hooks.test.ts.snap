@@ -51,11 +51,11 @@ export function useCreateTask(
   const queryClient = useQueryClient()
   return useMutation<Awaited<ReturnType<typeof createTask>>, ApiError, Parameters<typeof createTask>[0]>({
     mutationFn: (vars) => createTask(vars),
+    ...options,
     onSuccess: (...args) => {
       queryClient.invalidateQueries({ queryKey: taskKeys.all() })
       options?.onSuccess?.(...args)
     },
-    ...options,
   })
 }
 
@@ -65,13 +65,13 @@ export function useUpdateTask(
   const queryClient = useQueryClient()
   return useMutation<Awaited<ReturnType<typeof updateTask>>, ApiError, { id: string; body: Parameters<typeof updateTask>[1] }>({
     mutationFn: ({ id, body }) => updateTask(id, body),
+    ...options,
     onSuccess: (...args) => {
       const [, variables] = args
       queryClient.invalidateQueries({ queryKey: taskKeys.all() })
       queryClient.invalidateQueries({ queryKey: taskKeys.detail(variables.id) })
       options?.onSuccess?.(...args)
     },
-    ...options,
   })
 }
 
@@ -81,11 +81,11 @@ export function useDeleteTask(
   const queryClient = useQueryClient()
   return useMutation<Awaited<ReturnType<typeof deleteTask>>, ApiError, string>({
     mutationFn: (id) => deleteTask(id),
+    ...options,
     onSuccess: (...args) => {
       queryClient.invalidateQueries({ queryKey: taskKeys.all() })
       options?.onSuccess?.(...args)
     },
-    ...options,
   })
 }
 "
@@ -168,11 +168,11 @@ export function useCreateTask(
   const queryClient = useQueryClient()
   return useMutation<Awaited<ReturnType<typeof createTask>>, ApiError, Parameters<typeof createTask>[0]>({
     mutationFn: (vars) => createTask(vars),
+    ...options,
     onSuccess: (...args) => {
       queryClient.invalidateQueries({ queryKey: taskKeys.all() })
       options?.onSuccess?.(...args)
     },
-    ...options,
   })
 }
 
@@ -182,13 +182,13 @@ export function useUpdateTask(
   const queryClient = useQueryClient()
   return useMutation<Awaited<ReturnType<typeof updateTask>>, ApiError, { id: string; body: Parameters<typeof updateTask>[1] }>({
     mutationFn: ({ id, body }) => updateTask(id, body),
+    ...options,
     onSuccess: (...args) => {
       const [, variables] = args
       queryClient.invalidateQueries({ queryKey: taskKeys.all() })
       queryClient.invalidateQueries({ queryKey: taskKeys.detail(variables.id) })
       options?.onSuccess?.(...args)
     },
-    ...options,
   })
 }
 
@@ -198,11 +198,11 @@ export function useDeleteTask(
   const queryClient = useQueryClient()
   return useMutation<Awaited<ReturnType<typeof deleteTask>>, ApiError, string>({
     mutationFn: (id) => deleteTask(id),
+    ...options,
     onSuccess: (...args) => {
       queryClient.invalidateQueries({ queryKey: taskKeys.all() })
       options?.onSuccess?.(...args)
     },
-    ...options,
   })
 }
 "

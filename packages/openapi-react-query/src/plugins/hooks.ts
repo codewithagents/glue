@@ -145,6 +145,12 @@ function buildKeyFactory(resource: string, entries: KeyEntry[]): string {
       ? `params?: Parameters<typeof ${entry.funcName}>[${entry.pathParams.length}]`
       : `params: Parameters<typeof ${entry.funcName}>[${entry.pathParams.length}]`
 
+    // When multiple detail-level GET ops share the same resource (e.g. GET /items/{id}
+    // and GET /items/{id}/usage), each gets a funcName-derived key instead of 'detail'.
+    // Include the key name as a segment to prevent cache key collisions.
+    // Single detail ops keep the canonical ['resource', id] shape (no breaking change).
+    const keySegment = entry.pathParams.length > 0 && entry.key !== 'detail' ? `'${entry.key}', ` : ''
+
     if (entry.pathParams.length === 0 && entry.hasQueryParams) {
       // list: (params?) => ['resource', 'list', params]
       lines.push(`  ${entry.key}: (${paramsArg}) => ['${resource}', '${entry.key}', params] as const,`)
@@ -152,23 +158,23 @@ function buildKeyFactory(resource: string, entries: KeyEntry[]): string {
       // list with no params
       lines.push(`  ${entry.key}: () => ['${resource}', '${entry.key}'] as const,`)
     } else if (entry.pathParams.length === 1 && !entry.hasQueryParams) {
-      // detail: (id: string) => ['resource', id]
+      // detail: (id) => ['resource', id]  or  getItemUsage: (id) => ['resource', 'getItemUsage', id]
       const param = entry.pathParams[0]!
-      lines.push(`  ${entry.key}: (${param}: string) => ['${resource}', ${param}] as const,`)
+      lines.push(`  ${entry.key}: (${param}: string) => ['${resource}', ${keySegment}${param}] as const,`)
     } else if (entry.pathParams.length === 1 && entry.hasQueryParams) {
-      // detail with query params: (id: string, params?) => ['resource', id, params]
+      // detail with query params
       const param = entry.pathParams[0]!
-      lines.push(`  ${entry.key}: (${param}: string, ${paramsArg}) => ['${resource}', ${param}, params] as const,`)
+      lines.push(`  ${entry.key}: (${param}: string, ${paramsArg}) => ['${resource}', ${keySegment}${param}, params] as const,`)
     } else if (!entry.hasQueryParams) {
       // multiple path params, no query params
       const paramList = entry.pathParams.map((p) => `${p}: string`).join(', ')
       const paramValues = entry.pathParams.join(', ')
-      lines.push(`  ${entry.key}: (${paramList}) => ['${resource}', ${paramValues}] as const,`)
+      lines.push(`  ${entry.key}: (${paramList}) => ['${resource}', ${keySegment}${paramValues}] as const,`)
     } else {
       // multiple path params + query params
       const paramList = entry.pathParams.map((p) => `${p}: string`).join(', ')
       const paramValues = entry.pathParams.join(', ')
-      lines.push(`  ${entry.key}: (${paramList}, ${paramsArg}) => ['${resource}', ${paramValues}, params] as const,`)
+      lines.push(`  ${entry.key}: (${paramList}, ${paramsArg}) => ['${resource}', ${keySegment}${paramValues}, params] as const,`)
     }
   }
 
@@ -420,6 +426,10 @@ function buildMutationHook(
 
   lines.push(`  return useMutation<Awaited<ReturnType<typeof ${funcName}>>, ApiError, ${variablesType}>({`)
   lines.push(`    mutationFn: ${mutationFnBody},`)
+  // Spread options first so caller can override mutationFn-unrelated options (e.g. retry, meta).
+  // onSuccess must come AFTER the spread so the auto-invalidation logic always runs —
+  // the caller's onSuccess is composed via options?.onSuccess?.(...args) inside.
+  lines.push(`    ...options,`)
 
   if (shouldInvalidate) {
     const { keyFactoryName, detailKeyName } = invalidateInfo
@@ -452,7 +462,6 @@ function buildMutationHook(
     lines.push(`    },`)
   }
 
-  lines.push(`    ...options,`)
   lines.push(`  })`)
   lines.push(`}`)
 

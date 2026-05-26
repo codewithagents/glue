@@ -1264,3 +1264,134 @@ describe('generateHooks — edge cases', () => {
     expect(result).toContain('searchItems:')
   })
 })
+
+// ── Bug #105: cache key collision ─────────────────────────────────────────────
+
+describe('Bug #105: cache key collision when multiple GET ops share same path param', () => {
+  const specWithMultipleDetailOps: OpenAPIV3_1.Document = {
+    openapi: '3.1.0',
+    info: { title: 'Test', version: '1.0.0' },
+    paths: {
+      '/items/{id}': {
+        get: {
+          operationId: 'getItemById',
+          parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }],
+          responses: { '200': { description: 'ok' } },
+        },
+      },
+      '/items/{id}/usage': {
+        get: {
+          operationId: 'getItemUsage',
+          parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }],
+          responses: { '200': { description: 'ok' } },
+        },
+      },
+    },
+  }
+
+  const { content: multiDetailResult } = generateHooks(specWithMultipleDetailOps, { staleTime: 0, gcTime: 0 })
+
+  it('both operations have distinct named entries in the key factory', () => {
+    expect(multiDetailResult).toContain('getItemById:')
+    expect(multiDetailResult).toContain('getItemUsage:')
+  })
+
+  it('getItemById key includes operation name as distinguishing segment', () => {
+    // Must be ['items', 'getItemById', id] — not ['items', id] which would collide
+    expect(multiDetailResult).toContain("'items', 'getItemById', id")
+  })
+
+  it('getItemUsage key includes operation name as distinguishing segment', () => {
+    expect(multiDetailResult).toContain("'items', 'getItemUsage', id")
+  })
+
+  it('the two key arrays are structurally distinct (no collision)', () => {
+    const byIdLine = multiDetailResult.match(/getItemById:.*?as const/)
+    const usageLine = multiDetailResult.match(/getItemUsage:.*?as const/)
+    expect(byIdLine).toBeTruthy()
+    expect(usageLine).toBeTruthy()
+    expect(byIdLine![0]).not.toBe(usageLine![0])
+  })
+
+  it('single detail op still uses canonical ["resource", id] key (no breaking change)', () => {
+    const specSingleDetail: OpenAPIV3_1.Document = {
+      openapi: '3.1.0',
+      info: { title: 'Test', version: '1.0.0' },
+      paths: {
+        '/items/{id}': {
+          get: {
+            operationId: 'getItemById',
+            parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }],
+            responses: { '200': { description: 'ok' } },
+          },
+        },
+      },
+    }
+    const { content: result } = generateHooks(specSingleDetail, { staleTime: 0, gcTime: 0 })
+    // Single detail op → 'detail' key → ['items', id] unchanged
+    expect(result).toContain('detail:')
+    expect(result).toContain("'items', id")
+    expect(result).not.toContain("'items', 'detail', id")
+  })
+})
+
+// ── Bug #106: ...options spread overwrites auto-invalidation onSuccess ────────
+
+describe('Bug #106: ...options spread must not overwrite auto-invalidation onSuccess', () => {
+  const specWithAutoInvalidate: OpenAPIV3_1.Document = {
+    openapi: '3.1.0',
+    info: { title: 'Test', version: '1.0.0' },
+    paths: {
+      '/items': {
+        get: {
+          operationId: 'listItems',
+          responses: { '200': { description: 'ok' } },
+        },
+        post: {
+          operationId: 'createItem',
+          requestBody: { required: true, content: { 'application/json': { schema: { $ref: '#/components/schemas/Item' } } } },
+          responses: { '201': { description: 'ok' } },
+        },
+      },
+      '/items/{id}': {
+        delete: {
+          operationId: 'deleteItem',
+          parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }],
+          responses: { '204': { description: 'ok' } },
+        },
+      },
+    },
+  }
+
+  const { content: autoInvalidateResult } = generateHooks(specWithAutoInvalidate, {
+    staleTime: 0,
+    gcTime: 0,
+    autoInvalidate: true,
+  })
+
+  it('...options spread appears BEFORE onSuccess in mutation hook with auto-invalidation', () => {
+    const hookStart = autoInvalidateResult.indexOf('export function useCreateItem')
+    const hookEnd = autoInvalidateResult.indexOf('\n}', hookStart) + 2
+    const hookContent = autoInvalidateResult.slice(hookStart, hookEnd)
+
+    const spreadIdx = hookContent.indexOf('...options,')
+    const onSuccessIdx = hookContent.indexOf('onSuccess:')
+
+    expect(spreadIdx).toBeGreaterThan(-1)
+    expect(onSuccessIdx).toBeGreaterThan(-1)
+    // spread must come BEFORE onSuccess so the generated onSuccess always wins
+    expect(spreadIdx).toBeLessThan(onSuccessIdx)
+  })
+
+  it('generated onSuccess still composes options.onSuccess so callers can react to success', () => {
+    expect(autoInvalidateResult).toContain('options?.onSuccess?.(...args)')
+  })
+
+  it('mutation hook without auto-invalidation is unaffected (no onSuccess generated)', () => {
+    const { content: plain } = generateHooks(specWithAutoInvalidate, { staleTime: 0, gcTime: 0, autoInvalidate: false })
+    const hookStart = plain.indexOf('export function useCreateItem')
+    const hookEnd = plain.indexOf('\n}', hookStart) + 2
+    const hookContent = plain.slice(hookStart, hookEnd)
+    expect(hookContent).not.toContain('onSuccess:')
+  })
+})
