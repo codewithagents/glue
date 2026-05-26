@@ -1,0 +1,33 @@
+{
+  "name": "@codewithagents/openapi-server",
+  "version": "0.1.0",
+  "description": "Generate typed server-side service interfaces and framework routers from OpenAPI 3.1",
+  "type": "module",
+  "bin": { "openapi-server": "./dist/cli.cjs" },
+  "exports": {
+    ".": { "import": "./dist/index.js", "types": "./dist/index.d.ts" }
+  },
+  "files": ["dist"],
+  "scripts": {
+    "build": "rm -f dist/cli.js dist/cli.js.map dist/cli.d.ts dist/cli.d.ts.map && tsc -p tsconfig.build.json && esbuild src/cli.ts --bundle --platform=node --format=cjs --target=node22 --outfile=dist/cli.cjs && chmod +x dist/cli.cjs",
+    "lint": "tsc -p tsconfig.build.json --noEmit",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "dev": "tsc -p tsconfig.build.json --watch"
+  },
+  "dependencies": {
+    "@codewithagents/openapi-gen": "workspace:*",
+    "openapi-types": "^12.1.3"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@vitest/coverage-v8": "^4.0.0",
+    "esbuild": "^0.25.0",
+    "fast-check": "^4.0.0",
+    "typescript": "^6.0.0",
+    "vitest": "^4.0.0"
+  },
+  "license": "MIT",
+  "repository": { "type": "git", "url": "https://github.com/codewithagents/glue" },
+  "publishConfig": { "access": "public" }
+}

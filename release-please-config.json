@@ -19,6 +19,12 @@
       "package-name": "@codewithagents/openapi-react-query",
       "component": "openapi-react-query",
       "changelog-path": "CHANGELOG.md"
+    },
+    "packages/openapi-server": {
+      "release-type": "node",
+      "package-name": "@codewithagents/openapi-server",
+      "component": "openapi-server",
+      "changelog-path": "CHANGELOG.md"
     }
   }
 }
