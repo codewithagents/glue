@@ -1,5 +1,17 @@
 # Changelog
 
+## [3.2.0](https://github.com/codewithagents/glue/compare/openapi-gen-v3.1.1...openapi-gen-v3.2.0) (2026-05-26)
+
+
+### Features
+
+* **openapi-gen:** schema-enhanced generation with Zod validation ([#100](https://github.com/codewithagents/glue/issues/100)) ([6fc0af1](https://github.com/codewithagents/glue/commit/6fc0af19ea8b62840696805958c4181a6633d1fc))
+
+
+### Bug Fixes
+
+* **openapi-gen:** use .strip() for request body validation to support form wizard schemas ([#101](https://github.com/codewithagents/glue/issues/101)) ([39acdb1](https://github.com/codewithagents/glue/commit/39acdb13a3e1761c464385b9afbe7ea561bf3636))
+
 ## [3.1.1](https://github.com/codewithagents/glue/compare/openapi-gen-v3.1.0...openapi-gen-v3.1.1) (2026-05-25)
 
 
