@@ -9,6 +9,7 @@ on:
 # Minimal permissions — fork PRs have no secrets access by design with pull_request trigger
 permissions:
   contents: read
+  id-token: write   # required for Codecov OIDC upload (tokenless, no CODECOV_TOKEN needed)
 
 jobs:
   ci:
@@ -30,10 +31,12 @@ jobs:
       - run: pnpm --filter @codewithagents/api-errors run test:coverage
       - run: pnpm --filter @codewithagents/openapi-gen run test:coverage
       - run: pnpm --filter @codewithagents/openapi-react-query run test:coverage
+      - run: pnpm --filter @codewithagents/openapi-server run test:coverage
 
       - name: Upload coverage to Codecov (api-errors)
         uses: codecov/codecov-action@v5
         with:
+          use_oidc: true
           files: ./packages/api-errors/coverage/lcov.info
           flags: api-errors
           fail_ci_if_error: false
@@ -41,6 +44,7 @@ jobs:
       - name: Upload coverage to Codecov (openapi-gen)
         uses: codecov/codecov-action@v5
         with:
+          use_oidc: true
           files: ./packages/openapi-gen/coverage/lcov.info
           flags: openapi-gen
           fail_ci_if_error: false
@@ -48,6 +52,15 @@ jobs:
       - name: Upload coverage to Codecov (openapi-react-query)
         uses: codecov/codecov-action@v5
         with:
+          use_oidc: true
           files: ./packages/openapi-react-query/coverage/lcov.info
           flags: openapi-react-query
+          fail_ci_if_error: false
+
+      - name: Upload coverage to Codecov (openapi-server)
+        uses: codecov/codecov-action@v5
+        with:
+          use_oidc: true
+          files: ./packages/openapi-server/coverage/lcov.info
+          flags: openapi-server
           fail_ci_if_error: false

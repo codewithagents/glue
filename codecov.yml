@@ -22,3 +22,7 @@ flags:
     paths:
       - packages/openapi-react-query/src/
     carryforward: true
+  openapi-server:
+    paths:
+      - packages/openapi-server/src/
+    carryforward: true
