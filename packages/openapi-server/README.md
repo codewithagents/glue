@@ -202,9 +202,10 @@ serve({ fetch: app.fetch, port: 3001 })
 
 ```json
 {
-  "input_openapi": "./spec/api.json",   // required — path to OpenAPI 3.1 spec (JSON or YAML)
-  "output": "./generated",              // required — directory to write generated files
-  "framework": "hono"                   // optional — router target (default: "hono")
+  "input_openapi": "./spec/api.json",       // required — path to OpenAPI 3.1 spec (JSON or YAML)
+  "output": "./generated",                  // required — directory to write generated files
+  "framework": "hono",                      // optional — router target (default: "hono")
+  "input_schema": "./generated/schemas.ts"  // optional — Zod schema file for request validation
 }
 ```
 
@@ -213,6 +214,7 @@ serve({ fetch: app.fetch, port: 3001 })
 | `input_openapi` | Yes | — | Path to OpenAPI 3.1 spec (JSON or YAML) |
 | `output` | Yes | — | Directory to write `service.ts` and `router.ts` |
 | `framework` | No | `"hono"` | Router framework to generate. Use `"none"` to generate only `service.ts` |
+| `input_schema` | No | — | Path to user-owned Zod schema file. Enables server-side request validation (see below) |
 
 Use `--config <path>` to point at a config file in a different location:
 
@@ -221,6 +223,51 @@ npx openapi-server --config ./config/openapi-server.config.json
 ```
 
 Relative paths in the config resolve from the config file's directory.
+
+---
+
+## Zod request validation (`input_schema`)
+
+Point `input_schema` at the same `schemas.ts` you use with `@codewithagents/openapi-gen`. The server generator adds runtime validation to every route that receives a request body:
+
+**Config:**
+
+```json
+{
+  "input_openapi": "./spec/api.json",
+  "output": "./generated",
+  "framework": "hono",
+  "input_schema": "./generated/schemas.ts"
+}
+```
+
+**Generated router with validation:**
+
+```ts
+app.post('/pets', async (c) => {
+  const body = await c.req.json()
+  const parseResult = CreatePetRequestSchema.safeParse(body)
+  if (!parseResult.success) {
+    return c.json({ error: 'Invalid request body', issues: parseResult.error.issues }, 422)
+  }
+  return c.json(await service.createPet(parseResult.data), 201)
+})
+```
+
+Invalid requests get a structured `422` response instead of reaching your service implementation:
+
+```json
+{
+  "error": "Invalid request body",
+  "issues": [
+    { "code": "too_small", "path": ["name"], "message": "Name is required" }
+  ]
+}
+```
+
+**Same schemas, both sides of the wire** — `openapi-gen` validates outgoing requests in the browser; `openapi-server` validates incoming requests on the server. One `schemas.ts`, one source of truth.
+
+**Drift detection** — if schemas diverge from the spec (extra schema, missing schema), the generator warns to stderr. Builds still succeed — the warning is advisory.
 
 ---
 
