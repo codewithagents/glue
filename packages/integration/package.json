@@ -15,16 +15,16 @@
     "@codewithagents/openapi-react-query": "workspace:*"
   },
   "devDependencies": {
-    "@tanstack/react-query": "^5.0.0",
+    "@tanstack/react-query": "catalog:",
     "@testing-library/react": "^16.0.0",
-    "@types/node": "^22.0.0",
-    "@types/react": "^19.0.0",
-    "@types/react-dom": "^19.0.0",
+    "@types/node": "catalog:",
+    "@types/react": "catalog:",
+    "@types/react-dom": "catalog:",
     "jsdom": "^26.0.0",
     "msw": "^2.14.6",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0",
-    "typescript": "^6.0.0",
-    "vitest": "^4.0.0"
+    "react": "catalog:",
+    "react-dom": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
   }
 }
