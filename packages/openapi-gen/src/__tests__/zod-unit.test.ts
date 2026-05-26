@@ -146,6 +146,11 @@ describe('object types', () => {
     const out = genSingle('A', { type: 'object', properties: { name: { type: 'string' } } })
     expect(out).toContain('z.object({')
   })
+
+  it('adds .passthrough() to object schemas for forward-compatible server responses', () => {
+    const out = genSingle('A', { type: 'object', properties: { name: { type: 'string' } } })
+    expect(out).toContain('.passthrough()')
+  })
 })
 
 describe('$ref handling', () => {

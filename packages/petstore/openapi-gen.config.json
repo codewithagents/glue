@@ -1,1 +1,5 @@
-{ "input_openapi": "spec/api.json", "output": "generated/" }
+{
+  "input_openapi": "spec/api.json",
+  "output": "generated/",
+  "input_schema": "generated/schemas.ts"
+}

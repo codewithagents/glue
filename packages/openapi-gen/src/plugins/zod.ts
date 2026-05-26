@@ -205,7 +205,9 @@ function inlineObjectZod(schema: SchemaObject): string {
     const suffix = required.has(key) ? '' : '.optional()'
     return `  ${propKey}: ${zodStr}${suffix}`
   })
-  return `z.object({\n${lines.join(',\n')}\n})`
+  // .passthrough() keeps unknown server fields in the parsed output,
+  // making schemas forward-compatible when the server adds new optional fields.
+  return `z.object({\n${lines.join(',\n')}\n}).passthrough()`
 }
 
 function generateSchemaDeclaration(name: string, schema: SchemaObject | ReferenceObject): string {

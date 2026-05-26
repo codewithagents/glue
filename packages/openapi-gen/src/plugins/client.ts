@@ -332,6 +332,47 @@ function getThrowsTags(
   return tags
 }
 
+/** Get the $ref schema name from an operation's JSON request body, if any. */
+function getRequestBodySchemaName(operation: OperationObject): string | undefined {
+  const requestBody = operation.requestBody as RequestBodyObject | ReferenceObject | undefined
+  if (requestBody === undefined || isRef(requestBody)) return undefined
+  const rb = requestBody as RequestBodyObject
+  const content = rb.content as Record<string, { schema?: SchemaObject | ReferenceObject }> | undefined
+  if (content === undefined) return undefined
+  const jsonContent = content['application/json']
+  if (jsonContent === undefined || jsonContent.schema === undefined) return undefined
+  if (!isRef(jsonContent.schema)) return undefined
+  return refToTypeName((jsonContent.schema as ReferenceObject).$ref)
+}
+
+/** Get the $ref schema name and isArray from a 200/201 response, if any. */
+function getResponseSchemaName(operation: OperationObject): { name: string; isArray: boolean } | undefined {
+  const responses = operation.responses as Record<string, ResponseObject | ReferenceObject> | undefined
+  if (responses === undefined) return undefined
+  for (const code of ['200', '201']) {
+    const response = responses[code]
+    if (response === undefined || isRef(response)) continue
+    const resp = response as ResponseObject
+    const content = resp.content as Record<string, { schema?: SchemaObject | ReferenceObject }> | undefined
+    if (content === undefined) continue
+    const jsonContent = content['application/json']
+    if (jsonContent === undefined || jsonContent.schema === undefined) continue
+    const schema = jsonContent.schema
+    if (isRef(schema)) {
+      return { name: refToTypeName((schema as ReferenceObject).$ref), isArray: false }
+    }
+    // Array of $ref items
+    const s = schema as SchemaObject
+    if (s.type === 'array') {
+      const items = (s as OpenAPIV3_1.ArraySchemaObject).items as SchemaObject | ReferenceObject | undefined
+      if (items !== undefined && isRef(items)) {
+        return { name: refToTypeName((items as ReferenceObject).$ref), isArray: true }
+      }
+    }
+  }
+  return undefined
+}
+
 function generateFunctionCode(
   funcName: string,
   method: string,
@@ -343,6 +384,9 @@ function generateFunctionCode(
   returnType: { typeName: string; isArray: boolean; isVoid: boolean },
   deprecated: boolean,
   throwsTags: string[],
+  options?: ClientOptions,
+  requestBodySchemaName?: string,
+  responseSchemaName?: { name: string; isArray: boolean },
 ): string {
   const lines: string[] = []
 
@@ -457,6 +501,17 @@ function generateFunctionCode(
     }
   }
 
+  // Schema-enhanced: request body validation before fetch
+  if (
+    options?.schemaNames !== undefined &&
+    requestBodySchemaName !== undefined &&
+    options.schemaNames.has(`${requestBodySchemaName}Schema`) &&
+    bodyInfo !== undefined &&
+    bodyInfo.kind === 'json'
+  ) {
+    lines.push(`  ${requestBodySchemaName}Schema.parse(body)`)
+  }
+
   // Build fetch options
   const fetchLines: string[] = []
   fetchLines.push(`  const res = await fetch(finalUrl, {`)
@@ -487,12 +542,30 @@ function generateFunctionCode(
     lines.push(`    onError?.(err)`)
     lines.push(`    throw err`)
     lines.push(`  }`)
-    lines.push(`  return res.json()`)
+    // Schema-enhanced: response validation
+    if (
+      options?.schemaNames !== undefined &&
+      responseSchemaName !== undefined &&
+      options.schemaNames.has(`${responseSchemaName.name}Schema`)
+    ) {
+      if (responseSchemaName.isArray) {
+        lines.push(`  return z.array(${responseSchemaName.name}Schema).parse(await res.json())`)
+      } else {
+        lines.push(`  return ${responseSchemaName.name}Schema.parse(await res.json())`)
+      }
+    } else {
+      lines.push(`  return res.json()`)
+    }
   }
 
   lines.push(`}`)
 
   return lines.join('\n')
+}
+
+export interface ClientOptions {
+  schemaNames?: Set<string>
+  schemaImportPath?: string
 }
 
 /** Built-in TypeScript types that must NOT be imported from ./models */
@@ -519,10 +592,12 @@ export function hasCookieAuth(spec: OpenAPIV3_1.Document): boolean {
   )
 }
 
-export function generateClient(spec: OpenAPIV3_1.Document): GeneratedFile {
+export function generateClient(spec: OpenAPIV3_1.Document, options?: ClientOptions): GeneratedFile {
   const paths = spec.paths as Record<string, Record<string, OperationObject>> | undefined
 
   const collectedTypeNames = new Set<string>()
+  const collectedSchemaNames = new Set<string>()
+  let needsZImport = false
   const functionBlocks: string[] = []
 
   if (paths !== undefined) {
@@ -548,6 +623,14 @@ export function generateClient(spec: OpenAPIV3_1.Document): GeneratedFile {
         const deprecated = operation.deprecated === true
         const throwsTags = getThrowsTags(operation)
 
+        // Schema-enhanced: compute request body and response schema names for this operation
+        const requestBodySchemaName = options?.schemaNames !== undefined
+          ? getRequestBodySchemaName(operation)
+          : undefined
+        const responseSchemaName = options?.schemaNames !== undefined
+          ? getResponseSchemaName(operation)
+          : undefined
+
         // Collect type names for import — only simple schema identifiers (e.g. "Task"),
         // never inline type expressions (e.g. "Record<string, unknown>") or primitives.
         if (bodyInfo !== undefined && bodyInfo.kind === 'json' && isImportableType(bodyInfo.typeName)) {
@@ -555,6 +638,23 @@ export function generateClient(spec: OpenAPIV3_1.Document): GeneratedFile {
         }
         if (!returnType.isVoid && isImportableType(returnType.typeName)) {
           collectedTypeNames.add(returnType.typeName)
+        }
+
+        // Collect schema names actually used (drift-safe: only if in schemaNames set)
+        if (options?.schemaNames !== undefined) {
+          if (
+            requestBodySchemaName !== undefined &&
+            options.schemaNames.has(`${requestBodySchemaName}Schema`)
+          ) {
+            collectedSchemaNames.add(`${requestBodySchemaName}Schema`)
+          }
+          if (
+            responseSchemaName !== undefined &&
+            options.schemaNames.has(`${responseSchemaName.name}Schema`)
+          ) {
+            collectedSchemaNames.add(`${responseSchemaName.name}Schema`)
+            if (responseSchemaName.isArray) needsZImport = true
+          }
         }
 
         const fnCode = generateFunctionCode(
@@ -568,6 +668,9 @@ export function generateClient(spec: OpenAPIV3_1.Document): GeneratedFile {
           returnType,
           deprecated,
           throwsTags,
+          options,
+          requestBodySchemaName,
+          responseSchemaName,
         )
         functionBlocks.push(fnCode)
       }
@@ -584,6 +687,16 @@ export function generateClient(spec: OpenAPIV3_1.Document): GeneratedFile {
     lines.push(`import type { ${sortedTypes.join(', ')} } from './models.js'`)
   }
   lines.push(`import { getConfig, type ClientConfig } from './client-config.js'`)
+
+  // Schema-enhanced imports
+  if (options?.schemaNames !== undefined && collectedSchemaNames.size > 0 && options.schemaImportPath !== undefined) {
+    if (needsZImport) {
+      lines.push(`import { z } from 'zod'`)
+    }
+    const sortedSchemas = Array.from(collectedSchemaNames).sort()
+    lines.push(`import { ${sortedSchemas.join(', ')} } from '${options.schemaImportPath}'`)
+  }
+
   lines.push('')
 
   // ApiError class
