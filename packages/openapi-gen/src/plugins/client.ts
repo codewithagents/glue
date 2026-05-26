@@ -509,7 +509,9 @@ function generateFunctionCode(
     bodyInfo !== undefined &&
     bodyInfo.kind === 'json'
   ) {
-    lines.push(`  ${requestBodySchemaName}Schema.parse(body)`)
+    // .strip() removes unknown keys (e.g. form wizard fields) before sending —
+    // allows form schemas that extend the API schema without leaking UI-only fields.
+    lines.push(`  ${requestBodySchemaName}Schema.strip().parse(body)`)
   }
 
   // Build fetch options

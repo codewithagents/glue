@@ -1046,12 +1046,14 @@ describe('schema-enhanced client generation', () => {
     expect(out).toContain('return res.json()')
   })
 
-  it('with schema options: request body gets Schema.parse(body) before fetch', () => {
+  it('with schema options: request body gets Schema.strip().parse(body) before fetch', () => {
     const out = generateClient(petSpec, {
       schemaNames: new Set(['CreatePetRequestSchema', 'PetSchema']),
       schemaImportPath: './schemas.js',
     }).content
-    expect(out).toContain('CreatePetRequestSchema.parse(body)')
+    // .strip() removes unknown keys (e.g. form wizard fields) before sending —
+    // allows form schemas that extend the API schema without leaking UI-only fields
+    expect(out).toContain('CreatePetRequestSchema.strip().parse(body)')
   })
 
   it('with schema options: single-object response gets Schema.parse(await res.json())', () => {
@@ -1097,7 +1099,7 @@ describe('schema-enhanced client generation', () => {
       schemaImportPath: './schemas.js',
     }).content
     // Request body (CreatePetRequest) not in schemaNames — no parse call
-    expect(out).not.toContain('CreatePetRequestSchema.parse(body)')
+    expect(out).not.toContain('CreatePetRequestSchema.strip().parse(body)')
   })
 
   it('without schema options: falls back to res.json() for all responses', () => {

@@ -48,7 +48,7 @@ export async function createPet(body: CreatePetRequest, config?: Partial<ClientC
   const fullUrl = `${base}/pets`
   const finalUrl = fullUrl
   const resolvedToken = typeof token === 'function' ? await token() : token
-  CreatePetRequestSchema.parse(body)
+  CreatePetRequestSchema.strip().parse(body)
   const res = await fetch(finalUrl, {
     method: 'POST',
     credentials,
