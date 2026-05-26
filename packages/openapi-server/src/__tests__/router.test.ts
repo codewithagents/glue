@@ -15,40 +15,34 @@ function makeSpec(paths: OpenAPIV3_1.PathsObject, title = 'Pet Store'): OpenAPIV
 // ── Tests ──────────────────────────────────────────────────────────────────────
 
 describe('generateRouter', () => {
-  it("framework='none' returns undefined", () => {
+  it('returns a GeneratedFile with filename router.ts', () => {
     const spec = makeSpec({})
-    const result = generateRouter(spec, 'none')
-    expect(result).toBeUndefined()
-  })
-
-  it("framework='hono' returns a GeneratedFile", () => {
-    const spec = makeSpec({})
-    const result = generateRouter(spec, 'hono')
+    const result = generateRouter(spec)
     expect(result).toBeDefined()
-    expect(result!.filename).toBe('router.ts')
+    expect(result.filename).toBe('router.ts')
   })
 
   it('output starts with auto-generated header', () => {
     const spec = makeSpec({})
-    const result = generateRouter(spec, 'hono')!
+    const result = generateRouter(spec)
     expect(result.content).toMatch(/^\/\/ This file is auto-generated/)
   })
 
   it('imports Hono from hono', () => {
     const spec = makeSpec({})
-    const result = generateRouter(spec, 'hono')!
+    const result = generateRouter(spec)
     expect(result.content).toContain("import { Hono } from 'hono'")
   })
 
   it('imports service interface from service.js', () => {
     const spec = makeSpec({})
-    const result = generateRouter(spec, 'hono')!
+    const result = generateRouter(spec)
     expect(result.content).toContain("from './service.js'")
   })
 
   it('exports createRouter function', () => {
     const spec = makeSpec({})
-    const result = generateRouter(spec, 'hono')!
+    const result = generateRouter(spec)
     expect(result.content).toContain('export function createRouter(')
   })
 
@@ -61,7 +55,7 @@ describe('generateRouter', () => {
         },
       },
     })
-    const result = generateRouter(spec, 'hono')!
+    const result = generateRouter(spec)
     expect(result.content).toContain("app.get('/pets'")
   })
 
@@ -78,7 +72,7 @@ describe('generateRouter', () => {
         },
       },
     })
-    const result = generateRouter(spec, 'hono')!
+    const result = generateRouter(spec)
     expect(result.content).toContain("app.post('/pets'")
   })
 
@@ -92,7 +86,7 @@ describe('generateRouter', () => {
         },
       },
     })
-    const result = generateRouter(spec, 'hono')!
+    const result = generateRouter(spec)
     expect(result.content).toContain("app.delete('/pets/:id'")
   })
 
@@ -106,7 +100,7 @@ describe('generateRouter', () => {
         },
       },
     })
-    const result = generateRouter(spec, 'hono')!
+    const result = generateRouter(spec)
     expect(result.content).toContain("app.get('/pets/:id'")
   })
 
@@ -120,7 +114,7 @@ describe('generateRouter', () => {
         },
       },
     })
-    const result = generateRouter(spec, 'hono')!
+    const result = generateRouter(spec)
     expect(result.content).toContain("c.req.param('id')")
   })
 
@@ -136,7 +130,7 @@ describe('generateRouter', () => {
         },
       },
     })
-    const result = generateRouter(spec, 'hono')!
+    const result = generateRouter(spec)
     expect(result.content).toContain("c.req.query('species')")
   })
 
@@ -152,7 +146,7 @@ describe('generateRouter', () => {
         },
       },
     })
-    const result = generateRouter(spec, 'hono')!
+    const result = generateRouter(spec)
     expect(result.content).toContain('Number(')
   })
 
@@ -169,7 +163,7 @@ describe('generateRouter', () => {
         },
       },
     })
-    const result = generateRouter(spec, 'hono')!
+    const result = generateRouter(spec)
     expect(result.content).toContain('c.req.json<CreatePetRequest>()')
   })
 
@@ -186,7 +180,7 @@ describe('generateRouter', () => {
         },
       },
     })
-    const result = generateRouter(spec, 'hono')!
+    const result = generateRouter(spec)
     expect(result.content).toContain("import type { CreatePetRequest } from './models.js'")
   })
 
@@ -199,7 +193,7 @@ describe('generateRouter', () => {
         },
       },
     })
-    const result = generateRouter(spec, 'hono')!
+    const result = generateRouter(spec)
     expect(result.content).not.toContain("from './models.js'")
   })
 
@@ -221,7 +215,7 @@ describe('generateRouter', () => {
         },
       },
     })
-    const result = generateRouter(spec, 'hono')!
+    const result = generateRouter(spec)
     expect(result.content).toContain('c.json(await service.createPet(')
     expect(result.content).toContain(', 201)')
   })
@@ -236,13 +230,13 @@ describe('generateRouter', () => {
         },
       },
     })
-    const result = generateRouter(spec, 'hono')!
+    const result = generateRouter(spec)
     expect(result.content).toContain('new Response(null, { status: 204 })')
   })
 
   it('returns empty Hono app when no operations', () => {
     const spec = makeSpec({})
-    const result = generateRouter(spec, 'hono')!
+    const result = generateRouter(spec)
     expect(result.content).toContain('const app = new Hono()')
     expect(result.content).toContain('return app')
   })
@@ -260,7 +254,7 @@ describe('generateRouter', () => {
         },
       },
     })
-    const result = generateRouter(spec, 'hono')!
+    const result = generateRouter(spec)
     // Should pass both path params
     expect(result.content).toContain("c.req.param('ownerId')")
     expect(result.content).toContain("c.req.param('petId')")
@@ -268,7 +262,119 @@ describe('generateRouter', () => {
 
   it('service interface reference uses title-derived name', () => {
     const spec = makeSpec({}, 'My API')
-    const result = generateRouter(spec, 'hono')!
+    const result = generateRouter(spec)
     expect(result.content).toContain('MyAPIService')
+  })
+})
+
+// ── Schema validation tests ────────────────────────────────────────────────────
+
+describe('generateRouter with schemaNames (Zod validation)', () => {
+  const postSpec = makeSpec({
+    '/pets': {
+      post: {
+        operationId: 'createPet',
+        requestBody: {
+          required: true,
+          content: { 'application/json': { schema: { $ref: '#/components/schemas/CreatePetRequest' } } },
+        },
+        responses: { '201': { description: 'created' } },
+      },
+    },
+  })
+
+  it('adds safeParse validation when schema is in schemaNames', () => {
+    const result = generateRouter(postSpec, {
+      schemaNames: new Set(['CreatePetRequestSchema']),
+      schemaImportPath: './schemas.js',
+    })
+    expect(result.content).toContain('CreatePetRequestSchema.safeParse(body)')
+    expect(result.content).toContain('parseResult.success')
+    expect(result.content).toContain('422')
+  })
+
+  it('uses validatedBody in service call when schema is present', () => {
+    const result = generateRouter(postSpec, {
+      schemaNames: new Set(['CreatePetRequestSchema']),
+      schemaImportPath: './schemas.js',
+    })
+    expect(result.content).toContain('validatedBody')
+    expect(result.content).toContain('service.createPet(validatedBody')
+  })
+
+  it('imports z from zod and schema from schemaImportPath', () => {
+    const result = generateRouter(postSpec, {
+      schemaNames: new Set(['CreatePetRequestSchema']),
+      schemaImportPath: './schemas.js',
+    })
+    expect(result.content).toContain("import { z } from 'zod'")
+    expect(result.content).toContain("import { CreatePetRequestSchema } from './schemas.js'")
+  })
+
+  it('does not import schema when schemaNames does not match the body type', () => {
+    const result = generateRouter(postSpec, {
+      schemaNames: new Set(['SomeOtherSchema']),
+      schemaImportPath: './schemas.js',
+    })
+    expect(result.content).not.toContain("import { z } from 'zod'")
+    expect(result.content).not.toContain('safeParse')
+  })
+
+  it('does not add validation when options is undefined', () => {
+    const result = generateRouter(postSpec)
+    expect(result.content).not.toContain('safeParse')
+    expect(result.content).not.toContain("import { z } from 'zod'")
+    // uses body directly in service call
+    expect(result.content).toContain('service.createPet(body')
+  })
+
+  it('does not add validation when schemaNames is empty set', () => {
+    const result = generateRouter(postSpec, {
+      schemaNames: new Set(),
+      schemaImportPath: './schemas.js',
+    })
+    expect(result.content).not.toContain('safeParse')
+    expect(result.content).toContain('service.createPet(body')
+  })
+
+  it('returns 422 with Zod issues on parse failure', () => {
+    const result = generateRouter(postSpec, {
+      schemaNames: new Set(['CreatePetRequestSchema']),
+      schemaImportPath: './schemas.js',
+    })
+    expect(result.content).toContain("{ error: 'Invalid request body', issues: parseResult.error.issues }")
+    expect(result.content).toContain('422')
+  })
+
+  it('only imports schemas actually used', () => {
+    const specWithTwo = makeSpec({
+      '/pets': {
+        post: {
+          operationId: 'createPet',
+          requestBody: {
+            required: true,
+            content: { 'application/json': { schema: { $ref: '#/components/schemas/CreatePetRequest' } } },
+          },
+          responses: { '201': { description: 'created' } },
+        },
+      },
+      '/owners': {
+        post: {
+          operationId: 'createOwner',
+          requestBody: {
+            required: true,
+            content: { 'application/json': { schema: { $ref: '#/components/schemas/CreateOwnerRequest' } } },
+          },
+          responses: { '201': { description: 'created' } },
+        },
+      },
+    })
+    // Only CreatePetRequestSchema in schemaNames, not CreateOwnerRequestSchema
+    const result = generateRouter(specWithTwo, {
+      schemaNames: new Set(['CreatePetRequestSchema']),
+      schemaImportPath: './schemas.js',
+    })
+    expect(result.content).toContain('CreatePetRequestSchema')
+    expect(result.content).not.toContain('CreateOwnerRequestSchema')
   })
 })

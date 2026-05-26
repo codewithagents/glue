@@ -3,6 +3,8 @@
 import { Hono } from 'hono'
 import type { CreatePetRequest } from './models.js'
 import type { PetstoreService } from './service.js'
+import { z } from 'zod'
+import { CreatePetRequestSchema } from './schemas.js'
 
 export function createRouter(service: PetstoreService): Hono {
   const app = new Hono()
@@ -16,7 +18,13 @@ export function createRouter(service: PetstoreService): Hono {
 
   app.post('/pets', async (c) => {
     const body = await c.req.json<CreatePetRequest>()
-    return c.json(await service.createPet(body), 201)
+    // Validate request body — returns 422 with Zod issues on failure
+    const parseResult = CreatePetRequestSchema.safeParse(body)
+    if (!parseResult.success) {
+      return c.json({ error: 'Invalid request body', issues: parseResult.error.issues }, 422)
+    }
+    const validatedBody = parseResult.data
+    return c.json(await service.createPet(validatedBody), 201)
   })
 
   app.get('/pets/:id', async (c) => {
