@@ -213,7 +213,70 @@ try {
 
 ---
 
+## Zod validation (`input_schema`)
+
+Point `input_schema` at a user-owned Zod schema file and the generator upgrades its output:
+
+**1. Bootstrap once** — if the file doesn't exist yet, `openapi-gen` writes a `schemas.ts` for you:
+
+```ts
+// generated/schemas.ts  (bootstrapped, then yours to edit)
+import { z } from 'zod'
+
+export const PetSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+}).passthrough()   // forward-compatible: new optional server fields are preserved
+
+export const CreatePetRequestSchema = z.object({
+  name: z.string(),
+})
+```
+
+**2. Add your rules** — refine freely. The file is never overwritten:
+
+```ts
+export const CreatePetRequestSchema = z.object({
+  name: z.string().min(1, 'Name is required'),
+  species: z.enum(['cat', 'dog', 'fish']),
+})
+```
+
+**3. Re-run the generator** — `models.ts` switches to `z.infer<>` types, `client.ts` adds runtime validation:
+
+```ts
+// models.ts (regenerated)
+import type { z } from 'zod'
+import type { PetSchema, CreatePetRequestSchema } from './schemas.js'
+export type Pet = z.infer<typeof PetSchema>
+export type CreatePetRequest = z.infer<typeof CreatePetRequestSchema>
+```
+
+```ts
+// client.ts (regenerated) — pre-send and post-receive validation
+export async function createPet(body: CreatePetRequest): Promise<Pet> {
+  const validatedBody = CreatePetRequestSchema.strip().parse(body)  // strips UI-only fields
+  const res = await fetch(...)
+  return PetSchema.parse(await res.json())                          // throws ZodError on bad response
+}
+```
+
+**Form wizard pattern** — extend API schemas for UI-only fields without leaking them to the backend:
+
+```ts
+// Your form schema — adds step + confirmTerms on top of the API schema
+export const CreatePetFormSchema = CreatePetRequestSchema.extend({
+  step: z.number(),
+  confirmTerms: z.boolean(),
+})
+// Use CreatePetFormSchema for React Hook Form validation.
+// The generated client calls .strip().parse() before sending, so step and confirmTerms never reach the API.
+```
+
+**Drift detection** — if you add a schema to `schemas.ts` that has no matching component in the spec (or vice versa), the generator warns to stderr. Your build still succeeds — the warning is advisory.
+
+---
+
 ## Roadmap
 
-- **Zod schemas** — optional `input_schema` field: bootstrap a Zod schema from your spec, then customise it. Generated client validates requests before they leave the browser.
 - **`@codewithagents/openapi-gen-react-query`** — separate package generating React Query v5 `queryOptions` + `useMutation` hooks on top of the generated client.
