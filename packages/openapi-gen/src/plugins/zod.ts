@@ -210,11 +210,102 @@ function inlineObjectZod(schema: SchemaObject): string {
   return `z.object({\n${lines.join(',\n')}\n}).passthrough()`
 }
 
-function generateSchemaDeclaration(name: string, schema: SchemaObject | ReferenceObject): string {
-  const circular = !isRef(schema) && hasSelfRef(schema, name)
+/** Collect all #/components/schemas/ ref names reachable from a schema tree. */
+function collectRefsInto(schema: SchemaObject | ReferenceObject, out: Set<string>): void {
+  if (isRef(schema)) {
+    if (schema.$ref.startsWith('#/components/schemas/')) {
+      out.add(refToTypeName(schema.$ref))
+    }
+    return
+  }
 
-  if (circular) {
-    // Wrap in z.lazy() for circular/self-referential schemas
+  for (const key of ['allOf', 'anyOf', 'oneOf'] as const) {
+    const list = schema[key] as (SchemaObject | ReferenceObject)[] | undefined
+    if (list !== undefined) {
+      for (const item of list) collectRefsInto(item, out)
+    }
+  }
+
+  if (schema.properties !== undefined) {
+    for (const propSchema of Object.values(schema.properties as Record<string, SchemaObject | ReferenceObject>)) {
+      collectRefsInto(propSchema, out)
+    }
+  }
+
+  const items = (schema as unknown as ArraySchemaObject).items
+  if (items !== undefined) collectRefsInto(items as SchemaObject | ReferenceObject, out)
+
+  if (schema.additionalProperties !== undefined && typeof schema.additionalProperties === 'object') {
+    collectRefsInto(schema.additionalProperties as SchemaObject | ReferenceObject, out)
+  }
+}
+
+/**
+ * Topologically sort schemas so dependencies (referenced schemas) are emitted
+ * before the schemas that reference them.
+ *
+ * Returns { sorted, cyclic } where:
+ * - sorted: all schema names in a safe emission order
+ * - cyclic: names that are part of a dependency cycle (appended at the end of sorted)
+ */
+function topoSortSchemas(schemas: Record<string, SchemaObject | ReferenceObject>): {
+  sorted: string[]
+  cyclic: Set<string>
+} {
+  const names = Object.keys(schemas)
+  const knownNames = new Set(names)
+
+  // deps[A] = set of schema names A depends on (excluding A itself)
+  const deps = new Map<string, Set<string>>()
+  for (const [name, schema] of Object.entries(schemas)) {
+    const refs = new Set<string>()
+    collectRefsInto(schema, refs)
+    refs.delete(name) // self-references handled separately via z.lazy()
+    deps.set(name, new Set([...refs].filter((r) => knownNames.has(r))))
+  }
+
+  // Kahn's algorithm:
+  // inDegree[A] = number of not-yet-emitted schemas A depends on
+  // reverseDeps[B] = schemas that depend on B (decrement their in-degree when B is emitted)
+  const inDegree = new Map<string, number>()
+  const reverseDeps = new Map<string, Set<string>>()
+
+  for (const name of names) {
+    inDegree.set(name, deps.get(name)!.size)
+    reverseDeps.set(name, new Set())
+  }
+  for (const [name, depSet] of deps) {
+    for (const dep of depSet) {
+      reverseDeps.get(dep)!.add(name)
+    }
+  }
+
+  const queue = names.filter((n) => inDegree.get(n) === 0)
+  const sorted: string[] = []
+
+  while (queue.length > 0) {
+    const node = queue.shift()!
+    sorted.push(node)
+    for (const dependent of reverseDeps.get(node)!) {
+      const newDeg = inDegree.get(dependent)! - 1
+      inDegree.set(dependent, newDeg)
+      if (newDeg === 0) queue.push(dependent)
+    }
+  }
+
+  const sortedSet = new Set(sorted)
+  const cyclic = new Set(names.filter((n) => !sortedSet.has(n)))
+
+  return { sorted: [...sorted, ...cyclic], cyclic }
+}
+
+function generateSchemaDeclaration(name: string, schema: SchemaObject | ReferenceObject, inCycle = false): string {
+  const useLazy = inCycle || (!isRef(schema) && hasSelfRef(schema, name))
+
+  if (useLazy) {
+    // Wrap in z.lazy() for circular/self-referential schemas.
+    // z.lazy() defers evaluation until first use, by which point all
+    // schema variables are declared — safe even for mutual cycles.
     const inner = schemaToZod(schema)
     return `export const ${name}Schema: z.ZodType = z.lazy(() => ${inner})`
   }
@@ -253,8 +344,10 @@ export function generateZodSchemas(spec: OpenAPIV3_1.Document): GeneratedFile {
   ]
 
   if (schemas !== undefined) {
-    for (const [name, schema] of Object.entries(schemas)) {
-      lines.push(generateSchemaDeclaration(name, schema))
+    const { sorted, cyclic } = topoSortSchemas(schemas)
+    for (const name of sorted) {
+      const schema = schemas[name]!
+      lines.push(generateSchemaDeclaration(name, schema, cyclic.has(name)))
       lines.push('')
     }
   }
