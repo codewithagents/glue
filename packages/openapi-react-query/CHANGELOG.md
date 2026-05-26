@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.1.2](https://github.com/codewithagents/glue/compare/openapi-react-query-v3.1.1...openapi-react-query-v3.1.2) (2026-05-26)
+
+
+### Bug Fixes
+
+* **openapi-react-query:** key collision on multiple detail ops; options spread before onSuccess ([#115](https://github.com/codewithagents/glue/issues/115)) ([3181e15](https://github.com/codewithagents/glue/commit/3181e15ead7eb852de426182dadb9e9c95cd4919))
+
 ## [3.1.1](https://github.com/codewithagents/glue/compare/openapi-react-query-v3.1.0...openapi-react-query-v3.1.1) (2026-05-25)
 
 
