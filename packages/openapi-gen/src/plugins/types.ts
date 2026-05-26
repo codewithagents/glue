@@ -160,6 +160,11 @@ function isNumericEnum(schema: SchemaObject): boolean {
   return (schema.enum ?? []).every((v: unknown) => typeof v === 'number')
 }
 
+/** True when every enum value is a string (no numbers, no nulls). */
+function isStringEnum(schema: SchemaObject): boolean {
+  return (schema.enum ?? []).every((v: unknown) => typeof v === 'string')
+}
+
 function isObjectSchema(schema: SchemaObject): boolean {
   // Has allOf/anyOf/oneOf - treated as type alias
   if (schema.allOf !== undefined || schema.anyOf !== undefined || schema.oneOf !== undefined) {
@@ -214,8 +219,13 @@ function generateSchemaDeclaration(name: string, schema: SchemaObject | Referenc
       })
       .join(' | ')
     const typeDecl = `export type ${name} = ${union}`
-    // For pure numeric enums, also emit a values array so consumers can
-    // iterate valid values (e.g. to build a <select>) without inventing labels.
+    // Emit a values array for pure string and pure numeric enums so consumers can
+    // iterate valid values (e.g. to populate a <select>) without hardcoding them.
+    // Mixed enums (string + number, or containing null) intentionally get no array.
+    if (isStringEnum(schema)) {
+      const arr = (schema.enum as string[]).map(v => `'${v}'`).join(', ')
+      return `${typeDecl}\nexport const ${name}Values = [${arr}] as const`
+    }
     if (isNumericEnum(schema)) {
       const arr = (schema.enum as number[]).join(', ')
       return `${typeDecl}\nexport const ${name}Values = [${arr}] as const`

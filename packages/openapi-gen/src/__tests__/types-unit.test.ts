@@ -54,9 +54,10 @@ describe('nullable types (OpenAPI 3.1 array syntax)', () => {
 })
 
 describe('enum types', () => {
-  it('string enum → string literal union type alias', () => {
+  it('string enum → string literal union type alias + values array', () => {
     const out = genSingle('Status', { type: 'string', enum: ['active', 'inactive'] })
     expect(out).toContain("export type Status = 'active' | 'inactive'")
+    expect(out).toContain("export const StatusValues = ['active', 'inactive'] as const")
   })
   it('integer enum → number union type alias + values array', () => {
     const out = genSingle('Priority', { type: 'integer', enum: [1, 2, 3] })
