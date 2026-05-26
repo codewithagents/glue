@@ -35,6 +35,28 @@ describe('loadConfig', () => {
     expect(config.framework).toBe('hono')
   })
 
+  it('loads input_schema when provided', async () => {
+    writeConfig({ input_openapi: 'openapi.json', output: 'src/generated', input_schema: 'generated/schemas.ts' })
+    const config = await loadConfig(tmpDir)
+    expect(config.input_schema).toBe('generated/schemas.ts')
+  })
+
+  it('input_schema is undefined when not provided', async () => {
+    writeConfig({ input_openapi: 'openapi.json', output: 'src/generated' })
+    const config = await loadConfig(tmpDir)
+    expect(config.input_schema).toBeUndefined()
+  })
+
+  it('throws when input_schema is an empty string', async () => {
+    writeConfig({ input_openapi: 'openapi.json', output: 'src/generated', input_schema: '' })
+    await expect(loadConfig(tmpDir)).rejects.toThrow('"input_schema" must be a non-empty string')
+  })
+
+  it('throws when input_schema is a non-string value', async () => {
+    writeConfig({ input_openapi: 'openapi.json', output: 'src/generated', input_schema: 42 })
+    await expect(loadConfig(tmpDir)).rejects.toThrow('"input_schema" must be a non-empty string')
+  })
+
   it('loads a full config with framework: none', async () => {
     writeConfig({ input_openapi: 'openapi.json', output: 'src/server', framework: 'none' })
     const config = await loadConfig(tmpDir)
