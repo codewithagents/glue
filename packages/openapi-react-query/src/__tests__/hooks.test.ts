@@ -1180,3 +1180,87 @@ describe('query hook key builder — 2+ path params with query params', () => {
     expect(multiParamContent).toContain('projectId!, taskId!, params')
   })
 })
+
+// ── Edge cases: deprecated, no operationId, empty spec, multiple list ops ──────
+
+describe('generateHooks — edge cases', () => {
+  it('marks deprecated mutation hook with @deprecated JSDoc', () => {
+    const spec: OpenAPIV3_1.Document = {
+      openapi: '3.1.0',
+      info: { title: 'Test', version: '1.0.0' },
+      paths: {
+        '/pets': {
+          post: {
+            operationId: 'createPet',
+            deprecated: true,
+            requestBody: { required: true, content: { 'application/json': { schema: { type: 'object' } } } },
+            responses: { '201': { description: 'Created' } },
+          },
+        },
+      },
+    }
+    const { content: result } = generateHooks(spec, { staleTime: 0, gcTime: 0 })
+    expect(result).toContain('/** @deprecated */')
+  })
+
+  it('generates hook name from method+path when operationId is absent', () => {
+    const spec: OpenAPIV3_1.Document = {
+      openapi: '3.1.0',
+      info: { title: 'Test', version: '1.0.0' },
+      paths: {
+        '/pets/{id}': {
+          get: {
+            // no operationId
+            parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }],
+            responses: { '200': { description: 'ok' } },
+          },
+        },
+      },
+    }
+    const { content: result } = generateHooks(spec, { staleTime: 0, gcTime: 0 })
+    // Should have a hook function — exact name depends on deriveOperationName
+    expect(result).toContain('export function use')
+  })
+
+  it('generates valid output for spec with no operations', () => {
+    const spec: OpenAPIV3_1.Document = {
+      openapi: '3.1.0',
+      info: { title: 'Empty', version: '1.0.0' },
+      paths: {},
+    }
+    const { content: result } = generateHooks(spec, { staleTime: 0, gcTime: 0 })
+    expect(result).toContain("import { type ApiError } from './client.js'")
+    expect(result).not.toContain('export function use')
+  })
+
+  it('generates operation-derived key names when multiple list ops exist for same resource', () => {
+    // Two GET operations with no path params sharing the same primary resource "items"
+    // triggers the listOps.length > 1 branch in key factory generation
+    const spec: OpenAPIV3_1.Document = {
+      openapi: '3.1.0',
+      info: { title: 'Test', version: '1.0.0' },
+      paths: {
+        '/items': {
+          get: {
+            operationId: 'listItems',
+            responses: { '200': { description: 'ok', content: { 'application/json': { schema: { type: 'array', items: { type: 'object' } } } } } },
+          },
+        },
+        '/items/search': {
+          get: {
+            operationId: 'searchItems',
+            parameters: [{ name: 'q', in: 'query', schema: { type: 'string' } }],
+            responses: { '200': { description: 'ok', content: { 'application/json': { schema: { type: 'array', items: { type: 'object' } } } } } },
+          },
+        },
+      },
+    }
+    const { content: result } = generateHooks(spec, { staleTime: 0, gcTime: 0 })
+    // With multiple list ops, key factory uses operationId-derived keys, NOT generic 'list:'
+    expect(result).toContain('export const itemKeys')
+    expect(result).not.toContain('list:')
+    // Both operations should appear as named entries
+    expect(result).toContain('listItems:')
+    expect(result).toContain('searchItems:')
+  })
+})
