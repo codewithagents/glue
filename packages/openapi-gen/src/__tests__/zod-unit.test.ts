@@ -201,6 +201,48 @@ describe('composition types', () => {
   })
 })
 
+describe('schema emission order — topological sort', () => {
+  it('dependency emitted before dependent even when defined after it in the spec', () => {
+    // Platform is listed AFTER Request in the spec object — this is the bug scenario.
+    // Without topo-sort, RequestSchema references PlatformSchema before it is declared.
+    const out = gen({
+      Request: {
+        type: 'object',
+        properties: { platform: { $ref: '#/components/schemas/Platform' } },
+      },
+      Platform: { type: 'string', enum: ['DESKTOP', 'MWEB'] },
+    })
+    const platformIdx = out.indexOf('PlatformSchema =')
+    const requestIdx = out.indexOf('RequestSchema =')
+    expect(platformIdx).toBeGreaterThanOrEqual(0)
+    expect(requestIdx).toBeGreaterThanOrEqual(0)
+    expect(platformIdx).toBeLessThan(requestIdx)
+  })
+
+  it('chain of forward refs sorted leaves-first (C → B → A, defined in C B A order)', () => {
+    const out = gen({
+      C: { type: 'object', properties: { b: { $ref: '#/components/schemas/B' } } },
+      B: { type: 'object', properties: { a: { $ref: '#/components/schemas/A' } } },
+      A: { type: 'string' },
+    })
+    const aIdx = out.indexOf('ASchema =')
+    const bIdx = out.indexOf('BSchema =')
+    const cIdx = out.indexOf('CSchema =')
+    expect(aIdx).toBeLessThan(bIdx)
+    expect(bIdx).toBeLessThan(cIdx)
+  })
+
+  it('already-sorted schemas remain stable', () => {
+    const out = gen({
+      Status: { type: 'string', enum: ['a', 'b'] },
+      Task: { type: 'object', properties: { status: { $ref: '#/components/schemas/Status' } } },
+    })
+    const statusIdx = out.indexOf('StatusSchema =')
+    const taskIdx = out.indexOf('TaskSchema =')
+    expect(statusIdx).toBeLessThan(taskIdx)
+  })
+})
+
 describe('circular / self-referential schemas', () => {
   it('wraps self-referential schema in z.lazy()', () => {
     const out = gen({
@@ -214,6 +256,18 @@ describe('circular / self-referential schemas', () => {
     })
     expect(out).toContain('z.lazy(')
     expect(out).toContain('TreeNodeSchema')
+  })
+
+  it('mutually circular schemas (A ↔ B) are both wrapped in z.lazy()', () => {
+    const out = gen({
+      A: { type: 'object', properties: { b: { $ref: '#/components/schemas/B' } } },
+      B: { type: 'object', properties: { a: { $ref: '#/components/schemas/A' } } },
+    })
+    // Both must be lazy so they can reference each other safely
+    const aDecl = out.match(/export const ASchema[^=]*=.*/)
+    const bDecl = out.match(/export const BSchema[^=]*=.*/)
+    expect(aDecl?.[0]).toContain('z.lazy(')
+    expect(bDecl?.[0]).toContain('z.lazy(')
   })
 
   it('non-circular schema is NOT wrapped in z.lazy()', () => {
