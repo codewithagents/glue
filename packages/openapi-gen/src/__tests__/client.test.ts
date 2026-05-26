@@ -959,3 +959,151 @@ describe('coverage: getReturnType no-successful-response fallback (line 153)', (
     expect(out).toContain('Promise<void>')
   })
 })
+
+describe('schema-enhanced client generation', () => {
+  // A minimal spec with $ref request body and $ref response
+  const petSpec: OpenAPIV3_1.Document = {
+    openapi: '3.1.0',
+    info: { title: 'Pet API', version: '1' },
+    paths: {
+      '/pets': {
+        get: {
+          operationId: 'listPets',
+          responses: {
+            '200': {
+              description: 'list of pets',
+              content: {
+                'application/json': {
+                  schema: { type: 'array', items: { $ref: '#/components/schemas/Pet' } },
+                },
+              },
+            },
+          },
+        },
+        post: {
+          operationId: 'createPet',
+          requestBody: {
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/CreatePetRequest' },
+              },
+            },
+          },
+          responses: {
+            '201': {
+              description: 'created pet',
+              content: {
+                'application/json': {
+                  schema: { $ref: '#/components/schemas/Pet' },
+                },
+              },
+            },
+          },
+        },
+      },
+      '/pets/{id}': {
+        get: {
+          operationId: 'getPet',
+          parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }],
+          responses: {
+            '200': {
+              description: 'a pet',
+              content: {
+                'application/json': {
+                  schema: { $ref: '#/components/schemas/Pet' },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    components: {
+      schemas: {
+        Pet: {
+          type: 'object',
+          required: ['id', 'name'],
+          properties: {
+            id: { type: 'integer' },
+            name: { type: 'string' },
+          },
+        },
+        CreatePetRequest: {
+          type: 'object',
+          required: ['name'],
+          properties: {
+            name: { type: 'string' },
+            species: { type: 'string' },
+          },
+        },
+      },
+    },
+  }
+
+  it('without schema options: no Zod validation injected', () => {
+    const out = generateClient(petSpec).content
+    expect(out).not.toContain('.parse(')
+    expect(out).toContain('return res.json()')
+  })
+
+  it('with schema options: request body gets Schema.parse(body) before fetch', () => {
+    const out = generateClient(petSpec, {
+      schemaNames: new Set(['CreatePetRequestSchema', 'PetSchema']),
+      schemaImportPath: './schemas.js',
+    }).content
+    expect(out).toContain('CreatePetRequestSchema.parse(body)')
+  })
+
+  it('with schema options: single-object response gets Schema.parse(await res.json())', () => {
+    const out = generateClient(petSpec, {
+      schemaNames: new Set(['CreatePetRequestSchema', 'PetSchema']),
+      schemaImportPath: './schemas.js',
+    }).content
+    // getPet and createPet both return Pet — should validate
+    expect(out).toContain('PetSchema.parse(await res.json())')
+  })
+
+  it('with schema options: array response gets z.array(Schema).parse(await res.json())', () => {
+    const out = generateClient(petSpec, {
+      schemaNames: new Set(['PetSchema']),
+      schemaImportPath: './schemas.js',
+    }).content
+    // listPets returns array of Pet — should use z.array
+    expect(out).toContain('z.array(PetSchema).parse(await res.json())')
+  })
+
+  it('with schema options: imports z from zod for array validation', () => {
+    const out = generateClient(petSpec, {
+      schemaNames: new Set(['PetSchema']),
+      schemaImportPath: './schemas.js',
+    }).content
+    expect(out).toContain("import { z } from 'zod'")
+  })
+
+  it('with schema options: imports schema names from schemaImportPath', () => {
+    const out = generateClient(petSpec, {
+      schemaNames: new Set(['PetSchema', 'CreatePetRequestSchema']),
+      schemaImportPath: './schemas.js',
+    }).content
+    expect(out).toContain("from './schemas.js'")
+    expect(out).toContain('PetSchema')
+    expect(out).toContain('CreatePetRequestSchema')
+  })
+
+  it('drift-safe: no validation when schemaName not in schemaNames set', () => {
+    // Only PetSchema provided — CreatePetRequestSchema absent (drift scenario)
+    const out = generateClient(petSpec, {
+      schemaNames: new Set(['PetSchema']),
+      schemaImportPath: './schemas.js',
+    }).content
+    // Request body (CreatePetRequest) not in schemaNames — no parse call
+    expect(out).not.toContain('CreatePetRequestSchema.parse(body)')
+  })
+
+  it('without schema options: falls back to res.json() for all responses', () => {
+    const out = generateClient(petSpec).content
+    // All success responses should use res.json() without z.array wrapper
+    const matches = out.match(/return res\.json\(\)/g) ?? []
+    expect(matches.length).toBeGreaterThan(0)
+  })
+})

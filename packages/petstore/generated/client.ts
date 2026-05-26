@@ -2,6 +2,8 @@
 
 import type { CreatePetRequest, Pet } from './models.js'
 import { getConfig, type ClientConfig } from './client-config.js'
+import { z } from 'zod'
+import { CreatePetRequestSchema, PetSchema } from './schemas.js'
 
 export class ApiError extends Error {
   constructor(
@@ -37,7 +39,7 @@ export async function listPets(params?: {
     onError?.(err)
     throw err
   }
-  return res.json()
+  return z.array(PetSchema).parse(await res.json())
 }
 
 export async function createPet(body: CreatePetRequest, config?: Partial<ClientConfig>): Promise<Pet> {
@@ -46,6 +48,7 @@ export async function createPet(body: CreatePetRequest, config?: Partial<ClientC
   const fullUrl = `${base}/pets`
   const finalUrl = fullUrl
   const resolvedToken = typeof token === 'function' ? await token() : token
+  CreatePetRequestSchema.parse(body)
   const res = await fetch(finalUrl, {
     method: 'POST',
     credentials,
@@ -61,7 +64,7 @@ export async function createPet(body: CreatePetRequest, config?: Partial<ClientC
     onError?.(err)
     throw err
   }
-  return res.json()
+  return PetSchema.parse(await res.json())
 }
 
 export async function getPet(id: string, config?: Partial<ClientConfig>): Promise<Pet> {
@@ -83,7 +86,7 @@ export async function getPet(id: string, config?: Partial<ClientConfig>): Promis
     onError?.(err)
     throw err
   }
-  return res.json()
+  return PetSchema.parse(await res.json())
 }
 
 export async function deletePet(id: string, config?: Partial<ClientConfig>): Promise<void> {

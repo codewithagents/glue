@@ -1,5 +1,5 @@
-import { access, mkdir, writeFile } from 'node:fs/promises'
-import { join, resolve } from 'node:path'
+import { access, mkdir, readFile, writeFile } from 'node:fs/promises'
+import { join, relative, resolve } from 'node:path'
 import { loadConfig } from './config.js'
 import { parseSpec } from './parser.js'
 import { generateTypes } from './plugins/types.js'
@@ -60,6 +60,34 @@ export async function generate(cwd: string, configPath?: string): Promise<void> 
 
     if (schemaExists) {
       console.log(`Skipping ${config.input_schema} — already exists (edit freely, it's yours).`)
+
+      // Phase 5: Schema-enhanced generation — re-generate models.ts and client.ts with Zod integration
+      const content = await readFile(schemaPath, 'utf-8')
+      const exportedSchemas = new Set<string>()
+      for (const match of content.matchAll(/^export\s+const\s+(\w+Schema)\b/gm)) {
+        exportedSchemas.add(match[1]!)
+      }
+
+      // Drift detection — warn to stderr for missing schemas
+      const specSchemaNames = Object.keys(spec.components?.schemas ?? {})
+      for (const name of specSchemaNames) {
+        if (!exportedSchemas.has(`${name}Schema`)) {
+          console.warn(`⚠  Drift: ${name}Schema is in the OpenAPI spec but not found in ${config.input_schema}. Run with --reset-schema to re-bootstrap.`)
+        }
+      }
+
+      // Compute relative import path for use in generated imports
+      const relPath = relative(outputDir, schemaPath)
+      // 'schemas.ts' -> './schemas.js', '../schemas.ts' -> '../schemas.js'
+      const schemaImportPath = (relPath.startsWith('.') ? '' : './') + relPath.replace(/\.ts$/, '.js')
+
+      // Re-generate (overwrite) models.ts and client.ts with schema-enhanced versions
+      const enhancedTypes = generateTypes(spec, { schemaNames: exportedSchemas, schemaImportPath })
+      const enhancedClient = generateClient(spec, { schemaNames: exportedSchemas, schemaImportPath })
+      await writeFile(join(outputDir, enhancedTypes.filename), enhancedTypes.content, 'utf-8')
+      await writeFile(join(outputDir, enhancedClient.filename), enhancedClient.content, 'utf-8')
+      console.log(`  ✓ models.ts (schema-enhanced — types from z.infer)`)
+      console.log(`  ✓ client.ts (schema-enhanced — Zod validation added)`)
     } else {
       const zodFile = generateZodSchemas(spec)
       await writeFile(schemaPath, zodFile.content, 'utf-8')
