@@ -2,5 +2,5 @@
   "packages/api-errors": "1.0.1",
   "packages/openapi-gen": "3.2.0",
   "packages/openapi-react-query": "3.1.1",
-  "packages/openapi-server": "0.2.1"
+  "packages/openapi-server": "0.3.0"
 }

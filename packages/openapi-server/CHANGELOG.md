@@ -1,6 +1,11 @@
 # Changelog
 
-## [0.2.1](https://github.com/codewithagents/glue/compare/openapi-server-v0.2.0...openapi-server-v0.2.1) (2026-05-26)
+## [0.3.0](https://github.com/codewithagents/glue/compare/openapi-server-v0.2.0...openapi-server-v0.3.0) (2026-05-26)
+
+
+### Features
+
+* **openapi-server:** Zod request validation via input_schema + YAML spec support ([#102](https://github.com/codewithagents/glue/issues/102)) ([5d9276e](https://github.com/codewithagents/glue/commit/5d9276e55807e68a3ccce7a85b9950bd90242561))
 
 
 ### Bug Fixes
