@@ -1,2 +1,33 @@
 packages:
   - 'packages/*'
+
+catalog:
+  # Test tooling — used across all packages
+  vitest: ^4.1.7
+  '@vitest/coverage-v8': ^4.1.7
+
+  # TypeScript
+  typescript: ^6.0.0
+
+  # Node types
+  '@types/node': ^22.0.0
+
+  # OpenAPI
+  openapi-types: ^12.1.3
+
+  # Property-based testing
+  fast-check: ^4.8.0
+
+  # Bundler (CLI packages)
+  esbuild: ^0.25.0
+
+  # Mutation testing
+  '@stryker-mutator/core': ^9.6.1
+  '@stryker-mutator/vitest-runner': ^9.6.1
+
+  # React ecosystem (integration + petstore)
+  react: ^19.0.0
+  react-dom: ^19.0.0
+  '@types/react': ^19.0.0
+  '@types/react-dom': ^19.0.0
+  '@tanstack/react-query': ^5.0.0

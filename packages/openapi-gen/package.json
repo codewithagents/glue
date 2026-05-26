@@ -26,17 +26,17 @@
   },
   "dependencies": {
     "@apidevtools/swagger-parser": "^10.1.1",
-    "openapi-types": "^12.1.3"
+    "openapi-types": "catalog:"
   },
   "devDependencies": {
-    "@stryker-mutator/core": "^9.6.1",
-    "esbuild": "^0.25.0",
-    "@stryker-mutator/vitest-runner": "^9.6.1",
-    "@types/node": "^22.0.0",
-    "@vitest/coverage-v8": "^4.0.0",
-    "fast-check": "^4.0.0",
-    "typescript": "^6.0.0",
-    "vitest": "^4.0.0"
+    "@stryker-mutator/core": "catalog:",
+    "@stryker-mutator/vitest-runner": "catalog:",
+    "@types/node": "catalog:",
+    "@vitest/coverage-v8": "catalog:",
+    "esbuild": "catalog:",
+    "fast-check": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
   },
   "license": "MIT",
   "repository": {
