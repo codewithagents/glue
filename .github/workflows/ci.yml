@@ -30,6 +30,7 @@ jobs:
       - run: pnpm --filter @codewithagents/api-errors run test:coverage
       - run: pnpm --filter @codewithagents/openapi-gen run test:coverage
       - run: pnpm --filter @codewithagents/openapi-react-query run test:coverage
+      - run: pnpm --filter @codewithagents/openapi-server run test:coverage
 
       - name: Upload coverage to Codecov (api-errors)
         uses: codecov/codecov-action@v5
@@ -50,4 +51,11 @@ jobs:
         with:
           files: ./packages/openapi-react-query/coverage/lcov.info
           flags: openapi-react-query
+          fail_ci_if_error: false
+
+      - name: Upload coverage to Codecov (openapi-server)
+        uses: codecov/codecov-action@v5
+        with:
+          files: ./packages/openapi-server/coverage/lcov.info
+          flags: openapi-server
           fail_ci_if_error: false
