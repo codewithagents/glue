@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.3.0](https://github.com/codewithagents/glue/compare/openapi-gen-v3.2.0...openapi-gen-v3.3.0) (2026-05-26)
+
+
+### Features
+
+* **openapi-gen:** emit XxxValues array for string enums ([#108](https://github.com/codewithagents/glue/issues/108)) ([d225f26](https://github.com/codewithagents/glue/commit/d225f2698083196b98b875009a20f3eb21b7b32a))
+
 ## [3.2.0](https://github.com/codewithagents/glue/compare/openapi-gen-v3.1.1...openapi-gen-v3.2.0) (2026-05-26)
 
 
