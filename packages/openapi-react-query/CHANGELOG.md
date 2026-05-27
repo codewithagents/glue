@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.1.3](https://github.com/codewithagents/glue/compare/openapi-react-query-v3.1.2...openapi-react-query-v3.1.3) (2026-05-27)
+
+
+### Bug Fixes
+
+* **openapi-react-query:** document key collision and onSuccess ordering decisions ([#121](https://github.com/codewithagents/glue/issues/121)) ([0336b7a](https://github.com/codewithagents/glue/commit/0336b7a84af79d9e893a94d14f7402dc6f36eb85))
+
 ## [3.1.2](https://github.com/codewithagents/glue/compare/openapi-react-query-v3.1.1...openapi-react-query-v3.1.2) (2026-05-26)
 
 
