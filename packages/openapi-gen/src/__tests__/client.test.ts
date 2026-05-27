@@ -1109,3 +1109,117 @@ describe('schema-enhanced client generation', () => {
     expect(matches.length).toBeGreaterThan(0)
   })
 })
+
+describe('_request helper: shared fetch abstraction (issue #124)', () => {
+  // Design: two private helpers
+  //   _request     — handles all JSON/no-body endpoints (always emitted when spec has endpoints)
+  //   _requestForm — handles multipart/form-data endpoints (only emitted when spec has them)
+  // Tree-shaking: _requestForm is absent from generated code for specs with no multipart endpoints.
+
+  let taskContent: string     // no multipart → only _request emitted
+  let showcaseContent: string // has multipart → both _request and _requestForm emitted
+
+  beforeAll(async () => {
+    const taskSpec = await parseSpec(taskApiFixture)
+    taskContent = generateClient(taskSpec).content
+
+    const showcaseSpec = await parseSpec(featureShowcaseFixture)
+    showcaseContent = generateClient(showcaseSpec).content
+  })
+
+  // --- Structural: helpers not exported, fetch/config not duplicated per endpoint ---
+
+  it('emits _request helper in a spec with JSON endpoints', () => {
+    expect(taskContent).toContain('async function _request(')
+  })
+
+  it('_request is not exported (private to the generated module)', () => {
+    expect(taskContent).not.toContain('export async function _request(')
+  })
+
+  it('emits _requestForm only for specs that have multipart endpoints', () => {
+    // showcase has uploadFile (multipart) → _requestForm is present
+    expect(showcaseContent).toContain('async function _requestForm(')
+    // task-api has no multipart → _requestForm is absent (tree-shaking benefit)
+    expect(taskContent).not.toContain('_requestForm')
+  })
+
+  it('_requestForm is not exported (private to the generated module)', () => {
+    expect(showcaseContent).not.toContain('export async function _requestForm(')
+  })
+
+  it('fetch is called exactly once in specs without multipart (only inside _request)', () => {
+    // Before refactor: N endpoint functions × 1 fetch each = N occurrences
+    // After refactor: only _request calls fetch = 1 occurrence
+    const count = (taskContent.match(/await fetch\(/g) ?? []).length
+    expect(count).toBe(1)
+  })
+
+  it('getConfig() is called exactly once in specs without multipart (only inside _request)', () => {
+    // Before refactor: getConfig() duplicated in every endpoint function
+    // After refactor: only _request calls getConfig()
+    const count = (taskContent.match(/getConfig\(\)/g) ?? []).length
+    expect(count).toBe(1)
+  })
+
+  // --- Endpoint functions delegate to the correct helper ---
+
+  it('JSON GET endpoint delegates to _request', () => {
+    expect(taskContent).toContain("_request('GET'")
+  })
+
+  it('JSON POST endpoint delegates to _request', () => {
+    expect(taskContent).toContain("_request('POST'")
+  })
+
+  it('DELETE endpoint delegates to _request', () => {
+    expect(taskContent).toContain("_request('DELETE'")
+  })
+
+  it('void endpoint does not call res.json()', () => {
+    // deleteTask returns void — just await _request(...), no res.json()
+    const deleteFnMatch = taskContent.match(/export async function deleteTask[\s\S]*?^\}/m)
+    expect(deleteFnMatch).toBeTruthy()
+    expect(deleteFnMatch![0]).not.toContain('res.json()')
+  })
+
+  it('non-void endpoint calls res.json() to parse the response', () => {
+    expect(taskContent).toContain('res.json()')
+  })
+
+  it('query params are built as URLSearchParams and forwarded to _request', () => {
+    expect(taskContent).toContain('new URLSearchParams()')
+    expect(taskContent).toContain('searchParams')
+  })
+
+  it('header params are forwarded as extraHeaders option to _request', () => {
+    // feature-showcase has an endpoint with X-Stripe-Signature header param
+    expect(showcaseContent).toContain('extraHeaders')
+  })
+
+  it('multipart endpoint delegates to _requestForm, not inline fetch', () => {
+    // feature-showcase uploadFile should call _requestForm(...)
+    expect(showcaseContent).toContain('_requestForm(')
+  })
+
+  // --- TypeScript still compiles after refactor ---
+
+  it('refactored task-api client compiles without TypeScript errors', async () => {
+    const spec = await parseSpec(taskApiFixture)
+    const diagnostics = compileFiles({
+      'models.ts': generateTypes(spec).content,
+      'client-config.ts': generateClientConfig().content,
+      'client.ts': generateClient(spec).content,
+    })
+    expect(diagnostics.length).toBe(0)
+  })
+
+  it('refactored feature-showcase client compiles without TypeScript errors', async () => {
+    const spec = await parseSpec(featureShowcaseFixture)
+    const diagnostics = compileFiles({
+      'client-config.ts': generateClientConfig().content,
+      'client.ts': generateClient(spec).content,
+    })
+    expect(diagnostics.length).toBe(0)
+  })
+})

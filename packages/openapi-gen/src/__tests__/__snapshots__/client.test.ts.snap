@@ -16,149 +16,74 @@ export class ApiError extends Error {
   }
 }
 
+async function _request(
+  method: string,
+  path: string,
+  opts: {
+    searchParams?: URLSearchParams
+    body?: unknown
+    extraHeaders?: Record<string, string>
+  },
+  config?: Partial<ClientConfig>,
+): Promise<Response> {
+  const { baseUrl, token, credentials, headers, onError } = { ...getConfig(), ...config }
+  const base = baseUrl ? baseUrl.replace(/\\/$/, '') : ''
+  const qs = opts.searchParams?.toString() ?? ''
+  const url = qs ? \`\${base}\${path}?\${qs}\` : \`\${base}\${path}\`
+  const resolvedToken = typeof token === 'function' ? await token() : token
+  const res = await fetch(url, {
+    method,
+    credentials,
+    headers: {
+      ...(opts.body !== undefined ? { 'Content-Type': 'application/json' } : {}),
+      ...headers,
+      ...(resolvedToken ? { Authorization: \`Bearer \${resolvedToken}\` } : {}),
+      ...opts.extraHeaders,
+    },
+    ...(opts.body !== undefined ? { body: JSON.stringify(opts.body) } : {}),
+  })
+  if (!res.ok) {
+    const err = new ApiError(res.status, await res.json().catch(() => null))
+    onError?.(err)
+    throw err
+  }
+  return res
+}
+
 export async function getTasks(params: {
   page: number
   status?: string
   done?: boolean
 }, config?: Partial<ClientConfig>): Promise<Task[]> {
-  const { baseUrl, token, credentials, headers, onError } = { ...getConfig(), ...config }
-  const base = baseUrl ? baseUrl.replace(/\\/$/, '') : ''
-  const fullUrl = \`\${base}/api/v1/tasks\`
   const searchParams = new URLSearchParams()
   if (params?.page != null) searchParams.set('page', String(params.page))
   if (params?.status != null) searchParams.set('status', String(params.status))
   if (params?.done != null) searchParams.set('done', String(params.done))
-  const qs = searchParams.toString()
-  const finalUrl = qs ? \`\${fullUrl}?\${qs}\` : fullUrl
-  const resolvedToken = typeof token === 'function' ? await token() : token
-  const res = await fetch(finalUrl, {
-    method: 'GET',
-    credentials,
-    headers: {
-      ...headers,
-      ...(resolvedToken ? { Authorization: \`Bearer \${resolvedToken}\` } : {}),
-    },
-  })
-  if (!res.ok) {
-    const err = new ApiError(res.status, await res.json().catch(() => null))
-    onError?.(err)
-    throw err
-  }
+  const res = await _request('GET', '/api/v1/tasks', { searchParams }, config)
   return res.json()
 }
 
 export async function createTask(body: CreateTaskRequest, config?: Partial<ClientConfig>): Promise<Task> {
-  const { baseUrl, token, credentials, headers, onError } = { ...getConfig(), ...config }
-  const base = baseUrl ? baseUrl.replace(/\\/$/, '') : ''
-  const fullUrl = \`\${base}/api/v1/tasks\`
-  const finalUrl = fullUrl
-  const resolvedToken = typeof token === 'function' ? await token() : token
-  const res = await fetch(finalUrl, {
-    method: 'POST',
-    credentials,
-    headers: {
-      'Content-Type': 'application/json',
-      ...headers,
-      ...(resolvedToken ? { Authorization: \`Bearer \${resolvedToken}\` } : {}),
-    },
-    body: JSON.stringify(body),
-  })
-  if (!res.ok) {
-    const err = new ApiError(res.status, await res.json().catch(() => null))
-    onError?.(err)
-    throw err
-  }
+  const res = await _request('POST', '/api/v1/tasks', { body }, config)
   return res.json()
 }
 
 export async function getTaskById(id: string, config?: Partial<ClientConfig>): Promise<Task> {
-  const { baseUrl, token, credentials, headers, onError } = { ...getConfig(), ...config }
-  const base = baseUrl ? baseUrl.replace(/\\/$/, '') : ''
-  const fullUrl = \`\${base}/api/v1/tasks/\${encodeURIComponent(id)}\`
-  const finalUrl = fullUrl
-  const resolvedToken = typeof token === 'function' ? await token() : token
-  const res = await fetch(finalUrl, {
-    method: 'GET',
-    credentials,
-    headers: {
-      ...headers,
-      ...(resolvedToken ? { Authorization: \`Bearer \${resolvedToken}\` } : {}),
-    },
-  })
-  if (!res.ok) {
-    const err = new ApiError(res.status, await res.json().catch(() => null))
-    onError?.(err)
-    throw err
-  }
+  const res = await _request('GET', \`/api/v1/tasks/\${encodeURIComponent(id)}\`, {}, config)
   return res.json()
 }
 
 export async function updateTask(id: string, body: CreateTaskRequest, config?: Partial<ClientConfig>): Promise<Task> {
-  const { baseUrl, token, credentials, headers, onError } = { ...getConfig(), ...config }
-  const base = baseUrl ? baseUrl.replace(/\\/$/, '') : ''
-  const fullUrl = \`\${base}/api/v1/tasks/\${encodeURIComponent(id)}\`
-  const finalUrl = fullUrl
-  const resolvedToken = typeof token === 'function' ? await token() : token
-  const res = await fetch(finalUrl, {
-    method: 'PUT',
-    credentials,
-    headers: {
-      'Content-Type': 'application/json',
-      ...headers,
-      ...(resolvedToken ? { Authorization: \`Bearer \${resolvedToken}\` } : {}),
-    },
-    body: JSON.stringify(body),
-  })
-  if (!res.ok) {
-    const err = new ApiError(res.status, await res.json().catch(() => null))
-    onError?.(err)
-    throw err
-  }
+  const res = await _request('PUT', \`/api/v1/tasks/\${encodeURIComponent(id)}\`, { body }, config)
   return res.json()
 }
 
 export async function deleteTask(id: string, config?: Partial<ClientConfig>): Promise<void> {
-  const { baseUrl, token, credentials, headers, onError } = { ...getConfig(), ...config }
-  const base = baseUrl ? baseUrl.replace(/\\/$/, '') : ''
-  const fullUrl = \`\${base}/api/v1/tasks/\${encodeURIComponent(id)}\`
-  const finalUrl = fullUrl
-  const resolvedToken = typeof token === 'function' ? await token() : token
-  const res = await fetch(finalUrl, {
-    method: 'DELETE',
-    credentials,
-    headers: {
-      ...headers,
-      ...(resolvedToken ? { Authorization: \`Bearer \${resolvedToken}\` } : {}),
-    },
-  })
-  if (!res.ok) {
-    const err = new ApiError(res.status, null)
-    onError?.(err)
-    throw err
-  }
+  await _request('DELETE', \`/api/v1/tasks/\${encodeURIComponent(id)}\`, {}, config)
 }
 
 export async function addTagToTask(id: string, body: Tag, config?: Partial<ClientConfig>): Promise<Task> {
-  const { baseUrl, token, credentials, headers, onError } = { ...getConfig(), ...config }
-  const base = baseUrl ? baseUrl.replace(/\\/$/, '') : ''
-  const fullUrl = \`\${base}/api/v1/tasks/\${encodeURIComponent(id)}/tags\`
-  const finalUrl = fullUrl
-  const resolvedToken = typeof token === 'function' ? await token() : token
-  const res = await fetch(finalUrl, {
-    method: 'POST',
-    credentials,
-    headers: {
-      'Content-Type': 'application/json',
-      ...headers,
-      ...(resolvedToken ? { Authorization: \`Bearer \${resolvedToken}\` } : {}),
-    },
-    body: JSON.stringify(body),
-  })
-  if (!res.ok) {
-    const err = new ApiError(res.status, await res.json().catch(() => null))
-    onError?.(err)
-    throw err
-  }
+  const res = await _request('POST', \`/api/v1/tasks/\${encodeURIComponent(id)}/tags\`, { body }, config)
   return res.json()
 }
 "
