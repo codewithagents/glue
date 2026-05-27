@@ -25,6 +25,7 @@ Generate TypeScript models, native fetch client, and Zod schemas from an OpenAPI
 - **`getRequestBodyInfo()`** — returns `{ typeName, kind: 'json' | 'multipart', multipartFields? }`; multipart generates `FormData` building code
 - **Array query params** — `searchParams.append` in `for...of` loop (not `set`) for `string[]`/`number[]`
 - **Header params** — `headerNameToCamelCase()` converts `X-My-Header` → `xMyHeader`; merged into `params`, spread into fetch headers
+- **Zod schema ordering** (`zod.ts` plugin) — schemas are topologically sorted before emission so dependencies always precede their dependents; mutual cycles are detected via Kahn's algorithm and both schemas wrapped in `z.lazy()`
 
 ## Config
 Default: `openapi-gen.config.json` in CWD. `--config <path>` resolves relative paths from config file's directory.
