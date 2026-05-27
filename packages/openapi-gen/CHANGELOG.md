@@ -1,5 +1,17 @@
 # Changelog
 
+## [4.0.0](https://github.com/codewithagents/glue/compare/openapi-gen-v3.5.0...openapi-gen-v4.0.0) (2026-05-27)
+
+
+### ⚠ BREAKING CHANGES
+
+* generated files are now Prettier-formatted. Re-generate after upgrading if you run prettier --check on committed output.
+
+### Features
+
+* format generated output with Prettier; ESLint validation in integration ([#131](https://github.com/codewithagents/glue/issues/131)) ([c1db744](https://github.com/codewithagents/glue/commit/c1db744c677655d541a943122f16e00dab6373e3))
+* YAML/Zod pipeline tests + openapi-server Prettier and 1.0.0 ([#133](https://github.com/codewithagents/glue/issues/133)) ([8ec2f1e](https://github.com/codewithagents/glue/commit/8ec2f1ec17486fc3645939e515cbb401500927f3))
+
 ## [3.5.0](https://github.com/codewithagents/glue/compare/openapi-gen-v3.4.0...openapi-gen-v3.5.0) (2026-05-27)
 
 
