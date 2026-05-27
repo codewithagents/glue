@@ -7,7 +7,7 @@
     "generate": "openapi-gen --config openapi-gen.config.json",
     "generate:hooks": "openapi-react-query --config openapi-react-query.config.json",
     "test": "vitest run",
-    "lint": "tsc --noEmit"
+    "lint": "tsc --noEmit && eslint generated/"
   },
   "dependencies": {
     "@codewithagents/api-errors": "workspace:*",
@@ -17,9 +17,12 @@
   "devDependencies": {
     "@tanstack/react-query": "catalog:",
     "@testing-library/react": "^16.0.0",
+    "@typescript-eslint/eslint-plugin": "catalog:",
+    "@typescript-eslint/parser": "catalog:",
     "@types/node": "catalog:",
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",
+    "eslint": "catalog:",
     "jsdom": "^26.0.0",
     "msw": "^2.14.6",
     "react": "catalog:",

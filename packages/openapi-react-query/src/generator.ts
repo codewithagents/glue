@@ -5,6 +5,12 @@ import { loadConfig } from './config.js'
 import { generateHooks } from './plugins/hooks.js'
 import { generateTestUtils } from './plugins/test-utils.js'
 
+async function formatTs(content: string, filePath: string): Promise<string> {
+  const { format, resolveConfig } = await import('prettier')
+  const config = await resolveConfig(filePath)
+  return format(content, { ...config, parser: 'typescript' })
+}
+
 export async function generate(cwd: string, configPath?: string): Promise<void> {
   const config = await loadConfig(cwd, configPath)
   const inputPath = resolve(cwd, config.input_openapi)
@@ -38,7 +44,7 @@ export async function generate(cwd: string, configPath?: string): Promise<void> 
   await mkdir(outputDir, { recursive: true })
   for (const file of files) {
     const filePath = join(outputDir, file.filename)
-    await writeFile(filePath, file.content, 'utf-8')
+    await writeFile(filePath, await formatTs(file.content, filePath), 'utf-8')
     console.log(`✓ ${file.filename}`)
   }
 }

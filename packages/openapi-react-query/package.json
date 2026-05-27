@@ -19,7 +19,8 @@
   },
   "dependencies": {
     "@codewithagents/openapi-gen": "workspace:*",
-    "openapi-types": "catalog:"
+    "openapi-types": "catalog:",
+    "prettier": "catalog:"
   },
   "peerDependencies": {
     "@tanstack/react-query": "^5.0.0"
