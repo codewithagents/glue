@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.2.0](https://github.com/codewithagents/glue/compare/openapi-react-query-v3.1.3...openapi-react-query-v3.2.0) (2026-05-27)
+
+
+### Features
+
+* **openapi-react-query:** always generate test-utils.ts with zero new dependencies ([#127](https://github.com/codewithagents/glue/issues/127)) ([8fccceb](https://github.com/codewithagents/glue/commit/8fccceb74e6f8f2fd13202abbe27df7816a95118)), closes [#123](https://github.com/codewithagents/glue/issues/123)
+
 ## [3.1.3](https://github.com/codewithagents/glue/compare/openapi-react-query-v3.1.2...openapi-react-query-v3.1.3) (2026-05-27)
 
 
