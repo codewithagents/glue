@@ -22,23 +22,18 @@ async function _request(
   opts: {
     searchParams?: URLSearchParams
     body?: unknown
-    extraHeaders?: Record<string, string>
   },
   config?: Partial<ClientConfig>,
 ): Promise<Response> {
-  const { baseUrl, token, credentials, headers, onError } = { ...getConfig(), ...config }
+  const { baseUrl, headers, onError } = { ...getConfig(), ...config }
   const base = baseUrl ? baseUrl.replace(/\\/$/, '') : ''
   const qs = opts.searchParams?.toString() ?? ''
   const url = qs ? \`\${base}\${path}?\${qs}\` : \`\${base}\${path}\`
-  const resolvedToken = typeof token === 'function' ? await token() : token
   const res = await fetch(url, {
     method,
-    credentials,
     headers: {
       ...(opts.body !== undefined ? { 'Content-Type': 'application/json' } : {}),
       ...headers,
-      ...(resolvedToken ? { Authorization: \`Bearer \${resolvedToken}\` } : {}),
-      ...opts.extraHeaders,
     },
     ...(opts.body !== undefined ? { body: JSON.stringify(opts.body) } : {}),
   })

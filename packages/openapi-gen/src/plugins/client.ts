@@ -373,39 +373,90 @@ function getResponseSchemaName(operation: OperationObject): { name: string; isAr
   return undefined
 }
 
+/** Features derived from the spec that drive conditional code-gen in the helpers. */
+interface HelperFeatures {
+  /** Spec declares Bearer / OAuth / apiKey-in-header|query auth → emit token resolution + Authorization header */
+  hasBearerAuth: boolean
+  /** Spec declares apiKey-in-cookie auth → emit `credentials` in fetch */
+  hasCookieAuth: boolean
+  /** Any endpoint has `in: header` parameters → emit `extraHeaders` in opts */
+  hasHeaderParams: boolean
+  /** Any endpoint is multipart/form-data → emit `_requestForm` helper */
+  hasMultipart: boolean
+}
+
+/** Returns true when the spec has any non-cookie security scheme or a global/operation-level security requirement. */
+function detectBearerAuth(spec: OpenAPIV3_1.Document): boolean {
+  // Global security requirement declared — treat as auth needed
+  if (Array.isArray(spec.security) && spec.security.length > 0) return true
+
+  // Any per-operation security override
+  const paths = spec.paths as Record<string, Record<string, OperationObject>> | undefined
+  if (paths !== undefined) {
+    for (const pathItem of Object.values(paths)) {
+      for (const method of SUPPORTED_METHODS) {
+        const op = pathItem[method] as OperationObject | undefined
+        if (op !== undefined && Array.isArray(op.security) && op.security.length > 0) return true
+      }
+    }
+  }
+
+  // Non-cookie security scheme defined in components
+  const schemes = spec.components?.securitySchemes
+  if (!schemes) return false
+  return Object.values(schemes).some((s) => {
+    if (isRef(s)) return false
+    const scheme = s as { type?: string; in?: string; scheme?: string }
+    // Cookie apiKey is handled by hasCookieAuth — everything else implies bearer-style auth
+    return !(scheme.type === 'apiKey' && scheme.in === 'cookie')
+  })
+}
+
 /**
  * Emit the shared private request helpers that all generated endpoint functions delegate to.
  *
  * `_request`     — handles all JSON / no-body endpoints (always emitted when spec has endpoints).
- * `_requestForm` — handles multipart/form-data endpoints (only emitted when the spec has them,
- *                  so specs without multipart pay zero code-size cost).
+ * `_requestForm` — handles multipart/form-data endpoints (only emitted when the spec has them).
+ *
+ * Both helpers are feature-conditional: code for auth, credentials, and extraHeaders is only
+ * emitted when the spec actually declares those features, keeping the bundle lean for simple APIs.
  */
-function generateRequestHelpers(hasMultipart: boolean): string {
+function generateRequestHelpers(features: HelperFeatures): string {
   const lines: string[] = []
 
+  // ── _request ───────────────────────────────────────────────────────────────
   lines.push(`async function _request(`)
   lines.push(`  method: string,`)
   lines.push(`  path: string,`)
   lines.push(`  opts: {`)
   lines.push(`    searchParams?: URLSearchParams`)
   lines.push(`    body?: unknown`)
-  lines.push(`    extraHeaders?: Record<string, string>`)
+  if (features.hasHeaderParams) lines.push(`    extraHeaders?: Record<string, string>`)
   lines.push(`  },`)
   lines.push(`  config?: Partial<ClientConfig>,`)
   lines.push(`): Promise<Response> {`)
-  lines.push(`  const { baseUrl, token, credentials, headers, onError } = { ...getConfig(), ...config }`)
+
+  // Destructure only the config fields that are actually used
+  const configFields: string[] = ['baseUrl']
+  if (features.hasBearerAuth) configFields.push('token')
+  if (features.hasCookieAuth) configFields.push('credentials')
+  configFields.push('headers', 'onError')
+  lines.push(`  const { ${configFields.join(', ')} } = { ...getConfig(), ...config }`)
+
   lines.push(`  const base = baseUrl ? baseUrl.replace(/\\/$/, '') : ''`)
   lines.push(`  const qs = opts.searchParams?.toString() ?? ''`)
   lines.push(`  const url = qs ? \`\${base}\${path}?\${qs}\` : \`\${base}\${path}\``)
-  lines.push(`  const resolvedToken = typeof token === 'function' ? await token() : token`)
+  if (features.hasBearerAuth) {
+    lines.push(`  const resolvedToken = typeof token === 'function' ? await token() : token`)
+  }
   lines.push(`  const res = await fetch(url, {`)
   lines.push(`    method,`)
-  lines.push(`    credentials,`)
+  if (features.hasCookieAuth) lines.push(`    credentials,`)
   lines.push(`    headers: {`)
   lines.push(`      ...(opts.body !== undefined ? { 'Content-Type': 'application/json' } : {}),`)
   lines.push(`      ...headers,`)
-  lines.push(`      ...(resolvedToken ? { Authorization: \`Bearer \${resolvedToken}\` } : {}),`)
-  lines.push(`      ...opts.extraHeaders,`)
+  if (features.hasBearerAuth) lines.push(`      ...(resolvedToken ? { Authorization: \`Bearer \${resolvedToken}\` } : {}),`)
+  if (features.hasHeaderParams) lines.push(`      ...opts.extraHeaders,`)
   lines.push(`    },`)
   lines.push(`    ...(opts.body !== undefined ? { body: JSON.stringify(opts.body) } : {}),`)
   lines.push(`  })`)
@@ -417,7 +468,8 @@ function generateRequestHelpers(hasMultipart: boolean): string {
   lines.push(`  return res`)
   lines.push(`}`)
 
-  if (hasMultipart) {
+  // ── _requestForm (only for specs with multipart endpoints) ─────────────────
+  if (features.hasMultipart) {
     lines.push(``)
     lines.push(`async function _requestForm(`)
     lines.push(`  method: string,`)
@@ -425,22 +477,24 @@ function generateRequestHelpers(hasMultipart: boolean): string {
     lines.push(`  formData: FormData,`)
     lines.push(`  opts: {`)
     lines.push(`    searchParams?: URLSearchParams`)
-    lines.push(`    extraHeaders?: Record<string, string>`)
+    if (features.hasHeaderParams) lines.push(`    extraHeaders?: Record<string, string>`)
     lines.push(`  },`)
     lines.push(`  config?: Partial<ClientConfig>,`)
     lines.push(`): Promise<Response> {`)
-    lines.push(`  const { baseUrl, token, credentials, headers, onError } = { ...getConfig(), ...config }`)
+    lines.push(`  const { ${configFields.join(', ')} } = { ...getConfig(), ...config }`)
     lines.push(`  const base = baseUrl ? baseUrl.replace(/\\/$/, '') : ''`)
     lines.push(`  const qs = opts.searchParams?.toString() ?? ''`)
     lines.push(`  const url = qs ? \`\${base}\${path}?\${qs}\` : \`\${base}\${path}\``)
-    lines.push(`  const resolvedToken = typeof token === 'function' ? await token() : token`)
+    if (features.hasBearerAuth) {
+      lines.push(`  const resolvedToken = typeof token === 'function' ? await token() : token`)
+    }
     lines.push(`  const res = await fetch(url, {`)
     lines.push(`    method,`)
-    lines.push(`    credentials,`)
+    if (features.hasCookieAuth) lines.push(`    credentials,`)
     lines.push(`    headers: {`)
     lines.push(`      ...headers,`)
-    lines.push(`      ...(resolvedToken ? { Authorization: \`Bearer \${resolvedToken}\` } : {}),`)
-    lines.push(`      ...opts.extraHeaders,`)
+    if (features.hasBearerAuth) lines.push(`      ...(resolvedToken ? { Authorization: \`Bearer \${resolvedToken}\` } : {}),`)
+    if (features.hasHeaderParams) lines.push(`      ...opts.extraHeaders,`)
     lines.push(`    },`)
     lines.push(`    body: formData,`)
     lines.push(`  })`)
@@ -665,6 +719,7 @@ export function generateClient(spec: OpenAPIV3_1.Document, options?: ClientOptio
   const collectedSchemaNames = new Set<string>()
   let needsZImport = false
   let hasMultipartEndpoints = false
+  let hasHeaderParamEndpoints = false
   let hasAnyEndpoints = false
   const functionBlocks: string[] = []
 
@@ -693,10 +748,9 @@ export function generateClient(spec: OpenAPIV3_1.Document, options?: ClientOptio
         const deprecated = operation.deprecated === true
         const throwsTags = getThrowsTags(operation)
 
-        // Track whether any endpoint uses multipart (determines if _requestForm is emitted)
-        if (bodyInfo !== undefined && bodyInfo.kind === 'multipart') {
-          hasMultipartEndpoints = true
-        }
+        // Track which features are used across the spec (drives conditional helper code-gen)
+        if (bodyInfo !== undefined && bodyInfo.kind === 'multipart') hasMultipartEndpoints = true
+        if (headerParams.length > 0) hasHeaderParamEndpoints = true
 
         // Schema-enhanced: compute request body and response schema names for this operation
         const requestBodySchemaName = options?.schemaNames !== undefined
@@ -786,10 +840,17 @@ export function generateClient(spec: OpenAPIV3_1.Document, options?: ClientOptio
   lines.push(`}`)
 
   // Shared private request helpers — emitted once, called by every endpoint function.
-  // _request handles all JSON/no-body endpoints; _requestForm handles multipart (only when needed).
+  // Code inside the helpers is feature-conditional: only emit auth/credentials/extraHeaders
+  // when the spec actually declares those features.
   if (hasAnyEndpoints) {
+    const helperFeatures: HelperFeatures = {
+      hasBearerAuth: detectBearerAuth(spec),
+      hasCookieAuth: hasCookieAuth(spec),
+      hasHeaderParams: hasHeaderParamEndpoints,
+      hasMultipart: hasMultipartEndpoints,
+    }
     lines.push('')
-    lines.push(generateRequestHelpers(hasMultipartEndpoints))
+    lines.push(generateRequestHelpers(helperFeatures))
   }
 
   for (const fn of functionBlocks) {
