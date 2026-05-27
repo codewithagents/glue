@@ -9,6 +9,12 @@ import { generateZodSchemas } from './plugins/zod.js'
 import { generateIndexBarrel } from './plugins/index-barrel.js'
 import { generateServer } from './plugins/server.js'
 
+async function formatTs(content: string, filePath: string): Promise<string> {
+  const { format, resolveConfig } = await import('prettier')
+  const config = await resolveConfig(filePath)
+  return format(content, { ...config, parser: 'typescript' })
+}
+
 export async function generate(cwd: string, configPath?: string): Promise<void> {
   console.log('Loading config...')
   const config = await loadConfig(cwd, configPath)
@@ -35,7 +41,7 @@ export async function generate(cwd: string, configPath?: string): Promise<void> 
 
   for (const file of generatedFiles) {
     const filePath = join(outputDir, file.filename)
-    await writeFile(filePath, file.content, 'utf-8')
+    await writeFile(filePath, await formatTs(file.content, filePath), 'utf-8')
     console.log(`  ✓ ${file.filename}`)
   }
 
@@ -43,7 +49,7 @@ export async function generate(cwd: string, configPath?: string): Promise<void> 
   if (config.server_client === true) {
     const serverFile = generateServer(spec)
     const serverFilePath = join(outputDir, serverFile.filename)
-    await writeFile(serverFilePath, serverFile.content, 'utf-8')
+    await writeFile(serverFilePath, await formatTs(serverFile.content, serverFilePath), 'utf-8')
     console.log(`  ✓ ${serverFile.filename}`)
   }
 
@@ -84,8 +90,10 @@ export async function generate(cwd: string, configPath?: string): Promise<void> 
       // Re-generate (overwrite) models.ts and client.ts with schema-enhanced versions
       const enhancedTypes = generateTypes(spec, { schemaNames: exportedSchemas, schemaImportPath })
       const enhancedClient = generateClient(spec, { schemaNames: exportedSchemas, schemaImportPath })
-      await writeFile(join(outputDir, enhancedTypes.filename), enhancedTypes.content, 'utf-8')
-      await writeFile(join(outputDir, enhancedClient.filename), enhancedClient.content, 'utf-8')
+      const enhancedTypesPath = join(outputDir, enhancedTypes.filename)
+      const enhancedClientPath = join(outputDir, enhancedClient.filename)
+      await writeFile(enhancedTypesPath, await formatTs(enhancedTypes.content, enhancedTypesPath), 'utf-8')
+      await writeFile(enhancedClientPath, await formatTs(enhancedClient.content, enhancedClientPath), 'utf-8')
       console.log(`  ✓ models.ts (schema-enhanced — types from z.infer)`)
       console.log(`  ✓ client.ts (schema-enhanced — Zod validation added)`)
     } else {

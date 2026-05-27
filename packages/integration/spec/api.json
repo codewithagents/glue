@@ -5,6 +5,7 @@
     "version": "1.0.0",
     "description": "Integration fixture: realistic task management API used to cross-test @codewithagents/openapi-gen and @codewithagents/api-errors."
   },
+  "security": [{ "bearerAuth": [] }],
   "paths": {
     "/api/v1/tasks": {
       "get": {
@@ -234,6 +235,12 @@
           "status": { "type": "integer" },
           "detail": { "type": "string" }
         }
+      }
+    },
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer"
       }
     }
   }
