@@ -11,6 +11,9 @@
     "typescript": "^6.0.0"
   },
   "pnpm": {
-    "onlyBuiltDependencies": ["esbuild", "msw"]
+    "onlyBuiltDependencies": ["esbuild", "msw"],
+    "overrides": {
+      "qs": "^6.15.2"
+    }
   }
 }
