@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.5.0](https://github.com/codewithagents/glue/compare/openapi-gen-v3.4.0...openapi-gen-v3.5.0) (2026-05-27)
+
+
+### Features
+
+* **openapi-gen:** feature-conditional _request helpers — only emit auth/credentials/extraHeaders when spec declares them ([#129](https://github.com/codewithagents/glue/issues/129)) ([a24ef4b](https://github.com/codewithagents/glue/commit/a24ef4b3edbeab1871082d249a279e18a19dd603))
+
 ## [3.4.0](https://github.com/codewithagents/glue/compare/openapi-gen-v3.3.2...openapi-gen-v3.4.0) (2026-05-27)
 
 
