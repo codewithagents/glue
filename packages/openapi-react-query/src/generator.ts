@@ -3,6 +3,7 @@ import { join, resolve } from 'node:path'
 import { parseSpec } from '@codewithagents/openapi-gen'
 import { loadConfig } from './config.js'
 import { generateHooks } from './plugins/hooks.js'
+import { generateTestUtils } from './plugins/test-utils.js'
 
 export async function generate(cwd: string, configPath?: string): Promise<void> {
   const config = await loadConfig(cwd, configPath)
@@ -23,15 +24,21 @@ export async function generate(cwd: string, configPath?: string): Promise<void> 
     }
   }
 
-  const file = generateHooks(spec, {
-    staleTime: globalStaleTime,
-    gcTime: globalGcTime,
-    suspense: config.suspense,
-    overrides: Object.keys(overrides).length > 0 ? overrides : undefined,
-    autoInvalidate: config.auto_invalidate,
-  })
+  const files = [
+    generateHooks(spec, {
+      staleTime: globalStaleTime,
+      gcTime: globalGcTime,
+      suspense: config.suspense,
+      overrides: Object.keys(overrides).length > 0 ? overrides : undefined,
+      autoInvalidate: config.auto_invalidate,
+    }),
+    generateTestUtils(spec),
+  ]
+
   await mkdir(outputDir, { recursive: true })
-  const filePath = join(outputDir, file.filename)
-  await writeFile(filePath, file.content, 'utf-8')
-  console.log(`✓ ${file.filename}`)
+  for (const file of files) {
+    const filePath = join(outputDir, file.filename)
+    await writeFile(filePath, file.content, 'utf-8')
+    console.log(`✓ ${file.filename}`)
+  }
 }
