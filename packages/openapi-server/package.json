@@ -16,7 +16,7 @@
     "dist"
   ],
   "scripts": {
-    "build": "rm -f dist/cli.js dist/cli.js.map dist/cli.d.ts dist/cli.d.ts.map && tsc -p tsconfig.build.json && esbuild src/cli.ts --bundle --platform=node --format=cjs --target=node22 --outfile=dist/cli.cjs && chmod +x dist/cli.cjs",
+    "build": "rm -f dist/cli.js dist/cli.js.map dist/cli.d.ts dist/cli.d.ts.map && tsc -p tsconfig.build.json && esbuild src/cli.ts --bundle --platform=node --format=cjs --target=node22 --external:prettier --outfile=dist/cli.cjs && chmod +x dist/cli.cjs",
     "lint": "tsc -p tsconfig.build.json --noEmit",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
@@ -24,7 +24,8 @@
   },
   "dependencies": {
     "@codewithagents/openapi-gen": "workspace:*",
-    "openapi-types": "catalog:"
+    "openapi-types": "catalog:",
+    "prettier": "catalog:"
   },
   "devDependencies": {
     "@types/node": "catalog:",

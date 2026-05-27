@@ -218,6 +218,9 @@ importers:
       openapi-types:
         specifier: 'catalog:'
         version: 12.1.3
+      prettier:
+        specifier: 'catalog:'
+        version: 3.8.3
     devDependencies:
       '@types/node':
         specifier: 'catalog:'

@@ -64,3 +64,25 @@ describe('generated output is Prettier-clean (feature-showcase with multipart)',
     expect(await check(content, { parser: 'typescript' })).toBe(true)
   })
 })
+
+const simpleApiYaml = join(import.meta.dirname, '../__fixtures__/specs/simple-api.yaml')
+
+describe('generated output is Prettier-clean (YAML input spec)', () => {
+  it('client.ts is Prettier-clean when spec is YAML', async () => {
+    const outDir = await runGenerator(simpleApiYaml)
+    const content = await readFile(join(outDir, 'client.ts'), 'utf-8')
+    expect(await check(content, { parser: 'typescript' })).toBe(true)
+  })
+
+  it('models.ts is Prettier-clean when spec is YAML', async () => {
+    const outDir = await runGenerator(simpleApiYaml)
+    const content = await readFile(join(outDir, 'models.ts'), 'utf-8')
+    expect(await check(content, { parser: 'typescript' })).toBe(true)
+  })
+
+  it('index.ts is Prettier-clean when spec is YAML', async () => {
+    const outDir = await runGenerator(simpleApiYaml)
+    const content = await readFile(join(outDir, 'index.ts'), 'utf-8')
+    expect(await check(content, { parser: 'typescript' })).toBe(true)
+  })
+})

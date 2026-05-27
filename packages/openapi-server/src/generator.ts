@@ -1,6 +1,12 @@
 import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import { join, relative, resolve } from 'node:path'
 import { loadConfig } from './config.js'
+
+async function formatTs(content: string, filePath: string): Promise<string> {
+  const { format, resolveConfig } = await import('prettier')
+  const config = await resolveConfig(filePath)
+  return format(content, { ...config, parser: 'typescript' })
+}
 import { parseSpec } from '@codewithagents/openapi-gen'
 import { generateService } from './plugins/service.js'
 import { generateRouter } from './plugins/router.js'
@@ -30,7 +36,7 @@ export async function generate(cwd: string, configPath?: string): Promise<void> 
 
   for (const file of generatedFiles) {
     const filePath = join(outputDir, file.filename)
-    await writeFile(filePath, file.content, 'utf-8')
+    await writeFile(filePath, await formatTs(file.content, filePath), 'utf-8')
     console.log(`  ✓ ${file.filename}`)
   }
 
@@ -65,7 +71,7 @@ export async function generate(cwd: string, configPath?: string): Promise<void> 
         schemaImportPath: schemaImportPathJs,
       })
       const routerPath = join(outputDir, routerFile.filename)
-      await writeFile(routerPath, routerFile.content, 'utf-8')
+      await writeFile(routerPath, await formatTs(routerFile.content, routerPath), 'utf-8')
       console.log(`  ✓ router.ts (with Zod validation for ${exportedSchemas.size} schema(s))`)
     }
   }
