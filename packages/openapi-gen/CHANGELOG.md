@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.3.2](https://github.com/codewithagents/glue/compare/openapi-gen-v3.3.1...openapi-gen-v3.3.2) (2026-05-27)
+
+
+### Bug Fixes
+
+* **openapi-gen:** document zod schema topological sort in CLAUDE.md ([#119](https://github.com/codewithagents/glue/issues/119)) ([9d6929a](https://github.com/codewithagents/glue/commit/9d6929ac2757e386960b9e822ba09c4b78a5b7c0))
+
 ## [3.3.1](https://github.com/codewithagents/glue/compare/openapi-gen-v3.3.0...openapi-gen-v3.3.1) (2026-05-26)
 
 
