@@ -373,6 +373,89 @@ function getResponseSchemaName(operation: OperationObject): { name: string; isAr
   return undefined
 }
 
+/**
+ * Emit the shared private request helpers that all generated endpoint functions delegate to.
+ *
+ * `_request`     — handles all JSON / no-body endpoints (always emitted when spec has endpoints).
+ * `_requestForm` — handles multipart/form-data endpoints (only emitted when the spec has them,
+ *                  so specs without multipart pay zero code-size cost).
+ */
+function generateRequestHelpers(hasMultipart: boolean): string {
+  const lines: string[] = []
+
+  lines.push(`async function _request(`)
+  lines.push(`  method: string,`)
+  lines.push(`  path: string,`)
+  lines.push(`  opts: {`)
+  lines.push(`    searchParams?: URLSearchParams`)
+  lines.push(`    body?: unknown`)
+  lines.push(`    extraHeaders?: Record<string, string>`)
+  lines.push(`  },`)
+  lines.push(`  config?: Partial<ClientConfig>,`)
+  lines.push(`): Promise<Response> {`)
+  lines.push(`  const { baseUrl, token, credentials, headers, onError } = { ...getConfig(), ...config }`)
+  lines.push(`  const base = baseUrl ? baseUrl.replace(/\\/$/, '') : ''`)
+  lines.push(`  const qs = opts.searchParams?.toString() ?? ''`)
+  lines.push(`  const url = qs ? \`\${base}\${path}?\${qs}\` : \`\${base}\${path}\``)
+  lines.push(`  const resolvedToken = typeof token === 'function' ? await token() : token`)
+  lines.push(`  const res = await fetch(url, {`)
+  lines.push(`    method,`)
+  lines.push(`    credentials,`)
+  lines.push(`    headers: {`)
+  lines.push(`      ...(opts.body !== undefined ? { 'Content-Type': 'application/json' } : {}),`)
+  lines.push(`      ...headers,`)
+  lines.push(`      ...(resolvedToken ? { Authorization: \`Bearer \${resolvedToken}\` } : {}),`)
+  lines.push(`      ...opts.extraHeaders,`)
+  lines.push(`    },`)
+  lines.push(`    ...(opts.body !== undefined ? { body: JSON.stringify(opts.body) } : {}),`)
+  lines.push(`  })`)
+  lines.push(`  if (!res.ok) {`)
+  lines.push(`    const err = new ApiError(res.status, await res.json().catch(() => null))`)
+  lines.push(`    onError?.(err)`)
+  lines.push(`    throw err`)
+  lines.push(`  }`)
+  lines.push(`  return res`)
+  lines.push(`}`)
+
+  if (hasMultipart) {
+    lines.push(``)
+    lines.push(`async function _requestForm(`)
+    lines.push(`  method: string,`)
+    lines.push(`  path: string,`)
+    lines.push(`  formData: FormData,`)
+    lines.push(`  opts: {`)
+    lines.push(`    searchParams?: URLSearchParams`)
+    lines.push(`    extraHeaders?: Record<string, string>`)
+    lines.push(`  },`)
+    lines.push(`  config?: Partial<ClientConfig>,`)
+    lines.push(`): Promise<Response> {`)
+    lines.push(`  const { baseUrl, token, credentials, headers, onError } = { ...getConfig(), ...config }`)
+    lines.push(`  const base = baseUrl ? baseUrl.replace(/\\/$/, '') : ''`)
+    lines.push(`  const qs = opts.searchParams?.toString() ?? ''`)
+    lines.push(`  const url = qs ? \`\${base}\${path}?\${qs}\` : \`\${base}\${path}\``)
+    lines.push(`  const resolvedToken = typeof token === 'function' ? await token() : token`)
+    lines.push(`  const res = await fetch(url, {`)
+    lines.push(`    method,`)
+    lines.push(`    credentials,`)
+    lines.push(`    headers: {`)
+    lines.push(`      ...headers,`)
+    lines.push(`      ...(resolvedToken ? { Authorization: \`Bearer \${resolvedToken}\` } : {}),`)
+    lines.push(`      ...opts.extraHeaders,`)
+    lines.push(`    },`)
+    lines.push(`    body: formData,`)
+    lines.push(`  })`)
+    lines.push(`  if (!res.ok) {`)
+    lines.push(`    const err = new ApiError(res.status, await res.json().catch(() => null))`)
+    lines.push(`    onError?.(err)`)
+    lines.push(`    throw err`)
+    lines.push(`  }`)
+    lines.push(`  return res`)
+    lines.push(`}`)
+  }
+
+  return lines.join('\n')
+}
+
 function generateFunctionCode(
   funcName: string,
   method: string,
@@ -439,57 +522,26 @@ function generateFunctionCode(
   }
 
   lines.push(`export async function ${funcName}(${sigParts.join(', ')}): ${returnTs} {`)
-  lines.push(`  const { baseUrl, token, credentials, headers, onError } = { ...getConfig(), ...config }`)
 
-  // Build URL
+  // Build URL path arg (template literal when path params present, plain string otherwise)
   const urlExpression = pathToUrlExpression(path)
   const hasPathParams = urlExpression !== path
-  if (hasPathParams) {
-    lines.push(`  const base = baseUrl ? baseUrl.replace(/\\/$/, '') : ''`)
-    lines.push(`  const fullUrl = \`\${base}${urlExpression}\``)
-  } else {
-    lines.push(`  const base = baseUrl ? baseUrl.replace(/\\/$/, '') : ''`)
-    lines.push(`  const fullUrl = \`\${base}${path}\``)
-  }
+  const pathArg = hasPathParams ? '`' + urlExpression + '`' : `'${path}'`
 
-  // Query params
+  // URLSearchParams (query params) — still built in caller, passed to helper
   if (queryParams.length > 0) {
     lines.push(`  const searchParams = new URLSearchParams()`)
     for (const qp of queryParams) {
       if (qp.type.endsWith('[]')) {
-        // Array params: use append in a loop
+        // Array params: use append in a loop (not set) so multiple values are preserved
         lines.push(`  if (params?.${qp.name} != null) { for (const v of params.${qp.name}) searchParams.append('${qp.name}', String(v)) }`)
-      } else if (qp.type === 'number') {
-        lines.push(`  if (params?.${qp.name} != null) searchParams.set('${qp.name}', String(params.${qp.name}))`)
-      } else if (qp.type === 'boolean') {
-        lines.push(`  if (params?.${qp.name} != null) searchParams.set('${qp.name}', String(params.${qp.name}))`)
       } else {
         lines.push(`  if (params?.${qp.name} != null) searchParams.set('${qp.name}', String(params.${qp.name}))`)
       }
     }
-    lines.push(`  const qs = searchParams.toString()`)
-    lines.push(`  const finalUrl = qs ? \`\${fullUrl}?\${qs}\` : fullUrl`)
-  } else {
-    lines.push(`  const finalUrl = fullUrl`)
   }
 
-  // Token resolution
-  lines.push(`  const resolvedToken = typeof token === 'function' ? await token() : token`)
-
-  // Build fetch headers
-  const fetchHeaders: string[] = []
-  if (bodyInfo !== undefined && bodyInfo.kind === 'json') {
-    fetchHeaders.push(`      'Content-Type': 'application/json',`)
-  }
-  fetchHeaders.push(`      ...headers,`)
-  fetchHeaders.push(`      ...(resolvedToken ? { Authorization: \`Bearer \${resolvedToken}\` } : {}),`)
-
-  // Add header params to fetch headers
-  for (const hp of headerParams) {
-    fetchHeaders.push(`      ...(params?.${hp.name} != null ? { '${hp.headerName}': params.${hp.name} } : {}),`)
-  }
-
-  // Build multipart FormData if applicable
+  // FormData (multipart) — still built in caller, passed to _requestForm
   if (bodyInfo !== undefined && bodyInfo.kind === 'multipart' && bodyInfo.multipartFields !== undefined) {
     lines.push(`  const formData = new FormData()`)
     for (const field of bodyInfo.multipartFields) {
@@ -501,7 +553,17 @@ function generateFunctionCode(
     }
   }
 
-  // Schema-enhanced: request body validation before fetch
+  // Header params → extraHeaders object (preserves the same conditional spread pattern)
+  if (headerParams.length > 0) {
+    const spreadParts = headerParams
+      .map((hp) => `    ...(params?.${hp.name} != null ? { '${hp.headerName}': params.${hp.name} } : {}),`)
+      .join('\n')
+    lines.push(`  const extraHeaders: Record<string, string> = {`)
+    lines.push(spreadParts)
+    lines.push(`  }`)
+  }
+
+  // Schema-enhanced: request body validation before the fetch call
   if (
     options?.schemaNames !== undefined &&
     requestBodySchemaName !== undefined &&
@@ -514,36 +576,38 @@ function generateFunctionCode(
     lines.push(`  ${requestBodySchemaName}Schema.strip().parse(body)`)
   }
 
-  // Build fetch options
-  const fetchLines: string[] = []
-  fetchLines.push(`  const res = await fetch(finalUrl, {`)
-  fetchLines.push(`    method: '${method.toUpperCase()}',`)
-  fetchLines.push(`    credentials,`)
-  fetchLines.push(`    headers: {`)
-  fetchLines.push(...fetchHeaders)
-  fetchLines.push(`    },`)
-  if (bodyInfo !== undefined) {
-    if (bodyInfo.kind === 'multipart') {
-      fetchLines.push(`    body: formData,`)
+  // Build opts object for the helper call
+  const isMultipart = bodyInfo !== undefined && bodyInfo.kind === 'multipart'
+
+  if (isMultipart) {
+    // _requestForm: formData is a positional arg; opts only carries searchParams + extraHeaders
+    const formOptsParts: string[] = []
+    if (queryParams.length > 0) formOptsParts.push('searchParams')
+    if (headerParams.length > 0) formOptsParts.push('extraHeaders')
+    const formOpts = formOptsParts.length > 0 ? `{ ${formOptsParts.join(', ')} }` : '{}'
+    const call = `_requestForm('${method.toUpperCase()}', ${pathArg}, formData, ${formOpts}, config)`
+    if (returnType.isVoid) {
+      lines.push(`  await ${call}`)
     } else {
-      fetchLines.push(`    body: JSON.stringify(body),`)
+      lines.push(`  const res = await ${call}`)
+    }
+  } else {
+    // _request: JSON body (if any) goes in opts.body; no FormData
+    const optsParts: string[] = []
+    if (queryParams.length > 0) optsParts.push('searchParams')
+    if (bodyInfo !== undefined && bodyInfo.kind === 'json') optsParts.push('body')
+    if (headerParams.length > 0) optsParts.push('extraHeaders')
+    const optsLiteral = optsParts.length > 0 ? `{ ${optsParts.join(', ')} }` : '{}'
+    const call = `_request('${method.toUpperCase()}', ${pathArg}, ${optsLiteral}, config)`
+    if (returnType.isVoid) {
+      lines.push(`  await ${call}`)
+    } else {
+      lines.push(`  const res = await ${call}`)
     }
   }
-  fetchLines.push(`  })`)
 
-  lines.push(...fetchLines)
-  if (returnType.isVoid) {
-    lines.push(`  if (!res.ok) {`)
-    lines.push(`    const err = new ApiError(res.status, null)`)
-    lines.push(`    onError?.(err)`)
-    lines.push(`    throw err`)
-    lines.push(`  }`)
-  } else {
-    lines.push(`  if (!res.ok) {`)
-    lines.push(`    const err = new ApiError(res.status, await res.json().catch(() => null))`)
-    lines.push(`    onError?.(err)`)
-    lines.push(`    throw err`)
-    lines.push(`  }`)
+  // Return / response parsing
+  if (!returnType.isVoid) {
     // Schema-enhanced: response validation
     if (
       options?.schemaNames !== undefined &&
@@ -600,6 +664,8 @@ export function generateClient(spec: OpenAPIV3_1.Document, options?: ClientOptio
   const collectedTypeNames = new Set<string>()
   const collectedSchemaNames = new Set<string>()
   let needsZImport = false
+  let hasMultipartEndpoints = false
+  let hasAnyEndpoints = false
   const functionBlocks: string[] = []
 
   if (paths !== undefined) {
@@ -607,6 +673,8 @@ export function generateClient(spec: OpenAPIV3_1.Document, options?: ClientOptio
       for (const method of SUPPORTED_METHODS) {
         const operation = pathItem[method] as OperationObject | undefined
         if (operation === undefined) continue
+
+        hasAnyEndpoints = true
 
         // Derive function name
         let funcName: string
@@ -624,6 +692,11 @@ export function generateClient(spec: OpenAPIV3_1.Document, options?: ClientOptio
         const returnType = getReturnType(operation)
         const deprecated = operation.deprecated === true
         const throwsTags = getThrowsTags(operation)
+
+        // Track whether any endpoint uses multipart (determines if _requestForm is emitted)
+        if (bodyInfo !== undefined && bodyInfo.kind === 'multipart') {
+          hasMultipartEndpoints = true
+        }
 
         // Schema-enhanced: compute request body and response schema names for this operation
         const requestBodySchemaName = options?.schemaNames !== undefined
@@ -711,6 +784,13 @@ export function generateClient(spec: OpenAPIV3_1.Document, options?: ClientOptio
   lines.push(`    this.name = 'ApiError'`)
   lines.push(`  }`)
   lines.push(`}`)
+
+  // Shared private request helpers — emitted once, called by every endpoint function.
+  // _request handles all JSON/no-body endpoints; _requestForm handles multipart (only when needed).
+  if (hasAnyEndpoints) {
+    lines.push('')
+    lines.push(generateRequestHelpers(hasMultipartEndpoints))
+  }
 
   for (const fn of functionBlocks) {
     lines.push('')
