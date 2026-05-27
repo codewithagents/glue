@@ -152,17 +152,8 @@ describe('generateClient', () => {
     }
   })
 
-  it('uses Bearer token from config', () => {
-    expect(content).toContain('Authorization')
-    expect(content).toContain('Bearer')
-    expect(content).toContain('resolvedToken')
-  })
-
-  it('uses credentials from config', () => {
-    expect(content).toContain('credentials')
-  })
-
-  it('destructures onError from config', () => {
+  it('onError is present in generated client (error hook from config)', () => {
+    // onError is always emitted regardless of auth features
     expect(content).toContain('onError')
     expect(content).toContain('onError?.(err)')
   })
@@ -1221,5 +1212,161 @@ describe('_request helper: shared fetch abstraction (issue #124)', () => {
       'client.ts': generateClient(spec).content,
     })
     expect(diagnostics.length).toBe(0)
+  })
+})
+
+// ── Feature-conditional helpers (issue #129) ──────────────────────────────────
+// The _request / _requestForm helpers should only emit code for features that
+// the spec actually uses. Specs without auth get a lean helper; specs with auth
+// get the full token-resolution + Authorization header.
+
+const noAuthSpec: OpenAPIV3_1.Document = {
+  openapi: '3.1.0',
+  info: { title: 'No-Auth API', version: '1' },
+  paths: {
+    '/items': {
+      get: {
+        operationId: 'listItems',
+        responses: { '200': { content: { 'application/json': { schema: { type: 'array', items: { type: 'string' } } } } } },
+      },
+      post: {
+        operationId: 'createItem',
+        requestBody: { content: { 'application/json': { schema: { type: 'string' } } } },
+        responses: { '201': { content: { 'application/json': { schema: { type: 'string' } } } } },
+      },
+    },
+    '/items/{id}': {
+      delete: {
+        operationId: 'deleteItem',
+        parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }],
+        responses: { '204': { description: 'deleted' } },
+      },
+    },
+  },
+}
+
+const bearerAuthSpec: OpenAPIV3_1.Document = {
+  openapi: '3.1.0',
+  info: { title: 'Bearer API', version: '1' },
+  security: [{ bearerAuth: [] }],
+  components: {
+    securitySchemes: {
+      // @ts-expect-error — OpenAPI types lag on http security scheme shape
+      bearerAuth: { type: 'http', scheme: 'bearer' },
+    },
+  },
+  paths: {
+    '/items': {
+      get: {
+        operationId: 'listItems',
+        responses: { '200': { content: { 'application/json': { schema: { type: 'string' } } } } },
+      },
+    },
+  },
+}
+
+const cookieAuthSpec: OpenAPIV3_1.Document = {
+  openapi: '3.1.0',
+  info: { title: 'Cookie API', version: '1' },
+  components: {
+    securitySchemes: {
+      // @ts-expect-error — testing apiKey-in-cookie scheme
+      sessionCookie: { type: 'apiKey', in: 'cookie', name: 'session' },
+    },
+  },
+  paths: {
+    '/me': {
+      get: {
+        operationId: 'getMe',
+        responses: { '200': { content: { 'application/json': { schema: { type: 'string' } } } } },
+      },
+    },
+  },
+}
+
+describe('feature-conditional _request helper (issue #129)', () => {
+  // ── No-auth spec: lean helper ──
+
+  it('no-auth spec: _request does NOT contain resolvedToken', () => {
+    const out = generateClient(noAuthSpec as OpenAPIV3_1.Document).content
+    expect(out).not.toContain('resolvedToken')
+  })
+
+  it('no-auth spec: _request does NOT include Authorization header', () => {
+    const out = generateClient(noAuthSpec as OpenAPIV3_1.Document).content
+    expect(out).not.toContain('Authorization')
+  })
+
+  it('no-auth spec: _request does NOT include credentials (no cookie auth)', () => {
+    const out = generateClient(noAuthSpec as OpenAPIV3_1.Document).content
+    expect(out).not.toContain('credentials')
+  })
+
+  it('no-auth spec without header params: _request opts omit extraHeaders', () => {
+    const out = generateClient(noAuthSpec as OpenAPIV3_1.Document).content
+    expect(out).not.toContain('extraHeaders')
+  })
+
+  it('no-auth spec: TypeScript still compiles cleanly', async () => {
+    const spec = await parseSpec(join(__dirname, '../__fixtures__/specs/task-api.json'))
+    const diagnostics = compileFiles({
+      'models.ts': generateTypes(spec).content,
+      'client-config.ts': generateClientConfig().content,
+      'client.ts': generateClient(spec).content,
+    })
+    expect(diagnostics.length).toBe(0)
+  })
+
+  // ── Bearer-auth spec: token resolution included ──
+
+  it('bearer-auth spec: _request includes resolvedToken', () => {
+    const out = generateClient(bearerAuthSpec as OpenAPIV3_1.Document).content
+    expect(out).toContain('resolvedToken')
+  })
+
+  it('bearer-auth spec: _request includes Authorization header', () => {
+    const out = generateClient(bearerAuthSpec as OpenAPIV3_1.Document).content
+    expect(out).toContain('Authorization')
+    expect(out).toContain('Bearer')
+  })
+
+  it('bearer-auth spec: does NOT include credentials (no cookie auth)', () => {
+    const out = generateClient(bearerAuthSpec as OpenAPIV3_1.Document).content
+    expect(out).not.toContain('credentials')
+  })
+
+  // ── Cookie-auth spec: credentials included ──
+
+  it('cookie-auth spec: _request includes credentials', () => {
+    const out = generateClient(cookieAuthSpec as OpenAPIV3_1.Document).content
+    expect(out).toContain('credentials')
+  })
+
+  it('cookie-auth spec: does NOT include resolvedToken (no bearer)', () => {
+    const out = generateClient(cookieAuthSpec as OpenAPIV3_1.Document).content
+    expect(out).not.toContain('resolvedToken')
+  })
+
+  // ── Header params: extraHeaders only when spec has them ──
+
+  it('spec with header params: _request opts include extraHeaders', async () => {
+    const spec = await parseSpec(featureShowcaseFixture)
+    const out = generateClient(spec).content
+    expect(out).toContain('extraHeaders')
+  })
+
+  it('spec without header params: _request does not mention extraHeaders', async () => {
+    const spec = await parseSpec(taskApiFixture)
+    const out = generateClient(spec).content
+    expect(out).not.toContain('extraHeaders')
+  })
+
+  // ── feature-showcase: cookie auth + header params — both present ──
+
+  it('feature-showcase: credentials AND extraHeaders present (cookie auth + header params)', async () => {
+    const spec = await parseSpec(featureShowcaseFixture)
+    const out = generateClient(spec).content
+    expect(out).toContain('credentials')
+    expect(out).toContain('extraHeaders')
   })
 })
