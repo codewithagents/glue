@@ -18,12 +18,20 @@ catalog:
   # Property-based testing
   fast-check: ^4.8.0
 
+  # Formatter
+  prettier: ^3.5.3
+
   # Bundler (CLI packages)
   esbuild: ^0.25.0
 
   # Mutation testing
   '@stryker-mutator/core': ^9.6.1
   '@stryker-mutator/vitest-runner': ^9.6.1
+
+  # ESLint (integration lint)
+  eslint: ^9.0.0
+  '@typescript-eslint/eslint-plugin': ^8.0.0
+  '@typescript-eslint/parser': ^8.0.0
 
   # React ecosystem (integration + petstore)
   react: ^19.0.0
