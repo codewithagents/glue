@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.4.0](https://github.com/codewithagents/glue/compare/openapi-gen-v3.3.2...openapi-gen-v3.4.0) (2026-05-27)
+
+
+### Features
+
+* **openapi-gen:** extract shared _request / _requestForm helpers in generated client ([#125](https://github.com/codewithagents/glue/issues/125)) ([a63eae3](https://github.com/codewithagents/glue/commit/a63eae3061e33b1007978fa8531b41ff6852c5e8)), closes [#124](https://github.com/codewithagents/glue/issues/124)
+
 ## [3.3.2](https://github.com/codewithagents/glue/compare/openapi-gen-v3.3.1...openapi-gen-v3.3.2) (2026-05-27)
 
 
