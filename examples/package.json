@@ -5,13 +5,11 @@
   "type": "module",
   "scripts": {
     "generate": "bash generate.sh",
-    "typecheck": "tsc --noEmit",
-    "test": "vitest run"
+    "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
     "@codewithagents/openapi-gen": "workspace:*",
     "typescript": "catalog:",
-    "vitest": "catalog:",
     "zod": "catalog:"
   }
 }
