@@ -1,28 +1,30 @@
-name: Examples
+name: Showcase
 
 on:
   pull_request:
     branches: [main]
     paths:
       - 'packages/openapi-gen/**'
+      - 'packages/openapi-react-query/**'
       - 'packages/openapi-server/**'
       - 'examples/**'
   push:
     branches: [main]
     paths:
       - 'packages/openapi-gen/**'
+      - 'packages/openapi-react-query/**'
       - 'packages/openapi-server/**'
       - 'examples/**'
   schedule:
-    - cron: '0 6 * * 1'  # Weekly Monday 6am UTC
+    - cron: '0 6 * * 1'  # Weekly Monday 6am UTC — catch upstream API spec drift
   workflow_dispatch:
 
 permissions:
   contents: read
 
 jobs:
-  examples:
-    name: Examples (Generate + Typecheck)
+  showcase:
+    name: Showcase (Drift + Typecheck)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -34,104 +36,17 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm build
 
-      - name: Generate all examples (compatibility matrix)
+      - name: Regenerate showcase specs
+        run: pnpm --filter @codewithagents/examples run generate
+
+      - name: Verify showcase output is up to date
         run: |
-          cd examples
-          pass=0
-          fail=0
-          failed_names=""
+          git diff --exit-code examples/generated/ || (
+            echo ""
+            echo "Showcase generated output is out of date."
+            echo "Run 'pnpm generate' in examples/ and commit the result."
+            exit 1
+          )
 
-          for config in configs/*.json; do
-            name=$(basename "$config" .json)
-            if pnpm exec openapi-gen --config "$config" > /tmp/gen_${name}.log 2>&1; then
-              echo "PASS: $name"
-              pass=$((pass + 1))
-            else
-              echo "FAIL: $name"
-              cat /tmp/gen_${name}.log | tail -5
-              fail=$((fail + 1))
-              failed_names="$failed_names $name"
-            fi
-          done
-
-          total=$((pass + fail))
-          echo ""
-          echo "==================================="
-          echo "Compatibility matrix: $pass/$total specs generated successfully"
-          echo "==================================="
-          if [ -n "$failed_names" ]; then
-            echo "Failed specs:$failed_names"
-          fi
-
-      - name: Generate React Query hooks (compatibility matrix)
-        run: |
-          cd examples
-          pass=0
-          fail=0
-          failed_names=""
-
-          for config in configs/*.json; do
-            name=$(basename "$config" .json)
-            input=$(node -e "process.stdout.write(require('./$config').input_openapi)")
-            tmp_config="configs/_tmp_rq_${name}.json"
-            printf '{"input_openapi":"%s","output":"../generated-rq/%s"}' "$input" "$name" > "$tmp_config"
-            if pnpm exec openapi-react-query --config "$tmp_config" > /tmp/rq_${name}.log 2>&1; then
-              echo "PASS: $name"
-              pass=$((pass + 1))
-            else
-              echo "FAIL: $name"
-              cat /tmp/rq_${name}.log | tail -5
-              fail=$((fail + 1))
-              failed_names="$failed_names $name"
-            fi
-            rm "$tmp_config"
-          done
-
-          total=$((pass + fail))
-          echo ""
-          echo "==================================="
-          echo "React Query hooks: $pass/$total specs generated successfully"
-          echo "==================================="
-          if [ -n "$failed_names" ]; then
-            echo "Failed specs:$failed_names"
-          fi
-
-      - name: Generate server stubs (compatibility matrix)
-        run: |
-          cd examples
-          pass=0
-          fail=0
-          failed_names=""
-
-          for config in configs/*.json; do
-            name=$(basename "$config" .json)
-            input=$(node -e "process.stdout.write(require('./$config').input_openapi)")
-            tmp_config="configs/_tmp_server_${name}.json"
-            printf '{"input_openapi":"%s","output":"../generated-server/%s"}' "$input" "$name" > "$tmp_config"
-            if pnpm exec openapi-server --config "$tmp_config" > /tmp/server_${name}.log 2>&1; then
-              echo "PASS: $name"
-              pass=$((pass + 1))
-            else
-              echo "FAIL: $name"
-              cat /tmp/server_${name}.log | tail -5
-              fail=$((fail + 1))
-              failed_names="$failed_names $name"
-            fi
-            rm "$tmp_config"
-          done
-
-          total=$((pass + fail))
-          echo ""
-          echo "==================================="
-          echo "Server stubs: $pass/$total specs generated successfully"
-          echo "==================================="
-          if [ -n "$failed_names" ]; then
-            echo "Failed specs:$failed_names"
-          fi
-
-      - name: Verify showcase specs are up to date
-        run: |
-          git diff --exit-code examples/generated/ || (echo "Showcase generated output is out of date. Run 'pnpm generate' in examples/ and commit the result." && exit 1)
-
-      - name: Typecheck all generated output
+      - name: Typecheck showcase output
         run: pnpm --filter @codewithagents/examples run typecheck
