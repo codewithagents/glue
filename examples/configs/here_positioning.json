@@ -1,0 +1,5 @@
+{
+  "input_openapi": "../specs/here_positioning.json",
+  "output": "../generated/here_positioning",
+  "input_schema": "../generated/here_positioning/schemas.ts"
+}

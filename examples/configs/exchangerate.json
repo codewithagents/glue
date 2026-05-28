@@ -1,0 +1,5 @@
+{
+  "input_openapi": "../specs/exchangerate.json",
+  "output": "../generated/exchangerate",
+  "input_schema": "../generated/exchangerate/schemas.ts"
+}

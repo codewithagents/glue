@@ -1,0 +1,5 @@
+{
+  "input_openapi": "../specs/codat_accounting.json",
+  "output": "../generated/codat_accounting",
+  "input_schema": "../generated/codat_accounting/schemas.ts"
+}

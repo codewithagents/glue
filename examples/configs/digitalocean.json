@@ -1,0 +1,5 @@
+{
+  "input_openapi": "../specs/digitalocean.json",
+  "output": "../generated/digitalocean",
+  "input_schema": "../generated/digitalocean/schemas.ts"
+}

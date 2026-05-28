@@ -1,0 +1,5 @@
+{
+  "input_openapi": "../specs/vercel.json",
+  "output": "../generated/vercel",
+  "input_schema": "../generated/vercel/schemas.ts"
+}

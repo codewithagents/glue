@@ -1,0 +1,5 @@
+{
+  "input_openapi": "../specs/lufthansa.json",
+  "output": "../generated/lufthansa",
+  "input_schema": "../generated/lufthansa/schemas.ts"
+}

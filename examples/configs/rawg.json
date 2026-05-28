@@ -1,0 +1,5 @@
+{
+  "input_openapi": "../specs/rawg.json",
+  "output": "../generated/rawg",
+  "input_schema": "../generated/rawg/schemas.ts"
+}

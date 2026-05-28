@@ -1,0 +1,5 @@
+{
+  "input_openapi": "../specs/brex.json",
+  "output": "../generated/brex",
+  "input_schema": "../generated/brex/schemas.ts"
+}

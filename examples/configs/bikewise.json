@@ -1,0 +1,5 @@
+{
+  "input_openapi": "../specs/bikewise.json",
+  "output": "../generated/bikewise",
+  "input_schema": "../generated/bikewise/schemas.ts"
+}

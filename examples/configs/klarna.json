@@ -1,0 +1,5 @@
+{
+  "input_openapi": "../specs/klarna.json",
+  "output": "../generated/klarna",
+  "input_schema": "../generated/klarna/schemas.ts"
+}

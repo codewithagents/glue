@@ -1,0 +1,5 @@
+{
+  "input_openapi": "../specs/linode.json",
+  "output": "../generated/linode",
+  "input_schema": "../generated/linode/schemas.ts"
+}

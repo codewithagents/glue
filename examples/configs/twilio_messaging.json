@@ -1,0 +1,5 @@
+{
+  "input_openapi": "../specs/twilio_messaging.json",
+  "output": "../generated/twilio_messaging",
+  "input_schema": "../generated/twilio_messaging/schemas.ts"
+}

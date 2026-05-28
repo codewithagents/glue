@@ -1,0 +1,5 @@
+{
+  "input_openapi": "../specs/slack.json",
+  "output": "../generated/slack",
+  "input_schema": "../generated/slack/schemas.ts"
+}

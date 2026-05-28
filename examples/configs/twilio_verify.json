@@ -1,0 +1,5 @@
+{
+  "input_openapi": "../specs/twilio_verify.json",
+  "output": "../generated/twilio_verify",
+  "input_schema": "../generated/twilio_verify/schemas.ts"
+}

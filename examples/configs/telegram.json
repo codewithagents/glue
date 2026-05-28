@@ -1,0 +1,5 @@
+{
+  "input_openapi": "../specs/telegram.json",
+  "output": "../generated/telegram",
+  "input_schema": "../generated/telegram/schemas.ts"
+}

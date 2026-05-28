@@ -1,0 +1,5 @@
+{
+  "input_openapi": "../specs/shutterstock.json",
+  "output": "../generated/shutterstock",
+  "input_schema": "../generated/shutterstock/schemas.ts"
+}

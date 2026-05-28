@@ -1,0 +1,5 @@
+{
+  "input_openapi": "../specs/balldontlie.json",
+  "output": "../generated/balldontlie",
+  "input_schema": "../generated/balldontlie/schemas.ts"
+}

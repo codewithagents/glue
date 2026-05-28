@@ -1,0 +1,5 @@
+{
+  "input_openapi": "../specs/configcat.json",
+  "output": "../generated/configcat",
+  "input_schema": "../generated/configcat/schemas.ts"
+}

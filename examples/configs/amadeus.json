@@ -1,0 +1,5 @@
+{
+  "input_openapi": "../specs/amadeus.json",
+  "output": "../generated/amadeus",
+  "input_schema": "../generated/amadeus/schemas.ts"
+}

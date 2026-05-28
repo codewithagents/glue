@@ -1,0 +1,5 @@
+{
+  "input_openapi": "../specs/aws_sns.json",
+  "output": "../generated/aws_sns",
+  "input_schema": "../generated/aws_sns/schemas.ts"
+}

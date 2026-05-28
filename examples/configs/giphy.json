@@ -1,0 +1,5 @@
+{
+  "input_openapi": "../specs/giphy.json",
+  "output": "../generated/giphy",
+  "input_schema": "../generated/giphy/schemas.ts"
+}

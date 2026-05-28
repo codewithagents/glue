@@ -1,0 +1,5 @@
+{
+  "input_openapi": "../specs/circleci.json",
+  "output": "../generated/circleci",
+  "input_schema": "../generated/circleci/schemas.ts"
+}

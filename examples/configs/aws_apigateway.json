@@ -1,0 +1,5 @@
+{
+  "input_openapi": "../specs/aws_apigateway.json",
+  "output": "../generated/aws_apigateway",
+  "input_schema": "../generated/aws_apigateway/schemas.ts"
+}

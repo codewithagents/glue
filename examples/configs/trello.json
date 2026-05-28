@@ -1,0 +1,5 @@
+{
+  "input_openapi": "../specs/trello.json",
+  "output": "../generated/trello",
+  "input_schema": "../generated/trello/schemas.ts"
+}

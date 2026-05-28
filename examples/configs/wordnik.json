@@ -1,0 +1,5 @@
+{
+  "input_openapi": "../specs/wordnik.json",
+  "output": "../generated/wordnik",
+  "input_schema": "../generated/wordnik/schemas.ts"
+}

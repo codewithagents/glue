@@ -1,0 +1,5 @@
+{
+  "input_openapi": "../specs/vimeo.json",
+  "output": "../generated/vimeo",
+  "input_schema": "../generated/vimeo/schemas.ts"
+}

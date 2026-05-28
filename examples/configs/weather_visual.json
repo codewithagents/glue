@@ -1,0 +1,5 @@
+{
+  "input_openapi": "../specs/weather_visual.json",
+  "output": "../generated/weather_visual",
+  "input_schema": "../generated/weather_visual/schemas.ts"
+}

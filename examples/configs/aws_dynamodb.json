@@ -1,0 +1,5 @@
+{
+  "input_openapi": "../specs/aws_dynamodb.json",
+  "output": "../generated/aws_dynamodb",
+  "input_schema": "../generated/aws_dynamodb/schemas.ts"
+}

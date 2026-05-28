@@ -1,0 +1,5 @@
+{
+  "input_openapi": "../specs/postman.json",
+  "output": "../generated/postman",
+  "input_schema": "../generated/postman/schemas.ts"
+}

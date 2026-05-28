@@ -1,0 +1,5 @@
+{
+  "input_openapi": "../specs/dracoon.json",
+  "output": "../generated/dracoon",
+  "input_schema": "../generated/dracoon/schemas.ts"
+}

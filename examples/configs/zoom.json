@@ -1,0 +1,5 @@
+{
+  "input_openapi": "../specs/zoom.json",
+  "output": "../generated/zoom",
+  "input_schema": "../generated/zoom/schemas.ts"
+}

@@ -1,0 +1,5 @@
+{
+  "input_openapi": "../specs/ably_control.json",
+  "output": "../generated/ably_control",
+  "input_schema": "../generated/ably_control/schemas.ts"
+}

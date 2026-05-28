@@ -1,0 +1,5 @@
+{
+  "input_openapi": "../specs/stripe.json",
+  "output": "../generated/stripe",
+  "input_schema": "../generated/stripe/schemas.ts"
+}

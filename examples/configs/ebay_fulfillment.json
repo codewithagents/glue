@@ -1,0 +1,5 @@
+{
+  "input_openapi": "../specs/ebay_fulfillment.json",
+  "output": "../generated/ebay_fulfillment",
+  "input_schema": "../generated/ebay_fulfillment/schemas.ts"
+}

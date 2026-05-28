@@ -1,0 +1,53 @@
+name: Examples
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'packages/openapi-gen/**'
+      - 'packages/openapi-server/**'
+      - 'examples/**'
+  push:
+    branches: [main]
+    paths:
+      - 'packages/openapi-gen/**'
+      - 'packages/openapi-server/**'
+      - 'examples/**'
+  schedule:
+    - cron: '0 6 * * 1'  # Weekly Monday 6am UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  examples:
+    name: Examples (Generate + Typecheck)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: pnpm/action-setup@0e279bb959325dab635dd2c09392533439d90093 # v6.0.8
+      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
+      - name: Generate all examples
+        run: pnpm --filter @codewithagents/examples run generate
+      - name: Verify showcase specs are up to date
+        run: |
+          git diff --exit-code examples/generated/ || (echo "Showcase generated output is out of date. Run 'pnpm generate' in examples/ and commit the result." && exit 1)
+      - name: Typecheck all generated output
+        run: pnpm --filter @codewithagents/examples run typecheck
+      - name: Assert basic code generation quality
+        run: |
+          fail=0
+          for dir in examples/generated/*/; do
+            name=$(basename "$dir")
+            if [ ! -f "$dir/schemas.ts" ]; then
+              echo "FAIL: $name is missing schemas.ts"
+              fail=1
+            fi
+          done
+          exit $fail

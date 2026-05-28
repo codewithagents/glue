@@ -1,0 +1,5 @@
+{
+  "input_openapi": "../specs/twilio_video.json",
+  "output": "../generated/twilio_video",
+  "input_schema": "../generated/twilio_video/schemas.ts"
+}
