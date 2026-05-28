@@ -26,7 +26,7 @@ function refToName(ref: string): string {
 function extractPathParamsFromPath(path: string): string[] {
   const matches = path.match(/\{([^}]+)\}/g)
   if (matches === null) return []
-  return matches.map((m) => m.slice(1, -1))
+  return matches.map((m) => sanitizeOperationId(m.slice(1, -1)))
 }
 
 /** Resolve a parameter that may be a $ref */
@@ -105,11 +105,22 @@ function deriveOperationName(method: string, path: string): string {
   }
   const prefix = prefixMap[method] ?? method
 
-  let segments = path.replace(/^\/api\/v\d+\//, '').replace(/^\//, '')
+  const segments = path.replace(/^\/api\/v\d+\//, '').replace(/^\//, '')
   const parts = segments.split('/').map((seg) => {
+    // Handle mixed segments like "{maxLat}.{format}" — extract each {param} inside
+    const paramMatches = seg.match(/\{([^}]+)\}/g)
+    if (paramMatches !== null && !(seg.startsWith('{') && seg.endsWith('}'))) {
+      return paramMatches
+        .map((m) => {
+          const name = sanitizeOperationId(m.slice(1, -1))
+          return 'By' + name.charAt(0).toUpperCase() + name.slice(1)
+        })
+        .join('')
+    }
     if (seg.startsWith('{') && seg.endsWith('}')) {
       const name = seg.slice(1, -1)
-      return 'By' + name.charAt(0).toUpperCase() + name.slice(1)
+      const sanitized = sanitizeOperationId(name)
+      return 'By' + sanitized.charAt(0).toUpperCase() + sanitized.slice(1)
     }
     return toTypeName(seg)
   })

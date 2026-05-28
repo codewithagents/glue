@@ -320,6 +320,54 @@ describe('generateService', () => {
     expect(content).not.toContain('event_types[]')
   })
 
+  it('path param with hyphens like {job-id} is sanitized to a valid TS identifier', () => {
+    const spec: OpenAPIV3_1.Document = {
+      openapi: '3.1.0',
+      info: { title: 'Test API', version: '1.0.0' },
+      paths: {
+        '/jobs/{job-id}': {
+          get: {
+            operationId: 'getJob',
+            parameters: [{ name: 'job-id', in: 'path', required: true, schema: { type: 'string' } }],
+            responses: { '200': { description: 'ok' } },
+          },
+        },
+      },
+    }
+    const { content } = generateService(spec)
+    // The sanitized param name jobId must appear in the method signature
+    expect(content).toContain('jobId: string')
+    // Raw hyphenated name must not appear as a TS identifier
+    expect(content).not.toContain('job-id: string')
+  })
+
+  it('mixed path segment "{maxLat}.{format}" (no operationId) does not break method name derivation', () => {
+    const spec: OpenAPIV3_1.Document = {
+      openapi: '3.1.0',
+      info: { title: 'Test API', version: '1.0.0' },
+      paths: {
+        '/map/{versionNumber}/tile/{maxLon}/{maxLat}.{format}': {
+          get: {
+            // no operationId — forces deriveOperationName to handle the mixed segment
+            parameters: [
+              { name: 'versionNumber', in: 'path', required: true, schema: { type: 'string' } },
+              { name: 'maxLon', in: 'path', required: true, schema: { type: 'string' } },
+              { name: 'maxLat', in: 'path', required: true, schema: { type: 'string' } },
+              { name: 'format', in: 'path', required: true, schema: { type: 'string' } },
+            ],
+            responses: { '200': { description: 'ok' } },
+          },
+        },
+      },
+    }
+    const { content } = generateService(spec)
+    // The method name must be a valid identifier — no brace or dot chars in the method signature
+    expect(content).not.toMatch(/  [a-zA-Z]*\}[^*]/)
+    // A method must be generated
+    expect(content).toContain('versionNumber: string')
+    expect(content).toContain('maxLon: string')
+  })
+
   it('deduplicates type imports and sorts alphabetically', () => {
     const spec = makeSpec({
       '/pets': {

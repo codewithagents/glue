@@ -1392,6 +1392,52 @@ describe('generateHooks — path segment sanitization in deriveOperationName', (
   })
 })
 
+// ── Bug: AWS action-style resource names with special chars ────────────────────
+
+describe('generateHooks — toKeyFactoryName sanitizes special chars', () => {
+  it('resource "#Action=ActivateType" produces valid key factory name', () => {
+    // AWS-style paths use query params embedded in the path segment
+    const spec: OpenAPIV3_1.Document = {
+      openapi: '3.1.0',
+      info: { title: 'Test', version: '1.0.0' },
+      paths: {
+        '/#Action=ActivateType': {
+          post: {
+            operationId: 'ActivateType',
+            responses: { '200': { description: 'ok' } },
+          },
+        },
+      },
+    }
+    const { content } = generateHooks(spec, { staleTime: 0, gcTime: 0 })
+    // The key factory name must be a valid JS identifier — no #, =, & chars
+    expect(content).not.toContain('#Action=ActivateTypeKeys')
+    expect(content).not.toMatch(/export const [^a-zA-Z_$]/)
+  })
+
+  it('path param with hyphens like {attachment-publicUUID} sanitized in key factory', () => {
+    const spec: OpenAPIV3_1.Document = {
+      openapi: '3.1.0',
+      info: { title: 'Test', version: '1.0.0' },
+      paths: {
+        '/attachments/{attachment-publicUUID}': {
+          get: {
+            operationId: 'getAttachment',
+            parameters: [{ name: 'attachment-publicUUID', in: 'path', required: true, schema: { type: 'string' } }],
+            responses: { '200': { description: 'ok' } },
+          },
+        },
+      },
+    }
+    const { content } = generateHooks(spec, { staleTime: 0, gcTime: 0 })
+    // The path param name must be sanitized to a valid JS identifier
+    expect(content).not.toContain('attachment-publicUUID:')
+    expect(content).not.toContain('attachment-publicUUID!')
+    // The sanitized form attachmentPublicUUID should appear instead
+    expect(content).toContain('attachmentPublicUUID')
+  })
+})
+
 // ── Bug #106: ...options spread overwrites auto-invalidation onSuccess ────────
 
 describe('Bug #106: ...options spread must not overwrite auto-invalidation onSuccess', () => {
