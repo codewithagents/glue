@@ -6,3 +6,5 @@ dist/
 coverage/
 .stryker-tmp/
 reports/mutation/
+examples/generated-rq/
+examples/generated-server/

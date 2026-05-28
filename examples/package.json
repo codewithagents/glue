@@ -10,6 +10,8 @@
   },
   "devDependencies": {
     "@codewithagents/openapi-gen": "workspace:*",
+    "@codewithagents/openapi-react-query": "workspace:*",
+    "@codewithagents/openapi-server": "workspace:*",
     "typescript": "catalog:",
     "vitest": "catalog:",
     "zod": "catalog:"

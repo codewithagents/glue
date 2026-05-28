@@ -80,6 +80,12 @@ importers:
       '@codewithagents/openapi-gen':
         specifier: workspace:*
         version: link:../packages/openapi-gen
+      '@codewithagents/openapi-react-query':
+        specifier: workspace:*
+        version: link:../packages/openapi-react-query
+      '@codewithagents/openapi-server':
+        specifier: workspace:*
+        version: link:../packages/openapi-server
       typescript:
         specifier: 'catalog:'
         version: 6.0.3
