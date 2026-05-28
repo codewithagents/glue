@@ -51,12 +51,12 @@ export async function getV1Forecast(
     daily?: string[];
     latitude: number;
     longitude: number;
-    current_weather?: boolean;
-    temperature_unit?: "celsius" | "fahrenheit";
-    wind_speed_unit?: "kmh" | "ms" | "mph" | "kn";
+    currentWeather?: boolean;
+    temperatureUnit?: "celsius" | "fahrenheit";
+    windSpeedUnit?: "kmh" | "ms" | "mph" | "kn";
     timeformat?: "iso8601" | "unixtime";
     timezone?: string;
-    past_days?: number;
+    pastDays?: number;
   },
   config?: Partial<ClientConfig>,
 ): Promise<Record<string, unknown>> {
@@ -71,18 +71,18 @@ export async function getV1Forecast(
     searchParams.set("latitude", String(params.latitude));
   if (params?.longitude != null)
     searchParams.set("longitude", String(params.longitude));
-  if (params?.current_weather != null)
-    searchParams.set("current_weather", String(params.current_weather));
-  if (params?.temperature_unit != null)
-    searchParams.set("temperature_unit", String(params.temperature_unit));
-  if (params?.wind_speed_unit != null)
-    searchParams.set("wind_speed_unit", String(params.wind_speed_unit));
+  if (params?.currentWeather != null)
+    searchParams.set("current_weather", String(params.currentWeather));
+  if (params?.temperatureUnit != null)
+    searchParams.set("temperature_unit", String(params.temperatureUnit));
+  if (params?.windSpeedUnit != null)
+    searchParams.set("wind_speed_unit", String(params.windSpeedUnit));
   if (params?.timeformat != null)
     searchParams.set("timeformat", String(params.timeformat));
   if (params?.timezone != null)
     searchParams.set("timezone", String(params.timezone));
-  if (params?.past_days != null)
-    searchParams.set("past_days", String(params.past_days));
+  if (params?.pastDays != null)
+    searchParams.set("past_days", String(params.pastDays));
   const res = await _request("GET", "/v1/forecast", { searchParams }, config);
   return res.json();
 }

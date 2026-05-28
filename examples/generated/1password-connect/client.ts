@@ -9,6 +9,15 @@ import type {
   Vault,
 } from "./models.js";
 import { getConfig, type ClientConfig } from "./client-config.js";
+import { z } from "zod";
+import {
+  APIRequestSchema,
+  FileSchema,
+  FullItemSchema,
+  ItemSchema,
+  PatchSchema,
+  VaultSchema,
+} from "./schemas.js";
 
 export class ApiError extends Error {
   constructor(
@@ -69,7 +78,7 @@ export async function getApiActivity(
   if (params?.limit != null) searchParams.set("limit", String(params.limit));
   if (params?.offset != null) searchParams.set("offset", String(params.offset));
   const res = await _request("GET", "/activity", { searchParams }, config);
-  return res.json();
+  return z.array(APIRequestSchema).parse(await res.json());
 }
 
 /**
@@ -84,7 +93,7 @@ export async function getVaults(
   const searchParams = new URLSearchParams();
   if (params?.filter != null) searchParams.set("filter", String(params.filter));
   const res = await _request("GET", "/vaults", { searchParams }, config);
-  return res.json();
+  return z.array(VaultSchema).parse(await res.json());
 }
 
 /**
@@ -102,7 +111,7 @@ export async function getVaultById(
     {},
     config,
   );
-  return res.json();
+  return VaultSchema.parse(await res.json());
 }
 
 /**
@@ -124,7 +133,7 @@ export async function getVaultItems(
     { searchParams },
     config,
   );
-  return res.json();
+  return z.array(ItemSchema).parse(await res.json());
 }
 
 /**
@@ -138,13 +147,14 @@ export async function createVaultItem(
   body: FullItem,
   config?: Partial<ClientConfig>,
 ): Promise<FullItem> {
+  FullItemSchema.strip().parse(body);
   const res = await _request(
     "POST",
     `/vaults/${encodeURIComponent(vaultUuid)}/items`,
     { body },
     config,
   );
-  return res.json();
+  return FullItemSchema.parse(await res.json());
 }
 
 /**
@@ -163,7 +173,7 @@ export async function getVaultItemById(
     {},
     config,
   );
-  return res.json();
+  return FullItemSchema.parse(await res.json());
 }
 
 /**
@@ -178,13 +188,14 @@ export async function updateVaultItem(
   body: FullItem,
   config?: Partial<ClientConfig>,
 ): Promise<FullItem> {
+  FullItemSchema.strip().parse(body);
   const res = await _request(
     "PUT",
     `/vaults/${encodeURIComponent(vaultUuid)}/items/${encodeURIComponent(itemUuid)}`,
     { body },
     config,
   );
-  return res.json();
+  return FullItemSchema.parse(await res.json());
 }
 
 /**
@@ -198,13 +209,14 @@ export async function patchVaultItem(
   body: Patch,
   config?: Partial<ClientConfig>,
 ): Promise<FullItem> {
+  PatchSchema.strip().parse(body);
   const res = await _request(
     "PATCH",
     `/vaults/${encodeURIComponent(vaultUuid)}/items/${encodeURIComponent(itemUuid)}`,
     { body },
     config,
   );
-  return res.json();
+  return FullItemSchema.parse(await res.json());
 }
 
 /**
@@ -233,20 +245,20 @@ export async function getItemFiles(
   vaultUuid: string,
   itemUuid: string,
   params?: {
-    inline_files?: boolean;
+    inlineFiles?: boolean;
   },
   config?: Partial<ClientConfig>,
 ): Promise<File[]> {
   const searchParams = new URLSearchParams();
-  if (params?.inline_files != null)
-    searchParams.set("inline_files", String(params.inline_files));
+  if (params?.inlineFiles != null)
+    searchParams.set("inline_files", String(params.inlineFiles));
   const res = await _request(
     "GET",
     `/vaults/${encodeURIComponent(vaultUuid)}/items/${encodeURIComponent(itemUuid)}/files`,
     { searchParams },
     config,
   );
-  return res.json();
+  return z.array(FileSchema).parse(await res.json());
 }
 
 /**
@@ -259,20 +271,20 @@ export async function getDetailsOfFileById(
   itemUuid: string,
   fileUuid: string,
   params?: {
-    inline_files?: boolean;
+    inlineFiles?: boolean;
   },
   config?: Partial<ClientConfig>,
 ): Promise<File> {
   const searchParams = new URLSearchParams();
-  if (params?.inline_files != null)
-    searchParams.set("inline_files", String(params.inline_files));
+  if (params?.inlineFiles != null)
+    searchParams.set("inline_files", String(params.inlineFiles));
   const res = await _request(
     "GET",
     `/vaults/${encodeURIComponent(vaultUuid)}/items/${encodeURIComponent(itemUuid)}/files/${encodeURIComponent(fileUuid)}`,
     { searchParams },
     config,
   );
-  return res.json();
+  return FileSchema.parse(await res.json());
 }
 
 /**

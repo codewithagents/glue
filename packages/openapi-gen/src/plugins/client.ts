@@ -93,25 +93,41 @@ function queryParamType(schema: SchemaObject | ReferenceObject | undefined): str
 
 /** Convert a path like /api/v1/tasks/{id} to a template literal string with encodeURIComponent calls */
 function pathToUrlExpression(path: string): string {
-  // Replace {param} with ${encodeURIComponent(param)}
+  // Replace {param} with ${encodeURIComponent(sanitizedParam)}
+  // Sanitize param names like 'change-set-id' → 'changeSetId' for valid TS identifiers
   return path.replace(/\{([^}]+)\}/g, (_match, paramName: string) => {
-    return `\${encodeURIComponent(${paramName})}`
+    return `\${encodeURIComponent(${sanitizeOperationId(paramName)})}`
   })
 }
 
 /**
- * Converts a raw operationId (which may be kebab-case, snake_case, or mixed)
- * into a valid camelCase JS identifier.
- * e.g. "post-applePay-sessions" → "postApplePaySessions"
+ * Converts a raw operationId into a valid camelCase JS identifier.
+ * Handles kebab-case, snake_case, dots, spaces, parens, braces and other
+ * non-alphanumeric separators found in real-world OpenAPI specs.
+ * e.g. "post-applePay-sessions"   → "postApplePaySessions"
+ * e.g. "calendar.calendars.insert" → "calendarCalendarsInsert"
+ * e.g. "Get User Profile"          → "getUserProfile"
+ * e.g. "forgotPassword(oneTimeCode)" → "forgotPasswordOneTimeCode"
  */
 function sanitizeOperationId(id: string): string {
-  const parts = id.split(/[-_]+/)
+  const parts = id
+    .replace(/'/g, '')           // strip apostrophes without splitting ("user's" → "users")
+    .split(/[^a-zA-Z0-9]+/)     // split on any non-alphanumeric sequence
+    .filter(Boolean)
+  if (parts.length === 0) return 'unknown'
   const [first = '', ...rest] = parts
-  return (
+  const camel =
     first.charAt(0).toLowerCase() +
     first.slice(1) +
     rest.map((p) => p.charAt(0).toUpperCase() + p.slice(1)).join('')
-  )
+  // If result starts with a digit, prefix with underscore
+  if (/^[0-9]/.test(camel)) return `_${camel}`
+  // If result is a JS reserved word, prefix with underscore
+  const RESERVED = new Set(['break','case','catch','class','const','continue','debugger','default',
+    'delete','do','else','export','extends','finally','for','function','if','import','in',
+    'instanceof','let','new','return','static','super','switch','this','throw','try','typeof',
+    'var','void','while','with','yield'])
+  return RESERVED.has(camel) ? `_${camel}` : camel
 }
 
 function deriveOperationName(method: string, path: string): string {
@@ -132,7 +148,8 @@ function deriveOperationName(method: string, path: string): string {
   const parts = segments.split('/').map((seg) => {
     if (seg.startsWith('{') && seg.endsWith('}')) {
       const name = seg.slice(1, -1)
-      return 'By' + name.charAt(0).toUpperCase() + name.slice(1)
+      // Sanitize hyphenated param names: 'change-set-id' → 'ChangeSetId'
+      return 'By' + toTypeName(name)
     }
     return toTypeName(seg)
   })
@@ -216,10 +233,18 @@ function mergeParams(
   return Array.from(seen.values())
 }
 
-function getPathParams(pathItem: PathItemObject, operation: OperationObject, spec: OpenAPIV3_1.Document): string[] {
+interface PathParam {
+  name: string    // sanitized camelCase TS identifier (e.g. 'changeSetId' from 'change-set-id')
+  urlName: string // original name for URL template (e.g. 'change-set-id')
+}
+
+function getPathParams(pathItem: PathItemObject, operation: OperationObject, spec: OpenAPIV3_1.Document): PathParam[] {
   return mergeParams(pathItem, operation, spec)
     .filter((p) => p.in === 'path')
-    .map((p) => p.name)
+    .map((p) => ({
+      name: sanitizeOperationId(p.name),
+      urlName: p.name,
+    }))
 }
 
 interface QueryParam {
@@ -237,8 +262,11 @@ interface QueryParam {
  */
 function normalizeQueryParamName(name: string): string {
   return name
-    .replace(/\[\]$/, '') // strip trailing [] (array marker)
-    .replace(/[.\-]+([a-zA-Z])/g, (_, char: string) => char.toUpperCase()) // camelCase dots/hyphens
+    .replace(/\[\]$/, '')                                                   // strip trailing [] (array marker)
+    .replace(/'/g, '')                                                      // strip apostrophes
+    .replace(/[^a-zA-Z0-9]+([a-zA-Z])/g, (_, char: string) => char.toUpperCase()) // camelCase any separator
+    .replace(/[^a-zA-Z0-9]+$/, '')                                         // strip trailing non-alphanumeric
+    .replace(/^[^a-zA-Z_$]/, '_')                                          // ensure valid identifier start
 }
 
 function getQueryParams(pathItem: PathItemObject, operation: OperationObject, spec: OpenAPIV3_1.Document): QueryParam[] {
@@ -250,6 +278,7 @@ function getQueryParams(pathItem: PathItemObject, operation: OperationObject, sp
       type: queryParamType(p.schema as SchemaObject | ReferenceObject | undefined),
       required: p.required === true,
     }))
+    .filter((p) => p.name.length > 0)  // skip params that reduce to empty string after normalization
 }
 
 // Feature 2: Header parameters
@@ -273,7 +302,7 @@ function headerNameToCamelCase(headerName: string): string {
 
 function getHeaderParams(pathItem: PathItemObject, operation: OperationObject, spec: OpenAPIV3_1.Document): HeaderParam[] {
   return mergeParams(pathItem, operation, spec)
-    .filter((p) => p.in === 'header')
+    .filter((p) => p.in === 'header' && p.name.length > 0)  // skip params with empty names
     .map((p) => ({
       name: headerNameToCamelCase(p.name),
       headerName: p.name,
@@ -333,7 +362,7 @@ function getRequestBodyInfo(operation: OperationObject): RequestBodyInfo | undef
           }
 
           fields.push({ name: fieldName, required: isRequired, isBinary })
-          tsParts.push(`  ${fieldName}${isRequired ? '' : '?'}: ${tsType}`)
+          tsParts.push(`  ${toPropertyKey(fieldName)}${isRequired ? '' : '?'}: ${tsType}`)
         }
       }
 
@@ -569,7 +598,7 @@ function generateFunctionCode(
   funcName: string,
   method: string,
   path: string,
-  pathParams: string[],
+  pathParams: PathParam[],
   queryParams: QueryParam[],
   headerParams: HeaderParam[],
   bodyInfo: RequestBodyInfo | undefined,
@@ -584,9 +613,9 @@ function generateFunctionCode(
 
   // Build function signature
   const sigParts: string[] = []
-  // Path params first (positional)
+  // Path params first (positional) — use sanitized TS name
   for (const param of pathParams) {
-    sigParts.push(`${param}: string`)
+    sigParts.push(`${param.name}: string`)
   }
   // Body param
   if (bodyInfo !== undefined) {
@@ -655,10 +684,13 @@ function generateFunctionCode(
   if (bodyInfo !== undefined && bodyInfo.kind === 'multipart' && bodyInfo.multipartFields !== undefined) {
     lines.push(`  const formData = new FormData()`)
     for (const field of bodyInfo.multipartFields) {
+      // Use bracket notation for field names with special chars (e.g. 'file.xml')
+      const isSimple = /^[a-zA-Z_$][a-zA-Z0-9_$]*$/.test(field.name)
+      const access = isSimple ? `body.${field.name}` : `body[${JSON.stringify(field.name)}]`
       if (field.isBinary) {
-        lines.push(`  if (body.${field.name} != null) formData.append('${field.name}', body.${field.name})`)
+        lines.push(`  if (${access} != null) formData.append(${JSON.stringify(field.name)}, ${access})`)
       } else {
-        lines.push(`  if (body.${field.name} != null) formData.append('${field.name}', String(body.${field.name}))`)
+        lines.push(`  if (${access} != null) formData.append(${JSON.stringify(field.name)}, String(${access}))`)
       }
     }
   }

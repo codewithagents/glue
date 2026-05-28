@@ -213,6 +213,218 @@ import type {
   VoiceResource,
 } from "./models.js";
 import { getConfig, type ClientConfig } from "./client-config.js";
+import {
+  AdminApiKeyCreateResponseSchema,
+  AdminApiKeySchema,
+  ApiKeyListSchema,
+  AssistantObjectSchema,
+  BatchSchema,
+  CertificateSchema,
+  ChatCompletionDeletedSchema,
+  ChatCompletionListSchema,
+  ChatCompletionMessageListSchema,
+  ChatSessionResourceSchema,
+  CompactResourceSchema,
+  CompactResponseMethodPublicBodySchema,
+  CompleteUploadRequestSchema,
+  ContainerFileListResourceSchema,
+  ContainerFileResourceSchema,
+  ContainerListResourceSchema,
+  ContainerResourceSchema,
+  ConversationItemListSchema,
+  ConversationItemSchema,
+  ConversationResourceSchema,
+  CreateAssistantRequestSchema,
+  CreateChatCompletionRequestSchema,
+  CreateChatCompletionResponseSchema,
+  CreateChatSessionBodySchema,
+  CreateCompletionRequestSchema,
+  CreateCompletionResponseSchema,
+  CreateContainerBodySchema,
+  CreateContainerFileBodySchema,
+  CreateConversationBodySchema,
+  CreateEmbeddingRequestSchema,
+  CreateEmbeddingResponseSchema,
+  CreateEvalRequestSchema,
+  CreateEvalRunRequestSchema,
+  CreateFineTuningCheckpointPermissionRequestSchema,
+  CreateFineTuningJobRequestSchema,
+  CreateGroupBodySchema,
+  CreateGroupUserBodySchema,
+  CreateImageRequestSchema,
+  CreateMessageRequestSchema,
+  CreateModerationRequestSchema,
+  CreateModerationResponseSchema,
+  CreateResponseSchema,
+  CreateRunRequestSchema,
+  CreateSkillBodySchema,
+  CreateSkillVersionBodySchema,
+  CreateSpeechRequestSchema,
+  CreateThreadAndRunRequestSchema,
+  CreateThreadRequestSchema,
+  CreateUploadRequestSchema,
+  CreateVectorStoreFileBatchRequestSchema,
+  CreateVectorStoreFileRequestSchema,
+  CreateVectorStoreRequestSchema,
+  CreateVideoEditJsonBodySchema,
+  CreateVideoExtendJsonBodySchema,
+  CreateVideoJsonBodySchema,
+  CreateVideoRemixBodySchema,
+  DeleteAssistantResponseSchema,
+  DeleteCertificateResponseSchema,
+  DeleteFileResponseSchema,
+  DeleteFineTuningCheckpointPermissionResponseSchema,
+  DeleteMessageResponseSchema,
+  DeleteModelResponseSchema,
+  DeleteThreadResponseSchema,
+  DeleteVectorStoreFileResponseSchema,
+  DeleteVectorStoreResponseSchema,
+  DeletedConversationResourceSchema,
+  DeletedRoleAssignmentResourceSchema,
+  DeletedSkillResourceSchema,
+  DeletedSkillVersionResourceSchema,
+  DeletedThreadResourceSchema,
+  DeletedVideoResourceSchema,
+  EditImageBodyJsonParamSchema,
+  EvalListSchema,
+  EvalRunListSchema,
+  EvalRunOutputItemListSchema,
+  EvalRunOutputItemSchema,
+  EvalRunSchema,
+  EvalSchema,
+  FineTuningJobSchema,
+  GroupDeletedResourceSchema,
+  GroupListResourceSchema,
+  GroupResourceWithSuccessSchema,
+  GroupResponseSchema,
+  GroupRoleAssignmentSchema,
+  GroupUserAssignmentSchema,
+  GroupUserDeletedResourceSchema,
+  ImagesResponseSchema,
+  InviteDeleteResponseSchema,
+  InviteListResponseSchema,
+  InviteProjectGroupBodySchema,
+  InviteRequestSchema,
+  InviteSchema,
+  ListAssistantsResponseSchema,
+  ListAuditLogsResponseSchema,
+  ListBatchesResponseSchema,
+  ListCertificatesResponseSchema,
+  ListFilesResponseSchema,
+  ListFineTuningCheckpointPermissionResponseSchema,
+  ListFineTuningJobCheckpointsResponseSchema,
+  ListFineTuningJobEventsResponseSchema,
+  ListMessagesResponseSchema,
+  ListModelsResponseSchema,
+  ListPaginatedFineTuningJobsResponseSchema,
+  ListProjectCertificatesResponseSchema,
+  ListRunStepsResponseSchema,
+  ListRunsResponseSchema,
+  ListVectorStoreFilesResponseSchema,
+  ListVectorStoresResponseSchema,
+  MessageObjectSchema,
+  ModelSchema,
+  ModifyAssistantRequestSchema,
+  ModifyCertificateRequestSchema,
+  ModifyMessageRequestSchema,
+  ModifyRunRequestSchema,
+  ModifyThreadRequestSchema,
+  OpenAIFileSchema,
+  OrganizationCertificateActivationResponseSchema,
+  OrganizationCertificateDeactivationResponseSchema,
+  OrganizationProjectCertificateActivationResponseSchema,
+  OrganizationProjectCertificateDeactivationResponseSchema,
+  ProjectApiKeyDeleteResponseSchema,
+  ProjectApiKeyListResponseSchema,
+  ProjectApiKeySchema,
+  ProjectCreateRequestSchema,
+  ProjectGroupDeletedResourceSchema,
+  ProjectGroupListResourceSchema,
+  ProjectGroupSchema,
+  ProjectListResponseSchema,
+  ProjectRateLimitListResponseSchema,
+  ProjectRateLimitSchema,
+  ProjectRateLimitUpdateRequestSchema,
+  ProjectSchema,
+  ProjectServiceAccountCreateRequestSchema,
+  ProjectServiceAccountCreateResponseSchema,
+  ProjectServiceAccountDeleteResponseSchema,
+  ProjectServiceAccountListResponseSchema,
+  ProjectServiceAccountSchema,
+  ProjectUpdateRequestSchema,
+  ProjectUserCreateRequestSchema,
+  ProjectUserDeleteResponseSchema,
+  ProjectUserListResponseSchema,
+  ProjectUserSchema,
+  ProjectUserUpdateRequestSchema,
+  PublicAssignOrganizationGroupRoleBodySchema,
+  PublicCreateOrganizationRoleBodySchema,
+  PublicRoleListResourceSchema,
+  PublicUpdateOrganizationRoleBodySchema,
+  RealtimeCallReferRequestSchema,
+  RealtimeCallRejectRequestSchema,
+  RealtimeCreateClientSecretRequestSchema,
+  RealtimeCreateClientSecretResponseSchema,
+  RealtimeSessionCreateRequestGASchema,
+  RealtimeSessionCreateRequestSchema,
+  RealtimeSessionCreateResponseSchema,
+  RealtimeTranscriptionSessionCreateRequestSchema,
+  RealtimeTranscriptionSessionCreateResponseSchema,
+  RealtimeTranslationClientSecretCreateRequestSchema,
+  RealtimeTranslationClientSecretCreateResponseSchema,
+  ResponseItemListSchema,
+  ResponseSchema,
+  RoleDeletedResourceSchema,
+  RoleListResourceSchema,
+  RoleSchema,
+  RunGraderRequestSchema,
+  RunGraderResponseSchema,
+  RunObjectSchema,
+  RunStepObjectSchema,
+  SetDefaultSkillVersionBodySchema,
+  SkillListResourceSchema,
+  SkillResourceSchema,
+  SkillVersionListResourceSchema,
+  SkillVersionResourceSchema,
+  SubmitToolOutputsRunRequestSchema,
+  ThreadItemListResourceSchema,
+  ThreadListResourceSchema,
+  ThreadObjectSchema,
+  ThreadResourceSchema,
+  ToggleCertificatesRequestSchema,
+  TokenCountsBodySchema,
+  TokenCountsResourceSchema,
+  UpdateConversationBodySchema,
+  UpdateGroupBodySchema,
+  UpdateVectorStoreFileAttributesRequestSchema,
+  UpdateVectorStoreRequestSchema,
+  UpdateVoiceConsentRequestSchema,
+  UploadCertificateRequestSchema,
+  UploadPartSchema,
+  UploadSchema,
+  UsageResponseSchema,
+  UserDeleteResponseSchema,
+  UserListResourceSchema,
+  UserListResponseSchema,
+  UserRoleAssignmentSchema,
+  UserRoleUpdateRequestSchema,
+  UserSchema,
+  ValidateGraderRequestSchema,
+  ValidateGraderResponseSchema,
+  VectorStoreFileBatchObjectSchema,
+  VectorStoreFileContentResponseSchema,
+  VectorStoreFileObjectSchema,
+  VectorStoreObjectSchema,
+  VectorStoreSearchRequestSchema,
+  VectorStoreSearchResultsPageSchema,
+  VideoCharacterResourceSchema,
+  VideoListResourceSchema,
+  VideoResourceSchema,
+  VoiceConsentDeletedResourceSchema,
+  VoiceConsentListResourceSchema,
+  VoiceConsentResourceSchema,
+  VoiceResourceSchema,
+} from "./schemas.js";
 
 export class ApiError extends Error {
   constructor(
@@ -277,7 +489,7 @@ export async function listAssistants(
   if (params?.after != null) searchParams.set("after", String(params.after));
   if (params?.before != null) searchParams.set("before", String(params.before));
   const res = await _request("GET", "/assistants", { searchParams }, config);
-  return res.json();
+  return ListAssistantsResponseSchema.parse(await res.json());
 }
 
 /**
@@ -287,63 +499,66 @@ export async function createAssistant(
   body: CreateAssistantRequest,
   config?: Partial<ClientConfig>,
 ): Promise<AssistantObject> {
+  CreateAssistantRequestSchema.strip().parse(body);
   const res = await _request("POST", "/assistants", { body }, config);
-  return res.json();
+  return AssistantObjectSchema.parse(await res.json());
 }
 
 /**
  * @deprecated
  */
 export async function getAssistant(
-  assistant_id: string,
+  assistantId: string,
   config?: Partial<ClientConfig>,
 ): Promise<AssistantObject> {
   const res = await _request(
     "GET",
-    `/assistants/${encodeURIComponent(assistant_id)}`,
+    `/assistants/${encodeURIComponent(assistantId)}`,
     {},
     config,
   );
-  return res.json();
+  return AssistantObjectSchema.parse(await res.json());
 }
 
 /**
  * @deprecated
  */
 export async function modifyAssistant(
-  assistant_id: string,
+  assistantId: string,
   body: ModifyAssistantRequest,
   config?: Partial<ClientConfig>,
 ): Promise<AssistantObject> {
+  ModifyAssistantRequestSchema.strip().parse(body);
   const res = await _request(
     "POST",
-    `/assistants/${encodeURIComponent(assistant_id)}`,
+    `/assistants/${encodeURIComponent(assistantId)}`,
     { body },
     config,
   );
-  return res.json();
+  return AssistantObjectSchema.parse(await res.json());
 }
 
 /**
  * @deprecated
  */
 export async function deleteAssistant(
-  assistant_id: string,
+  assistantId: string,
   config?: Partial<ClientConfig>,
 ): Promise<DeleteAssistantResponse> {
   const res = await _request(
     "DELETE",
-    `/assistants/${encodeURIComponent(assistant_id)}`,
+    `/assistants/${encodeURIComponent(assistantId)}`,
     {},
     config,
   );
-  return res.json();
+  return DeleteAssistantResponseSchema.parse(await res.json());
 }
 
 export async function createSpeech(
   body: CreateSpeechRequest,
   config?: Partial<ClientConfig>,
 ): Promise<void> {
+  CreateSpeechRequestSchema.strip().parse(body);
   await _request("POST", "/audio/speech", { body }, config);
 }
 
@@ -377,61 +592,62 @@ export async function listVoiceConsents(
     { searchParams },
     config,
   );
-  return res.json();
+  return VoiceConsentListResourceSchema.parse(await res.json());
 }
 
 export async function createVoiceConsent(
   config?: Partial<ClientConfig>,
 ): Promise<VoiceConsentResource> {
   const res = await _request("POST", "/audio/voice_consents", {}, config);
-  return res.json();
+  return VoiceConsentResourceSchema.parse(await res.json());
 }
 
 export async function getVoiceConsent(
-  consent_id: string,
+  consentId: string,
   config?: Partial<ClientConfig>,
 ): Promise<VoiceConsentResource> {
   const res = await _request(
     "GET",
-    `/audio/voice_consents/${encodeURIComponent(consent_id)}`,
+    `/audio/voice_consents/${encodeURIComponent(consentId)}`,
     {},
     config,
   );
-  return res.json();
+  return VoiceConsentResourceSchema.parse(await res.json());
 }
 
 export async function updateVoiceConsent(
-  consent_id: string,
+  consentId: string,
   body: UpdateVoiceConsentRequest,
   config?: Partial<ClientConfig>,
 ): Promise<VoiceConsentResource> {
+  UpdateVoiceConsentRequestSchema.strip().parse(body);
   const res = await _request(
     "POST",
-    `/audio/voice_consents/${encodeURIComponent(consent_id)}`,
+    `/audio/voice_consents/${encodeURIComponent(consentId)}`,
     { body },
     config,
   );
-  return res.json();
+  return VoiceConsentResourceSchema.parse(await res.json());
 }
 
 export async function deleteVoiceConsent(
-  consent_id: string,
+  consentId: string,
   config?: Partial<ClientConfig>,
 ): Promise<VoiceConsentDeletedResource> {
   const res = await _request(
     "DELETE",
-    `/audio/voice_consents/${encodeURIComponent(consent_id)}`,
+    `/audio/voice_consents/${encodeURIComponent(consentId)}`,
     {},
     config,
   );
-  return res.json();
+  return VoiceConsentDeletedResourceSchema.parse(await res.json());
 }
 
 export async function createVoice(
   config?: Partial<ClientConfig>,
 ): Promise<VoiceResource> {
   const res = await _request("POST", "/audio/voices", {}, config);
-  return res.json();
+  return VoiceResourceSchema.parse(await res.json());
 }
 
 export async function listBatches(
@@ -445,7 +661,7 @@ export async function listBatches(
   if (params?.after != null) searchParams.set("after", String(params.after));
   if (params?.limit != null) searchParams.set("limit", String(params.limit));
   const res = await _request("GET", "/batches", { searchParams }, config);
-  return res.json();
+  return ListBatchesResponseSchema.parse(await res.json());
 }
 
 export async function createBatch(
@@ -453,33 +669,33 @@ export async function createBatch(
   config?: Partial<ClientConfig>,
 ): Promise<Batch> {
   const res = await _request("POST", "/batches", { body }, config);
-  return res.json();
+  return BatchSchema.parse(await res.json());
 }
 
 export async function retrieveBatch(
-  batch_id: string,
+  batchId: string,
   config?: Partial<ClientConfig>,
 ): Promise<Batch> {
   const res = await _request(
     "GET",
-    `/batches/${encodeURIComponent(batch_id)}`,
+    `/batches/${encodeURIComponent(batchId)}`,
     {},
     config,
   );
-  return res.json();
+  return BatchSchema.parse(await res.json());
 }
 
 export async function cancelBatch(
-  batch_id: string,
+  batchId: string,
   config?: Partial<ClientConfig>,
 ): Promise<Batch> {
   const res = await _request(
     "POST",
-    `/batches/${encodeURIComponent(batch_id)}/cancel`,
+    `/batches/${encodeURIComponent(batchId)}/cancel`,
     {},
     config,
   );
-  return res.json();
+  return BatchSchema.parse(await res.json());
 }
 
 export async function listChatCompletions(
@@ -505,59 +721,60 @@ export async function listChatCompletions(
     { searchParams },
     config,
   );
-  return res.json();
+  return ChatCompletionListSchema.parse(await res.json());
 }
 
 export async function createChatCompletion(
   body: CreateChatCompletionRequest,
   config?: Partial<ClientConfig>,
 ): Promise<CreateChatCompletionResponse> {
+  CreateChatCompletionRequestSchema.strip().parse(body);
   const res = await _request("POST", "/chat/completions", { body }, config);
-  return res.json();
+  return CreateChatCompletionResponseSchema.parse(await res.json());
 }
 
 export async function getChatCompletion(
-  completion_id: string,
+  completionId: string,
   config?: Partial<ClientConfig>,
 ): Promise<CreateChatCompletionResponse> {
   const res = await _request(
     "GET",
-    `/chat/completions/${encodeURIComponent(completion_id)}`,
+    `/chat/completions/${encodeURIComponent(completionId)}`,
     {},
     config,
   );
-  return res.json();
+  return CreateChatCompletionResponseSchema.parse(await res.json());
 }
 
 export async function updateChatCompletion(
-  completion_id: string,
+  completionId: string,
   body: Record<string, unknown>,
   config?: Partial<ClientConfig>,
 ): Promise<CreateChatCompletionResponse> {
   const res = await _request(
     "POST",
-    `/chat/completions/${encodeURIComponent(completion_id)}`,
+    `/chat/completions/${encodeURIComponent(completionId)}`,
     { body },
     config,
   );
-  return res.json();
+  return CreateChatCompletionResponseSchema.parse(await res.json());
 }
 
 export async function deleteChatCompletion(
-  completion_id: string,
+  completionId: string,
   config?: Partial<ClientConfig>,
 ): Promise<ChatCompletionDeleted> {
   const res = await _request(
     "DELETE",
-    `/chat/completions/${encodeURIComponent(completion_id)}`,
+    `/chat/completions/${encodeURIComponent(completionId)}`,
     {},
     config,
   );
-  return res.json();
+  return ChatCompletionDeletedSchema.parse(await res.json());
 }
 
 export async function getChatCompletionMessages(
-  completion_id: string,
+  completionId: string,
   params?: {
     after?: string;
     limit?: number;
@@ -571,19 +788,20 @@ export async function getChatCompletionMessages(
   if (params?.order != null) searchParams.set("order", String(params.order));
   const res = await _request(
     "GET",
-    `/chat/completions/${encodeURIComponent(completion_id)}/messages`,
+    `/chat/completions/${encodeURIComponent(completionId)}/messages`,
     { searchParams },
     config,
   );
-  return res.json();
+  return ChatCompletionMessageListSchema.parse(await res.json());
 }
 
 export async function createCompletion(
   body: CreateCompletionRequest,
   config?: Partial<ClientConfig>,
 ): Promise<CreateCompletionResponse> {
+  CreateCompletionRequestSchema.strip().parse(body);
   const res = await _request("POST", "/completions", { body }, config);
-  return res.json();
+  return CreateCompletionResponseSchema.parse(await res.json());
 }
 
 export async function listContainers(
@@ -601,44 +819,45 @@ export async function listContainers(
   if (params?.after != null) searchParams.set("after", String(params.after));
   if (params?.name != null) searchParams.set("name", String(params.name));
   const res = await _request("GET", "/containers", { searchParams }, config);
-  return res.json();
+  return ContainerListResourceSchema.parse(await res.json());
 }
 
 export async function createContainer(
   body: CreateContainerBody,
   config?: Partial<ClientConfig>,
 ): Promise<ContainerResource> {
+  CreateContainerBodySchema.strip().parse(body);
   const res = await _request("POST", "/containers", { body }, config);
-  return res.json();
+  return ContainerResourceSchema.parse(await res.json());
 }
 
 export async function retrieveContainer(
-  container_id: string,
+  containerId: string,
   config?: Partial<ClientConfig>,
 ): Promise<ContainerResource> {
   const res = await _request(
     "GET",
-    `/containers/${encodeURIComponent(container_id)}`,
+    `/containers/${encodeURIComponent(containerId)}`,
     {},
     config,
   );
-  return res.json();
+  return ContainerResourceSchema.parse(await res.json());
 }
 
 export async function deleteContainer(
-  container_id: string,
+  containerId: string,
   config?: Partial<ClientConfig>,
 ): Promise<void> {
   await _request(
     "DELETE",
-    `/containers/${encodeURIComponent(container_id)}`,
+    `/containers/${encodeURIComponent(containerId)}`,
     {},
     config,
   );
 }
 
 export async function listContainerFiles(
-  container_id: string,
+  containerId: string,
   params?: {
     limit?: number;
     order?: "asc" | "desc";
@@ -652,69 +871,70 @@ export async function listContainerFiles(
   if (params?.after != null) searchParams.set("after", String(params.after));
   const res = await _request(
     "GET",
-    `/containers/${encodeURIComponent(container_id)}/files`,
+    `/containers/${encodeURIComponent(containerId)}/files`,
     { searchParams },
     config,
   );
-  return res.json();
+  return ContainerFileListResourceSchema.parse(await res.json());
 }
 
 export async function createContainerFile(
-  container_id: string,
+  containerId: string,
   body: CreateContainerFileBody,
   config?: Partial<ClientConfig>,
 ): Promise<ContainerFileResource> {
+  CreateContainerFileBodySchema.strip().parse(body);
   const res = await _request(
     "POST",
-    `/containers/${encodeURIComponent(container_id)}/files`,
+    `/containers/${encodeURIComponent(containerId)}/files`,
     { body },
     config,
   );
-  return res.json();
+  return ContainerFileResourceSchema.parse(await res.json());
 }
 
 export async function retrieveContainerFile(
-  container_id: string,
-  file_id: string,
+  containerId: string,
+  fileId: string,
   config?: Partial<ClientConfig>,
 ): Promise<ContainerFileResource> {
   const res = await _request(
     "GET",
-    `/containers/${encodeURIComponent(container_id)}/files/${encodeURIComponent(file_id)}`,
+    `/containers/${encodeURIComponent(containerId)}/files/${encodeURIComponent(fileId)}`,
     {},
     config,
   );
-  return res.json();
+  return ContainerFileResourceSchema.parse(await res.json());
 }
 
 export async function deleteContainerFile(
-  container_id: string,
-  file_id: string,
+  containerId: string,
+  fileId: string,
   config?: Partial<ClientConfig>,
 ): Promise<void> {
   await _request(
     "DELETE",
-    `/containers/${encodeURIComponent(container_id)}/files/${encodeURIComponent(file_id)}`,
+    `/containers/${encodeURIComponent(containerId)}/files/${encodeURIComponent(fileId)}`,
     {},
     config,
   );
 }
 
 export async function retrieveContainerFileContent(
-  container_id: string,
-  file_id: string,
+  containerId: string,
+  fileId: string,
   config?: Partial<ClientConfig>,
 ): Promise<void> {
   await _request(
     "GET",
-    `/containers/${encodeURIComponent(container_id)}/files/${encodeURIComponent(file_id)}/content`,
+    `/containers/${encodeURIComponent(containerId)}/files/${encodeURIComponent(fileId)}/content`,
     {},
     config,
   );
 }
 
 export async function listConversationItems(
-  conversation_id: string,
+  conversationId: string,
   params?: {
     limit?: number;
     order?: "asc" | "desc";
@@ -732,15 +952,15 @@ export async function listConversationItems(
   }
   const res = await _request(
     "GET",
-    `/conversations/${encodeURIComponent(conversation_id)}/items`,
+    `/conversations/${encodeURIComponent(conversationId)}/items`,
     { searchParams },
     config,
   );
-  return res.json();
+  return ConversationItemListSchema.parse(await res.json());
 }
 
 export async function createConversationItems(
-  conversation_id: string,
+  conversationId: string,
   body: unknown,
   params?: {
     include?: string[];
@@ -753,16 +973,16 @@ export async function createConversationItems(
   }
   const res = await _request(
     "POST",
-    `/conversations/${encodeURIComponent(conversation_id)}/items`,
+    `/conversations/${encodeURIComponent(conversationId)}/items`,
     { searchParams, body },
     config,
   );
-  return res.json();
+  return ConversationItemListSchema.parse(await res.json());
 }
 
 export async function getConversationItem(
-  conversation_id: string,
-  item_id: string,
+  conversationId: string,
+  itemId: string,
   params?: {
     include?: string[];
   },
@@ -774,33 +994,34 @@ export async function getConversationItem(
   }
   const res = await _request(
     "GET",
-    `/conversations/${encodeURIComponent(conversation_id)}/items/${encodeURIComponent(item_id)}`,
+    `/conversations/${encodeURIComponent(conversationId)}/items/${encodeURIComponent(itemId)}`,
     { searchParams },
     config,
   );
-  return res.json();
+  return ConversationItemSchema.parse(await res.json());
 }
 
 export async function deleteConversationItem(
-  conversation_id: string,
-  item_id: string,
+  conversationId: string,
+  itemId: string,
   config?: Partial<ClientConfig>,
 ): Promise<ConversationResource> {
   const res = await _request(
     "DELETE",
-    `/conversations/${encodeURIComponent(conversation_id)}/items/${encodeURIComponent(item_id)}`,
+    `/conversations/${encodeURIComponent(conversationId)}/items/${encodeURIComponent(itemId)}`,
     {},
     config,
   );
-  return res.json();
+  return ConversationResourceSchema.parse(await res.json());
 }
 
 export async function createEmbedding(
   body: CreateEmbeddingRequest,
   config?: Partial<ClientConfig>,
 ): Promise<CreateEmbeddingResponse> {
+  CreateEmbeddingRequestSchema.strip().parse(body);
   const res = await _request("POST", "/embeddings", { body }, config);
-  return res.json();
+  return CreateEmbeddingResponseSchema.parse(await res.json());
 }
 
 export async function listEvals(
@@ -808,7 +1029,7 @@ export async function listEvals(
     after?: string;
     limit?: number;
     order?: "asc" | "desc";
-    order_by?: "created_at" | "updated_at";
+    orderBy?: "created_at" | "updated_at";
   },
   config?: Partial<ClientConfig>,
 ): Promise<EvalList> {
@@ -816,57 +1037,58 @@ export async function listEvals(
   if (params?.after != null) searchParams.set("after", String(params.after));
   if (params?.limit != null) searchParams.set("limit", String(params.limit));
   if (params?.order != null) searchParams.set("order", String(params.order));
-  if (params?.order_by != null)
-    searchParams.set("order_by", String(params.order_by));
+  if (params?.orderBy != null)
+    searchParams.set("order_by", String(params.orderBy));
   const res = await _request("GET", "/evals", { searchParams }, config);
-  return res.json();
+  return EvalListSchema.parse(await res.json());
 }
 
 export async function createEval(
   body: CreateEvalRequest,
   config?: Partial<ClientConfig>,
 ): Promise<Eval> {
+  CreateEvalRequestSchema.strip().parse(body);
   const res = await _request("POST", "/evals", { body }, config);
-  return res.json();
+  return EvalSchema.parse(await res.json());
 }
 
 export async function getEval(
-  eval_id: string,
+  evalId: string,
   config?: Partial<ClientConfig>,
 ): Promise<Eval> {
   const res = await _request(
     "GET",
-    `/evals/${encodeURIComponent(eval_id)}`,
+    `/evals/${encodeURIComponent(evalId)}`,
     {},
     config,
   );
-  return res.json();
+  return EvalSchema.parse(await res.json());
 }
 
 export async function updateEval(
-  eval_id: string,
+  evalId: string,
   body: Record<string, unknown>,
   config?: Partial<ClientConfig>,
 ): Promise<Eval> {
   const res = await _request(
     "POST",
-    `/evals/${encodeURIComponent(eval_id)}`,
+    `/evals/${encodeURIComponent(evalId)}`,
     { body },
     config,
   );
-  return res.json();
+  return EvalSchema.parse(await res.json());
 }
 
 /**
  * @throws {ApiError<404, Error>}
  */
 export async function deleteEval(
-  eval_id: string,
+  evalId: string,
   config?: Partial<ClientConfig>,
 ): Promise<Record<string, unknown>> {
   const res = await _request(
     "DELETE",
-    `/evals/${encodeURIComponent(eval_id)}`,
+    `/evals/${encodeURIComponent(evalId)}`,
     {},
     config,
   );
@@ -874,7 +1096,7 @@ export async function deleteEval(
 }
 
 export async function getEvalRuns(
-  eval_id: string,
+  evalId: string,
   params?: {
     after?: string;
     limit?: number;
@@ -890,69 +1112,70 @@ export async function getEvalRuns(
   if (params?.status != null) searchParams.set("status", String(params.status));
   const res = await _request(
     "GET",
-    `/evals/${encodeURIComponent(eval_id)}/runs`,
+    `/evals/${encodeURIComponent(evalId)}/runs`,
     { searchParams },
     config,
   );
-  return res.json();
+  return EvalRunListSchema.parse(await res.json());
 }
 
 /**
  * @throws {ApiError<400, Error>}
  */
 export async function createEvalRun(
-  eval_id: string,
+  evalId: string,
   body: CreateEvalRunRequest,
   config?: Partial<ClientConfig>,
 ): Promise<EvalRun> {
+  CreateEvalRunRequestSchema.strip().parse(body);
   const res = await _request(
     "POST",
-    `/evals/${encodeURIComponent(eval_id)}/runs`,
+    `/evals/${encodeURIComponent(evalId)}/runs`,
     { body },
     config,
   );
-  return res.json();
+  return EvalRunSchema.parse(await res.json());
 }
 
 export async function getEvalRun(
-  eval_id: string,
-  run_id: string,
+  evalId: string,
+  runId: string,
   config?: Partial<ClientConfig>,
 ): Promise<EvalRun> {
   const res = await _request(
     "GET",
-    `/evals/${encodeURIComponent(eval_id)}/runs/${encodeURIComponent(run_id)}`,
+    `/evals/${encodeURIComponent(evalId)}/runs/${encodeURIComponent(runId)}`,
     {},
     config,
   );
-  return res.json();
+  return EvalRunSchema.parse(await res.json());
 }
 
 export async function cancelEvalRun(
-  eval_id: string,
-  run_id: string,
+  evalId: string,
+  runId: string,
   config?: Partial<ClientConfig>,
 ): Promise<EvalRun> {
   const res = await _request(
     "POST",
-    `/evals/${encodeURIComponent(eval_id)}/runs/${encodeURIComponent(run_id)}`,
+    `/evals/${encodeURIComponent(evalId)}/runs/${encodeURIComponent(runId)}`,
     {},
     config,
   );
-  return res.json();
+  return EvalRunSchema.parse(await res.json());
 }
 
 /**
  * @throws {ApiError<404, Error>}
  */
 export async function deleteEvalRun(
-  eval_id: string,
-  run_id: string,
+  evalId: string,
+  runId: string,
   config?: Partial<ClientConfig>,
 ): Promise<Record<string, unknown>> {
   const res = await _request(
     "DELETE",
-    `/evals/${encodeURIComponent(eval_id)}/runs/${encodeURIComponent(run_id)}`,
+    `/evals/${encodeURIComponent(evalId)}/runs/${encodeURIComponent(runId)}`,
     {},
     config,
   );
@@ -960,8 +1183,8 @@ export async function deleteEvalRun(
 }
 
 export async function getEvalRunOutputItems(
-  eval_id: string,
-  run_id: string,
+  evalId: string,
+  runId: string,
   params?: {
     after?: string;
     limit?: number;
@@ -977,26 +1200,26 @@ export async function getEvalRunOutputItems(
   if (params?.order != null) searchParams.set("order", String(params.order));
   const res = await _request(
     "GET",
-    `/evals/${encodeURIComponent(eval_id)}/runs/${encodeURIComponent(run_id)}/output_items`,
+    `/evals/${encodeURIComponent(evalId)}/runs/${encodeURIComponent(runId)}/output_items`,
     { searchParams },
     config,
   );
-  return res.json();
+  return EvalRunOutputItemListSchema.parse(await res.json());
 }
 
 export async function getEvalRunOutputItem(
-  eval_id: string,
-  run_id: string,
-  output_item_id: string,
+  evalId: string,
+  runId: string,
+  outputItemId: string,
   config?: Partial<ClientConfig>,
 ): Promise<EvalRunOutputItem> {
   const res = await _request(
     "GET",
-    `/evals/${encodeURIComponent(eval_id)}/runs/${encodeURIComponent(run_id)}/output_items/${encodeURIComponent(output_item_id)}`,
+    `/evals/${encodeURIComponent(evalId)}/runs/${encodeURIComponent(runId)}/output_items/${encodeURIComponent(outputItemId)}`,
     {},
     config,
   );
-  return res.json();
+  return EvalRunOutputItemSchema.parse(await res.json());
 }
 
 export async function listFiles(
@@ -1015,49 +1238,49 @@ export async function listFiles(
   if (params?.order != null) searchParams.set("order", String(params.order));
   if (params?.after != null) searchParams.set("after", String(params.after));
   const res = await _request("GET", "/files", { searchParams }, config);
-  return res.json();
+  return ListFilesResponseSchema.parse(await res.json());
 }
 
 export async function createFile(
   config?: Partial<ClientConfig>,
 ): Promise<OpenAIFile> {
   const res = await _request("POST", "/files", {}, config);
-  return res.json();
+  return OpenAIFileSchema.parse(await res.json());
 }
 
 export async function retrieveFile(
-  file_id: string,
+  fileId: string,
   config?: Partial<ClientConfig>,
 ): Promise<OpenAIFile> {
   const res = await _request(
     "GET",
-    `/files/${encodeURIComponent(file_id)}`,
+    `/files/${encodeURIComponent(fileId)}`,
     {},
     config,
   );
-  return res.json();
+  return OpenAIFileSchema.parse(await res.json());
 }
 
 export async function deleteFile(
-  file_id: string,
+  fileId: string,
   config?: Partial<ClientConfig>,
 ): Promise<DeleteFileResponse> {
   const res = await _request(
     "DELETE",
-    `/files/${encodeURIComponent(file_id)}`,
+    `/files/${encodeURIComponent(fileId)}`,
     {},
     config,
   );
-  return res.json();
+  return DeleteFileResponseSchema.parse(await res.json());
 }
 
 export async function downloadFile(
-  file_id: string,
+  fileId: string,
   config?: Partial<ClientConfig>,
 ): Promise<string> {
   const res = await _request(
     "GET",
-    `/files/${encodeURIComponent(file_id)}/content`,
+    `/files/${encodeURIComponent(fileId)}/content`,
     {},
     config,
   );
@@ -1068,32 +1291,34 @@ export async function runGrader(
   body: RunGraderRequest,
   config?: Partial<ClientConfig>,
 ): Promise<RunGraderResponse> {
+  RunGraderRequestSchema.strip().parse(body);
   const res = await _request(
     "POST",
     "/fine_tuning/alpha/graders/run",
     { body },
     config,
   );
-  return res.json();
+  return RunGraderResponseSchema.parse(await res.json());
 }
 
 export async function validateGrader(
   body: ValidateGraderRequest,
   config?: Partial<ClientConfig>,
 ): Promise<ValidateGraderResponse> {
+  ValidateGraderRequestSchema.strip().parse(body);
   const res = await _request(
     "POST",
     "/fine_tuning/alpha/graders/validate",
     { body },
     config,
   );
-  return res.json();
+  return ValidateGraderResponseSchema.parse(await res.json());
 }
 
 export async function listFineTuningCheckpointPermissions(
-  fine_tuned_model_checkpoint: string,
+  fineTunedModelCheckpoint: string,
   params?: {
-    project_id?: string;
+    projectId?: string;
     after?: string;
     limit?: number;
     order?: "ascending" | "descending";
@@ -1101,46 +1326,53 @@ export async function listFineTuningCheckpointPermissions(
   config?: Partial<ClientConfig>,
 ): Promise<ListFineTuningCheckpointPermissionResponse> {
   const searchParams = new URLSearchParams();
-  if (params?.project_id != null)
-    searchParams.set("project_id", String(params.project_id));
+  if (params?.projectId != null)
+    searchParams.set("project_id", String(params.projectId));
   if (params?.after != null) searchParams.set("after", String(params.after));
   if (params?.limit != null) searchParams.set("limit", String(params.limit));
   if (params?.order != null) searchParams.set("order", String(params.order));
   const res = await _request(
     "GET",
-    `/fine_tuning/checkpoints/${encodeURIComponent(fine_tuned_model_checkpoint)}/permissions`,
+    `/fine_tuning/checkpoints/${encodeURIComponent(fineTunedModelCheckpoint)}/permissions`,
     { searchParams },
     config,
   );
-  return res.json();
+  return ListFineTuningCheckpointPermissionResponseSchema.parse(
+    await res.json(),
+  );
 }
 
 export async function createFineTuningCheckpointPermission(
-  fine_tuned_model_checkpoint: string,
+  fineTunedModelCheckpoint: string,
   body: CreateFineTuningCheckpointPermissionRequest,
   config?: Partial<ClientConfig>,
 ): Promise<ListFineTuningCheckpointPermissionResponse> {
+  CreateFineTuningCheckpointPermissionRequestSchema.strip().parse(body);
   const res = await _request(
     "POST",
-    `/fine_tuning/checkpoints/${encodeURIComponent(fine_tuned_model_checkpoint)}/permissions`,
+    `/fine_tuning/checkpoints/${encodeURIComponent(fineTunedModelCheckpoint)}/permissions`,
     { body },
     config,
   );
-  return res.json();
+  return ListFineTuningCheckpointPermissionResponseSchema.parse(
+    await res.json(),
+  );
 }
 
 export async function deleteFineTuningCheckpointPermission(
-  fine_tuned_model_checkpoint: string,
-  permission_id: string,
+  fineTunedModelCheckpoint: string,
+  permissionId: string,
   config?: Partial<ClientConfig>,
 ): Promise<DeleteFineTuningCheckpointPermissionResponse> {
   const res = await _request(
     "DELETE",
-    `/fine_tuning/checkpoints/${encodeURIComponent(fine_tuned_model_checkpoint)}/permissions/${encodeURIComponent(permission_id)}`,
+    `/fine_tuning/checkpoints/${encodeURIComponent(fineTunedModelCheckpoint)}/permissions/${encodeURIComponent(permissionId)}`,
     {},
     config,
   );
-  return res.json();
+  return DeleteFineTuningCheckpointPermissionResponseSchema.parse(
+    await res.json(),
+  );
 }
 
 export async function listPaginatedFineTuningJobs(
@@ -1162,45 +1394,46 @@ export async function listPaginatedFineTuningJobs(
     { searchParams },
     config,
   );
-  return res.json();
+  return ListPaginatedFineTuningJobsResponseSchema.parse(await res.json());
 }
 
 export async function createFineTuningJob(
   body: CreateFineTuningJobRequest,
   config?: Partial<ClientConfig>,
 ): Promise<FineTuningJob> {
+  CreateFineTuningJobRequestSchema.strip().parse(body);
   const res = await _request("POST", "/fine_tuning/jobs", { body }, config);
-  return res.json();
+  return FineTuningJobSchema.parse(await res.json());
 }
 
 export async function retrieveFineTuningJob(
-  fine_tuning_job_id: string,
+  fineTuningJobId: string,
   config?: Partial<ClientConfig>,
 ): Promise<FineTuningJob> {
   const res = await _request(
     "GET",
-    `/fine_tuning/jobs/${encodeURIComponent(fine_tuning_job_id)}`,
+    `/fine_tuning/jobs/${encodeURIComponent(fineTuningJobId)}`,
     {},
     config,
   );
-  return res.json();
+  return FineTuningJobSchema.parse(await res.json());
 }
 
 export async function cancelFineTuningJob(
-  fine_tuning_job_id: string,
+  fineTuningJobId: string,
   config?: Partial<ClientConfig>,
 ): Promise<FineTuningJob> {
   const res = await _request(
     "POST",
-    `/fine_tuning/jobs/${encodeURIComponent(fine_tuning_job_id)}/cancel`,
+    `/fine_tuning/jobs/${encodeURIComponent(fineTuningJobId)}/cancel`,
     {},
     config,
   );
-  return res.json();
+  return FineTuningJobSchema.parse(await res.json());
 }
 
 export async function listFineTuningJobCheckpoints(
-  fine_tuning_job_id: string,
+  fineTuningJobId: string,
   params?: {
     after?: string;
     limit?: number;
@@ -1212,15 +1445,15 @@ export async function listFineTuningJobCheckpoints(
   if (params?.limit != null) searchParams.set("limit", String(params.limit));
   const res = await _request(
     "GET",
-    `/fine_tuning/jobs/${encodeURIComponent(fine_tuning_job_id)}/checkpoints`,
+    `/fine_tuning/jobs/${encodeURIComponent(fineTuningJobId)}/checkpoints`,
     { searchParams },
     config,
   );
-  return res.json();
+  return ListFineTuningJobCheckpointsResponseSchema.parse(await res.json());
 }
 
 export async function listFineTuningEvents(
-  fine_tuning_job_id: string,
+  fineTuningJobId: string,
   params?: {
     after?: string;
     limit?: number;
@@ -1232,67 +1465,69 @@ export async function listFineTuningEvents(
   if (params?.limit != null) searchParams.set("limit", String(params.limit));
   const res = await _request(
     "GET",
-    `/fine_tuning/jobs/${encodeURIComponent(fine_tuning_job_id)}/events`,
+    `/fine_tuning/jobs/${encodeURIComponent(fineTuningJobId)}/events`,
     { searchParams },
     config,
   );
-  return res.json();
+  return ListFineTuningJobEventsResponseSchema.parse(await res.json());
 }
 
 export async function pauseFineTuningJob(
-  fine_tuning_job_id: string,
+  fineTuningJobId: string,
   config?: Partial<ClientConfig>,
 ): Promise<FineTuningJob> {
   const res = await _request(
     "POST",
-    `/fine_tuning/jobs/${encodeURIComponent(fine_tuning_job_id)}/pause`,
+    `/fine_tuning/jobs/${encodeURIComponent(fineTuningJobId)}/pause`,
     {},
     config,
   );
-  return res.json();
+  return FineTuningJobSchema.parse(await res.json());
 }
 
 export async function resumeFineTuningJob(
-  fine_tuning_job_id: string,
+  fineTuningJobId: string,
   config?: Partial<ClientConfig>,
 ): Promise<FineTuningJob> {
   const res = await _request(
     "POST",
-    `/fine_tuning/jobs/${encodeURIComponent(fine_tuning_job_id)}/resume`,
+    `/fine_tuning/jobs/${encodeURIComponent(fineTuningJobId)}/resume`,
     {},
     config,
   );
-  return res.json();
+  return FineTuningJobSchema.parse(await res.json());
 }
 
 export async function createImageEdit(
   body: EditImageBodyJsonParam,
   config?: Partial<ClientConfig>,
 ): Promise<ImagesResponse> {
+  EditImageBodyJsonParamSchema.strip().parse(body);
   const res = await _request("POST", "/images/edits", { body }, config);
-  return res.json();
+  return ImagesResponseSchema.parse(await res.json());
 }
 
 export async function createImage(
   body: CreateImageRequest,
   config?: Partial<ClientConfig>,
 ): Promise<ImagesResponse> {
+  CreateImageRequestSchema.strip().parse(body);
   const res = await _request("POST", "/images/generations", { body }, config);
-  return res.json();
+  return ImagesResponseSchema.parse(await res.json());
 }
 
 export async function createImageVariation(
   config?: Partial<ClientConfig>,
 ): Promise<ImagesResponse> {
   const res = await _request("POST", "/images/variations", {}, config);
-  return res.json();
+  return ImagesResponseSchema.parse(await res.json());
 }
 
 export async function listModels(
   config?: Partial<ClientConfig>,
 ): Promise<ListModelsResponse> {
   const res = await _request("GET", "/models", {}, config);
-  return res.json();
+  return ListModelsResponseSchema.parse(await res.json());
 }
 
 export async function retrieveModel(
@@ -1305,7 +1540,7 @@ export async function retrieveModel(
     {},
     config,
   );
-  return res.json();
+  return ModelSchema.parse(await res.json());
 }
 
 export async function deleteModel(
@@ -1318,15 +1553,16 @@ export async function deleteModel(
     {},
     config,
   );
-  return res.json();
+  return DeleteModelResponseSchema.parse(await res.json());
 }
 
 export async function createModeration(
   body: CreateModerationRequest,
   config?: Partial<ClientConfig>,
 ): Promise<CreateModerationResponse> {
+  CreateModerationRequestSchema.strip().parse(body);
   const res = await _request("POST", "/moderations", { body }, config);
-  return res.json();
+  return CreateModerationResponseSchema.parse(await res.json());
 }
 
 export async function adminApiKeysList(
@@ -1347,7 +1583,7 @@ export async function adminApiKeysList(
     { searchParams },
     config,
   );
-  return res.json();
+  return ApiKeyListSchema.parse(await res.json());
 }
 
 export async function adminApiKeysCreate(
@@ -1360,29 +1596,29 @@ export async function adminApiKeysCreate(
     { body },
     config,
   );
-  return res.json();
+  return AdminApiKeyCreateResponseSchema.parse(await res.json());
 }
 
 export async function adminApiKeysGet(
-  key_id: string,
+  keyId: string,
   config?: Partial<ClientConfig>,
 ): Promise<AdminApiKey> {
   const res = await _request(
     "GET",
-    `/organization/admin_api_keys/${encodeURIComponent(key_id)}`,
+    `/organization/admin_api_keys/${encodeURIComponent(keyId)}`,
     {},
     config,
   );
-  return res.json();
+  return AdminApiKeySchema.parse(await res.json());
 }
 
 export async function adminApiKeysDelete(
-  key_id: string,
+  keyId: string,
   config?: Partial<ClientConfig>,
 ): Promise<Record<string, unknown>> {
   const res = await _request(
     "DELETE",
-    `/organization/admin_api_keys/${encodeURIComponent(key_id)}`,
+    `/organization/admin_api_keys/${encodeURIComponent(keyId)}`,
     {},
     config,
   );
@@ -1391,12 +1627,12 @@ export async function adminApiKeysDelete(
 
 export async function listAuditLogs(
   params?: {
-    effective_at?: unknown;
-    project_ids?: string[];
-    event_types?: string[];
-    actor_ids?: string[];
-    actor_emails?: string[];
-    resource_ids?: string[];
+    effectiveAt?: unknown;
+    projectIds?: string[];
+    eventTypes?: string[];
+    actorIds?: string[];
+    actorEmails?: string[];
+    resourceIds?: string[];
     limit?: number;
     after?: string;
     before?: string;
@@ -1404,26 +1640,26 @@ export async function listAuditLogs(
   config?: Partial<ClientConfig>,
 ): Promise<ListAuditLogsResponse> {
   const searchParams = new URLSearchParams();
-  if (params?.effective_at != null)
-    searchParams.set("effective_at", String(params.effective_at));
-  if (params?.project_ids != null) {
-    for (const v of params.project_ids)
+  if (params?.effectiveAt != null)
+    searchParams.set("effective_at", String(params.effectiveAt));
+  if (params?.projectIds != null) {
+    for (const v of params.projectIds)
       searchParams.append("project_ids[]", String(v));
   }
-  if (params?.event_types != null) {
-    for (const v of params.event_types)
+  if (params?.eventTypes != null) {
+    for (const v of params.eventTypes)
       searchParams.append("event_types[]", String(v));
   }
-  if (params?.actor_ids != null) {
-    for (const v of params.actor_ids)
+  if (params?.actorIds != null) {
+    for (const v of params.actorIds)
       searchParams.append("actor_ids[]", String(v));
   }
-  if (params?.actor_emails != null) {
-    for (const v of params.actor_emails)
+  if (params?.actorEmails != null) {
+    for (const v of params.actorEmails)
       searchParams.append("actor_emails[]", String(v));
   }
-  if (params?.resource_ids != null) {
-    for (const v of params.resource_ids)
+  if (params?.resourceIds != null) {
+    for (const v of params.resourceIds)
       searchParams.append("resource_ids[]", String(v));
   }
   if (params?.limit != null) searchParams.set("limit", String(params.limit));
@@ -1435,7 +1671,7 @@ export async function listAuditLogs(
     { searchParams },
     config,
   );
-  return res.json();
+  return ListAuditLogsResponseSchema.parse(await res.json());
 }
 
 export async function listOrganizationCertificates(
@@ -1456,50 +1692,57 @@ export async function listOrganizationCertificates(
     { searchParams },
     config,
   );
-  return res.json();
+  return ListCertificatesResponseSchema.parse(await res.json());
 }
 
 export async function uploadCertificate(
   body: UploadCertificateRequest,
   config?: Partial<ClientConfig>,
 ): Promise<Certificate> {
+  UploadCertificateRequestSchema.strip().parse(body);
   const res = await _request(
     "POST",
     "/organization/certificates",
     { body },
     config,
   );
-  return res.json();
+  return CertificateSchema.parse(await res.json());
 }
 
 export async function activateOrganizationCertificates(
   body: ToggleCertificatesRequest,
   config?: Partial<ClientConfig>,
 ): Promise<OrganizationCertificateActivationResponse> {
+  ToggleCertificatesRequestSchema.strip().parse(body);
   const res = await _request(
     "POST",
     "/organization/certificates/activate",
     { body },
     config,
   );
-  return res.json();
+  return OrganizationCertificateActivationResponseSchema.parse(
+    await res.json(),
+  );
 }
 
 export async function deactivateOrganizationCertificates(
   body: ToggleCertificatesRequest,
   config?: Partial<ClientConfig>,
 ): Promise<OrganizationCertificateDeactivationResponse> {
+  ToggleCertificatesRequestSchema.strip().parse(body);
   const res = await _request(
     "POST",
     "/organization/certificates/deactivate",
     { body },
     config,
   );
-  return res.json();
+  return OrganizationCertificateDeactivationResponseSchema.parse(
+    await res.json(),
+  );
 }
 
 export async function getCertificate(
-  certificate_id: string,
+  certificateId: string,
   params?: {
     include?: string[];
   },
@@ -1511,70 +1754,71 @@ export async function getCertificate(
   }
   const res = await _request(
     "GET",
-    `/organization/certificates/${encodeURIComponent(certificate_id)}`,
+    `/organization/certificates/${encodeURIComponent(certificateId)}`,
     { searchParams },
     config,
   );
-  return res.json();
+  return CertificateSchema.parse(await res.json());
 }
 
 export async function modifyCertificate(
-  certificate_id: string,
+  certificateId: string,
   body: ModifyCertificateRequest,
   config?: Partial<ClientConfig>,
 ): Promise<Certificate> {
+  ModifyCertificateRequestSchema.strip().parse(body);
   const res = await _request(
     "POST",
-    `/organization/certificates/${encodeURIComponent(certificate_id)}`,
+    `/organization/certificates/${encodeURIComponent(certificateId)}`,
     { body },
     config,
   );
-  return res.json();
+  return CertificateSchema.parse(await res.json());
 }
 
 export async function deleteCertificate(
-  certificate_id: string,
+  certificateId: string,
   config?: Partial<ClientConfig>,
 ): Promise<DeleteCertificateResponse> {
   const res = await _request(
     "DELETE",
-    `/organization/certificates/${encodeURIComponent(certificate_id)}`,
+    `/organization/certificates/${encodeURIComponent(certificateId)}`,
     {},
     config,
   );
-  return res.json();
+  return DeleteCertificateResponseSchema.parse(await res.json());
 }
 
 export async function usageCosts(
   params: {
-    start_time: number;
-    end_time?: number;
-    bucket_width?: "1d";
-    project_ids?: string[];
-    api_key_ids?: string[];
-    group_by?: string[];
+    startTime: number;
+    endTime?: number;
+    bucketWidth?: "1d";
+    projectIds?: string[];
+    apiKeyIds?: string[];
+    groupBy?: string[];
     limit?: number;
     page?: string;
   },
   config?: Partial<ClientConfig>,
 ): Promise<UsageResponse> {
   const searchParams = new URLSearchParams();
-  if (params?.start_time != null)
-    searchParams.set("start_time", String(params.start_time));
-  if (params?.end_time != null)
-    searchParams.set("end_time", String(params.end_time));
-  if (params?.bucket_width != null)
-    searchParams.set("bucket_width", String(params.bucket_width));
-  if (params?.project_ids != null) {
-    for (const v of params.project_ids)
+  if (params?.startTime != null)
+    searchParams.set("start_time", String(params.startTime));
+  if (params?.endTime != null)
+    searchParams.set("end_time", String(params.endTime));
+  if (params?.bucketWidth != null)
+    searchParams.set("bucket_width", String(params.bucketWidth));
+  if (params?.projectIds != null) {
+    for (const v of params.projectIds)
       searchParams.append("project_ids", String(v));
   }
-  if (params?.api_key_ids != null) {
-    for (const v of params.api_key_ids)
+  if (params?.apiKeyIds != null) {
+    for (const v of params.apiKeyIds)
       searchParams.append("api_key_ids", String(v));
   }
-  if (params?.group_by != null) {
-    for (const v of params.group_by) searchParams.append("group_by", String(v));
+  if (params?.groupBy != null) {
+    for (const v of params.groupBy) searchParams.append("group_by", String(v));
   }
   if (params?.limit != null) searchParams.set("limit", String(params.limit));
   if (params?.page != null) searchParams.set("page", String(params.page));
@@ -1584,7 +1828,7 @@ export async function usageCosts(
     { searchParams },
     config,
   );
-  return res.json();
+  return UsageResponseSchema.parse(await res.json());
 }
 
 export async function listGroups(
@@ -1605,46 +1849,48 @@ export async function listGroups(
     { searchParams },
     config,
   );
-  return res.json();
+  return GroupListResourceSchema.parse(await res.json());
 }
 
 export async function createGroup(
   body: CreateGroupBody,
   config?: Partial<ClientConfig>,
 ): Promise<GroupResponse> {
+  CreateGroupBodySchema.strip().parse(body);
   const res = await _request("POST", "/organization/groups", { body }, config);
-  return res.json();
+  return GroupResponseSchema.parse(await res.json());
 }
 
 export async function updateGroup(
-  group_id: string,
+  groupId: string,
   body: UpdateGroupBody,
   config?: Partial<ClientConfig>,
 ): Promise<GroupResourceWithSuccess> {
+  UpdateGroupBodySchema.strip().parse(body);
   const res = await _request(
     "POST",
-    `/organization/groups/${encodeURIComponent(group_id)}`,
+    `/organization/groups/${encodeURIComponent(groupId)}`,
     { body },
     config,
   );
-  return res.json();
+  return GroupResourceWithSuccessSchema.parse(await res.json());
 }
 
 export async function deleteGroup(
-  group_id: string,
+  groupId: string,
   config?: Partial<ClientConfig>,
 ): Promise<GroupDeletedResource> {
   const res = await _request(
     "DELETE",
-    `/organization/groups/${encodeURIComponent(group_id)}`,
+    `/organization/groups/${encodeURIComponent(groupId)}`,
     {},
     config,
   );
-  return res.json();
+  return GroupDeletedResourceSchema.parse(await res.json());
 }
 
 export async function listGroupRoleAssignments(
-  group_id: string,
+  groupId: string,
   params?: {
     limit?: number;
     after?: string;
@@ -1658,43 +1904,44 @@ export async function listGroupRoleAssignments(
   if (params?.order != null) searchParams.set("order", String(params.order));
   const res = await _request(
     "GET",
-    `/organization/groups/${encodeURIComponent(group_id)}/roles`,
+    `/organization/groups/${encodeURIComponent(groupId)}/roles`,
     { searchParams },
     config,
   );
-  return res.json();
+  return RoleListResourceSchema.parse(await res.json());
 }
 
 export async function assignGroupRole(
-  group_id: string,
+  groupId: string,
   body: PublicAssignOrganizationGroupRoleBody,
   config?: Partial<ClientConfig>,
 ): Promise<GroupRoleAssignment> {
+  PublicAssignOrganizationGroupRoleBodySchema.strip().parse(body);
   const res = await _request(
     "POST",
-    `/organization/groups/${encodeURIComponent(group_id)}/roles`,
+    `/organization/groups/${encodeURIComponent(groupId)}/roles`,
     { body },
     config,
   );
-  return res.json();
+  return GroupRoleAssignmentSchema.parse(await res.json());
 }
 
 export async function unassignGroupRole(
-  group_id: string,
-  role_id: string,
+  groupId: string,
+  roleId: string,
   config?: Partial<ClientConfig>,
 ): Promise<DeletedRoleAssignmentResource> {
   const res = await _request(
     "DELETE",
-    `/organization/groups/${encodeURIComponent(group_id)}/roles/${encodeURIComponent(role_id)}`,
+    `/organization/groups/${encodeURIComponent(groupId)}/roles/${encodeURIComponent(roleId)}`,
     {},
     config,
   );
-  return res.json();
+  return DeletedRoleAssignmentResourceSchema.parse(await res.json());
 }
 
 export async function listGroupUsers(
-  group_id: string,
+  groupId: string,
   params?: {
     limit?: number;
     after?: string;
@@ -1708,39 +1955,40 @@ export async function listGroupUsers(
   if (params?.order != null) searchParams.set("order", String(params.order));
   const res = await _request(
     "GET",
-    `/organization/groups/${encodeURIComponent(group_id)}/users`,
+    `/organization/groups/${encodeURIComponent(groupId)}/users`,
     { searchParams },
     config,
   );
-  return res.json();
+  return UserListResourceSchema.parse(await res.json());
 }
 
 export async function addGroupUser(
-  group_id: string,
+  groupId: string,
   body: CreateGroupUserBody,
   config?: Partial<ClientConfig>,
 ): Promise<GroupUserAssignment> {
+  CreateGroupUserBodySchema.strip().parse(body);
   const res = await _request(
     "POST",
-    `/organization/groups/${encodeURIComponent(group_id)}/users`,
+    `/organization/groups/${encodeURIComponent(groupId)}/users`,
     { body },
     config,
   );
-  return res.json();
+  return GroupUserAssignmentSchema.parse(await res.json());
 }
 
 export async function removeGroupUser(
-  group_id: string,
-  user_id: string,
+  groupId: string,
+  userId: string,
   config?: Partial<ClientConfig>,
 ): Promise<GroupUserDeletedResource> {
   const res = await _request(
     "DELETE",
-    `/organization/groups/${encodeURIComponent(group_id)}/users/${encodeURIComponent(user_id)}`,
+    `/organization/groups/${encodeURIComponent(groupId)}/users/${encodeURIComponent(userId)}`,
     {},
     config,
   );
-  return res.json();
+  return GroupUserDeletedResourceSchema.parse(await res.json());
 }
 
 export async function listInvites(
@@ -1759,110 +2007,113 @@ export async function listInvites(
     { searchParams },
     config,
   );
-  return res.json();
+  return InviteListResponseSchema.parse(await res.json());
 }
 
 export async function inviteUser(
   body: InviteRequest,
   config?: Partial<ClientConfig>,
 ): Promise<Invite> {
+  InviteRequestSchema.strip().parse(body);
   const res = await _request("POST", "/organization/invites", { body }, config);
-  return res.json();
+  return InviteSchema.parse(await res.json());
 }
 
 export async function retrieveInvite(
-  invite_id: string,
+  inviteId: string,
   config?: Partial<ClientConfig>,
 ): Promise<Invite> {
   const res = await _request(
     "GET",
-    `/organization/invites/${encodeURIComponent(invite_id)}`,
+    `/organization/invites/${encodeURIComponent(inviteId)}`,
     {},
     config,
   );
-  return res.json();
+  return InviteSchema.parse(await res.json());
 }
 
 export async function deleteInvite(
-  invite_id: string,
+  inviteId: string,
   config?: Partial<ClientConfig>,
 ): Promise<InviteDeleteResponse> {
   const res = await _request(
     "DELETE",
-    `/organization/invites/${encodeURIComponent(invite_id)}`,
+    `/organization/invites/${encodeURIComponent(inviteId)}`,
     {},
     config,
   );
-  return res.json();
+  return InviteDeleteResponseSchema.parse(await res.json());
 }
 
 export async function listProjects(
   params?: {
     limit?: number;
     after?: string;
-    include_archived?: boolean;
+    includeArchived?: boolean;
   },
   config?: Partial<ClientConfig>,
 ): Promise<ProjectListResponse> {
   const searchParams = new URLSearchParams();
   if (params?.limit != null) searchParams.set("limit", String(params.limit));
   if (params?.after != null) searchParams.set("after", String(params.after));
-  if (params?.include_archived != null)
-    searchParams.set("include_archived", String(params.include_archived));
+  if (params?.includeArchived != null)
+    searchParams.set("include_archived", String(params.includeArchived));
   const res = await _request(
     "GET",
     "/organization/projects",
     { searchParams },
     config,
   );
-  return res.json();
+  return ProjectListResponseSchema.parse(await res.json());
 }
 
 export async function createProject(
   body: ProjectCreateRequest,
   config?: Partial<ClientConfig>,
 ): Promise<Project> {
+  ProjectCreateRequestSchema.strip().parse(body);
   const res = await _request(
     "POST",
     "/organization/projects",
     { body },
     config,
   );
-  return res.json();
+  return ProjectSchema.parse(await res.json());
 }
 
 export async function retrieveProject(
-  project_id: string,
+  projectId: string,
   config?: Partial<ClientConfig>,
 ): Promise<Project> {
   const res = await _request(
     "GET",
-    `/organization/projects/${encodeURIComponent(project_id)}`,
+    `/organization/projects/${encodeURIComponent(projectId)}`,
     {},
     config,
   );
-  return res.json();
+  return ProjectSchema.parse(await res.json());
 }
 
 /**
  * @throws {ApiError<400, ErrorResponse>}
  */
 export async function modifyProject(
-  project_id: string,
+  projectId: string,
   body: ProjectUpdateRequest,
   config?: Partial<ClientConfig>,
 ): Promise<Project> {
+  ProjectUpdateRequestSchema.strip().parse(body);
   const res = await _request(
     "POST",
-    `/organization/projects/${encodeURIComponent(project_id)}`,
+    `/organization/projects/${encodeURIComponent(projectId)}`,
     { body },
     config,
   );
-  return res.json();
+  return ProjectSchema.parse(await res.json());
 }
 
 export async function listProjectApiKeys(
-  project_id: string,
+  projectId: string,
   params?: {
     limit?: number;
     after?: string;
@@ -1874,59 +2125,59 @@ export async function listProjectApiKeys(
   if (params?.after != null) searchParams.set("after", String(params.after));
   const res = await _request(
     "GET",
-    `/organization/projects/${encodeURIComponent(project_id)}/api_keys`,
+    `/organization/projects/${encodeURIComponent(projectId)}/api_keys`,
     { searchParams },
     config,
   );
-  return res.json();
+  return ProjectApiKeyListResponseSchema.parse(await res.json());
 }
 
 export async function retrieveProjectApiKey(
-  project_id: string,
-  api_key_id: string,
+  projectId: string,
+  apiKeyId: string,
   config?: Partial<ClientConfig>,
 ): Promise<ProjectApiKey> {
   const res = await _request(
     "GET",
-    `/organization/projects/${encodeURIComponent(project_id)}/api_keys/${encodeURIComponent(api_key_id)}`,
+    `/organization/projects/${encodeURIComponent(projectId)}/api_keys/${encodeURIComponent(apiKeyId)}`,
     {},
     config,
   );
-  return res.json();
+  return ProjectApiKeySchema.parse(await res.json());
 }
 
 /**
  * @throws {ApiError<400, ErrorResponse>}
  */
 export async function deleteProjectApiKey(
-  project_id: string,
-  api_key_id: string,
+  projectId: string,
+  apiKeyId: string,
   config?: Partial<ClientConfig>,
 ): Promise<ProjectApiKeyDeleteResponse> {
   const res = await _request(
     "DELETE",
-    `/organization/projects/${encodeURIComponent(project_id)}/api_keys/${encodeURIComponent(api_key_id)}`,
+    `/organization/projects/${encodeURIComponent(projectId)}/api_keys/${encodeURIComponent(apiKeyId)}`,
     {},
     config,
   );
-  return res.json();
+  return ProjectApiKeyDeleteResponseSchema.parse(await res.json());
 }
 
 export async function archiveProject(
-  project_id: string,
+  projectId: string,
   config?: Partial<ClientConfig>,
 ): Promise<Project> {
   const res = await _request(
     "POST",
-    `/organization/projects/${encodeURIComponent(project_id)}/archive`,
+    `/organization/projects/${encodeURIComponent(projectId)}/archive`,
     {},
     config,
   );
-  return res.json();
+  return ProjectSchema.parse(await res.json());
 }
 
 export async function listProjectCertificates(
-  project_id: string,
+  projectId: string,
   params?: {
     limit?: number;
     after?: string;
@@ -1940,43 +2191,49 @@ export async function listProjectCertificates(
   if (params?.order != null) searchParams.set("order", String(params.order));
   const res = await _request(
     "GET",
-    `/organization/projects/${encodeURIComponent(project_id)}/certificates`,
+    `/organization/projects/${encodeURIComponent(projectId)}/certificates`,
     { searchParams },
     config,
   );
-  return res.json();
+  return ListProjectCertificatesResponseSchema.parse(await res.json());
 }
 
 export async function activateProjectCertificates(
-  project_id: string,
+  projectId: string,
   body: ToggleCertificatesRequest,
   config?: Partial<ClientConfig>,
 ): Promise<OrganizationProjectCertificateActivationResponse> {
+  ToggleCertificatesRequestSchema.strip().parse(body);
   const res = await _request(
     "POST",
-    `/organization/projects/${encodeURIComponent(project_id)}/certificates/activate`,
+    `/organization/projects/${encodeURIComponent(projectId)}/certificates/activate`,
     { body },
     config,
   );
-  return res.json();
+  return OrganizationProjectCertificateActivationResponseSchema.parse(
+    await res.json(),
+  );
 }
 
 export async function deactivateProjectCertificates(
-  project_id: string,
+  projectId: string,
   body: ToggleCertificatesRequest,
   config?: Partial<ClientConfig>,
 ): Promise<OrganizationProjectCertificateDeactivationResponse> {
+  ToggleCertificatesRequestSchema.strip().parse(body);
   const res = await _request(
     "POST",
-    `/organization/projects/${encodeURIComponent(project_id)}/certificates/deactivate`,
+    `/organization/projects/${encodeURIComponent(projectId)}/certificates/deactivate`,
     { body },
     config,
   );
-  return res.json();
+  return OrganizationProjectCertificateDeactivationResponseSchema.parse(
+    await res.json(),
+  );
 }
 
 export async function listProjectGroups(
-  project_id: string,
+  projectId: string,
   params?: {
     limit?: number;
     after?: string;
@@ -1990,43 +2247,44 @@ export async function listProjectGroups(
   if (params?.order != null) searchParams.set("order", String(params.order));
   const res = await _request(
     "GET",
-    `/organization/projects/${encodeURIComponent(project_id)}/groups`,
+    `/organization/projects/${encodeURIComponent(projectId)}/groups`,
     { searchParams },
     config,
   );
-  return res.json();
+  return ProjectGroupListResourceSchema.parse(await res.json());
 }
 
 export async function addProjectGroup(
-  project_id: string,
+  projectId: string,
   body: InviteProjectGroupBody,
   config?: Partial<ClientConfig>,
 ): Promise<ProjectGroup> {
+  InviteProjectGroupBodySchema.strip().parse(body);
   const res = await _request(
     "POST",
-    `/organization/projects/${encodeURIComponent(project_id)}/groups`,
+    `/organization/projects/${encodeURIComponent(projectId)}/groups`,
     { body },
     config,
   );
-  return res.json();
+  return ProjectGroupSchema.parse(await res.json());
 }
 
 export async function removeProjectGroup(
-  project_id: string,
-  group_id: string,
+  projectId: string,
+  groupId: string,
   config?: Partial<ClientConfig>,
 ): Promise<ProjectGroupDeletedResource> {
   const res = await _request(
     "DELETE",
-    `/organization/projects/${encodeURIComponent(project_id)}/groups/${encodeURIComponent(group_id)}`,
+    `/organization/projects/${encodeURIComponent(projectId)}/groups/${encodeURIComponent(groupId)}`,
     {},
     config,
   );
-  return res.json();
+  return ProjectGroupDeletedResourceSchema.parse(await res.json());
 }
 
 export async function listProjectRateLimits(
-  project_id: string,
+  projectId: string,
   params?: {
     limit?: number;
     after?: string;
@@ -2040,36 +2298,37 @@ export async function listProjectRateLimits(
   if (params?.before != null) searchParams.set("before", String(params.before));
   const res = await _request(
     "GET",
-    `/organization/projects/${encodeURIComponent(project_id)}/rate_limits`,
+    `/organization/projects/${encodeURIComponent(projectId)}/rate_limits`,
     { searchParams },
     config,
   );
-  return res.json();
+  return ProjectRateLimitListResponseSchema.parse(await res.json());
 }
 
 /**
  * @throws {ApiError<400, ErrorResponse>}
  */
 export async function updateProjectRateLimits(
-  project_id: string,
-  rate_limit_id: string,
+  projectId: string,
+  rateLimitId: string,
   body: ProjectRateLimitUpdateRequest,
   config?: Partial<ClientConfig>,
 ): Promise<ProjectRateLimit> {
+  ProjectRateLimitUpdateRequestSchema.strip().parse(body);
   const res = await _request(
     "POST",
-    `/organization/projects/${encodeURIComponent(project_id)}/rate_limits/${encodeURIComponent(rate_limit_id)}`,
+    `/organization/projects/${encodeURIComponent(projectId)}/rate_limits/${encodeURIComponent(rateLimitId)}`,
     { body },
     config,
   );
-  return res.json();
+  return ProjectRateLimitSchema.parse(await res.json());
 }
 
 /**
  * @throws {ApiError<400, ErrorResponse>}
  */
 export async function listProjectServiceAccounts(
-  project_id: string,
+  projectId: string,
   params?: {
     limit?: number;
     after?: string;
@@ -2081,63 +2340,64 @@ export async function listProjectServiceAccounts(
   if (params?.after != null) searchParams.set("after", String(params.after));
   const res = await _request(
     "GET",
-    `/organization/projects/${encodeURIComponent(project_id)}/service_accounts`,
+    `/organization/projects/${encodeURIComponent(projectId)}/service_accounts`,
     { searchParams },
     config,
   );
-  return res.json();
+  return ProjectServiceAccountListResponseSchema.parse(await res.json());
 }
 
 /**
  * @throws {ApiError<400, ErrorResponse>}
  */
 export async function createProjectServiceAccount(
-  project_id: string,
+  projectId: string,
   body: ProjectServiceAccountCreateRequest,
   config?: Partial<ClientConfig>,
 ): Promise<ProjectServiceAccountCreateResponse> {
+  ProjectServiceAccountCreateRequestSchema.strip().parse(body);
   const res = await _request(
     "POST",
-    `/organization/projects/${encodeURIComponent(project_id)}/service_accounts`,
+    `/organization/projects/${encodeURIComponent(projectId)}/service_accounts`,
     { body },
     config,
   );
-  return res.json();
+  return ProjectServiceAccountCreateResponseSchema.parse(await res.json());
 }
 
 export async function retrieveProjectServiceAccount(
-  project_id: string,
-  service_account_id: string,
+  projectId: string,
+  serviceAccountId: string,
   config?: Partial<ClientConfig>,
 ): Promise<ProjectServiceAccount> {
   const res = await _request(
     "GET",
-    `/organization/projects/${encodeURIComponent(project_id)}/service_accounts/${encodeURIComponent(service_account_id)}`,
+    `/organization/projects/${encodeURIComponent(projectId)}/service_accounts/${encodeURIComponent(serviceAccountId)}`,
     {},
     config,
   );
-  return res.json();
+  return ProjectServiceAccountSchema.parse(await res.json());
 }
 
 export async function deleteProjectServiceAccount(
-  project_id: string,
-  service_account_id: string,
+  projectId: string,
+  serviceAccountId: string,
   config?: Partial<ClientConfig>,
 ): Promise<ProjectServiceAccountDeleteResponse> {
   const res = await _request(
     "DELETE",
-    `/organization/projects/${encodeURIComponent(project_id)}/service_accounts/${encodeURIComponent(service_account_id)}`,
+    `/organization/projects/${encodeURIComponent(projectId)}/service_accounts/${encodeURIComponent(serviceAccountId)}`,
     {},
     config,
   );
-  return res.json();
+  return ProjectServiceAccountDeleteResponseSchema.parse(await res.json());
 }
 
 /**
  * @throws {ApiError<400, ErrorResponse>}
  */
 export async function listProjectUsers(
-  project_id: string,
+  projectId: string,
   params?: {
     limit?: number;
     after?: string;
@@ -2149,77 +2409,79 @@ export async function listProjectUsers(
   if (params?.after != null) searchParams.set("after", String(params.after));
   const res = await _request(
     "GET",
-    `/organization/projects/${encodeURIComponent(project_id)}/users`,
+    `/organization/projects/${encodeURIComponent(projectId)}/users`,
     { searchParams },
     config,
   );
-  return res.json();
+  return ProjectUserListResponseSchema.parse(await res.json());
 }
 
 /**
  * @throws {ApiError<400, ErrorResponse>}
  */
 export async function createProjectUser(
-  project_id: string,
+  projectId: string,
   body: ProjectUserCreateRequest,
   config?: Partial<ClientConfig>,
 ): Promise<ProjectUser> {
+  ProjectUserCreateRequestSchema.strip().parse(body);
   const res = await _request(
     "POST",
-    `/organization/projects/${encodeURIComponent(project_id)}/users`,
+    `/organization/projects/${encodeURIComponent(projectId)}/users`,
     { body },
     config,
   );
-  return res.json();
+  return ProjectUserSchema.parse(await res.json());
 }
 
 export async function retrieveProjectUser(
-  project_id: string,
-  user_id: string,
+  projectId: string,
+  userId: string,
   config?: Partial<ClientConfig>,
 ): Promise<ProjectUser> {
   const res = await _request(
     "GET",
-    `/organization/projects/${encodeURIComponent(project_id)}/users/${encodeURIComponent(user_id)}`,
+    `/organization/projects/${encodeURIComponent(projectId)}/users/${encodeURIComponent(userId)}`,
     {},
     config,
   );
-  return res.json();
+  return ProjectUserSchema.parse(await res.json());
 }
 
 /**
  * @throws {ApiError<400, ErrorResponse>}
  */
 export async function modifyProjectUser(
-  project_id: string,
-  user_id: string,
+  projectId: string,
+  userId: string,
   body: ProjectUserUpdateRequest,
   config?: Partial<ClientConfig>,
 ): Promise<ProjectUser> {
+  ProjectUserUpdateRequestSchema.strip().parse(body);
   const res = await _request(
     "POST",
-    `/organization/projects/${encodeURIComponent(project_id)}/users/${encodeURIComponent(user_id)}`,
+    `/organization/projects/${encodeURIComponent(projectId)}/users/${encodeURIComponent(userId)}`,
     { body },
     config,
   );
-  return res.json();
+  return ProjectUserSchema.parse(await res.json());
 }
 
 /**
  * @throws {ApiError<400, ErrorResponse>}
  */
 export async function deleteProjectUser(
-  project_id: string,
-  user_id: string,
+  projectId: string,
+  userId: string,
   config?: Partial<ClientConfig>,
 ): Promise<ProjectUserDeleteResponse> {
   const res = await _request(
     "DELETE",
-    `/organization/projects/${encodeURIComponent(project_id)}/users/${encodeURIComponent(user_id)}`,
+    `/organization/projects/${encodeURIComponent(projectId)}/users/${encodeURIComponent(userId)}`,
     {},
     config,
   );
-  return res.json();
+  return ProjectUserDeleteResponseSchema.parse(await res.json());
 }
 
 export async function listRoles(
@@ -2240,82 +2502,84 @@ export async function listRoles(
     { searchParams },
     config,
   );
-  return res.json();
+  return PublicRoleListResourceSchema.parse(await res.json());
 }
 
 export async function createRole(
   body: PublicCreateOrganizationRoleBody,
   config?: Partial<ClientConfig>,
 ): Promise<Role> {
+  PublicCreateOrganizationRoleBodySchema.strip().parse(body);
   const res = await _request("POST", "/organization/roles", { body }, config);
-  return res.json();
+  return RoleSchema.parse(await res.json());
 }
 
 export async function updateRole(
-  role_id: string,
+  roleId: string,
   body: PublicUpdateOrganizationRoleBody,
   config?: Partial<ClientConfig>,
 ): Promise<Role> {
+  PublicUpdateOrganizationRoleBodySchema.strip().parse(body);
   const res = await _request(
     "POST",
-    `/organization/roles/${encodeURIComponent(role_id)}`,
+    `/organization/roles/${encodeURIComponent(roleId)}`,
     { body },
     config,
   );
-  return res.json();
+  return RoleSchema.parse(await res.json());
 }
 
 export async function deleteRole(
-  role_id: string,
+  roleId: string,
   config?: Partial<ClientConfig>,
 ): Promise<RoleDeletedResource> {
   const res = await _request(
     "DELETE",
-    `/organization/roles/${encodeURIComponent(role_id)}`,
+    `/organization/roles/${encodeURIComponent(roleId)}`,
     {},
     config,
   );
-  return res.json();
+  return RoleDeletedResourceSchema.parse(await res.json());
 }
 
 export async function usageAudioSpeeches(
   params: {
-    start_time: number;
-    end_time?: number;
-    bucket_width?: "1m" | "1h" | "1d";
-    project_ids?: string[];
-    user_ids?: string[];
-    api_key_ids?: string[];
+    startTime: number;
+    endTime?: number;
+    bucketWidth?: "1m" | "1h" | "1d";
+    projectIds?: string[];
+    userIds?: string[];
+    apiKeyIds?: string[];
     models?: string[];
-    group_by?: string[];
+    groupBy?: string[];
     limit?: number;
     page?: string;
   },
   config?: Partial<ClientConfig>,
 ): Promise<UsageResponse> {
   const searchParams = new URLSearchParams();
-  if (params?.start_time != null)
-    searchParams.set("start_time", String(params.start_time));
-  if (params?.end_time != null)
-    searchParams.set("end_time", String(params.end_time));
-  if (params?.bucket_width != null)
-    searchParams.set("bucket_width", String(params.bucket_width));
-  if (params?.project_ids != null) {
-    for (const v of params.project_ids)
+  if (params?.startTime != null)
+    searchParams.set("start_time", String(params.startTime));
+  if (params?.endTime != null)
+    searchParams.set("end_time", String(params.endTime));
+  if (params?.bucketWidth != null)
+    searchParams.set("bucket_width", String(params.bucketWidth));
+  if (params?.projectIds != null) {
+    for (const v of params.projectIds)
       searchParams.append("project_ids", String(v));
   }
-  if (params?.user_ids != null) {
-    for (const v of params.user_ids) searchParams.append("user_ids", String(v));
+  if (params?.userIds != null) {
+    for (const v of params.userIds) searchParams.append("user_ids", String(v));
   }
-  if (params?.api_key_ids != null) {
-    for (const v of params.api_key_ids)
+  if (params?.apiKeyIds != null) {
+    for (const v of params.apiKeyIds)
       searchParams.append("api_key_ids", String(v));
   }
   if (params?.models != null) {
     for (const v of params.models) searchParams.append("models", String(v));
   }
-  if (params?.group_by != null) {
-    for (const v of params.group_by) searchParams.append("group_by", String(v));
+  if (params?.groupBy != null) {
+    for (const v of params.groupBy) searchParams.append("group_by", String(v));
   }
   if (params?.limit != null) searchParams.set("limit", String(params.limit));
   if (params?.page != null) searchParams.set("page", String(params.page));
@@ -2325,47 +2589,47 @@ export async function usageAudioSpeeches(
     { searchParams },
     config,
   );
-  return res.json();
+  return UsageResponseSchema.parse(await res.json());
 }
 
 export async function usageAudioTranscriptions(
   params: {
-    start_time: number;
-    end_time?: number;
-    bucket_width?: "1m" | "1h" | "1d";
-    project_ids?: string[];
-    user_ids?: string[];
-    api_key_ids?: string[];
+    startTime: number;
+    endTime?: number;
+    bucketWidth?: "1m" | "1h" | "1d";
+    projectIds?: string[];
+    userIds?: string[];
+    apiKeyIds?: string[];
     models?: string[];
-    group_by?: string[];
+    groupBy?: string[];
     limit?: number;
     page?: string;
   },
   config?: Partial<ClientConfig>,
 ): Promise<UsageResponse> {
   const searchParams = new URLSearchParams();
-  if (params?.start_time != null)
-    searchParams.set("start_time", String(params.start_time));
-  if (params?.end_time != null)
-    searchParams.set("end_time", String(params.end_time));
-  if (params?.bucket_width != null)
-    searchParams.set("bucket_width", String(params.bucket_width));
-  if (params?.project_ids != null) {
-    for (const v of params.project_ids)
+  if (params?.startTime != null)
+    searchParams.set("start_time", String(params.startTime));
+  if (params?.endTime != null)
+    searchParams.set("end_time", String(params.endTime));
+  if (params?.bucketWidth != null)
+    searchParams.set("bucket_width", String(params.bucketWidth));
+  if (params?.projectIds != null) {
+    for (const v of params.projectIds)
       searchParams.append("project_ids", String(v));
   }
-  if (params?.user_ids != null) {
-    for (const v of params.user_ids) searchParams.append("user_ids", String(v));
+  if (params?.userIds != null) {
+    for (const v of params.userIds) searchParams.append("user_ids", String(v));
   }
-  if (params?.api_key_ids != null) {
-    for (const v of params.api_key_ids)
+  if (params?.apiKeyIds != null) {
+    for (const v of params.apiKeyIds)
       searchParams.append("api_key_ids", String(v));
   }
   if (params?.models != null) {
     for (const v of params.models) searchParams.append("models", String(v));
   }
-  if (params?.group_by != null) {
-    for (const v of params.group_by) searchParams.append("group_by", String(v));
+  if (params?.groupBy != null) {
+    for (const v of params.groupBy) searchParams.append("group_by", String(v));
   }
   if (params?.limit != null) searchParams.set("limit", String(params.limit));
   if (params?.page != null) searchParams.set("page", String(params.page));
@@ -2375,34 +2639,34 @@ export async function usageAudioTranscriptions(
     { searchParams },
     config,
   );
-  return res.json();
+  return UsageResponseSchema.parse(await res.json());
 }
 
 export async function usageCodeInterpreterSessions(
   params: {
-    start_time: number;
-    end_time?: number;
-    bucket_width?: "1m" | "1h" | "1d";
-    project_ids?: string[];
-    group_by?: string[];
+    startTime: number;
+    endTime?: number;
+    bucketWidth?: "1m" | "1h" | "1d";
+    projectIds?: string[];
+    groupBy?: string[];
     limit?: number;
     page?: string;
   },
   config?: Partial<ClientConfig>,
 ): Promise<UsageResponse> {
   const searchParams = new URLSearchParams();
-  if (params?.start_time != null)
-    searchParams.set("start_time", String(params.start_time));
-  if (params?.end_time != null)
-    searchParams.set("end_time", String(params.end_time));
-  if (params?.bucket_width != null)
-    searchParams.set("bucket_width", String(params.bucket_width));
-  if (params?.project_ids != null) {
-    for (const v of params.project_ids)
+  if (params?.startTime != null)
+    searchParams.set("start_time", String(params.startTime));
+  if (params?.endTime != null)
+    searchParams.set("end_time", String(params.endTime));
+  if (params?.bucketWidth != null)
+    searchParams.set("bucket_width", String(params.bucketWidth));
+  if (params?.projectIds != null) {
+    for (const v of params.projectIds)
       searchParams.append("project_ids", String(v));
   }
-  if (params?.group_by != null) {
-    for (const v of params.group_by) searchParams.append("group_by", String(v));
+  if (params?.groupBy != null) {
+    for (const v of params.groupBy) searchParams.append("group_by", String(v));
   }
   if (params?.limit != null) searchParams.set("limit", String(params.limit));
   if (params?.page != null) searchParams.set("page", String(params.page));
@@ -2412,49 +2676,49 @@ export async function usageCodeInterpreterSessions(
     { searchParams },
     config,
   );
-  return res.json();
+  return UsageResponseSchema.parse(await res.json());
 }
 
 export async function usageCompletions(
   params: {
-    start_time: number;
-    end_time?: number;
-    bucket_width?: "1m" | "1h" | "1d";
-    project_ids?: string[];
-    user_ids?: string[];
-    api_key_ids?: string[];
+    startTime: number;
+    endTime?: number;
+    bucketWidth?: "1m" | "1h" | "1d";
+    projectIds?: string[];
+    userIds?: string[];
+    apiKeyIds?: string[];
     models?: string[];
     batch?: boolean;
-    group_by?: string[];
+    groupBy?: string[];
     limit?: number;
     page?: string;
   },
   config?: Partial<ClientConfig>,
 ): Promise<UsageResponse> {
   const searchParams = new URLSearchParams();
-  if (params?.start_time != null)
-    searchParams.set("start_time", String(params.start_time));
-  if (params?.end_time != null)
-    searchParams.set("end_time", String(params.end_time));
-  if (params?.bucket_width != null)
-    searchParams.set("bucket_width", String(params.bucket_width));
-  if (params?.project_ids != null) {
-    for (const v of params.project_ids)
+  if (params?.startTime != null)
+    searchParams.set("start_time", String(params.startTime));
+  if (params?.endTime != null)
+    searchParams.set("end_time", String(params.endTime));
+  if (params?.bucketWidth != null)
+    searchParams.set("bucket_width", String(params.bucketWidth));
+  if (params?.projectIds != null) {
+    for (const v of params.projectIds)
       searchParams.append("project_ids", String(v));
   }
-  if (params?.user_ids != null) {
-    for (const v of params.user_ids) searchParams.append("user_ids", String(v));
+  if (params?.userIds != null) {
+    for (const v of params.userIds) searchParams.append("user_ids", String(v));
   }
-  if (params?.api_key_ids != null) {
-    for (const v of params.api_key_ids)
+  if (params?.apiKeyIds != null) {
+    for (const v of params.apiKeyIds)
       searchParams.append("api_key_ids", String(v));
   }
   if (params?.models != null) {
     for (const v of params.models) searchParams.append("models", String(v));
   }
   if (params?.batch != null) searchParams.set("batch", String(params.batch));
-  if (params?.group_by != null) {
-    for (const v of params.group_by) searchParams.append("group_by", String(v));
+  if (params?.groupBy != null) {
+    for (const v of params.groupBy) searchParams.append("group_by", String(v));
   }
   if (params?.limit != null) searchParams.set("limit", String(params.limit));
   if (params?.page != null) searchParams.set("page", String(params.page));
@@ -2464,47 +2728,47 @@ export async function usageCompletions(
     { searchParams },
     config,
   );
-  return res.json();
+  return UsageResponseSchema.parse(await res.json());
 }
 
 export async function usageEmbeddings(
   params: {
-    start_time: number;
-    end_time?: number;
-    bucket_width?: "1m" | "1h" | "1d";
-    project_ids?: string[];
-    user_ids?: string[];
-    api_key_ids?: string[];
+    startTime: number;
+    endTime?: number;
+    bucketWidth?: "1m" | "1h" | "1d";
+    projectIds?: string[];
+    userIds?: string[];
+    apiKeyIds?: string[];
     models?: string[];
-    group_by?: string[];
+    groupBy?: string[];
     limit?: number;
     page?: string;
   },
   config?: Partial<ClientConfig>,
 ): Promise<UsageResponse> {
   const searchParams = new URLSearchParams();
-  if (params?.start_time != null)
-    searchParams.set("start_time", String(params.start_time));
-  if (params?.end_time != null)
-    searchParams.set("end_time", String(params.end_time));
-  if (params?.bucket_width != null)
-    searchParams.set("bucket_width", String(params.bucket_width));
-  if (params?.project_ids != null) {
-    for (const v of params.project_ids)
+  if (params?.startTime != null)
+    searchParams.set("start_time", String(params.startTime));
+  if (params?.endTime != null)
+    searchParams.set("end_time", String(params.endTime));
+  if (params?.bucketWidth != null)
+    searchParams.set("bucket_width", String(params.bucketWidth));
+  if (params?.projectIds != null) {
+    for (const v of params.projectIds)
       searchParams.append("project_ids", String(v));
   }
-  if (params?.user_ids != null) {
-    for (const v of params.user_ids) searchParams.append("user_ids", String(v));
+  if (params?.userIds != null) {
+    for (const v of params.userIds) searchParams.append("user_ids", String(v));
   }
-  if (params?.api_key_ids != null) {
-    for (const v of params.api_key_ids)
+  if (params?.apiKeyIds != null) {
+    for (const v of params.apiKeyIds)
       searchParams.append("api_key_ids", String(v));
   }
   if (params?.models != null) {
     for (const v of params.models) searchParams.append("models", String(v));
   }
-  if (params?.group_by != null) {
-    for (const v of params.group_by) searchParams.append("group_by", String(v));
+  if (params?.groupBy != null) {
+    for (const v of params.groupBy) searchParams.append("group_by", String(v));
   }
   if (params?.limit != null) searchParams.set("limit", String(params.limit));
   if (params?.page != null) searchParams.set("page", String(params.page));
@@ -2514,55 +2778,55 @@ export async function usageEmbeddings(
     { searchParams },
     config,
   );
-  return res.json();
+  return UsageResponseSchema.parse(await res.json());
 }
 
 export async function usageImages(
   params: {
-    start_time: number;
-    end_time?: number;
-    bucket_width?: "1m" | "1h" | "1d";
+    startTime: number;
+    endTime?: number;
+    bucketWidth?: "1m" | "1h" | "1d";
     sources?: string[];
     sizes?: string[];
-    project_ids?: string[];
-    user_ids?: string[];
-    api_key_ids?: string[];
+    projectIds?: string[];
+    userIds?: string[];
+    apiKeyIds?: string[];
     models?: string[];
-    group_by?: string[];
+    groupBy?: string[];
     limit?: number;
     page?: string;
   },
   config?: Partial<ClientConfig>,
 ): Promise<UsageResponse> {
   const searchParams = new URLSearchParams();
-  if (params?.start_time != null)
-    searchParams.set("start_time", String(params.start_time));
-  if (params?.end_time != null)
-    searchParams.set("end_time", String(params.end_time));
-  if (params?.bucket_width != null)
-    searchParams.set("bucket_width", String(params.bucket_width));
+  if (params?.startTime != null)
+    searchParams.set("start_time", String(params.startTime));
+  if (params?.endTime != null)
+    searchParams.set("end_time", String(params.endTime));
+  if (params?.bucketWidth != null)
+    searchParams.set("bucket_width", String(params.bucketWidth));
   if (params?.sources != null) {
     for (const v of params.sources) searchParams.append("sources", String(v));
   }
   if (params?.sizes != null) {
     for (const v of params.sizes) searchParams.append("sizes", String(v));
   }
-  if (params?.project_ids != null) {
-    for (const v of params.project_ids)
+  if (params?.projectIds != null) {
+    for (const v of params.projectIds)
       searchParams.append("project_ids", String(v));
   }
-  if (params?.user_ids != null) {
-    for (const v of params.user_ids) searchParams.append("user_ids", String(v));
+  if (params?.userIds != null) {
+    for (const v of params.userIds) searchParams.append("user_ids", String(v));
   }
-  if (params?.api_key_ids != null) {
-    for (const v of params.api_key_ids)
+  if (params?.apiKeyIds != null) {
+    for (const v of params.apiKeyIds)
       searchParams.append("api_key_ids", String(v));
   }
   if (params?.models != null) {
     for (const v of params.models) searchParams.append("models", String(v));
   }
-  if (params?.group_by != null) {
-    for (const v of params.group_by) searchParams.append("group_by", String(v));
+  if (params?.groupBy != null) {
+    for (const v of params.groupBy) searchParams.append("group_by", String(v));
   }
   if (params?.limit != null) searchParams.set("limit", String(params.limit));
   if (params?.page != null) searchParams.set("page", String(params.page));
@@ -2572,47 +2836,47 @@ export async function usageImages(
     { searchParams },
     config,
   );
-  return res.json();
+  return UsageResponseSchema.parse(await res.json());
 }
 
 export async function usageModerations(
   params: {
-    start_time: number;
-    end_time?: number;
-    bucket_width?: "1m" | "1h" | "1d";
-    project_ids?: string[];
-    user_ids?: string[];
-    api_key_ids?: string[];
+    startTime: number;
+    endTime?: number;
+    bucketWidth?: "1m" | "1h" | "1d";
+    projectIds?: string[];
+    userIds?: string[];
+    apiKeyIds?: string[];
     models?: string[];
-    group_by?: string[];
+    groupBy?: string[];
     limit?: number;
     page?: string;
   },
   config?: Partial<ClientConfig>,
 ): Promise<UsageResponse> {
   const searchParams = new URLSearchParams();
-  if (params?.start_time != null)
-    searchParams.set("start_time", String(params.start_time));
-  if (params?.end_time != null)
-    searchParams.set("end_time", String(params.end_time));
-  if (params?.bucket_width != null)
-    searchParams.set("bucket_width", String(params.bucket_width));
-  if (params?.project_ids != null) {
-    for (const v of params.project_ids)
+  if (params?.startTime != null)
+    searchParams.set("start_time", String(params.startTime));
+  if (params?.endTime != null)
+    searchParams.set("end_time", String(params.endTime));
+  if (params?.bucketWidth != null)
+    searchParams.set("bucket_width", String(params.bucketWidth));
+  if (params?.projectIds != null) {
+    for (const v of params.projectIds)
       searchParams.append("project_ids", String(v));
   }
-  if (params?.user_ids != null) {
-    for (const v of params.user_ids) searchParams.append("user_ids", String(v));
+  if (params?.userIds != null) {
+    for (const v of params.userIds) searchParams.append("user_ids", String(v));
   }
-  if (params?.api_key_ids != null) {
-    for (const v of params.api_key_ids)
+  if (params?.apiKeyIds != null) {
+    for (const v of params.apiKeyIds)
       searchParams.append("api_key_ids", String(v));
   }
   if (params?.models != null) {
     for (const v of params.models) searchParams.append("models", String(v));
   }
-  if (params?.group_by != null) {
-    for (const v of params.group_by) searchParams.append("group_by", String(v));
+  if (params?.groupBy != null) {
+    for (const v of params.groupBy) searchParams.append("group_by", String(v));
   }
   if (params?.limit != null) searchParams.set("limit", String(params.limit));
   if (params?.page != null) searchParams.set("page", String(params.page));
@@ -2622,34 +2886,34 @@ export async function usageModerations(
     { searchParams },
     config,
   );
-  return res.json();
+  return UsageResponseSchema.parse(await res.json());
 }
 
 export async function usageVectorStores(
   params: {
-    start_time: number;
-    end_time?: number;
-    bucket_width?: "1m" | "1h" | "1d";
-    project_ids?: string[];
-    group_by?: string[];
+    startTime: number;
+    endTime?: number;
+    bucketWidth?: "1m" | "1h" | "1d";
+    projectIds?: string[];
+    groupBy?: string[];
     limit?: number;
     page?: string;
   },
   config?: Partial<ClientConfig>,
 ): Promise<UsageResponse> {
   const searchParams = new URLSearchParams();
-  if (params?.start_time != null)
-    searchParams.set("start_time", String(params.start_time));
-  if (params?.end_time != null)
-    searchParams.set("end_time", String(params.end_time));
-  if (params?.bucket_width != null)
-    searchParams.set("bucket_width", String(params.bucket_width));
-  if (params?.project_ids != null) {
-    for (const v of params.project_ids)
+  if (params?.startTime != null)
+    searchParams.set("start_time", String(params.startTime));
+  if (params?.endTime != null)
+    searchParams.set("end_time", String(params.endTime));
+  if (params?.bucketWidth != null)
+    searchParams.set("bucket_width", String(params.bucketWidth));
+  if (params?.projectIds != null) {
+    for (const v of params.projectIds)
       searchParams.append("project_ids", String(v));
   }
-  if (params?.group_by != null) {
-    for (const v of params.group_by) searchParams.append("group_by", String(v));
+  if (params?.groupBy != null) {
+    for (const v of params.groupBy) searchParams.append("group_by", String(v));
   }
   if (params?.limit != null) searchParams.set("limit", String(params.limit));
   if (params?.page != null) searchParams.set("page", String(params.page));
@@ -2659,7 +2923,7 @@ export async function usageVectorStores(
     { searchParams },
     config,
   );
-  return res.json();
+  return UsageResponseSchema.parse(await res.json());
 }
 
 export async function listUsers(
@@ -2682,51 +2946,52 @@ export async function listUsers(
     { searchParams },
     config,
   );
-  return res.json();
+  return UserListResponseSchema.parse(await res.json());
 }
 
 export async function retrieveUser(
-  user_id: string,
+  userId: string,
   config?: Partial<ClientConfig>,
 ): Promise<User> {
   const res = await _request(
     "GET",
-    `/organization/users/${encodeURIComponent(user_id)}`,
+    `/organization/users/${encodeURIComponent(userId)}`,
     {},
     config,
   );
-  return res.json();
+  return UserSchema.parse(await res.json());
 }
 
 export async function modifyUser(
-  user_id: string,
+  userId: string,
   body: UserRoleUpdateRequest,
   config?: Partial<ClientConfig>,
 ): Promise<User> {
+  UserRoleUpdateRequestSchema.strip().parse(body);
   const res = await _request(
     "POST",
-    `/organization/users/${encodeURIComponent(user_id)}`,
+    `/organization/users/${encodeURIComponent(userId)}`,
     { body },
     config,
   );
-  return res.json();
+  return UserSchema.parse(await res.json());
 }
 
 export async function deleteUser(
-  user_id: string,
+  userId: string,
   config?: Partial<ClientConfig>,
 ): Promise<UserDeleteResponse> {
   const res = await _request(
     "DELETE",
-    `/organization/users/${encodeURIComponent(user_id)}`,
+    `/organization/users/${encodeURIComponent(userId)}`,
     {},
     config,
   );
-  return res.json();
+  return UserDeleteResponseSchema.parse(await res.json());
 }
 
 export async function listUserRoleAssignments(
-  user_id: string,
+  userId: string,
   params?: {
     limit?: number;
     after?: string;
@@ -2740,44 +3005,45 @@ export async function listUserRoleAssignments(
   if (params?.order != null) searchParams.set("order", String(params.order));
   const res = await _request(
     "GET",
-    `/organization/users/${encodeURIComponent(user_id)}/roles`,
+    `/organization/users/${encodeURIComponent(userId)}/roles`,
     { searchParams },
     config,
   );
-  return res.json();
+  return RoleListResourceSchema.parse(await res.json());
 }
 
 export async function assignUserRole(
-  user_id: string,
+  userId: string,
   body: PublicAssignOrganizationGroupRoleBody,
   config?: Partial<ClientConfig>,
 ): Promise<UserRoleAssignment> {
+  PublicAssignOrganizationGroupRoleBodySchema.strip().parse(body);
   const res = await _request(
     "POST",
-    `/organization/users/${encodeURIComponent(user_id)}/roles`,
+    `/organization/users/${encodeURIComponent(userId)}/roles`,
     { body },
     config,
   );
-  return res.json();
+  return UserRoleAssignmentSchema.parse(await res.json());
 }
 
 export async function unassignUserRole(
-  user_id: string,
-  role_id: string,
+  userId: string,
+  roleId: string,
   config?: Partial<ClientConfig>,
 ): Promise<DeletedRoleAssignmentResource> {
   const res = await _request(
     "DELETE",
-    `/organization/users/${encodeURIComponent(user_id)}/roles/${encodeURIComponent(role_id)}`,
+    `/organization/users/${encodeURIComponent(userId)}/roles/${encodeURIComponent(roleId)}`,
     {},
     config,
   );
-  return res.json();
+  return DeletedRoleAssignmentResourceSchema.parse(await res.json());
 }
 
 export async function listProjectGroupRoleAssignments(
-  project_id: string,
-  group_id: string,
+  projectId: string,
+  groupId: string,
   params?: {
     limit?: number;
     after?: string;
@@ -2791,45 +3057,46 @@ export async function listProjectGroupRoleAssignments(
   if (params?.order != null) searchParams.set("order", String(params.order));
   const res = await _request(
     "GET",
-    `/projects/${encodeURIComponent(project_id)}/groups/${encodeURIComponent(group_id)}/roles`,
+    `/projects/${encodeURIComponent(projectId)}/groups/${encodeURIComponent(groupId)}/roles`,
     { searchParams },
     config,
   );
-  return res.json();
+  return RoleListResourceSchema.parse(await res.json());
 }
 
 export async function assignProjectGroupRole(
-  project_id: string,
-  group_id: string,
+  projectId: string,
+  groupId: string,
   body: PublicAssignOrganizationGroupRoleBody,
   config?: Partial<ClientConfig>,
 ): Promise<GroupRoleAssignment> {
+  PublicAssignOrganizationGroupRoleBodySchema.strip().parse(body);
   const res = await _request(
     "POST",
-    `/projects/${encodeURIComponent(project_id)}/groups/${encodeURIComponent(group_id)}/roles`,
+    `/projects/${encodeURIComponent(projectId)}/groups/${encodeURIComponent(groupId)}/roles`,
     { body },
     config,
   );
-  return res.json();
+  return GroupRoleAssignmentSchema.parse(await res.json());
 }
 
 export async function unassignProjectGroupRole(
-  project_id: string,
-  group_id: string,
-  role_id: string,
+  projectId: string,
+  groupId: string,
+  roleId: string,
   config?: Partial<ClientConfig>,
 ): Promise<DeletedRoleAssignmentResource> {
   const res = await _request(
     "DELETE",
-    `/projects/${encodeURIComponent(project_id)}/groups/${encodeURIComponent(group_id)}/roles/${encodeURIComponent(role_id)}`,
+    `/projects/${encodeURIComponent(projectId)}/groups/${encodeURIComponent(groupId)}/roles/${encodeURIComponent(roleId)}`,
     {},
     config,
   );
-  return res.json();
+  return DeletedRoleAssignmentResourceSchema.parse(await res.json());
 }
 
 export async function listProjectRoles(
-  project_id: string,
+  projectId: string,
   params?: {
     limit?: number;
     after?: string;
@@ -2843,59 +3110,61 @@ export async function listProjectRoles(
   if (params?.order != null) searchParams.set("order", String(params.order));
   const res = await _request(
     "GET",
-    `/projects/${encodeURIComponent(project_id)}/roles`,
+    `/projects/${encodeURIComponent(projectId)}/roles`,
     { searchParams },
     config,
   );
-  return res.json();
+  return PublicRoleListResourceSchema.parse(await res.json());
 }
 
 export async function createProjectRole(
-  project_id: string,
+  projectId: string,
   body: PublicCreateOrganizationRoleBody,
   config?: Partial<ClientConfig>,
 ): Promise<Role> {
+  PublicCreateOrganizationRoleBodySchema.strip().parse(body);
   const res = await _request(
     "POST",
-    `/projects/${encodeURIComponent(project_id)}/roles`,
+    `/projects/${encodeURIComponent(projectId)}/roles`,
     { body },
     config,
   );
-  return res.json();
+  return RoleSchema.parse(await res.json());
 }
 
 export async function updateProjectRole(
-  project_id: string,
-  role_id: string,
+  projectId: string,
+  roleId: string,
   body: PublicUpdateOrganizationRoleBody,
   config?: Partial<ClientConfig>,
 ): Promise<Role> {
+  PublicUpdateOrganizationRoleBodySchema.strip().parse(body);
   const res = await _request(
     "POST",
-    `/projects/${encodeURIComponent(project_id)}/roles/${encodeURIComponent(role_id)}`,
+    `/projects/${encodeURIComponent(projectId)}/roles/${encodeURIComponent(roleId)}`,
     { body },
     config,
   );
-  return res.json();
+  return RoleSchema.parse(await res.json());
 }
 
 export async function deleteProjectRole(
-  project_id: string,
-  role_id: string,
+  projectId: string,
+  roleId: string,
   config?: Partial<ClientConfig>,
 ): Promise<RoleDeletedResource> {
   const res = await _request(
     "DELETE",
-    `/projects/${encodeURIComponent(project_id)}/roles/${encodeURIComponent(role_id)}`,
+    `/projects/${encodeURIComponent(projectId)}/roles/${encodeURIComponent(roleId)}`,
     {},
     config,
   );
-  return res.json();
+  return RoleDeletedResourceSchema.parse(await res.json());
 }
 
 export async function listProjectUserRoleAssignments(
-  project_id: string,
-  user_id: string,
+  projectId: string,
+  userId: string,
   params?: {
     limit?: number;
     after?: string;
@@ -2909,41 +3178,42 @@ export async function listProjectUserRoleAssignments(
   if (params?.order != null) searchParams.set("order", String(params.order));
   const res = await _request(
     "GET",
-    `/projects/${encodeURIComponent(project_id)}/users/${encodeURIComponent(user_id)}/roles`,
+    `/projects/${encodeURIComponent(projectId)}/users/${encodeURIComponent(userId)}/roles`,
     { searchParams },
     config,
   );
-  return res.json();
+  return RoleListResourceSchema.parse(await res.json());
 }
 
 export async function assignProjectUserRole(
-  project_id: string,
-  user_id: string,
+  projectId: string,
+  userId: string,
   body: PublicAssignOrganizationGroupRoleBody,
   config?: Partial<ClientConfig>,
 ): Promise<UserRoleAssignment> {
+  PublicAssignOrganizationGroupRoleBodySchema.strip().parse(body);
   const res = await _request(
     "POST",
-    `/projects/${encodeURIComponent(project_id)}/users/${encodeURIComponent(user_id)}/roles`,
+    `/projects/${encodeURIComponent(projectId)}/users/${encodeURIComponent(userId)}/roles`,
     { body },
     config,
   );
-  return res.json();
+  return UserRoleAssignmentSchema.parse(await res.json());
 }
 
 export async function unassignProjectUserRole(
-  project_id: string,
-  user_id: string,
-  role_id: string,
+  projectId: string,
+  userId: string,
+  roleId: string,
   config?: Partial<ClientConfig>,
 ): Promise<DeletedRoleAssignmentResource> {
   const res = await _request(
     "DELETE",
-    `/projects/${encodeURIComponent(project_id)}/users/${encodeURIComponent(user_id)}/roles/${encodeURIComponent(role_id)}`,
+    `/projects/${encodeURIComponent(projectId)}/users/${encodeURIComponent(userId)}/roles/${encodeURIComponent(roleId)}`,
     {},
     config,
   );
-  return res.json();
+  return DeletedRoleAssignmentResourceSchema.parse(await res.json());
 }
 
 export async function createRealtimeCall(
@@ -2953,51 +3223,54 @@ export async function createRealtimeCall(
 }
 
 export async function acceptRealtimeCall(
-  call_id: string,
+  callId: string,
   body: RealtimeSessionCreateRequestGA,
   config?: Partial<ClientConfig>,
 ): Promise<void> {
+  RealtimeSessionCreateRequestGASchema.strip().parse(body);
   await _request(
     "POST",
-    `/realtime/calls/${encodeURIComponent(call_id)}/accept`,
+    `/realtime/calls/${encodeURIComponent(callId)}/accept`,
     { body },
     config,
   );
 }
 
 export async function hangupRealtimeCall(
-  call_id: string,
+  callId: string,
   config?: Partial<ClientConfig>,
 ): Promise<void> {
   await _request(
     "POST",
-    `/realtime/calls/${encodeURIComponent(call_id)}/hangup`,
+    `/realtime/calls/${encodeURIComponent(callId)}/hangup`,
     {},
     config,
   );
 }
 
 export async function referRealtimeCall(
-  call_id: string,
+  callId: string,
   body: RealtimeCallReferRequest,
   config?: Partial<ClientConfig>,
 ): Promise<void> {
+  RealtimeCallReferRequestSchema.strip().parse(body);
   await _request(
     "POST",
-    `/realtime/calls/${encodeURIComponent(call_id)}/refer`,
+    `/realtime/calls/${encodeURIComponent(callId)}/refer`,
     { body },
     config,
   );
 }
 
 export async function rejectRealtimeCall(
-  call_id: string,
+  callId: string,
   body: RealtimeCallRejectRequest,
   config?: Partial<ClientConfig>,
 ): Promise<void> {
+  RealtimeCallRejectRequestSchema.strip().parse(body);
   await _request(
     "POST",
-    `/realtime/calls/${encodeURIComponent(call_id)}/reject`,
+    `/realtime/calls/${encodeURIComponent(callId)}/reject`,
     { body },
     config,
   );
@@ -3007,64 +3280,73 @@ export async function createRealtimeClientSecret(
   body: RealtimeCreateClientSecretRequest,
   config?: Partial<ClientConfig>,
 ): Promise<RealtimeCreateClientSecretResponse> {
+  RealtimeCreateClientSecretRequestSchema.strip().parse(body);
   const res = await _request(
     "POST",
     "/realtime/client_secrets",
     { body },
     config,
   );
-  return res.json();
+  return RealtimeCreateClientSecretResponseSchema.parse(await res.json());
 }
 
 export async function createRealtimeSession(
   body: RealtimeSessionCreateRequest,
   config?: Partial<ClientConfig>,
 ): Promise<RealtimeSessionCreateResponse> {
+  RealtimeSessionCreateRequestSchema.strip().parse(body);
   const res = await _request("POST", "/realtime/sessions", { body }, config);
-  return res.json();
+  return RealtimeSessionCreateResponseSchema.parse(await res.json());
 }
 
 export async function createRealtimeTranscriptionSession(
   body: RealtimeTranscriptionSessionCreateRequest,
   config?: Partial<ClientConfig>,
 ): Promise<RealtimeTranscriptionSessionCreateResponse> {
+  RealtimeTranscriptionSessionCreateRequestSchema.strip().parse(body);
   const res = await _request(
     "POST",
     "/realtime/transcription_sessions",
     { body },
     config,
   );
-  return res.json();
+  return RealtimeTranscriptionSessionCreateResponseSchema.parse(
+    await res.json(),
+  );
 }
 
 export async function createRealtimeTranslationClientSecret(
   body: RealtimeTranslationClientSecretCreateRequest,
   config?: Partial<ClientConfig>,
 ): Promise<RealtimeTranslationClientSecretCreateResponse> {
+  RealtimeTranslationClientSecretCreateRequestSchema.strip().parse(body);
   const res = await _request(
     "POST",
     "/realtime/translations/client_secrets",
     { body },
     config,
   );
-  return res.json();
+  return RealtimeTranslationClientSecretCreateResponseSchema.parse(
+    await res.json(),
+  );
 }
 
 export async function createResponse(
   body: CreateResponse,
   config?: Partial<ClientConfig>,
 ): Promise<Response> {
+  CreateResponseSchema.strip().parse(body);
   const res = await _request("POST", "/responses", { body }, config);
-  return res.json();
+  return ResponseSchema.parse(await res.json());
 }
 
 export async function getResponse(
-  response_id: string,
+  responseId: string,
   params?: {
     include?: string[];
     stream?: boolean;
-    starting_after?: number;
-    include_obfuscation?: boolean;
+    startingAfter?: number;
+    includeObfuscation?: boolean;
   },
   config?: Partial<ClientConfig>,
 ): Promise<Response> {
@@ -3073,29 +3355,29 @@ export async function getResponse(
     for (const v of params.include) searchParams.append("include", String(v));
   }
   if (params?.stream != null) searchParams.set("stream", String(params.stream));
-  if (params?.starting_after != null)
-    searchParams.set("starting_after", String(params.starting_after));
-  if (params?.include_obfuscation != null)
-    searchParams.set("include_obfuscation", String(params.include_obfuscation));
+  if (params?.startingAfter != null)
+    searchParams.set("starting_after", String(params.startingAfter));
+  if (params?.includeObfuscation != null)
+    searchParams.set("include_obfuscation", String(params.includeObfuscation));
   const res = await _request(
     "GET",
-    `/responses/${encodeURIComponent(response_id)}`,
+    `/responses/${encodeURIComponent(responseId)}`,
     { searchParams },
     config,
   );
-  return res.json();
+  return ResponseSchema.parse(await res.json());
 }
 
 /**
  * @throws {ApiError<404, Error>}
  */
 export async function deleteResponse(
-  response_id: string,
+  responseId: string,
   config?: Partial<ClientConfig>,
 ): Promise<void> {
   await _request(
     "DELETE",
-    `/responses/${encodeURIComponent(response_id)}`,
+    `/responses/${encodeURIComponent(responseId)}`,
     {},
     config,
   );
@@ -3105,20 +3387,20 @@ export async function deleteResponse(
  * @throws {ApiError<404, Error>}
  */
 export async function cancelResponse(
-  response_id: string,
+  responseId: string,
   config?: Partial<ClientConfig>,
 ): Promise<Response> {
   const res = await _request(
     "POST",
-    `/responses/${encodeURIComponent(response_id)}/cancel`,
+    `/responses/${encodeURIComponent(responseId)}/cancel`,
     {},
     config,
   );
-  return res.json();
+  return ResponseSchema.parse(await res.json());
 }
 
 export async function listInputItems(
-  response_id: string,
+  responseId: string,
   params?: {
     limit?: number;
     order?: "asc" | "desc";
@@ -3136,77 +3418,80 @@ export async function listInputItems(
   }
   const res = await _request(
     "GET",
-    `/responses/${encodeURIComponent(response_id)}/input_items`,
+    `/responses/${encodeURIComponent(responseId)}/input_items`,
     { searchParams },
     config,
   );
-  return res.json();
+  return ResponseItemListSchema.parse(await res.json());
 }
 
 export async function createThread(
   body: CreateThreadRequest,
   config?: Partial<ClientConfig>,
 ): Promise<ThreadObject> {
+  CreateThreadRequestSchema.strip().parse(body);
   const res = await _request("POST", "/threads", { body }, config);
-  return res.json();
+  return ThreadObjectSchema.parse(await res.json());
 }
 
 export async function createThreadAndRun(
   body: CreateThreadAndRunRequest,
   config?: Partial<ClientConfig>,
 ): Promise<RunObject> {
+  CreateThreadAndRunRequestSchema.strip().parse(body);
   const res = await _request("POST", "/threads/runs", { body }, config);
-  return res.json();
+  return RunObjectSchema.parse(await res.json());
 }
 
 export async function getThread(
-  thread_id: string,
+  threadId: string,
   config?: Partial<ClientConfig>,
 ): Promise<ThreadObject> {
   const res = await _request(
     "GET",
-    `/threads/${encodeURIComponent(thread_id)}`,
+    `/threads/${encodeURIComponent(threadId)}`,
     {},
     config,
   );
-  return res.json();
+  return ThreadObjectSchema.parse(await res.json());
 }
 
 export async function modifyThread(
-  thread_id: string,
+  threadId: string,
   body: ModifyThreadRequest,
   config?: Partial<ClientConfig>,
 ): Promise<ThreadObject> {
+  ModifyThreadRequestSchema.strip().parse(body);
   const res = await _request(
     "POST",
-    `/threads/${encodeURIComponent(thread_id)}`,
+    `/threads/${encodeURIComponent(threadId)}`,
     { body },
     config,
   );
-  return res.json();
+  return ThreadObjectSchema.parse(await res.json());
 }
 
 export async function deleteThread(
-  thread_id: string,
+  threadId: string,
   config?: Partial<ClientConfig>,
 ): Promise<DeleteThreadResponse> {
   const res = await _request(
     "DELETE",
-    `/threads/${encodeURIComponent(thread_id)}`,
+    `/threads/${encodeURIComponent(threadId)}`,
     {},
     config,
   );
-  return res.json();
+  return DeleteThreadResponseSchema.parse(await res.json());
 }
 
 export async function listMessages(
-  thread_id: string,
+  threadId: string,
   params?: {
     limit?: number;
     order?: "asc" | "desc";
     after?: string;
     before?: string;
-    run_id?: string;
+    runId?: string;
   },
   config?: Partial<ClientConfig>,
 ): Promise<ListMessagesResponse> {
@@ -3215,75 +3500,77 @@ export async function listMessages(
   if (params?.order != null) searchParams.set("order", String(params.order));
   if (params?.after != null) searchParams.set("after", String(params.after));
   if (params?.before != null) searchParams.set("before", String(params.before));
-  if (params?.run_id != null) searchParams.set("run_id", String(params.run_id));
+  if (params?.runId != null) searchParams.set("run_id", String(params.runId));
   const res = await _request(
     "GET",
-    `/threads/${encodeURIComponent(thread_id)}/messages`,
+    `/threads/${encodeURIComponent(threadId)}/messages`,
     { searchParams },
     config,
   );
-  return res.json();
+  return ListMessagesResponseSchema.parse(await res.json());
 }
 
 export async function createMessage(
-  thread_id: string,
+  threadId: string,
   body: CreateMessageRequest,
   config?: Partial<ClientConfig>,
 ): Promise<MessageObject> {
+  CreateMessageRequestSchema.strip().parse(body);
   const res = await _request(
     "POST",
-    `/threads/${encodeURIComponent(thread_id)}/messages`,
+    `/threads/${encodeURIComponent(threadId)}/messages`,
     { body },
     config,
   );
-  return res.json();
+  return MessageObjectSchema.parse(await res.json());
 }
 
 export async function getMessage(
-  thread_id: string,
-  message_id: string,
+  threadId: string,
+  messageId: string,
   config?: Partial<ClientConfig>,
 ): Promise<MessageObject> {
   const res = await _request(
     "GET",
-    `/threads/${encodeURIComponent(thread_id)}/messages/${encodeURIComponent(message_id)}`,
+    `/threads/${encodeURIComponent(threadId)}/messages/${encodeURIComponent(messageId)}`,
     {},
     config,
   );
-  return res.json();
+  return MessageObjectSchema.parse(await res.json());
 }
 
 export async function modifyMessage(
-  thread_id: string,
-  message_id: string,
+  threadId: string,
+  messageId: string,
   body: ModifyMessageRequest,
   config?: Partial<ClientConfig>,
 ): Promise<MessageObject> {
+  ModifyMessageRequestSchema.strip().parse(body);
   const res = await _request(
     "POST",
-    `/threads/${encodeURIComponent(thread_id)}/messages/${encodeURIComponent(message_id)}`,
+    `/threads/${encodeURIComponent(threadId)}/messages/${encodeURIComponent(messageId)}`,
     { body },
     config,
   );
-  return res.json();
+  return MessageObjectSchema.parse(await res.json());
 }
 
 export async function deleteMessage(
-  thread_id: string,
-  message_id: string,
+  threadId: string,
+  messageId: string,
   config?: Partial<ClientConfig>,
 ): Promise<DeleteMessageResponse> {
   const res = await _request(
     "DELETE",
-    `/threads/${encodeURIComponent(thread_id)}/messages/${encodeURIComponent(message_id)}`,
+    `/threads/${encodeURIComponent(threadId)}/messages/${encodeURIComponent(messageId)}`,
     {},
     config,
   );
-  return res.json();
+  return DeleteMessageResponseSchema.parse(await res.json());
 }
 
 export async function listRuns(
-  thread_id: string,
+  threadId: string,
   params?: {
     limit?: number;
     order?: "asc" | "desc";
@@ -3299,15 +3586,15 @@ export async function listRuns(
   if (params?.before != null) searchParams.set("before", String(params.before));
   const res = await _request(
     "GET",
-    `/threads/${encodeURIComponent(thread_id)}/runs`,
+    `/threads/${encodeURIComponent(threadId)}/runs`,
     { searchParams },
     config,
   );
-  return res.json();
+  return ListRunsResponseSchema.parse(await res.json());
 }
 
 export async function createRun(
-  thread_id: string,
+  threadId: string,
   body: CreateRunRequest,
   params?: {
     include?: string[];
@@ -3318,61 +3605,63 @@ export async function createRun(
   if (params?.include != null) {
     for (const v of params.include) searchParams.append("include[]", String(v));
   }
+  CreateRunRequestSchema.strip().parse(body);
   const res = await _request(
     "POST",
-    `/threads/${encodeURIComponent(thread_id)}/runs`,
+    `/threads/${encodeURIComponent(threadId)}/runs`,
     { searchParams, body },
     config,
   );
-  return res.json();
+  return RunObjectSchema.parse(await res.json());
 }
 
 export async function getRun(
-  thread_id: string,
-  run_id: string,
+  threadId: string,
+  runId: string,
   config?: Partial<ClientConfig>,
 ): Promise<RunObject> {
   const res = await _request(
     "GET",
-    `/threads/${encodeURIComponent(thread_id)}/runs/${encodeURIComponent(run_id)}`,
+    `/threads/${encodeURIComponent(threadId)}/runs/${encodeURIComponent(runId)}`,
     {},
     config,
   );
-  return res.json();
+  return RunObjectSchema.parse(await res.json());
 }
 
 export async function modifyRun(
-  thread_id: string,
-  run_id: string,
+  threadId: string,
+  runId: string,
   body: ModifyRunRequest,
   config?: Partial<ClientConfig>,
 ): Promise<RunObject> {
+  ModifyRunRequestSchema.strip().parse(body);
   const res = await _request(
     "POST",
-    `/threads/${encodeURIComponent(thread_id)}/runs/${encodeURIComponent(run_id)}`,
+    `/threads/${encodeURIComponent(threadId)}/runs/${encodeURIComponent(runId)}`,
     { body },
     config,
   );
-  return res.json();
+  return RunObjectSchema.parse(await res.json());
 }
 
 export async function cancelRun(
-  thread_id: string,
-  run_id: string,
+  threadId: string,
+  runId: string,
   config?: Partial<ClientConfig>,
 ): Promise<RunObject> {
   const res = await _request(
     "POST",
-    `/threads/${encodeURIComponent(thread_id)}/runs/${encodeURIComponent(run_id)}/cancel`,
+    `/threads/${encodeURIComponent(threadId)}/runs/${encodeURIComponent(runId)}/cancel`,
     {},
     config,
   );
-  return res.json();
+  return RunObjectSchema.parse(await res.json());
 }
 
 export async function listRunSteps(
-  thread_id: string,
-  run_id: string,
+  threadId: string,
+  runId: string,
   params?: {
     limit?: number;
     order?: "asc" | "desc";
@@ -3392,17 +3681,17 @@ export async function listRunSteps(
   }
   const res = await _request(
     "GET",
-    `/threads/${encodeURIComponent(thread_id)}/runs/${encodeURIComponent(run_id)}/steps`,
+    `/threads/${encodeURIComponent(threadId)}/runs/${encodeURIComponent(runId)}/steps`,
     { searchParams },
     config,
   );
-  return res.json();
+  return ListRunStepsResponseSchema.parse(await res.json());
 }
 
 export async function getRunStep(
-  thread_id: string,
-  run_id: string,
-  step_id: string,
+  threadId: string,
+  runId: string,
+  stepId: string,
   params?: {
     include?: string[];
   },
@@ -3414,74 +3703,77 @@ export async function getRunStep(
   }
   const res = await _request(
     "GET",
-    `/threads/${encodeURIComponent(thread_id)}/runs/${encodeURIComponent(run_id)}/steps/${encodeURIComponent(step_id)}`,
+    `/threads/${encodeURIComponent(threadId)}/runs/${encodeURIComponent(runId)}/steps/${encodeURIComponent(stepId)}`,
     { searchParams },
     config,
   );
-  return res.json();
+  return RunStepObjectSchema.parse(await res.json());
 }
 
 export async function submitToolOuputsToRun(
-  thread_id: string,
-  run_id: string,
+  threadId: string,
+  runId: string,
   body: SubmitToolOutputsRunRequest,
   config?: Partial<ClientConfig>,
 ): Promise<RunObject> {
+  SubmitToolOutputsRunRequestSchema.strip().parse(body);
   const res = await _request(
     "POST",
-    `/threads/${encodeURIComponent(thread_id)}/runs/${encodeURIComponent(run_id)}/submit_tool_outputs`,
+    `/threads/${encodeURIComponent(threadId)}/runs/${encodeURIComponent(runId)}/submit_tool_outputs`,
     { body },
     config,
   );
-  return res.json();
+  return RunObjectSchema.parse(await res.json());
 }
 
 export async function createUpload(
   body: CreateUploadRequest,
   config?: Partial<ClientConfig>,
 ): Promise<Upload> {
+  CreateUploadRequestSchema.strip().parse(body);
   const res = await _request("POST", "/uploads", { body }, config);
-  return res.json();
+  return UploadSchema.parse(await res.json());
 }
 
 export async function cancelUpload(
-  upload_id: string,
+  uploadId: string,
   config?: Partial<ClientConfig>,
 ): Promise<Upload> {
   const res = await _request(
     "POST",
-    `/uploads/${encodeURIComponent(upload_id)}/cancel`,
+    `/uploads/${encodeURIComponent(uploadId)}/cancel`,
     {},
     config,
   );
-  return res.json();
+  return UploadSchema.parse(await res.json());
 }
 
 export async function completeUpload(
-  upload_id: string,
+  uploadId: string,
   body: CompleteUploadRequest,
   config?: Partial<ClientConfig>,
 ): Promise<Upload> {
+  CompleteUploadRequestSchema.strip().parse(body);
   const res = await _request(
     "POST",
-    `/uploads/${encodeURIComponent(upload_id)}/complete`,
+    `/uploads/${encodeURIComponent(uploadId)}/complete`,
     { body },
     config,
   );
-  return res.json();
+  return UploadSchema.parse(await res.json());
 }
 
 export async function addUploadPart(
-  upload_id: string,
+  uploadId: string,
   config?: Partial<ClientConfig>,
 ): Promise<UploadPart> {
   const res = await _request(
     "POST",
-    `/uploads/${encodeURIComponent(upload_id)}/parts`,
+    `/uploads/${encodeURIComponent(uploadId)}/parts`,
     {},
     config,
   );
-  return res.json();
+  return UploadPartSchema.parse(await res.json());
 }
 
 export async function listVectorStores(
@@ -3499,102 +3791,105 @@ export async function listVectorStores(
   if (params?.after != null) searchParams.set("after", String(params.after));
   if (params?.before != null) searchParams.set("before", String(params.before));
   const res = await _request("GET", "/vector_stores", { searchParams }, config);
-  return res.json();
+  return ListVectorStoresResponseSchema.parse(await res.json());
 }
 
 export async function createVectorStore(
   body: CreateVectorStoreRequest,
   config?: Partial<ClientConfig>,
 ): Promise<VectorStoreObject> {
+  CreateVectorStoreRequestSchema.strip().parse(body);
   const res = await _request("POST", "/vector_stores", { body }, config);
-  return res.json();
+  return VectorStoreObjectSchema.parse(await res.json());
 }
 
 export async function getVectorStore(
-  vector_store_id: string,
+  vectorStoreId: string,
   config?: Partial<ClientConfig>,
 ): Promise<VectorStoreObject> {
   const res = await _request(
     "GET",
-    `/vector_stores/${encodeURIComponent(vector_store_id)}`,
+    `/vector_stores/${encodeURIComponent(vectorStoreId)}`,
     {},
     config,
   );
-  return res.json();
+  return VectorStoreObjectSchema.parse(await res.json());
 }
 
 export async function modifyVectorStore(
-  vector_store_id: string,
+  vectorStoreId: string,
   body: UpdateVectorStoreRequest,
   config?: Partial<ClientConfig>,
 ): Promise<VectorStoreObject> {
+  UpdateVectorStoreRequestSchema.strip().parse(body);
   const res = await _request(
     "POST",
-    `/vector_stores/${encodeURIComponent(vector_store_id)}`,
+    `/vector_stores/${encodeURIComponent(vectorStoreId)}`,
     { body },
     config,
   );
-  return res.json();
+  return VectorStoreObjectSchema.parse(await res.json());
 }
 
 export async function deleteVectorStore(
-  vector_store_id: string,
+  vectorStoreId: string,
   config?: Partial<ClientConfig>,
 ): Promise<DeleteVectorStoreResponse> {
   const res = await _request(
     "DELETE",
-    `/vector_stores/${encodeURIComponent(vector_store_id)}`,
+    `/vector_stores/${encodeURIComponent(vectorStoreId)}`,
     {},
     config,
   );
-  return res.json();
+  return DeleteVectorStoreResponseSchema.parse(await res.json());
 }
 
 export async function createVectorStoreFileBatch(
-  vector_store_id: string,
+  vectorStoreId: string,
   body: CreateVectorStoreFileBatchRequest,
   config?: Partial<ClientConfig>,
 ): Promise<VectorStoreFileBatchObject> {
+  CreateVectorStoreFileBatchRequestSchema.strip().parse(body);
   const res = await _request(
     "POST",
-    `/vector_stores/${encodeURIComponent(vector_store_id)}/file_batches`,
+    `/vector_stores/${encodeURIComponent(vectorStoreId)}/file_batches`,
     { body },
     config,
   );
-  return res.json();
+  return VectorStoreFileBatchObjectSchema.parse(await res.json());
 }
 
 export async function getVectorStoreFileBatch(
-  vector_store_id: string,
-  batch_id: string,
+  vectorStoreId: string,
+  batchId: string,
   config?: Partial<ClientConfig>,
 ): Promise<VectorStoreFileBatchObject> {
   const res = await _request(
     "GET",
-    `/vector_stores/${encodeURIComponent(vector_store_id)}/file_batches/${encodeURIComponent(batch_id)}`,
+    `/vector_stores/${encodeURIComponent(vectorStoreId)}/file_batches/${encodeURIComponent(batchId)}`,
     {},
     config,
   );
-  return res.json();
+  return VectorStoreFileBatchObjectSchema.parse(await res.json());
 }
 
 export async function cancelVectorStoreFileBatch(
-  vector_store_id: string,
-  batch_id: string,
+  vectorStoreId: string,
+  batchId: string,
   config?: Partial<ClientConfig>,
 ): Promise<VectorStoreFileBatchObject> {
   const res = await _request(
     "POST",
-    `/vector_stores/${encodeURIComponent(vector_store_id)}/file_batches/${encodeURIComponent(batch_id)}/cancel`,
+    `/vector_stores/${encodeURIComponent(vectorStoreId)}/file_batches/${encodeURIComponent(batchId)}/cancel`,
     {},
     config,
   );
-  return res.json();
+  return VectorStoreFileBatchObjectSchema.parse(await res.json());
 }
 
 export async function listFilesInVectorStoreBatch(
-  vector_store_id: string,
-  batch_id: string,
+  vectorStoreId: string,
+  batchId: string,
   params?: {
     limit?: number;
     order?: "asc" | "desc";
@@ -3612,15 +3907,15 @@ export async function listFilesInVectorStoreBatch(
   if (params?.filter != null) searchParams.set("filter", String(params.filter));
   const res = await _request(
     "GET",
-    `/vector_stores/${encodeURIComponent(vector_store_id)}/file_batches/${encodeURIComponent(batch_id)}/files`,
+    `/vector_stores/${encodeURIComponent(vectorStoreId)}/file_batches/${encodeURIComponent(batchId)}/files`,
     { searchParams },
     config,
   );
-  return res.json();
+  return ListVectorStoreFilesResponseSchema.parse(await res.json());
 }
 
 export async function listVectorStoreFiles(
-  vector_store_id: string,
+  vectorStoreId: string,
   params?: {
     limit?: number;
     order?: "asc" | "desc";
@@ -3638,144 +3933,149 @@ export async function listVectorStoreFiles(
   if (params?.filter != null) searchParams.set("filter", String(params.filter));
   const res = await _request(
     "GET",
-    `/vector_stores/${encodeURIComponent(vector_store_id)}/files`,
+    `/vector_stores/${encodeURIComponent(vectorStoreId)}/files`,
     { searchParams },
     config,
   );
-  return res.json();
+  return ListVectorStoreFilesResponseSchema.parse(await res.json());
 }
 
 export async function createVectorStoreFile(
-  vector_store_id: string,
+  vectorStoreId: string,
   body: CreateVectorStoreFileRequest,
   config?: Partial<ClientConfig>,
 ): Promise<VectorStoreFileObject> {
+  CreateVectorStoreFileRequestSchema.strip().parse(body);
   const res = await _request(
     "POST",
-    `/vector_stores/${encodeURIComponent(vector_store_id)}/files`,
+    `/vector_stores/${encodeURIComponent(vectorStoreId)}/files`,
     { body },
     config,
   );
-  return res.json();
+  return VectorStoreFileObjectSchema.parse(await res.json());
 }
 
 export async function getVectorStoreFile(
-  vector_store_id: string,
-  file_id: string,
+  vectorStoreId: string,
+  fileId: string,
   config?: Partial<ClientConfig>,
 ): Promise<VectorStoreFileObject> {
   const res = await _request(
     "GET",
-    `/vector_stores/${encodeURIComponent(vector_store_id)}/files/${encodeURIComponent(file_id)}`,
+    `/vector_stores/${encodeURIComponent(vectorStoreId)}/files/${encodeURIComponent(fileId)}`,
     {},
     config,
   );
-  return res.json();
+  return VectorStoreFileObjectSchema.parse(await res.json());
 }
 
 export async function updateVectorStoreFileAttributes(
-  vector_store_id: string,
-  file_id: string,
+  vectorStoreId: string,
+  fileId: string,
   body: UpdateVectorStoreFileAttributesRequest,
   config?: Partial<ClientConfig>,
 ): Promise<VectorStoreFileObject> {
+  UpdateVectorStoreFileAttributesRequestSchema.strip().parse(body);
   const res = await _request(
     "POST",
-    `/vector_stores/${encodeURIComponent(vector_store_id)}/files/${encodeURIComponent(file_id)}`,
+    `/vector_stores/${encodeURIComponent(vectorStoreId)}/files/${encodeURIComponent(fileId)}`,
     { body },
     config,
   );
-  return res.json();
+  return VectorStoreFileObjectSchema.parse(await res.json());
 }
 
 export async function deleteVectorStoreFile(
-  vector_store_id: string,
-  file_id: string,
+  vectorStoreId: string,
+  fileId: string,
   config?: Partial<ClientConfig>,
 ): Promise<DeleteVectorStoreFileResponse> {
   const res = await _request(
     "DELETE",
-    `/vector_stores/${encodeURIComponent(vector_store_id)}/files/${encodeURIComponent(file_id)}`,
+    `/vector_stores/${encodeURIComponent(vectorStoreId)}/files/${encodeURIComponent(fileId)}`,
     {},
     config,
   );
-  return res.json();
+  return DeleteVectorStoreFileResponseSchema.parse(await res.json());
 }
 
 export async function retrieveVectorStoreFileContent(
-  vector_store_id: string,
-  file_id: string,
+  vectorStoreId: string,
+  fileId: string,
   config?: Partial<ClientConfig>,
 ): Promise<VectorStoreFileContentResponse> {
   const res = await _request(
     "GET",
-    `/vector_stores/${encodeURIComponent(vector_store_id)}/files/${encodeURIComponent(file_id)}/content`,
+    `/vector_stores/${encodeURIComponent(vectorStoreId)}/files/${encodeURIComponent(fileId)}/content`,
     {},
     config,
   );
-  return res.json();
+  return VectorStoreFileContentResponseSchema.parse(await res.json());
 }
 
 export async function searchVectorStore(
-  vector_store_id: string,
+  vectorStoreId: string,
   body: VectorStoreSearchRequest,
   config?: Partial<ClientConfig>,
 ): Promise<VectorStoreSearchResultsPage> {
+  VectorStoreSearchRequestSchema.strip().parse(body);
   const res = await _request(
     "POST",
-    `/vector_stores/${encodeURIComponent(vector_store_id)}/search`,
+    `/vector_stores/${encodeURIComponent(vectorStoreId)}/search`,
     { body },
     config,
   );
-  return res.json();
+  return VectorStoreSearchResultsPageSchema.parse(await res.json());
 }
 
 export async function createConversation(
   body: CreateConversationBody,
   config?: Partial<ClientConfig>,
 ): Promise<ConversationResource> {
+  CreateConversationBodySchema.strip().parse(body);
   const res = await _request("POST", "/conversations", { body }, config);
-  return res.json();
+  return ConversationResourceSchema.parse(await res.json());
 }
 
 export async function getConversation(
-  conversation_id: string,
+  conversationId: string,
   config?: Partial<ClientConfig>,
 ): Promise<ConversationResource> {
   const res = await _request(
     "GET",
-    `/conversations/${encodeURIComponent(conversation_id)}`,
+    `/conversations/${encodeURIComponent(conversationId)}`,
     {},
     config,
   );
-  return res.json();
+  return ConversationResourceSchema.parse(await res.json());
 }
 
 export async function updateConversation(
-  conversation_id: string,
+  conversationId: string,
   body: UpdateConversationBody,
   config?: Partial<ClientConfig>,
 ): Promise<ConversationResource> {
+  UpdateConversationBodySchema.strip().parse(body);
   const res = await _request(
     "POST",
-    `/conversations/${encodeURIComponent(conversation_id)}`,
+    `/conversations/${encodeURIComponent(conversationId)}`,
     { body },
     config,
   );
-  return res.json();
+  return ConversationResourceSchema.parse(await res.json());
 }
 
 export async function deleteConversation(
-  conversation_id: string,
+  conversationId: string,
   config?: Partial<ClientConfig>,
 ): Promise<DeletedConversationResource> {
   const res = await _request(
     "DELETE",
-    `/conversations/${encodeURIComponent(conversation_id)}`,
+    `/conversations/${encodeURIComponent(conversationId)}`,
     {},
     config,
   );
-  return res.json();
+  return DeletedConversationResourceSchema.parse(await res.json());
 }
 
 export async function listVideos(
@@ -3791,81 +4091,84 @@ export async function listVideos(
   if (params?.order != null) searchParams.set("order", String(params.order));
   if (params?.after != null) searchParams.set("after", String(params.after));
   const res = await _request("GET", "/videos", { searchParams }, config);
-  return res.json();
+  return VideoListResourceSchema.parse(await res.json());
 }
 
 export async function createVideo(
   body: CreateVideoJsonBody,
   config?: Partial<ClientConfig>,
 ): Promise<VideoResource> {
+  CreateVideoJsonBodySchema.strip().parse(body);
   const res = await _request("POST", "/videos", { body }, config);
-  return res.json();
+  return VideoResourceSchema.parse(await res.json());
 }
 
 export async function createVideoCharacter(
   config?: Partial<ClientConfig>,
 ): Promise<VideoCharacterResource> {
   const res = await _request("POST", "/videos/characters", {}, config);
-  return res.json();
+  return VideoCharacterResourceSchema.parse(await res.json());
 }
 
 export async function getVideoCharacter(
-  character_id: string,
+  characterId: string,
   config?: Partial<ClientConfig>,
 ): Promise<VideoCharacterResource> {
   const res = await _request(
     "GET",
-    `/videos/characters/${encodeURIComponent(character_id)}`,
+    `/videos/characters/${encodeURIComponent(characterId)}`,
     {},
     config,
   );
-  return res.json();
+  return VideoCharacterResourceSchema.parse(await res.json());
 }
 
 export async function createVideoEdit(
   body: CreateVideoEditJsonBody,
   config?: Partial<ClientConfig>,
 ): Promise<VideoResource> {
+  CreateVideoEditJsonBodySchema.strip().parse(body);
   const res = await _request("POST", "/videos/edits", { body }, config);
-  return res.json();
+  return VideoResourceSchema.parse(await res.json());
 }
 
 export async function createVideoExtend(
   body: CreateVideoExtendJsonBody,
   config?: Partial<ClientConfig>,
 ): Promise<VideoResource> {
+  CreateVideoExtendJsonBodySchema.strip().parse(body);
   const res = await _request("POST", "/videos/extensions", { body }, config);
-  return res.json();
+  return VideoResourceSchema.parse(await res.json());
 }
 
 export async function getVideo(
-  video_id: string,
+  videoId: string,
   config?: Partial<ClientConfig>,
 ): Promise<VideoResource> {
   const res = await _request(
     "GET",
-    `/videos/${encodeURIComponent(video_id)}`,
+    `/videos/${encodeURIComponent(videoId)}`,
     {},
     config,
   );
-  return res.json();
+  return VideoResourceSchema.parse(await res.json());
 }
 
 export async function deleteVideo(
-  video_id: string,
+  videoId: string,
   config?: Partial<ClientConfig>,
 ): Promise<DeletedVideoResource> {
   const res = await _request(
     "DELETE",
-    `/videos/${encodeURIComponent(video_id)}`,
+    `/videos/${encodeURIComponent(videoId)}`,
     {},
     config,
   );
-  return res.json();
+  return DeletedVideoResourceSchema.parse(await res.json());
 }
 
 export async function retrieveVideoContent(
-  video_id: string,
+  videoId: string,
   params?: {
     variant?: string;
   },
@@ -3876,7 +4179,7 @@ export async function retrieveVideoContent(
     searchParams.set("variant", String(params.variant));
   const res = await _request(
     "GET",
-    `/videos/${encodeURIComponent(video_id)}/content`,
+    `/videos/${encodeURIComponent(videoId)}/content`,
     { searchParams },
     config,
   );
@@ -3884,38 +4187,41 @@ export async function retrieveVideoContent(
 }
 
 export async function createVideoRemix(
-  video_id: string,
+  videoId: string,
   body: CreateVideoRemixBody,
   config?: Partial<ClientConfig>,
 ): Promise<VideoResource> {
+  CreateVideoRemixBodySchema.strip().parse(body);
   const res = await _request(
     "POST",
-    `/videos/${encodeURIComponent(video_id)}/remix`,
+    `/videos/${encodeURIComponent(videoId)}/remix`,
     { body },
     config,
   );
-  return res.json();
+  return VideoResourceSchema.parse(await res.json());
 }
 
 export async function getinputtokencounts(
   body: TokenCountsBody,
   config?: Partial<ClientConfig>,
 ): Promise<TokenCountsResource> {
+  TokenCountsBodySchema.strip().parse(body);
   const res = await _request(
     "POST",
     "/responses/input_tokens",
     { body },
     config,
   );
-  return res.json();
+  return TokenCountsResourceSchema.parse(await res.json());
 }
 
 export async function compactconversation(
   body: CompactResponseMethodPublicBody,
   config?: Partial<ClientConfig>,
 ): Promise<CompactResource> {
+  CompactResponseMethodPublicBodySchema.strip().parse(body);
   const res = await _request("POST", "/responses/compact", { body }, config);
-  return res.json();
+  return CompactResourceSchema.parse(await res.json());
 }
 
 export async function listSkills(
@@ -3931,64 +4237,66 @@ export async function listSkills(
   if (params?.order != null) searchParams.set("order", String(params.order));
   if (params?.after != null) searchParams.set("after", String(params.after));
   const res = await _request("GET", "/skills", { searchParams }, config);
-  return res.json();
+  return SkillListResourceSchema.parse(await res.json());
 }
 
 export async function createSkill(
   body: CreateSkillBody,
   config?: Partial<ClientConfig>,
 ): Promise<SkillResource> {
+  CreateSkillBodySchema.strip().parse(body);
   const res = await _request("POST", "/skills", { body }, config);
-  return res.json();
+  return SkillResourceSchema.parse(await res.json());
 }
 
 export async function getSkill(
-  skill_id: string,
+  skillId: string,
   config?: Partial<ClientConfig>,
 ): Promise<SkillResource> {
   const res = await _request(
     "GET",
-    `/skills/${encodeURIComponent(skill_id)}`,
+    `/skills/${encodeURIComponent(skillId)}`,
     {},
     config,
   );
-  return res.json();
+  return SkillResourceSchema.parse(await res.json());
 }
 
 export async function updateSkillDefaultVersion(
-  skill_id: string,
+  skillId: string,
   body: SetDefaultSkillVersionBody,
   config?: Partial<ClientConfig>,
 ): Promise<SkillResource> {
+  SetDefaultSkillVersionBodySchema.strip().parse(body);
   const res = await _request(
     "POST",
-    `/skills/${encodeURIComponent(skill_id)}`,
+    `/skills/${encodeURIComponent(skillId)}`,
     { body },
     config,
   );
-  return res.json();
+  return SkillResourceSchema.parse(await res.json());
 }
 
 export async function deleteSkill(
-  skill_id: string,
+  skillId: string,
   config?: Partial<ClientConfig>,
 ): Promise<DeletedSkillResource> {
   const res = await _request(
     "DELETE",
-    `/skills/${encodeURIComponent(skill_id)}`,
+    `/skills/${encodeURIComponent(skillId)}`,
     {},
     config,
   );
-  return res.json();
+  return DeletedSkillResourceSchema.parse(await res.json());
 }
 
 export async function getSkillContent(
-  skill_id: string,
+  skillId: string,
   config?: Partial<ClientConfig>,
 ): Promise<string> {
   const res = await _request(
     "GET",
-    `/skills/${encodeURIComponent(skill_id)}/content`,
+    `/skills/${encodeURIComponent(skillId)}/content`,
     {},
     config,
   );
@@ -3996,7 +4304,7 @@ export async function getSkillContent(
 }
 
 export async function listSkillVersions(
-  skill_id: string,
+  skillId: string,
   params?: {
     limit?: number;
     order?: string;
@@ -4010,63 +4318,64 @@ export async function listSkillVersions(
   if (params?.after != null) searchParams.set("after", String(params.after));
   const res = await _request(
     "GET",
-    `/skills/${encodeURIComponent(skill_id)}/versions`,
+    `/skills/${encodeURIComponent(skillId)}/versions`,
     { searchParams },
     config,
   );
-  return res.json();
+  return SkillVersionListResourceSchema.parse(await res.json());
 }
 
 export async function createSkillVersion(
-  skill_id: string,
+  skillId: string,
   body: CreateSkillVersionBody,
   config?: Partial<ClientConfig>,
 ): Promise<SkillVersionResource> {
+  CreateSkillVersionBodySchema.strip().parse(body);
   const res = await _request(
     "POST",
-    `/skills/${encodeURIComponent(skill_id)}/versions`,
+    `/skills/${encodeURIComponent(skillId)}/versions`,
     { body },
     config,
   );
-  return res.json();
+  return SkillVersionResourceSchema.parse(await res.json());
 }
 
 export async function getSkillVersion(
-  skill_id: string,
+  skillId: string,
   version: string,
   config?: Partial<ClientConfig>,
 ): Promise<SkillVersionResource> {
   const res = await _request(
     "GET",
-    `/skills/${encodeURIComponent(skill_id)}/versions/${encodeURIComponent(version)}`,
+    `/skills/${encodeURIComponent(skillId)}/versions/${encodeURIComponent(version)}`,
     {},
     config,
   );
-  return res.json();
+  return SkillVersionResourceSchema.parse(await res.json());
 }
 
 export async function deleteSkillVersion(
-  skill_id: string,
+  skillId: string,
   version: string,
   config?: Partial<ClientConfig>,
 ): Promise<DeletedSkillVersionResource> {
   const res = await _request(
     "DELETE",
-    `/skills/${encodeURIComponent(skill_id)}/versions/${encodeURIComponent(version)}`,
+    `/skills/${encodeURIComponent(skillId)}/versions/${encodeURIComponent(version)}`,
     {},
     config,
   );
-  return res.json();
+  return DeletedSkillVersionResourceSchema.parse(await res.json());
 }
 
 export async function getSkillVersionContent(
-  skill_id: string,
+  skillId: string,
   version: string,
   config?: Partial<ClientConfig>,
 ): Promise<string> {
   const res = await _request(
     "GET",
-    `/skills/${encodeURIComponent(skill_id)}/versions/${encodeURIComponent(version)}/content`,
+    `/skills/${encodeURIComponent(skillId)}/versions/${encodeURIComponent(version)}/content`,
     {},
     config,
   );
@@ -4074,28 +4383,29 @@ export async function getSkillVersionContent(
 }
 
 export async function cancelChatSessionMethod(
-  session_id: string,
+  sessionId: string,
   config?: Partial<ClientConfig>,
 ): Promise<ChatSessionResource> {
   const res = await _request(
     "POST",
-    `/chatkit/sessions/${encodeURIComponent(session_id)}/cancel`,
+    `/chatkit/sessions/${encodeURIComponent(sessionId)}/cancel`,
     {},
     config,
   );
-  return res.json();
+  return ChatSessionResourceSchema.parse(await res.json());
 }
 
 export async function createChatSessionMethod(
   body: CreateChatSessionBody,
   config?: Partial<ClientConfig>,
 ): Promise<ChatSessionResource> {
+  CreateChatSessionBodySchema.strip().parse(body);
   const res = await _request("POST", "/chatkit/sessions", { body }, config);
-  return res.json();
+  return ChatSessionResourceSchema.parse(await res.json());
 }
 
 export async function listThreadItemsMethod(
-  thread_id: string,
+  threadId: string,
   params?: {
     limit?: number;
     order?: string;
@@ -4111,37 +4421,37 @@ export async function listThreadItemsMethod(
   if (params?.before != null) searchParams.set("before", String(params.before));
   const res = await _request(
     "GET",
-    `/chatkit/threads/${encodeURIComponent(thread_id)}/items`,
+    `/chatkit/threads/${encodeURIComponent(threadId)}/items`,
     { searchParams },
     config,
   );
-  return res.json();
+  return ThreadItemListResourceSchema.parse(await res.json());
 }
 
 export async function getThreadMethod(
-  thread_id: string,
+  threadId: string,
   config?: Partial<ClientConfig>,
 ): Promise<ThreadResource> {
   const res = await _request(
     "GET",
-    `/chatkit/threads/${encodeURIComponent(thread_id)}`,
+    `/chatkit/threads/${encodeURIComponent(threadId)}`,
     {},
     config,
   );
-  return res.json();
+  return ThreadResourceSchema.parse(await res.json());
 }
 
 export async function deleteThreadMethod(
-  thread_id: string,
+  threadId: string,
   config?: Partial<ClientConfig>,
 ): Promise<DeletedThreadResource> {
   const res = await _request(
     "DELETE",
-    `/chatkit/threads/${encodeURIComponent(thread_id)}`,
+    `/chatkit/threads/${encodeURIComponent(threadId)}`,
     {},
     config,
   );
-  return res.json();
+  return DeletedThreadResourceSchema.parse(await res.json());
 }
 
 export async function listThreadsMethod(
@@ -4166,5 +4476,5 @@ export async function listThreadsMethod(
     { searchParams },
     config,
   );
-  return res.json();
+  return ThreadListResourceSchema.parse(await res.json());
 }

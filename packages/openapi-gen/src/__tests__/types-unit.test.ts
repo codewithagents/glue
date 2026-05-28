@@ -56,7 +56,7 @@ describe('nullable types (OpenAPI 3.1 array syntax)', () => {
 describe('enum types', () => {
   it('string enum → string literal union type alias + values array', () => {
     const out = genSingle('Status', { type: 'string', enum: ['active', 'inactive'] })
-    expect(out).toContain("export type Status = 'active' | 'inactive'")
+    expect(out).toContain(`export type Status = "active" | "inactive"`)
     expect(out).toContain("export const StatusValues = ['active', 'inactive'] as const")
   })
   it('integer enum → number union type alias + values array', () => {
@@ -72,7 +72,7 @@ describe('enum types', () => {
   it('mixed enum (string + number + null) → union only, no values array', () => {
     // @ts-expect-error — null in enum is valid OpenAPI 3.1, type definitions lag
     const out = genSingle('Mixed', { enum: ['active', 0, null] })
-    expect(out).toContain("export type Mixed = 'active' | 0 | null")
+    expect(out).toContain(`export type Mixed = "active" | 0 | null`)
     expect(out).not.toContain('MixedValues')  // mixed enums don't get a values array
   })
   it('enum on object property → inline union', () => {
@@ -81,7 +81,7 @@ describe('enum types', () => {
       required: ['status'],
       properties: { status: { type: 'string', enum: ['a', 'b'] } },
     })
-    expect(out).toContain("status: 'a' | 'b'")
+    expect(out).toContain(`status: "a" | "b"`)
   })
 })
 
@@ -319,7 +319,7 @@ describe('coverage: isEnumSchema returns false for array type with enum (line 15
     // @ts-expect-error — enum on array is unusual but valid to test the isEnumSchema branch
     const out = genSingle('Flags', { type: 'array', enum: ['x', 'y'] })
     // schemaToTypeString renders the enum values since it checks enum before array
-    expect(out).toContain("export type Flags = 'x' | 'y'")
+    expect(out).toContain(`export type Flags = "x" | "y"`)
   })
 })
 

@@ -61,18 +61,27 @@ function deriveServiceName(spec: OpenAPIV3_1.Document): string {
 }
 
 /**
- * Converts a raw operationId (which may be kebab-case, snake_case, or mixed)
- * into a valid camelCase JS identifier.
- * e.g. "post-applePay-sessions" → "postApplePaySessions"
+ * Converts a raw operationId into a valid camelCase JS identifier.
+ * Handles kebab-case, snake_case, dots, spaces, parens, braces and other
+ * non-alphanumeric separators found in real-world OpenAPI specs.
+ * e.g. "post-applePay-sessions"   → "postApplePaySessions"
+ * e.g. "calendar.calendars.insert" → "calendarCalendarsInsert"
+ * e.g. "Get User Profile"          → "getUserProfile"
+ * e.g. "forgotPassword(oneTimeCode)" → "forgotPasswordOneTimeCode"
  */
 function sanitizeOperationId(id: string): string {
-  const parts = id.split(/[-_]+/)
+  const parts = id
+    .replace(/'/g, '')           // strip apostrophes without splitting ("user's" → "users")
+    .split(/[^a-zA-Z0-9]+/)     // split on any non-alphanumeric sequence
+    .filter(Boolean)
+  if (parts.length === 0) return 'unknown'
   const [first = '', ...rest] = parts
-  return (
+  const camel =
     first.charAt(0).toLowerCase() +
     first.slice(1) +
     rest.map((p) => p.charAt(0).toUpperCase() + p.slice(1)).join('')
-  )
+  // If result starts with a digit, prefix with underscore
+  return /^[0-9]/.test(camel) ? `_${camel}` : camel
 }
 
 function deriveMethodName(operationId: string | undefined, method: string, path: string): string {
