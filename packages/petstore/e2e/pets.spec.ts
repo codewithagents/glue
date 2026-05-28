@@ -54,3 +54,10 @@ test('form clears after adding a pet', async ({ page }) => {
   await expect(page.getByTestId('pet-name')).toHaveValue('')
   await expect(page.getByTestId('pet-species')).toHaveValue('')
 })
+
+test('shows validation errors when submitting empty fields', async ({ page }) => {
+  await page.getByTestId('add-pet').click()
+
+  await expect(page.getByTestId('pet-name-error')).toHaveText('Name is required')
+  await expect(page.getByTestId('pet-species-error')).toHaveText('Species is required')
+})
