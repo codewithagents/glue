@@ -91,96 +91,6 @@ import type {
   UsersRetweetsDeleteResponse,
 } from "./models.js";
 import { getConfig, type ClientConfig } from "./client-config.js";
-import {
-  AddOrDeleteRulesRequestSchema,
-  AddOrDeleteRulesResponseSchema,
-  BlockUserMutationResponseSchema,
-  BlockUserRequestSchema,
-  BookmarkAddRequestSchema,
-  BookmarkMutationResponseSchema,
-  CreateComplianceJobRequestSchema,
-  CreateComplianceJobResponseSchema,
-  CreateDmConversationRequestSchema,
-  CreateDmEventResponseSchema,
-  CreateMessageRequestSchema,
-  FilteredStreamingTweetResponseSchema,
-  Get2ComplianceJobsIdResponseSchema,
-  Get2ComplianceJobsResponseSchema,
-  Get2DmConversationsIdDmEventsResponseSchema,
-  Get2DmConversationsWithParticipantIdDmEventsResponseSchema,
-  Get2DmEventsResponseSchema,
-  Get2ListsIdFollowersResponseSchema,
-  Get2ListsIdMembersResponseSchema,
-  Get2ListsIdResponseSchema,
-  Get2ListsIdTweetsResponseSchema,
-  Get2SpacesByCreatorIdsResponseSchema,
-  Get2SpacesIdBuyersResponseSchema,
-  Get2SpacesIdResponseSchema,
-  Get2SpacesIdTweetsResponseSchema,
-  Get2SpacesResponseSchema,
-  Get2SpacesSearchResponseSchema,
-  Get2TweetsCountsAllResponseSchema,
-  Get2TweetsCountsRecentResponseSchema,
-  Get2TweetsIdLikingUsersResponseSchema,
-  Get2TweetsIdQuoteTweetsResponseSchema,
-  Get2TweetsIdResponseSchema,
-  Get2TweetsIdRetweetedByResponseSchema,
-  Get2TweetsResponseSchema,
-  Get2TweetsSample10StreamResponseSchema,
-  Get2TweetsSearchAllResponseSchema,
-  Get2TweetsSearchRecentResponseSchema,
-  Get2UsersByResponseSchema,
-  Get2UsersByUsernameUsernameResponseSchema,
-  Get2UsersIdBlockingResponseSchema,
-  Get2UsersIdBookmarksResponseSchema,
-  Get2UsersIdFollowedListsResponseSchema,
-  Get2UsersIdFollowersResponseSchema,
-  Get2UsersIdFollowingResponseSchema,
-  Get2UsersIdLikedTweetsResponseSchema,
-  Get2UsersIdListMembershipsResponseSchema,
-  Get2UsersIdMentionsResponseSchema,
-  Get2UsersIdMutingResponseSchema,
-  Get2UsersIdOwnedListsResponseSchema,
-  Get2UsersIdPinnedListsResponseSchema,
-  Get2UsersIdResponseSchema,
-  Get2UsersIdTimelinesReverseChronologicalResponseSchema,
-  Get2UsersIdTweetsResponseSchema,
-  Get2UsersMeResponseSchema,
-  Get2UsersResponseSchema,
-  ListAddUserRequestSchema,
-  ListCreateRequestSchema,
-  ListCreateResponseSchema,
-  ListDeleteResponseSchema,
-  ListFollowedRequestSchema,
-  ListFollowedResponseSchema,
-  ListMutateResponseSchema,
-  ListPinnedRequestSchema,
-  ListPinnedResponseSchema,
-  ListUnpinResponseSchema,
-  ListUpdateRequestSchema,
-  ListUpdateResponseSchema,
-  MuteUserMutationResponseSchema,
-  MuteUserRequestSchema,
-  RulesLookupResponseSchema,
-  StreamingTweetResponseSchema,
-  TweetComplianceStreamResponseSchema,
-  TweetCreateRequestSchema,
-  TweetCreateResponseSchema,
-  TweetDeleteResponseSchema,
-  TweetHideRequestSchema,
-  TweetHideResponseSchema,
-  TweetLabelStreamResponseSchema,
-  UserComplianceStreamResponseSchema,
-  UsersFollowingCreateRequestSchema,
-  UsersFollowingCreateResponseSchema,
-  UsersFollowingDeleteResponseSchema,
-  UsersLikesCreateRequestSchema,
-  UsersLikesCreateResponseSchema,
-  UsersLikesDeleteResponseSchema,
-  UsersRetweetsCreateRequestSchema,
-  UsersRetweetsCreateResponseSchema,
-  UsersRetweetsDeleteResponseSchema,
-} from "./schemas.js";
 
 export class ApiError extends Error {
   constructor(
@@ -248,16 +158,15 @@ export async function listBatchComplianceJobs(
     { searchParams },
     config,
   );
-  return Get2ComplianceJobsResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function createBatchComplianceJob(
   body: CreateComplianceJobRequest,
   config?: Partial<ClientConfig>,
 ): Promise<CreateComplianceJobResponse> {
-  CreateComplianceJobRequestSchema.strip().parse(body);
   const res = await _request("POST", "/2/compliance/jobs", { body }, config);
-  return CreateComplianceJobResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function getBatchComplianceJob(
@@ -278,16 +187,15 @@ export async function getBatchComplianceJob(
     { searchParams },
     config,
   );
-  return Get2ComplianceJobsIdResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function dmConversationIdCreate(
   body: CreateDmConversationRequest,
   config?: Partial<ClientConfig>,
 ): Promise<CreateDmEventResponse> {
-  CreateDmConversationRequestSchema.strip().parse(body);
   const res = await _request("POST", "/2/dm_conversations", { body }, config);
-  return CreateDmEventResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function getDmConversationsWithParticipantIdDmEvents(
@@ -339,9 +247,7 @@ export async function getDmConversationsWithParticipantIdDmEvents(
     { searchParams },
     config,
   );
-  return Get2DmConversationsWithParticipantIdDmEventsResponseSchema.parse(
-    await res.json(),
-  );
+  return res.json();
 }
 
 export async function dmConversationWithUserEventIdCreate(
@@ -349,14 +255,13 @@ export async function dmConversationWithUserEventIdCreate(
   body: CreateMessageRequest,
   config?: Partial<ClientConfig>,
 ): Promise<CreateDmEventResponse> {
-  CreateMessageRequestSchema.strip().parse(body);
   const res = await _request(
     "POST",
     `/2/dm_conversations/with/${encodeURIComponent(participantId)}/messages`,
     { body },
     config,
   );
-  return CreateDmEventResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function dmConversationByIdEventIdCreate(
@@ -364,14 +269,13 @@ export async function dmConversationByIdEventIdCreate(
   body: CreateMessageRequest,
   config?: Partial<ClientConfig>,
 ): Promise<CreateDmEventResponse> {
-  CreateMessageRequestSchema.strip().parse(body);
   const res = await _request(
     "POST",
     `/2/dm_conversations/${encodeURIComponent(dmConversationId)}/messages`,
     { body },
     config,
   );
-  return CreateDmEventResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function getDmConversationsIdDmEvents(
@@ -423,7 +327,7 @@ export async function getDmConversationsIdDmEvents(
     { searchParams },
     config,
   );
-  return Get2DmConversationsIdDmEventsResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function getDmEvents(
@@ -469,16 +373,15 @@ export async function getDmEvents(
       searchParams.append("tweet.fields", String(v));
   }
   const res = await _request("GET", "/2/dm_events", { searchParams }, config);
-  return Get2DmEventsResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function listIdCreate(
   body: ListCreateRequest,
   config?: Partial<ClientConfig>,
 ): Promise<ListCreateResponse> {
-  ListCreateRequestSchema.strip().parse(body);
   const res = await _request("POST", "/2/lists", { body }, config);
-  return ListCreateResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function listIdGet(
@@ -509,7 +412,7 @@ export async function listIdGet(
     { searchParams },
     config,
   );
-  return Get2ListsIdResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function listIdUpdate(
@@ -517,14 +420,13 @@ export async function listIdUpdate(
   body: ListUpdateRequest,
   config?: Partial<ClientConfig>,
 ): Promise<ListUpdateResponse> {
-  ListUpdateRequestSchema.strip().parse(body);
   const res = await _request(
     "PUT",
     `/2/lists/${encodeURIComponent(id)}`,
     { body },
     config,
   );
-  return ListUpdateResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function listIdDelete(
@@ -537,7 +439,7 @@ export async function listIdDelete(
     {},
     config,
   );
-  return ListDeleteResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function listGetFollowers(
@@ -574,7 +476,7 @@ export async function listGetFollowers(
     { searchParams },
     config,
   );
-  return Get2ListsIdFollowersResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function listGetMembers(
@@ -611,7 +513,7 @@ export async function listGetMembers(
     { searchParams },
     config,
   );
-  return Get2ListsIdMembersResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function listAddMember(
@@ -619,14 +521,13 @@ export async function listAddMember(
   body: ListAddUserRequest,
   config?: Partial<ClientConfig>,
 ): Promise<ListMutateResponse> {
-  ListAddUserRequestSchema.strip().parse(body);
   const res = await _request(
     "POST",
     `/2/lists/${encodeURIComponent(id)}/members`,
     { body },
     config,
   );
-  return ListMutateResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function listRemoveMember(
@@ -640,7 +541,7 @@ export async function listRemoveMember(
     {},
     config,
   );
-  return ListMutateResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function listsIdTweets(
@@ -692,7 +593,7 @@ export async function listsIdTweets(
     { searchParams },
     config,
   );
-  return Get2ListsIdTweetsResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function getOpenApiSpec(
@@ -733,7 +634,7 @@ export async function findSpacesByIds(
       searchParams.append("topic.fields", String(v));
   }
   const res = await _request("GET", "/2/spaces", { searchParams }, config);
-  return Get2SpacesResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function findSpacesByCreatorIds(
@@ -772,7 +673,7 @@ export async function findSpacesByCreatorIds(
     { searchParams },
     config,
   );
-  return Get2SpacesByCreatorIdsResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function searchSpaces(
@@ -814,7 +715,7 @@ export async function searchSpaces(
     { searchParams },
     config,
   );
-  return Get2SpacesSearchResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function findSpaceById(
@@ -850,7 +751,7 @@ export async function findSpaceById(
     { searchParams },
     config,
   );
-  return Get2SpacesIdResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function spaceBuyers(
@@ -887,7 +788,7 @@ export async function spaceBuyers(
     { searchParams },
     config,
   );
-  return Get2SpacesIdBuyersResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function spaceTweets(
@@ -936,7 +837,7 @@ export async function spaceTweets(
     { searchParams },
     config,
   );
-  return Get2SpacesIdTweetsResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function findTweetsById(
@@ -980,16 +881,15 @@ export async function findTweetsById(
       searchParams.append("place.fields", String(v));
   }
   const res = await _request("GET", "/2/tweets", { searchParams }, config);
-  return Get2TweetsResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function createTweet(
   body: TweetCreateRequest,
   config?: Partial<ClientConfig>,
 ): Promise<TweetCreateResponse> {
-  TweetCreateRequestSchema.strip().parse(body);
   const res = await _request("POST", "/2/tweets", { body }, config);
-  return TweetCreateResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function getTweetsComplianceStream(
@@ -1016,7 +916,7 @@ export async function getTweetsComplianceStream(
     { searchParams },
     config,
   );
-  return TweetComplianceStreamResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function tweetCountsFullArchiveSearch(
@@ -1059,7 +959,7 @@ export async function tweetCountsFullArchiveSearch(
     { searchParams },
     config,
   );
-  return Get2TweetsCountsAllResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function tweetCountsRecentSearch(
@@ -1102,7 +1002,7 @@ export async function tweetCountsRecentSearch(
     { searchParams },
     config,
   );
-  return Get2TweetsCountsRecentResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function getTweetsFirehoseStream(
@@ -1159,7 +1059,7 @@ export async function getTweetsFirehoseStream(
     { searchParams },
     config,
   );
-  return StreamingTweetResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function getTweetsLabelStream(
@@ -1183,7 +1083,7 @@ export async function getTweetsLabelStream(
     { searchParams },
     config,
   );
-  return TweetLabelStreamResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function sampleStream(
@@ -1231,7 +1131,7 @@ export async function sampleStream(
     { searchParams },
     config,
   );
-  return StreamingTweetResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function getTweetsSample10Stream(
@@ -1288,7 +1188,7 @@ export async function getTweetsSample10Stream(
     { searchParams },
     config,
   );
-  return Get2TweetsSample10StreamResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function tweetsFullarchiveSearch(
@@ -1359,7 +1259,7 @@ export async function tweetsFullarchiveSearch(
     { searchParams },
     config,
   );
-  return Get2TweetsSearchAllResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function tweetsRecentSearch(
@@ -1430,7 +1330,7 @@ export async function tweetsRecentSearch(
     { searchParams },
     config,
   );
-  return Get2TweetsSearchRecentResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function searchStream(
@@ -1484,7 +1384,7 @@ export async function searchStream(
     { searchParams },
     config,
   );
-  return FilteredStreamingTweetResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function getRules(
@@ -1509,7 +1409,7 @@ export async function getRules(
     { searchParams },
     config,
   );
-  return RulesLookupResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function addOrDeleteRules(
@@ -1522,14 +1422,13 @@ export async function addOrDeleteRules(
   const searchParams = new URLSearchParams();
   if (params?.dryRun != null)
     searchParams.set("dry_run", String(params.dryRun));
-  AddOrDeleteRulesRequestSchema.strip().parse(body);
   const res = await _request(
     "POST",
     "/2/tweets/search/stream/rules",
     { searchParams, body },
     config,
   );
-  return AddOrDeleteRulesResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function findTweetById(
@@ -1575,7 +1474,7 @@ export async function findTweetById(
     { searchParams },
     config,
   );
-  return Get2TweetsIdResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function deleteTweetById(
@@ -1588,7 +1487,7 @@ export async function deleteTweetById(
     {},
     config,
   );
-  return TweetDeleteResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function tweetsIdLikingUsers(
@@ -1625,7 +1524,7 @@ export async function tweetsIdLikingUsers(
     { searchParams },
     config,
   );
-  return Get2TweetsIdLikingUsersResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function findTweetsThatQuoteATweet(
@@ -1681,7 +1580,7 @@ export async function findTweetsThatQuoteATweet(
     { searchParams },
     config,
   );
-  return Get2TweetsIdQuoteTweetsResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function tweetsIdRetweetingUsers(
@@ -1718,7 +1617,7 @@ export async function tweetsIdRetweetingUsers(
     { searchParams },
     config,
   );
-  return Get2TweetsIdRetweetedByResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function hideReplyById(
@@ -1726,14 +1625,13 @@ export async function hideReplyById(
   body: TweetHideRequest,
   config?: Partial<ClientConfig>,
 ): Promise<TweetHideResponse> {
-  TweetHideRequestSchema.strip().parse(body);
   const res = await _request(
     "PUT",
     `/2/tweets/${encodeURIComponent(tweetId)}/hidden`,
     { body },
     config,
   );
-  return TweetHideResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function findUsersById(
@@ -1762,7 +1660,7 @@ export async function findUsersById(
       searchParams.append("tweet.fields", String(v));
   }
   const res = await _request("GET", "/2/users", { searchParams }, config);
-  return Get2UsersResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function findUsersByUsername(
@@ -1792,7 +1690,7 @@ export async function findUsersByUsername(
       searchParams.append("tweet.fields", String(v));
   }
   const res = await _request("GET", "/2/users/by", { searchParams }, config);
-  return Get2UsersByResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function findUserByUsername(
@@ -1823,7 +1721,7 @@ export async function findUserByUsername(
     { searchParams },
     config,
   );
-  return Get2UsersByUsernameUsernameResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function getUsersComplianceStream(
@@ -1850,7 +1748,7 @@ export async function getUsersComplianceStream(
     { searchParams },
     config,
   );
-  return UserComplianceStreamResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function findMyUser(
@@ -1875,7 +1773,7 @@ export async function findMyUser(
       searchParams.append("tweet.fields", String(v));
   }
   const res = await _request("GET", "/2/users/me", { searchParams }, config);
-  return Get2UsersMeResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function findUserById(
@@ -1906,7 +1804,7 @@ export async function findUserById(
     { searchParams },
     config,
   );
-  return Get2UsersIdResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function usersIdBlocking(
@@ -1943,7 +1841,7 @@ export async function usersIdBlocking(
     { searchParams },
     config,
   );
-  return Get2UsersIdBlockingResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function usersIdBlock(
@@ -1951,14 +1849,13 @@ export async function usersIdBlock(
   body: BlockUserRequest,
   config?: Partial<ClientConfig>,
 ): Promise<BlockUserMutationResponse> {
-  BlockUserRequestSchema.strip().parse(body);
   const res = await _request(
     "POST",
     `/2/users/${encodeURIComponent(id)}/blocking`,
     { body },
     config,
   );
-  return BlockUserMutationResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function getUsersIdBookmarks(
@@ -2010,7 +1907,7 @@ export async function getUsersIdBookmarks(
     { searchParams },
     config,
   );
-  return Get2UsersIdBookmarksResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function postUsersIdBookmarks(
@@ -2018,14 +1915,13 @@ export async function postUsersIdBookmarks(
   body: BookmarkAddRequest,
   config?: Partial<ClientConfig>,
 ): Promise<BookmarkMutationResponse> {
-  BookmarkAddRequestSchema.strip().parse(body);
   const res = await _request(
     "POST",
     `/2/users/${encodeURIComponent(id)}/bookmarks`,
     { body },
     config,
   );
-  return BookmarkMutationResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function usersIdBookmarksDelete(
@@ -2039,7 +1935,7 @@ export async function usersIdBookmarksDelete(
     {},
     config,
   );
-  return BookmarkMutationResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function userFollowedLists(
@@ -2076,7 +1972,7 @@ export async function userFollowedLists(
     { searchParams },
     config,
   );
-  return Get2UsersIdFollowedListsResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function listUserFollow(
@@ -2084,14 +1980,13 @@ export async function listUserFollow(
   body: ListFollowedRequest,
   config?: Partial<ClientConfig>,
 ): Promise<ListFollowedResponse> {
-  ListFollowedRequestSchema.strip().parse(body);
   const res = await _request(
     "POST",
     `/2/users/${encodeURIComponent(id)}/followed_lists`,
     { body },
     config,
   );
-  return ListFollowedResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function listUserUnfollow(
@@ -2105,7 +2000,7 @@ export async function listUserUnfollow(
     {},
     config,
   );
-  return ListFollowedResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function usersIdFollowers(
@@ -2142,7 +2037,7 @@ export async function usersIdFollowers(
     { searchParams },
     config,
   );
-  return Get2UsersIdFollowersResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function usersIdFollowing(
@@ -2179,7 +2074,7 @@ export async function usersIdFollowing(
     { searchParams },
     config,
   );
-  return Get2UsersIdFollowingResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function usersIdFollow(
@@ -2187,14 +2082,13 @@ export async function usersIdFollow(
   body: UsersFollowingCreateRequest,
   config?: Partial<ClientConfig>,
 ): Promise<UsersFollowingCreateResponse> {
-  UsersFollowingCreateRequestSchema.strip().parse(body);
   const res = await _request(
     "POST",
     `/2/users/${encodeURIComponent(id)}/following`,
     { body },
     config,
   );
-  return UsersFollowingCreateResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function usersIdLikedTweets(
@@ -2246,7 +2140,7 @@ export async function usersIdLikedTweets(
     { searchParams },
     config,
   );
-  return Get2UsersIdLikedTweetsResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function usersIdLike(
@@ -2254,14 +2148,13 @@ export async function usersIdLike(
   body: UsersLikesCreateRequest,
   config?: Partial<ClientConfig>,
 ): Promise<UsersLikesCreateResponse> {
-  UsersLikesCreateRequestSchema.strip().parse(body);
   const res = await _request(
     "POST",
     `/2/users/${encodeURIComponent(id)}/likes`,
     { body },
     config,
   );
-  return UsersLikesCreateResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function usersIdUnlike(
@@ -2275,7 +2168,7 @@ export async function usersIdUnlike(
     {},
     config,
   );
-  return UsersLikesDeleteResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function getUserListMemberships(
@@ -2312,7 +2205,7 @@ export async function getUserListMemberships(
     { searchParams },
     config,
   );
-  return Get2UsersIdListMembershipsResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function usersIdMentions(
@@ -2376,7 +2269,7 @@ export async function usersIdMentions(
     { searchParams },
     config,
   );
-  return Get2UsersIdMentionsResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function usersIdMuting(
@@ -2413,7 +2306,7 @@ export async function usersIdMuting(
     { searchParams },
     config,
   );
-  return Get2UsersIdMutingResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function usersIdMute(
@@ -2421,14 +2314,13 @@ export async function usersIdMute(
   body: MuteUserRequest,
   config?: Partial<ClientConfig>,
 ): Promise<MuteUserMutationResponse> {
-  MuteUserRequestSchema.strip().parse(body);
   const res = await _request(
     "POST",
     `/2/users/${encodeURIComponent(id)}/muting`,
     { body },
     config,
   );
-  return MuteUserMutationResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function listUserOwnedLists(
@@ -2465,7 +2357,7 @@ export async function listUserOwnedLists(
     { searchParams },
     config,
   );
-  return Get2UsersIdOwnedListsResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function listUserPinnedLists(
@@ -2496,7 +2388,7 @@ export async function listUserPinnedLists(
     { searchParams },
     config,
   );
-  return Get2UsersIdPinnedListsResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function listUserPin(
@@ -2504,14 +2396,13 @@ export async function listUserPin(
   body: ListPinnedRequest,
   config?: Partial<ClientConfig>,
 ): Promise<ListPinnedResponse> {
-  ListPinnedRequestSchema.strip().parse(body);
   const res = await _request(
     "POST",
     `/2/users/${encodeURIComponent(id)}/pinned_lists`,
     { body },
     config,
   );
-  return ListPinnedResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function listUserUnpin(
@@ -2525,7 +2416,7 @@ export async function listUserUnpin(
     {},
     config,
   );
-  return ListUnpinResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function usersIdRetweets(
@@ -2533,14 +2424,13 @@ export async function usersIdRetweets(
   body: UsersRetweetsCreateRequest,
   config?: Partial<ClientConfig>,
 ): Promise<UsersRetweetsCreateResponse> {
-  UsersRetweetsCreateRequestSchema.strip().parse(body);
   const res = await _request(
     "POST",
     `/2/users/${encodeURIComponent(id)}/retweets`,
     { body },
     config,
   );
-  return UsersRetweetsCreateResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function usersIdUnretweets(
@@ -2554,7 +2444,7 @@ export async function usersIdUnretweets(
     {},
     config,
   );
-  return UsersRetweetsDeleteResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function usersIdTimeline(
@@ -2622,9 +2512,7 @@ export async function usersIdTimeline(
     { searchParams },
     config,
   );
-  return Get2UsersIdTimelinesReverseChronologicalResponseSchema.parse(
-    await res.json(),
-  );
+  return res.json();
 }
 
 export async function usersIdTweets(
@@ -2692,7 +2580,7 @@ export async function usersIdTweets(
     { searchParams },
     config,
   );
-  return Get2UsersIdTweetsResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function usersIdUnblock(
@@ -2706,7 +2594,7 @@ export async function usersIdUnblock(
     {},
     config,
   );
-  return BlockUserMutationResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function usersIdUnfollow(
@@ -2720,7 +2608,7 @@ export async function usersIdUnfollow(
     {},
     config,
   );
-  return UsersFollowingDeleteResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function usersIdUnmute(
@@ -2734,5 +2622,5 @@ export async function usersIdUnmute(
     {},
     config,
   );
-  return MuteUserMutationResponseSchema.parse(await res.json());
+  return res.json();
 }

@@ -52,57 +52,6 @@ import type {
   ValidateShopperIdResponse,
 } from "./models.js";
 import { getConfig, type ClientConfig } from "./client-config.js";
-import {
-  ApplePaySessionRequestSchema,
-  ApplePaySessionResponseSchema,
-  BalanceCheckRequestSchema,
-  BalanceCheckResponseSchema,
-  CancelOrderRequestSchema,
-  CancelOrderResponseSchema,
-  CardDetailsRequestSchema,
-  CardDetailsResponseSchema,
-  CheckoutForwardRequestSchema,
-  CheckoutForwardResponseSchema,
-  CreateCheckoutSessionRequestSchema,
-  CreateCheckoutSessionResponseSchema,
-  CreateOrderRequestSchema,
-  CreateOrderResponseSchema,
-  DonationCampaignsRequestSchema,
-  DonationCampaignsResponseSchema,
-  DonationPaymentRequestSchema,
-  DonationPaymentResponseSchema,
-  ListStoredPaymentMethodsResponseSchema,
-  PaymentAmountUpdateRequestSchema,
-  PaymentAmountUpdateResponseSchema,
-  PaymentCancelRequestSchema,
-  PaymentCancelResponseSchema,
-  PaymentCaptureRequestSchema,
-  PaymentCaptureResponseSchema,
-  PaymentDetailsRequestSchema,
-  PaymentDetailsResponseSchema,
-  PaymentLinkRequestSchema,
-  PaymentLinkResponseSchema,
-  PaymentMethodsRequestSchema,
-  PaymentMethodsResponseSchema,
-  PaymentRefundRequestSchema,
-  PaymentRefundResponseSchema,
-  PaymentRequestSchema,
-  PaymentResponseSchema,
-  PaymentReversalRequestSchema,
-  PaymentReversalResponseSchema,
-  PaypalUpdateOrderRequestSchema,
-  PaypalUpdateOrderResponseSchema,
-  SessionResultResponseSchema,
-  StandalonePaymentCancelRequestSchema,
-  StandalonePaymentCancelResponseSchema,
-  StoredPaymentMethodRequestSchema,
-  StoredPaymentMethodResourceSchema,
-  UpdatePaymentLinkRequestSchema,
-  UtilityRequestSchema,
-  UtilityResponseSchema,
-  ValidateShopperIdRequestSchema,
-  ValidateShopperIdResponseSchema,
-} from "./schemas.js";
 
 export class ApiError extends Error {
   constructor(
@@ -163,14 +112,13 @@ export async function postApplePaySessions(
       ? { "Idempotency-Key": params.idempotencyKey }
       : {}),
   };
-  ApplePaySessionRequestSchema.strip().parse(body);
   const res = await _request(
     "POST",
     "/applePay/sessions",
     { body, extraHeaders },
     config,
   );
-  return ApplePaySessionResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 /**
@@ -192,14 +140,13 @@ export async function postCancels(
       ? { "Idempotency-Key": params.idempotencyKey }
       : {}),
   };
-  StandalonePaymentCancelRequestSchema.strip().parse(body);
   const res = await _request(
     "POST",
     "/cancels",
     { body, extraHeaders },
     config,
   );
-  return StandalonePaymentCancelResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function postCardDetails(
@@ -214,14 +161,13 @@ export async function postCardDetails(
       ? { "Idempotency-Key": params.idempotencyKey }
       : {}),
   };
-  CardDetailsRequestSchema.strip().parse(body);
   const res = await _request(
     "POST",
     "/cardDetails",
     { body, extraHeaders },
     config,
   );
-  return CardDetailsResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 /**
@@ -243,14 +189,13 @@ export async function postDonationCampaigns(
       ? { "Idempotency-Key": params.idempotencyKey }
       : {}),
   };
-  DonationCampaignsRequestSchema.strip().parse(body);
   const res = await _request(
     "POST",
     "/donationCampaigns",
     { body, extraHeaders },
     config,
   );
-  return DonationCampaignsResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 /**
@@ -272,14 +217,13 @@ export async function postDonations(
       ? { "Idempotency-Key": params.idempotencyKey }
       : {}),
   };
-  DonationPaymentRequestSchema.strip().parse(body);
   const res = await _request(
     "POST",
     "/donations",
     { body, extraHeaders },
     config,
   );
-  return DonationPaymentResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function postForward(
@@ -294,14 +238,13 @@ export async function postForward(
       ? { "Idempotency-Key": params.idempotencyKey }
       : {}),
   };
-  CheckoutForwardRequestSchema.strip().parse(body);
   const res = await _request(
     "POST",
     "/forward",
     { body, extraHeaders },
     config,
   );
-  return CheckoutForwardResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 /**
@@ -323,9 +266,8 @@ export async function postOrders(
       ? { "Idempotency-Key": params.idempotencyKey }
       : {}),
   };
-  CreateOrderRequestSchema.strip().parse(body);
   const res = await _request("POST", "/orders", { body, extraHeaders }, config);
-  return CreateOrderResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 /**
@@ -347,14 +289,13 @@ export async function postOrdersCancel(
       ? { "Idempotency-Key": params.idempotencyKey }
       : {}),
   };
-  CancelOrderRequestSchema.strip().parse(body);
   const res = await _request(
     "POST",
     "/orders/cancel",
     { body, extraHeaders },
     config,
   );
-  return CancelOrderResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 /**
@@ -377,14 +318,13 @@ export async function postOriginKeys(
       ? { "Idempotency-Key": params.idempotencyKey }
       : {}),
   };
-  UtilityRequestSchema.strip().parse(body);
   const res = await _request(
     "POST",
     "/originKeys",
     { body, extraHeaders },
     config,
   );
-  return UtilityResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 /**
@@ -406,14 +346,13 @@ export async function postPaymentLinks(
       ? { "Idempotency-Key": params.idempotencyKey }
       : {}),
   };
-  PaymentLinkRequestSchema.strip().parse(body);
   const res = await _request(
     "POST",
     "/paymentLinks",
     { body, extraHeaders },
     config,
   );
-  return PaymentLinkResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 /**
@@ -433,7 +372,7 @@ export async function getPaymentLinksLinkId(
     {},
     config,
   );
-  return PaymentLinkResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 /**
@@ -448,14 +387,13 @@ export async function patchPaymentLinksLinkId(
   body: UpdatePaymentLinkRequest,
   config?: Partial<ClientConfig>,
 ): Promise<PaymentLinkResponse> {
-  UpdatePaymentLinkRequestSchema.strip().parse(body);
   const res = await _request(
     "PATCH",
     `/paymentLinks/${encodeURIComponent(linkId)}`,
     { body },
     config,
   );
-  return PaymentLinkResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 /**
@@ -477,14 +415,13 @@ export async function postPaymentMethods(
       ? { "Idempotency-Key": params.idempotencyKey }
       : {}),
   };
-  PaymentMethodsRequestSchema.strip().parse(body);
   const res = await _request(
     "POST",
     "/paymentMethods",
     { body, extraHeaders },
     config,
   );
-  return PaymentMethodsResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 /**
@@ -506,14 +443,13 @@ export async function postPaymentMethodsBalance(
       ? { "Idempotency-Key": params.idempotencyKey }
       : {}),
   };
-  BalanceCheckRequestSchema.strip().parse(body);
   const res = await _request(
     "POST",
     "/paymentMethods/balance",
     { body, extraHeaders },
     config,
   );
-  return BalanceCheckResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 /**
@@ -535,14 +471,13 @@ export async function postPayments(
       ? { "Idempotency-Key": params.idempotencyKey }
       : {}),
   };
-  PaymentRequestSchema.strip().parse(body);
   const res = await _request(
     "POST",
     "/payments",
     { body, extraHeaders },
     config,
   );
-  return PaymentResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 /**
@@ -564,14 +499,13 @@ export async function postPaymentsDetails(
       ? { "Idempotency-Key": params.idempotencyKey }
       : {}),
   };
-  PaymentDetailsRequestSchema.strip().parse(body);
   const res = await _request(
     "POST",
     "/payments/details",
     { body, extraHeaders },
     config,
   );
-  return PaymentDetailsResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 /**
@@ -594,14 +528,13 @@ export async function postPaymentsPaymentPspReferenceAmountUpdates(
       ? { "Idempotency-Key": params.idempotencyKey }
       : {}),
   };
-  PaymentAmountUpdateRequestSchema.strip().parse(body);
   const res = await _request(
     "POST",
     `/payments/${encodeURIComponent(paymentPspReference)}/amountUpdates`,
     { body, extraHeaders },
     config,
   );
-  return PaymentAmountUpdateResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 /**
@@ -624,14 +557,13 @@ export async function postPaymentsPaymentPspReferenceCancels(
       ? { "Idempotency-Key": params.idempotencyKey }
       : {}),
   };
-  PaymentCancelRequestSchema.strip().parse(body);
   const res = await _request(
     "POST",
     `/payments/${encodeURIComponent(paymentPspReference)}/cancels`,
     { body, extraHeaders },
     config,
   );
-  return PaymentCancelResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 /**
@@ -654,14 +586,13 @@ export async function postPaymentsPaymentPspReferenceCaptures(
       ? { "Idempotency-Key": params.idempotencyKey }
       : {}),
   };
-  PaymentCaptureRequestSchema.strip().parse(body);
   const res = await _request(
     "POST",
     `/payments/${encodeURIComponent(paymentPspReference)}/captures`,
     { body, extraHeaders },
     config,
   );
-  return PaymentCaptureResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 /**
@@ -684,14 +615,13 @@ export async function postPaymentsPaymentPspReferenceRefunds(
       ? { "Idempotency-Key": params.idempotencyKey }
       : {}),
   };
-  PaymentRefundRequestSchema.strip().parse(body);
   const res = await _request(
     "POST",
     `/payments/${encodeURIComponent(paymentPspReference)}/refunds`,
     { body, extraHeaders },
     config,
   );
-  return PaymentRefundResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 /**
@@ -714,14 +644,13 @@ export async function postPaymentsPaymentPspReferenceReversals(
       ? { "Idempotency-Key": params.idempotencyKey }
       : {}),
   };
-  PaymentReversalRequestSchema.strip().parse(body);
   const res = await _request(
     "POST",
     `/payments/${encodeURIComponent(paymentPspReference)}/reversals`,
     { body, extraHeaders },
     config,
   );
-  return PaymentReversalResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 /**
@@ -743,14 +672,13 @@ export async function postPaypalUpdateOrder(
       ? { "Idempotency-Key": params.idempotencyKey }
       : {}),
   };
-  PaypalUpdateOrderRequestSchema.strip().parse(body);
   const res = await _request(
     "POST",
     "/paypal/updateOrder",
     { body, extraHeaders },
     config,
   );
-  return PaypalUpdateOrderResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function postSessions(
@@ -765,14 +693,13 @@ export async function postSessions(
       ? { "Idempotency-Key": params.idempotencyKey }
       : {}),
   };
-  CreateCheckoutSessionRequestSchema.strip().parse(body);
   const res = await _request(
     "POST",
     "/sessions",
     { body, extraHeaders },
     config,
   );
-  return CreateCheckoutSessionResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function getSessionsSessionId(
@@ -791,7 +718,7 @@ export async function getSessionsSessionId(
     { searchParams },
     config,
   );
-  return SessionResultResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function getStoredPaymentMethods(
@@ -812,7 +739,7 @@ export async function getStoredPaymentMethods(
     { searchParams },
     config,
   );
-  return ListStoredPaymentMethodsResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function postStoredPaymentMethods(
@@ -827,14 +754,13 @@ export async function postStoredPaymentMethods(
       ? { "Idempotency-Key": params.idempotencyKey }
       : {}),
   };
-  StoredPaymentMethodRequestSchema.strip().parse(body);
   const res = await _request(
     "POST",
     "/storedPaymentMethods",
     { body, extraHeaders },
     config,
   );
-  return StoredPaymentMethodResourceSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function deleteStoredPaymentMethodsStoredPaymentMethodId(
@@ -869,7 +795,6 @@ export async function postValidateShopperId(
   body: ValidateShopperIdRequest,
   config?: Partial<ClientConfig>,
 ): Promise<ValidateShopperIdResponse> {
-  ValidateShopperIdRequestSchema.strip().parse(body);
   const res = await _request("POST", "/validateShopperId", { body }, config);
-  return ValidateShopperIdResponseSchema.parse(await res.json());
+  return res.json();
 }

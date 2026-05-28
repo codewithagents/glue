@@ -120,14 +120,22 @@ function schemaToZod(schema: SchemaObject | ReferenceObject): string {
   }
 
   // String enum → z.enum([...])
+  // Use JSON.stringify to produce double-quoted strings, safe for values with apostrophes ("won't fix").
+  // Cast null values to string "null" — some specs mix null with string enums (technically invalid OpenAPI
+  // but common in practice, e.g. GitHub's dismissed_reason: [null, "false positive", "won't fix"]).
   if (schema.enum !== undefined && schema.enum.length > 0 && schema.type === 'string') {
-    const vals = (schema.enum as string[]).map((v) => `'${v}'`).join(', ')
+    const vals = (schema.enum as (string | null)[]).map((v) => JSON.stringify(v ?? 'null')).join(', ')
     return `z.enum([${vals}])`
   }
 
-  // Number/integer enum → z.union([z.literal(...), ...])
+  // Mixed/number/integer enum → z.union([z.literal(...), ...])
+  // Must quote strings (JSON.stringify), leave numbers/null as-is.
   if (schema.enum !== undefined && schema.enum.length > 0) {
-    const literals = (schema.enum as unknown[]).map((v) => `z.literal(${String(v)})`).join(', ')
+    const literals = (schema.enum as unknown[]).map((v) => {
+      if (typeof v === 'string') return `z.literal(${JSON.stringify(v)})`
+      if (v === null) return `z.literal(null)`
+      return `z.literal(${String(v)})`
+    }).join(', ')
     return `z.union([${literals}])`
   }
 

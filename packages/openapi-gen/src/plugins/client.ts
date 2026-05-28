@@ -713,9 +713,10 @@ function generateFunctionCode(
     bodyInfo !== undefined &&
     bodyInfo.kind === 'json'
   ) {
-    // .strip() removes unknown keys (e.g. form wizard fields) before sending —
-    // allows form schemas that extend the API schema without leaking UI-only fields.
-    lines.push(`  ${requestBodySchemaName}Schema.strip().parse(body)`)
+    // Validate the request body against the Zod schema before sending.
+    // Note: we do not call .strip() because not all schemas are ZodObject
+    // (allOf → ZodIntersection, oneOf/anyOf → ZodUnion — neither has .strip()).
+    lines.push(`  ${requestBodySchemaName}Schema.parse(body)`)
   }
 
   // Build opts object for the helper call

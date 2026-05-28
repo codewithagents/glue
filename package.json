@@ -5,7 +5,8 @@
   "scripts": {
     "build": "pnpm -r run build",
     "test": "pnpm -r run test",
-    "lint": "pnpm -r run lint"
+    "lint": "pnpm -r run lint",
+    "smoke": "pnpm --filter @codewithagents/examples run smoke"
   },
   "devDependencies": {
     "typescript": "^6.0.0"

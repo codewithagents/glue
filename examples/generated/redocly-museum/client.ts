@@ -9,14 +9,6 @@ import type {
   SpecialEventFields,
 } from "./models.js";
 import { getConfig, type ClientConfig } from "./client-config.js";
-import {
-  BuyMuseumTicketsSchema,
-  MuseumHoursSchema,
-  MuseumTicketsConfirmationSchema,
-  SpecialEventCollectionSchema,
-  SpecialEventFieldsSchema,
-  SpecialEventSchema,
-} from "./schemas.js";
 
 export class ApiError extends Error {
   constructor(
@@ -77,7 +69,7 @@ export async function getMuseumHours(
   if (params?.page != null) searchParams.set("page", String(params.page));
   if (params?.limit != null) searchParams.set("limit", String(params.limit));
   const res = await _request("GET", "/museum-hours", { searchParams }, config);
-  return MuseumHoursSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function listSpecialEvents(
@@ -102,16 +94,15 @@ export async function listSpecialEvents(
     { searchParams },
     config,
   );
-  return SpecialEventCollectionSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function createSpecialEvent(
   body: SpecialEvent,
   config?: Partial<ClientConfig>,
 ): Promise<SpecialEvent> {
-  SpecialEventSchema.strip().parse(body);
   const res = await _request("POST", "/special-events", { body }, config);
-  return SpecialEventSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function getSpecialEvent(
@@ -124,7 +115,7 @@ export async function getSpecialEvent(
     {},
     config,
   );
-  return SpecialEventSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function updateSpecialEvent(
@@ -132,14 +123,13 @@ export async function updateSpecialEvent(
   body: SpecialEventFields,
   config?: Partial<ClientConfig>,
 ): Promise<SpecialEvent> {
-  SpecialEventFieldsSchema.strip().parse(body);
   const res = await _request(
     "PATCH",
     `/special-events/${encodeURIComponent(eventId)}`,
     { body },
     config,
   );
-  return SpecialEventSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function deleteSpecialEvent(
@@ -158,9 +148,8 @@ export async function buyMuseumTickets(
   body: BuyMuseumTickets,
   config?: Partial<ClientConfig>,
 ): Promise<MuseumTicketsConfirmation> {
-  BuyMuseumTicketsSchema.strip().parse(body);
   const res = await _request("POST", "/tickets", { body }, config);
-  return MuseumTicketsConfirmationSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function getTicketCode(

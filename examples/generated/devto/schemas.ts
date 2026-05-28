@@ -90,7 +90,7 @@ export const PageSchema = z.object({
   body_json: z.string().optional(),
   is_top_level_path: z.boolean().optional(),
   social_image: z.record(z.string(), z.unknown()).optional(),
-  template: z.enum(['contained', 'full_within_layout', 'nav_bar_included', 'json', 'css', 'txt'])
+  template: z.enum(["contained", "full_within_layout", "nav_bar_included", "json", "css", "txt"])
 }).passthrough()
 
 export const ProfileImageSchema = z.object({
@@ -192,19 +192,19 @@ export const BillboardSchema = z.object({
   expires_at: z.string().optional(),
   organization_id: z.number().optional(),
   creator_id: z.number().optional(),
-  placement_area: z.enum(['sidebar_left', 'sidebar_left_2', 'sidebar_right', 'sidebar_right_second', 'sidebar_right_third', 'feed_first', 'feed_second', 'feed_third', 'home_hero', 'footer', 'page_fixed_bottom', 'post_fixed_bottom', 'post_body_bottom', 'post_sidebar', 'post_comments', 'post_comments_mid', 'digest_first', 'digest_second']),
+  placement_area: z.enum(["sidebar_left", "sidebar_left_2", "sidebar_right", "sidebar_right_second", "sidebar_right_third", "feed_first", "feed_second", "feed_third", "home_hero", "footer", "page_fixed_bottom", "post_fixed_bottom", "post_body_bottom", "post_sidebar", "post_comments", "post_comments_mid", "digest_first", "digest_second"]),
   tag_list: z.string().optional(),
   exclude_article_ids: z.string().optional(),
   audience_segment_id: z.number().optional(),
-  audience_segment_type: z.enum(['manual', 'trusted', 'posted', 'no_posts_yet', 'dark_theme', 'light_theme', 'no_experience', 'experience1', 'experience2', 'experience3', 'experience4', 'experience5']).optional(),
+  audience_segment_type: z.enum(["manual", "trusted", "posted", "no_posts_yet", "dark_theme", "light_theme", "no_experience", "experience1", "experience2", "experience3", "experience4", "experience5"]).optional(),
   target_geolocations: z.array(z.string()).optional(),
-  display_to: z.enum(['all', 'logged_in', 'logged_out']).optional(),
-  type_of: z.enum(['in_house', 'community', 'external']).optional()
+  display_to: z.enum(["all", "logged_in", "logged_out"]).optional(),
+  type_of: z.enum(["in_house", "community", "external"]).optional()
 }).passthrough()
 
 export const SegmentSchema = z.object({
   id: z.number().optional(),
-  type_of: z.enum(['manual']).optional(),
+  type_of: z.enum(["manual"]).optional(),
   user_count: z.number().optional()
 }).passthrough()
 
@@ -241,7 +241,7 @@ export const AgentSessionShowSchema = z.object({
 }).passthrough()
 
 export const PollOptionSchema = z.object({
-  type_of: z.enum(['poll_option']),
+  type_of: z.enum(["poll_option"]),
   id: z.number(),
   markdown: z.string(),
   processed_html: z.string(),
@@ -251,11 +251,11 @@ export const PollOptionSchema = z.object({
 }).passthrough()
 
 export const SurveySchema = z.object({
-  type_of: z.enum(['survey']),
+  type_of: z.enum(["survey"]),
   id: z.number(),
   title: z.string(),
   slug: z.string(),
-  survey_type_of: z.enum(['community_pulse', 'industry', 'fun']),
+  survey_type_of: z.enum(["community_pulse", "industry", "fun"]),
   active: z.boolean().optional(),
   display_title: z.boolean(),
   allow_resubmission: z.boolean(),
@@ -264,7 +264,7 @@ export const SurveySchema = z.object({
 }).passthrough()
 
 export const PollVoteSchema = z.object({
-  type_of: z.enum(['poll_vote']),
+  type_of: z.enum(["poll_vote"]),
   id: z.number(),
   poll_id: z.number(),
   poll_option_id: z.number(),
@@ -275,7 +275,7 @@ export const PollVoteSchema = z.object({
 }).passthrough()
 
 export const PollTextResponseSchema = z.object({
-  type_of: z.enum(['poll_text_response']),
+  type_of: z.enum(["poll_text_response"]),
   id: z.number(),
   poll_id: z.number(),
   user_id: z.number(),
@@ -324,11 +324,11 @@ export const PodcastEpisodeIndexSchema = z.object({
 }).passthrough()
 
 export const PollSchema = z.object({
-  type_of: z.enum(['poll']),
+  type_of: z.enum(["poll"]),
   id: z.number(),
   prompt_markdown: z.string(),
   prompt_html: z.string(),
-  poll_type_of: z.enum(['single_choice', 'multiple_choice', 'scale', 'text_input']),
+  poll_type_of: z.enum(["single_choice", "multiple_choice", "scale", "text_input"]),
   position: z.number(),
   poll_votes_count: z.number(),
   poll_skips_count: z.number(),

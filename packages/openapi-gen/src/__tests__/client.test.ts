@@ -1037,14 +1037,15 @@ describe('schema-enhanced client generation', () => {
     expect(out).toContain('return res.json()')
   })
 
-  it('with schema options: request body gets Schema.strip().parse(body) before fetch', () => {
+  it('with schema options: request body gets Schema.parse(body) validation before fetch', () => {
     const out = generateClient(petSpec, {
       schemaNames: new Set(['CreatePetRequestSchema', 'PetSchema']),
       schemaImportPath: './schemas.js',
     }).content
-    // .strip() removes unknown keys (e.g. form wizard fields) before sending —
-    // allows form schemas that extend the API schema without leaking UI-only fields
-    expect(out).toContain('CreatePetRequestSchema.strip().parse(body)')
+    // Validates the request body against the Zod schema before sending.
+    // Note: we use .parse() not .strip().parse() because not all schemas are ZodObject
+    // (allOf → ZodIntersection, oneOf/anyOf → ZodUnion — neither has .strip()).
+    expect(out).toContain('CreatePetRequestSchema.parse(body)')
   })
 
   it('with schema options: single-object response gets Schema.parse(await res.json())', () => {

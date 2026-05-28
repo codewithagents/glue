@@ -25,7 +25,7 @@ export const OrderSchema = z.object({
   petId: z.number().optional(),
   quantity: z.number().optional(),
   shipDate: z.string().optional(),
-  status: z.enum(['placed', 'approved', 'delivered']).optional(),
+  status: z.enum(["placed", "approved", "delivered"]).optional(),
   complete: z.boolean().optional()
 }).passthrough()
 
@@ -62,5 +62,5 @@ export const PetSchema = z.object({
   category: CategorySchema.optional(),
   photoUrls: z.array(z.string()),
   tags: z.array(TagSchema).optional(),
-  status: z.enum(['available', 'pending', 'sold']).optional()
+  status: z.enum(["available", "pending", "sold"]).optional()
 }).passthrough()

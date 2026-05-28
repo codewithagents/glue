@@ -2,13 +2,6 @@
 
 import type { ApiResponse, Order, Pet, User } from "./models.js";
 import { getConfig, type ClientConfig } from "./client-config.js";
-import { z } from "zod";
-import {
-  ApiResponseSchema,
-  OrderSchema,
-  PetSchema,
-  UserSchema,
-} from "./schemas.js";
 
 export class ApiError extends Error {
   constructor(
@@ -61,18 +54,16 @@ export async function addPet(
   body: Pet,
   config?: Partial<ClientConfig>,
 ): Promise<Pet> {
-  PetSchema.strip().parse(body);
   const res = await _request("POST", "/pet", { body }, config);
-  return PetSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function updatePet(
   body: Pet,
   config?: Partial<ClientConfig>,
 ): Promise<Pet> {
-  PetSchema.strip().parse(body);
   const res = await _request("PUT", "/pet", { body }, config);
-  return PetSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function findPetsByStatus(
@@ -89,7 +80,7 @@ export async function findPetsByStatus(
     { searchParams },
     config,
   );
-  return z.array(PetSchema).parse(await res.json());
+  return res.json();
 }
 
 export async function findPetsByTags(
@@ -108,7 +99,7 @@ export async function findPetsByTags(
     { searchParams },
     config,
   );
-  return z.array(PetSchema).parse(await res.json());
+  return res.json();
 }
 
 export async function getPetById(
@@ -121,7 +112,7 @@ export async function getPetById(
     {},
     config,
   );
-  return PetSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function updatePetWithForm(
@@ -141,7 +132,7 @@ export async function updatePetWithForm(
     { searchParams },
     config,
   );
-  return PetSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function deletePet(
@@ -178,7 +169,7 @@ export async function uploadFile(
     { searchParams },
     config,
   );
-  return ApiResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function getInventory(
@@ -192,9 +183,8 @@ export async function placeOrder(
   body: Order,
   config?: Partial<ClientConfig>,
 ): Promise<Order> {
-  OrderSchema.strip().parse(body);
   const res = await _request("POST", "/store/order", { body }, config);
-  return OrderSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function getOrderById(
@@ -207,7 +197,7 @@ export async function getOrderById(
     {},
     config,
   );
-  return OrderSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function deleteOrder(
@@ -226,9 +216,8 @@ export async function createUser(
   body: User,
   config?: Partial<ClientConfig>,
 ): Promise<User> {
-  UserSchema.strip().parse(body);
   const res = await _request("POST", "/user", { body }, config);
-  return UserSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function createUsersWithListInput(
@@ -236,7 +225,7 @@ export async function createUsersWithListInput(
   config?: Partial<ClientConfig>,
 ): Promise<User> {
   const res = await _request("POST", "/user/createWithList", { body }, config);
-  return UserSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function loginUser(
@@ -271,7 +260,7 @@ export async function getUserByName(
     {},
     config,
   );
-  return UserSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function updateUser(
@@ -279,7 +268,6 @@ export async function updateUser(
   body: User,
   config?: Partial<ClientConfig>,
 ): Promise<void> {
-  UserSchema.strip().parse(body);
   await _request(
     "PUT",
     `/user/${encodeURIComponent(username)}`,

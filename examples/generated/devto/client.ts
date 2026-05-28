@@ -23,29 +23,6 @@ import type {
   VideoArticle,
 } from "./models.js";
 import { getConfig, type ClientConfig } from "./client-config.js";
-import { z } from "zod";
-import {
-  AgentSessionIndexSchema,
-  AgentSessionShowSchema,
-  ArticleIndexSchema,
-  ArticleSchema,
-  BillboardSchema,
-  CommentSchema,
-  FollowedTagSchema,
-  OrganizationSchema,
-  PageSchema,
-  PodcastEpisodeIndexSchema,
-  PollTextResponseSchema,
-  PollVoteSchema,
-  SegmentSchema,
-  SegmentUserIdsSchema,
-  SurveySchema,
-  SurveyWithPollsSchema,
-  TagSchema,
-  UserInviteParamSchema,
-  UserSchema,
-  VideoArticleSchema,
-} from "./schemas.js";
 
 export class ApiError extends Error {
   constructor(
@@ -96,7 +73,7 @@ export async function getAgentSessions(
   config?: Partial<ClientConfig>,
 ): Promise<AgentSessionIndex[]> {
   const res = await _request("GET", "/api/agent_sessions", {}, config);
-  return z.array(AgentSessionIndexSchema).parse(await res.json());
+  return res.json();
 }
 
 export async function createAgentSession(
@@ -104,7 +81,7 @@ export async function createAgentSession(
   config?: Partial<ClientConfig>,
 ): Promise<AgentSessionIndex> {
   const res = await _request("POST", "/api/agent_sessions", { body }, config);
-  return AgentSessionIndexSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function getAgentSessionById(
@@ -117,7 +94,7 @@ export async function getAgentSessionById(
     {},
     config,
   );
-  return AgentSessionShowSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function getArticles(
@@ -149,14 +126,13 @@ export async function getArticles(
   if (params?.collectionId != null)
     searchParams.set("collection_id", String(params.collectionId));
   const res = await _request("GET", "/api/articles", { searchParams }, config);
-  return z.array(ArticleIndexSchema).parse(await res.json());
+  return res.json();
 }
 
 export async function createArticle(
   body: Article,
   config?: Partial<ClientConfig>,
 ): Promise<void> {
-  ArticleSchema.strip().parse(body);
   await _request("POST", "/api/articles", { body }, config);
 }
 
@@ -177,7 +153,7 @@ export async function getLatestArticles(
     { searchParams },
     config,
   );
-  return z.array(ArticleIndexSchema).parse(await res.json());
+  return res.json();
 }
 
 export async function getArticleById(
@@ -198,7 +174,6 @@ export async function updateArticle(
   body: Article,
   config?: Partial<ClientConfig>,
 ): Promise<void> {
-  ArticleSchema.strip().parse(body);
   await _request(
     "PUT",
     `/api/articles/${encodeURIComponent(id)}`,
@@ -238,7 +213,7 @@ export async function getUserArticles(
     { searchParams },
     config,
   );
-  return z.array(ArticleIndexSchema).parse(await res.json());
+  return res.json();
 }
 
 export async function getUserPublishedArticles(
@@ -258,7 +233,7 @@ export async function getUserPublishedArticles(
     { searchParams },
     config,
   );
-  return z.array(ArticleIndexSchema).parse(await res.json());
+  return res.json();
 }
 
 export async function getUserUnpublishedArticles(
@@ -278,7 +253,7 @@ export async function getUserUnpublishedArticles(
     { searchParams },
     config,
   );
-  return z.array(ArticleIndexSchema).parse(await res.json());
+  return res.json();
 }
 
 export async function getUserAllArticles(
@@ -298,7 +273,7 @@ export async function getUserAllArticles(
     { searchParams },
     config,
   );
-  return z.array(ArticleIndexSchema).parse(await res.json());
+  return res.json();
 }
 
 export async function unpublishArticle(
@@ -328,7 +303,7 @@ export async function getSegments(
   if (params?.perPage != null)
     searchParams.set("per_page", String(params.perPage));
   const res = await _request("GET", "/api/segments", { searchParams }, config);
-  return z.array(SegmentSchema).parse(await res.json());
+  return res.json();
 }
 
 export async function createSegment(
@@ -378,7 +353,7 @@ export async function getUsersInSegment(
     { searchParams },
     config,
   );
-  return z.array(UserSchema).parse(await res.json());
+  return res.json();
 }
 
 export async function addUsersToSegment(
@@ -386,7 +361,6 @@ export async function addUsersToSegment(
   body: SegmentUserIds,
   config?: Partial<ClientConfig>,
 ): Promise<void> {
-  SegmentUserIdsSchema.strip().parse(body);
   await _request(
     "PUT",
     `/api/segments/${encodeURIComponent(id)}/add_users`,
@@ -400,7 +374,6 @@ export async function removeUsersFromSegment(
   body: SegmentUserIds,
   config?: Partial<ClientConfig>,
 ): Promise<void> {
-  SegmentUserIdsSchema.strip().parse(body);
   await _request(
     "PUT",
     `/api/segments/${encodeURIComponent(id)}/remove_users`,
@@ -413,7 +386,7 @@ export async function getApiBillboards(
   config?: Partial<ClientConfig>,
 ): Promise<Billboard[]> {
   const res = await _request("GET", "/api/billboards", {}, config);
-  return z.array(BillboardSchema).parse(await res.json());
+  return res.json();
 }
 
 export async function createApiBillboards(
@@ -478,7 +451,7 @@ export async function getCommentsByArticleId(
   if (params?.aId != null) searchParams.set("a_id", String(params.aId));
   if (params?.pId != null) searchParams.set("p_id", String(params.pId));
   const res = await _request("GET", "/api/comments", { searchParams }, config);
-  return z.array(CommentSchema).parse(await res.json());
+  return res.json();
 }
 
 export async function getCommentById(
@@ -492,7 +465,7 @@ export async function getFollowedTags(
   config?: Partial<ClientConfig>,
 ): Promise<FollowedTag[]> {
   const res = await _request("GET", "/api/follows/tags", {}, config);
-  return z.array(FollowedTagSchema).parse(await res.json());
+  return res.json();
 }
 
 export async function getFollowers(
@@ -548,7 +521,7 @@ export async function getOrgUsers(
     { searchParams },
     config,
   );
-  return z.array(UserSchema).parse(await res.json());
+  return res.json();
 }
 
 export async function getOrgArticles(
@@ -569,7 +542,7 @@ export async function getOrgArticles(
     { searchParams },
     config,
   );
-  return z.array(ArticleIndexSchema).parse(await res.json());
+  return res.json();
 }
 
 export async function getOrganizations(
@@ -589,14 +562,13 @@ export async function getOrganizations(
     { searchParams },
     config,
   );
-  return z.array(OrganizationSchema).parse(await res.json());
+  return res.json();
 }
 
 export async function createOrganization(
   body: Organization,
   config?: Partial<ClientConfig>,
 ): Promise<void> {
-  OrganizationSchema.strip().parse(body);
   await _request("POST", "/api/organizations", { body }, config);
 }
 
@@ -618,7 +590,6 @@ export async function updateApiOrganizationsById(
   body: Organization,
   config?: Partial<ClientConfig>,
 ): Promise<void> {
-  OrganizationSchema.strip().parse(body);
   await _request(
     "PUT",
     `/api/organizations/${encodeURIComponent(id)}`,
@@ -643,7 +614,7 @@ export async function getApiPages(
   config?: Partial<ClientConfig>,
 ): Promise<Page[]> {
   const res = await _request("GET", "/api/pages", {}, config);
-  return z.array(PageSchema).parse(await res.json());
+  return res.json();
 }
 
 export async function createApiPages(
@@ -663,7 +634,7 @@ export async function getApiPagesById(
     {},
     config,
   );
-  return PageSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function updateApiPagesById(
@@ -671,14 +642,13 @@ export async function updateApiPagesById(
   body: Page,
   config?: Partial<ClientConfig>,
 ): Promise<Page> {
-  PageSchema.strip().parse(body);
   const res = await _request(
     "PUT",
     `/api/pages/${encodeURIComponent(id)}`,
     { body },
     config,
   );
-  return PageSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function deleteApiPagesById(
@@ -691,7 +661,7 @@ export async function deleteApiPagesById(
     {},
     config,
   );
-  return PageSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function getPodcastEpisodes(
@@ -714,7 +684,7 @@ export async function getPodcastEpisodes(
     { searchParams },
     config,
   );
-  return z.array(PodcastEpisodeIndexSchema).parse(await res.json());
+  return res.json();
 }
 
 export async function getProfileImage(
@@ -783,7 +753,7 @@ export async function getReadinglist(
     { searchParams },
     config,
   );
-  return z.array(ArticleIndexSchema).parse(await res.json());
+  return res.json();
 }
 
 export async function getSurveys(
@@ -800,7 +770,7 @@ export async function getSurveys(
     searchParams.set("per_page", String(params.perPage));
   if (params?.active != null) searchParams.set("active", String(params.active));
   const res = await _request("GET", "/api/surveys", { searchParams }, config);
-  return z.array(SurveySchema).parse(await res.json());
+  return res.json();
 }
 
 export async function getSurveyByIdOrSlug(
@@ -813,7 +783,7 @@ export async function getSurveyByIdOrSlug(
     {},
     config,
   );
-  return SurveyWithPollsSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function getSurveyPollVotes(
@@ -834,7 +804,7 @@ export async function getSurveyPollVotes(
     { searchParams },
     config,
   );
-  return z.array(PollVoteSchema).parse(await res.json());
+  return res.json();
 }
 
 export async function getSurveyPollTextResponses(
@@ -855,7 +825,7 @@ export async function getSurveyPollTextResponses(
     { searchParams },
     config,
   );
-  return z.array(PollTextResponseSchema).parse(await res.json());
+  return res.json();
 }
 
 export async function getTags(
@@ -870,7 +840,7 @@ export async function getTags(
   if (params?.perPage != null)
     searchParams.set("per_page", String(params.perPage));
   const res = await _request("GET", "/api/tags", { searchParams }, config);
-  return z.array(TagSchema).parse(await res.json());
+  return res.json();
 }
 
 export async function suspendUser(
@@ -993,7 +963,6 @@ export async function postAdminUsersCreate(
   body: UserInviteParam,
   config?: Partial<ClientConfig>,
 ): Promise<void> {
-  UserInviteParamSchema.strip().parse(body);
   await _request("POST", "/api/admin/users", { body }, config);
 }
 
@@ -1009,5 +978,5 @@ export async function videos(
   if (params?.perPage != null)
     searchParams.set("per_page", String(params.perPage));
   const res = await _request("GET", "/api/videos", { searchParams }, config);
-  return z.array(VideoArticleSchema).parse(await res.json());
+  return res.json();
 }

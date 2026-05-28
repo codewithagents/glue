@@ -23,7 +23,7 @@ import { z } from 'zod'
 export const AULocalAccountIdentificationSchema = z.object({
   accountNumber: z.string().min(5).max(9),
   bsbCode: z.string().min(6).max(6),
-  type: z.enum(['auLocal'])
+  type: z.enum(["auLocal"])
 }).passthrough()
 
 export const AcceptTermsOfServiceRequestSchema = z.object({
@@ -37,12 +37,12 @@ export const AcceptTermsOfServiceResponseSchema = z.object({
   ipAddress: z.string().optional(),
   language: z.string().optional(),
   termsOfServiceDocumentId: z.string().optional(),
-  type: z.enum(['adyenAccount', 'adyenCapital', 'adyenCard', 'adyenChargeCard', 'adyenForPlatformsAdvanced', 'adyenForPlatformsManage', 'adyenFranchisee', 'adyenIssuing', 'adyenPccr', 'kycOnInvite']).optional()
+  type: z.enum(["adyenAccount", "adyenCapital", "adyenCard", "adyenChargeCard", "adyenForPlatformsAdvanced", "adyenForPlatformsManage", "adyenFranchisee", "adyenIssuing", "adyenPccr", "kycOnInvite"]).optional()
 }).passthrough()
 
 export const AdditionalBankIdentificationSchema = z.object({
   code: z.string().optional(),
-  type: z.enum(['auBsbCode', 'caRoutingNumber', 'gbSortCode', 'usRoutingNumber']).optional()
+  type: z.enum(["auBsbCode", "caRoutingNumber", "gbSortCode", "usRoutingNumber"]).optional()
 }).passthrough()
 
 export const AddressSchema = z.object({
@@ -73,20 +73,20 @@ export const BirthDataSchema = z.object({
 
 export const CALocalAccountIdentificationSchema = z.object({
   accountNumber: z.string().min(5).max(12),
-  accountType: z.enum(['checking', 'savings']).optional(),
+  accountType: z.enum(["checking", "savings"]).optional(),
   institutionNumber: z.string().min(3).max(3),
   transitNumber: z.string().min(5).max(5),
-  type: z.enum(['caLocal'])
+  type: z.enum(["caLocal"])
 }).passthrough()
 
 export const CZLocalAccountIdentificationSchema = z.object({
   accountNumber: z.string().min(2).max(17),
   bankCode: z.string().min(4).max(4),
-  type: z.enum(['czLocal'])
+  type: z.enum(["czLocal"])
 }).passthrough()
 
 export const CalculatePciStatusRequestSchema = z.object({
-  additionalSalesChannels: z.array(z.enum(['eCommerce', 'ecomMoto', 'pos', 'posMoto'])).optional()
+  additionalSalesChannels: z.array(z.enum(["eCommerce", "ecomMoto", "pos", "posMoto"])).optional()
 }).passthrough()
 
 export const CalculatePciStatusResponseSchema = z.object({
@@ -94,13 +94,13 @@ export const CalculatePciStatusResponseSchema = z.object({
 }).passthrough()
 
 export const CalculateTermsOfServiceStatusResponseSchema = z.object({
-  termsOfServiceTypes: z.array(z.enum(['adyenAccount', 'adyenCapital', 'adyenCard', 'adyenChargeCard', 'adyenForPlatformsAdvanced', 'adyenForPlatformsManage', 'adyenFranchisee', 'adyenIssuing', 'adyenPccr', 'kycOnInvite'])).optional()
+  termsOfServiceTypes: z.array(z.enum(["adyenAccount", "adyenCapital", "adyenCard", "adyenChargeCard", "adyenForPlatformsAdvanced", "adyenForPlatformsManage", "adyenFranchisee", "adyenIssuing", "adyenPccr", "kycOnInvite"])).optional()
 }).passthrough()
 
 export const CapabilityProblemEntityRecursiveSchema = z.object({
   documents: z.array(z.string()).optional(),
   id: z.string().optional(),
-  type: z.enum(['BankAccount', 'Document', 'LegalEntity', 'product']).optional()
+  type: z.enum(["BankAccount", "Document", "LegalEntity", "product"]).optional()
 }).passthrough()
 
 export const CheckTaxElectronicDeliveryConsentResponseSchema = z.object({
@@ -110,7 +110,7 @@ export const CheckTaxElectronicDeliveryConsentResponseSchema = z.object({
 export const DKLocalAccountIdentificationSchema = z.object({
   accountNumber: z.string().min(4).max(10),
   bankCode: z.string().min(4).max(4),
-  type: z.enum(['dkLocal'])
+  type: z.enum(["dkLocal"])
 }).passthrough()
 
 export const DataReviewConfirmationResponseSchema = z.object({
@@ -120,7 +120,7 @@ export const DataReviewConfirmationResponseSchema = z.object({
 export const DocumentPageSchema = z.object({
   pageName: z.string().optional(),
   pageNumber: z.number().optional(),
-  type: z.enum(['BACK', 'FRONT', 'UNDEFINED']).optional()
+  type: z.enum(["BACK", "FRONT", "UNDEFINED"]).optional()
 }).passthrough()
 
 export const EntityReferenceSchema = z.object({
@@ -137,7 +137,7 @@ export const FinancialReportSchema = z.object({
 }).passthrough()
 
 export const GeneratePciDescriptionRequestSchema = z.object({
-  additionalSalesChannels: z.array(z.enum(['eCommerce', 'ecomMoto', 'pos', 'posMoto'])).optional(),
+  additionalSalesChannels: z.array(z.enum(["eCommerce", "ecomMoto", "pos", "posMoto"])).optional(),
   language: z.string().optional()
 }).passthrough()
 
@@ -151,7 +151,7 @@ export const GetAcceptedTermsOfServiceDocumentResponseSchema = z.object({
   document: z.string().optional(),
   id: z.string().optional(),
   termsOfServiceAcceptanceReference: z.string().optional(),
-  termsOfServiceDocumentFormat: z.enum(['JSON', 'PDF', 'TXT']).optional()
+  termsOfServiceDocumentFormat: z.enum(["JSON", "PDF", "TXT"]).optional()
 }).passthrough()
 
 export const GetPciQuestionnaireResponseSchema = z.object({
@@ -164,7 +164,7 @@ export const GetPciQuestionnaireResponseSchema = z.object({
 export const GetTermsOfServiceDocumentRequestSchema = z.object({
   language: z.string(),
   termsOfServiceDocumentFormat: z.string().optional(),
-  type: z.enum(['adyenAccount', 'adyenCapital', 'adyenCard', 'adyenChargeCard', 'adyenForPlatformsAdvanced', 'adyenForPlatformsManage', 'adyenFranchisee', 'adyenIssuing', 'adyenPccr', 'kycOnInvite'])
+  type: z.enum(["adyenAccount", "adyenCapital", "adyenCard", "adyenChargeCard", "adyenForPlatformsAdvanced", "adyenForPlatformsManage", "adyenFranchisee", "adyenIssuing", "adyenPccr", "kycOnInvite"])
 }).passthrough()
 
 export const GetTermsOfServiceDocumentResponseSchema = z.object({
@@ -173,24 +173,24 @@ export const GetTermsOfServiceDocumentResponseSchema = z.object({
   language: z.string().optional(),
   termsOfServiceDocumentFormat: z.string().optional(),
   termsOfServiceDocumentId: z.string().optional(),
-  type: z.enum(['adyenAccount', 'adyenCapital', 'adyenCard', 'adyenChargeCard', 'adyenForPlatformsAdvanced', 'adyenForPlatformsManage', 'adyenFranchisee', 'adyenIssuing', 'adyenPccr', 'kycOnInvite']).optional()
+  type: z.enum(["adyenAccount", "adyenCapital", "adyenCard", "adyenChargeCard", "adyenForPlatformsAdvanced", "adyenForPlatformsManage", "adyenFranchisee", "adyenIssuing", "adyenPccr", "kycOnInvite"]).optional()
 }).passthrough()
 
 export const HKLocalAccountIdentificationSchema = z.object({
   accountNumber: z.string().min(9).max(17),
   clearingCode: z.string().min(3).max(3),
-  type: z.enum(['hkLocal'])
+  type: z.enum(["hkLocal"])
 }).passthrough()
 
 export const HULocalAccountIdentificationSchema = z.object({
   accountNumber: z.string().min(24).max(24),
-  type: z.enum(['huLocal'])
+  type: z.enum(["huLocal"])
 }).passthrough()
 
 export const IbanAccountIdentificationSchema = z.object({
   bic: z.string().optional(),
   iban: z.string(),
-  type: z.enum(['iban'])
+  type: z.enum(["iban"])
 }).passthrough()
 
 export const IdentificationDataSchema = z.object({
@@ -200,7 +200,7 @@ export const IdentificationDataSchema = z.object({
   issuerState: z.string().optional(),
   nationalIdExempt: z.boolean().optional(),
   number: z.string().optional(),
-  type: z.enum(['nationalIdNumber', 'passport', 'driversLicense', 'identityCard'])
+  type: z.enum(["nationalIdNumber", "passport", "driversLicense", "identityCard"])
 }).passthrough()
 
 export const LegalEntityAssociationSchema = z.object({
@@ -212,17 +212,17 @@ export const LegalEntityAssociationSchema = z.object({
   nominee: z.boolean().optional(),
   relationship: z.string().optional(),
   settlorExemptionReason: z.array(z.string()).optional(),
-  type: z.enum(['definedBeneficiary', 'director', 'immediateParentCompany', 'legalRepresentative', 'pciSignatory', 'protector', 'secondaryPartner', 'secondaryTrustee', 'settlor', 'signatory', 'soleProprietorship', 'trust', 'trustOwnership', 'uboThroughControl', 'uboThroughOwnership', 'ultimateParentCompany', 'undefinedBeneficiary', 'unincorporatedPartnership'])
+  type: z.enum(["definedBeneficiary", "director", "immediateParentCompany", "legalRepresentative", "pciSignatory", "protector", "secondaryPartner", "secondaryTrustee", "settlor", "signatory", "soleProprietorship", "trust", "trustOwnership", "uboThroughControl", "uboThroughOwnership", "ultimateParentCompany", "undefinedBeneficiary", "unincorporatedPartnership"])
 }).passthrough()
 
 export const NOLocalAccountIdentificationSchema = z.object({
   accountNumber: z.string().min(11).max(11),
-  type: z.enum(['noLocal'])
+  type: z.enum(["noLocal"])
 }).passthrough()
 
 export const NZLocalAccountIdentificationSchema = z.object({
   accountNumber: z.string().min(15).max(16),
-  type: z.enum(['nzLocal'])
+  type: z.enum(["nzLocal"])
 }).passthrough()
 
 export const NameSchema = z.object({
@@ -270,7 +270,7 @@ export const OwnerEntitySchema = z.object({
 
 export const PLLocalAccountIdentificationSchema = z.object({
   accountNumber: z.string().min(26).max(26),
-  type: z.enum(['plLocal'])
+  type: z.enum(["plLocal"])
 }).passthrough()
 
 export const PciDocumentInfoSchema = z.object({
@@ -303,13 +303,13 @@ export const RemediatingActionSchema = z.object({
 export const SELocalAccountIdentificationSchema = z.object({
   accountNumber: z.string().min(7).max(10),
   clearingNumber: z.string().min(4).max(5),
-  type: z.enum(['seLocal'])
+  type: z.enum(["seLocal"])
 }).passthrough()
 
 export const SGLocalAccountIdentificationSchema = z.object({
   accountNumber: z.string().min(4).max(19),
   bic: z.string().min(8).max(11),
-  type: z.enum(['sgLocal']).optional()
+  type: z.enum(["sgLocal"]).optional()
 }).passthrough()
 
 export const ServiceErrorSchema = z.object({
@@ -328,7 +328,7 @@ export const SourceOfFundsSchema = z.object({
   acquiringBusinessLineId: z.string().optional(),
   adyenProcessedFunds: z.boolean().optional(),
   description: z.string().optional(),
-  type: z.enum(['business']).optional()
+  type: z.enum(["business"]).optional()
 }).passthrough()
 
 export const StockDataSchema = z.object({
@@ -351,10 +351,10 @@ export const TaxInformationSchema = z.object({
 }).passthrough()
 
 export const TaxReportingClassificationSchema = z.object({
-  businessType: z.enum(['other', 'listedPublicCompany', 'subsidiaryOfListedPublicCompany', 'governmentalOrganization', 'internationalOrganization', 'financialInstitution']).optional(),
+  businessType: z.enum(["other", "listedPublicCompany", "subsidiaryOfListedPublicCompany", "governmentalOrganization", "internationalOrganization", "financialInstitution"]).optional(),
   financialInstitutionNumber: z.string().optional(),
-  mainSourceOfIncome: z.enum(['businessOperation', 'realEstateSales', 'investmentInterestOrRoyalty', 'propertyRental', 'other']).optional(),
-  type: z.enum(['nonFinancialNonReportable', 'financialNonReportable', 'nonFinancialActive', 'nonFinancialPassive']).optional()
+  mainSourceOfIncome: z.enum(["businessOperation", "realEstateSales", "investmentInterestOrRoyalty", "propertyRental", "other"]).optional(),
+  type: z.enum(["nonFinancialNonReportable", "financialNonReportable", "nonFinancialActive", "nonFinancialPassive"]).optional()
 }).passthrough()
 
 export const TermsOfServiceAcceptanceInfoSchema = z.object({
@@ -362,7 +362,7 @@ export const TermsOfServiceAcceptanceInfoSchema = z.object({
   acceptedFor: z.string().optional(),
   createdAt: z.string().optional(),
   id: z.string().optional(),
-  type: z.enum(['adyenAccount', 'adyenCapital', 'adyenCard', 'adyenChargeCard', 'adyenForPlatformsAdvanced', 'adyenForPlatformsManage', 'adyenFranchisee', 'adyenIssuing', 'adyenPccr', 'kycOnInvite']).optional(),
+  type: z.enum(["adyenAccount", "adyenCapital", "adyenCard", "adyenChargeCard", "adyenForPlatformsAdvanced", "adyenForPlatformsManage", "adyenFranchisee", "adyenIssuing", "adyenPccr", "kycOnInvite"]).optional(),
   validTo: z.string().optional()
 }).passthrough()
 
@@ -376,14 +376,14 @@ export const TransferInstrumentReferenceSchema = z.object({
 export const UKLocalAccountIdentificationSchema = z.object({
   accountNumber: z.string().min(8).max(8),
   sortCode: z.string().min(6).max(6),
-  type: z.enum(['ukLocal'])
+  type: z.enum(["ukLocal"])
 }).passthrough()
 
 export const USLocalAccountIdentificationSchema = z.object({
   accountNumber: z.string().min(2).max(18),
-  accountType: z.enum(['checking', 'savings']).optional(),
+  accountType: z.enum(["checking", "savings"]).optional(),
   routingNumber: z.string().min(9).max(9),
-  type: z.enum(['usLocal'])
+  type: z.enum(["usLocal"])
 }).passthrough()
 
 export const UndefinedBeneficiarySchema = z.object({
@@ -392,7 +392,7 @@ export const UndefinedBeneficiarySchema = z.object({
 }).passthrough()
 
 export const VerificationDeadlineSchema = z.object({
-  capabilities: z.array(z.enum(['acceptExternalFunding', 'acceptPspFunding', 'acceptTransactionInRestrictedCountries', 'acceptTransactionInRestrictedCountriesCommercial', 'acceptTransactionInRestrictedCountriesConsumer', 'acceptTransactionInRestrictedIndustries', 'acceptTransactionInRestrictedIndustriesCommercial', 'acceptTransactionInRestrictedIndustriesConsumer', 'acquiring', 'atmWithdrawal', 'atmWithdrawalCommercial', 'atmWithdrawalConsumer', 'atmWithdrawalInRestrictedCountries', 'atmWithdrawalInRestrictedCountriesCommercial', 'atmWithdrawalInRestrictedCountriesConsumer', 'authorisedPaymentInstrumentUser', 'getGrantOffers', 'issueBankAccount', 'issueCard', 'issueCardCommercial', 'issueCardConsumer', 'issueChargeCard', 'issueChargeCardCommercial', 'issueCreditLimit', 'localAcceptance', 'payout', 'payoutToTransferInstrument', 'processing', 'receiveFromBalanceAccount', 'receiveFromPlatformPayments', 'receiveFromThirdParty', 'receiveFromTransferInstrument', 'receiveGrants', 'receivePayments', 'sendToBalanceAccount', 'sendToThirdParty', 'sendToTransferInstrument', 'thirdPartyFunding', 'useCard', 'useCardCommercial', 'useCardConsumer', 'useCardInRestrictedCountries', 'useCardInRestrictedCountriesCommercial', 'useCardInRestrictedCountriesConsumer', 'useCardInRestrictedIndustries', 'useCardInRestrictedIndustriesCommercial', 'useCardInRestrictedIndustriesConsumer', 'useChargeCard', 'useChargeCardCommercial', 'withdrawFromAtm', 'withdrawFromAtmCommercial', 'withdrawFromAtmConsumer', 'withdrawFromAtmInRestrictedCountries', 'withdrawFromAtmInRestrictedCountriesCommercial', 'withdrawFromAtmInRestrictedCountriesConsumer'])),
+  capabilities: z.array(z.enum(["acceptExternalFunding", "acceptPspFunding", "acceptTransactionInRestrictedCountries", "acceptTransactionInRestrictedCountriesCommercial", "acceptTransactionInRestrictedCountriesConsumer", "acceptTransactionInRestrictedIndustries", "acceptTransactionInRestrictedIndustriesCommercial", "acceptTransactionInRestrictedIndustriesConsumer", "acquiring", "atmWithdrawal", "atmWithdrawalCommercial", "atmWithdrawalConsumer", "atmWithdrawalInRestrictedCountries", "atmWithdrawalInRestrictedCountriesCommercial", "atmWithdrawalInRestrictedCountriesConsumer", "authorisedPaymentInstrumentUser", "getGrantOffers", "issueBankAccount", "issueCard", "issueCardCommercial", "issueCardConsumer", "issueChargeCard", "issueChargeCardCommercial", "issueCreditLimit", "localAcceptance", "payout", "payoutToTransferInstrument", "processing", "receiveFromBalanceAccount", "receiveFromPlatformPayments", "receiveFromThirdParty", "receiveFromTransferInstrument", "receiveGrants", "receivePayments", "sendToBalanceAccount", "sendToThirdParty", "sendToTransferInstrument", "thirdPartyFunding", "useCard", "useCardCommercial", "useCardConsumer", "useCardInRestrictedCountries", "useCardInRestrictedCountriesCommercial", "useCardInRestrictedCountriesConsumer", "useCardInRestrictedIndustries", "useCardInRestrictedIndustriesCommercial", "useCardInRestrictedIndustriesConsumer", "useChargeCard", "useChargeCardCommercial", "withdrawFromAtm", "withdrawFromAtmCommercial", "withdrawFromAtmConsumer", "withdrawFromAtmInRestrictedCountries", "withdrawFromAtmInRestrictedCountriesCommercial", "withdrawFromAtmInRestrictedCountriesConsumer"])),
   entityIds: z.array(z.string()).optional(),
   expiresAt: z.string()
 }).passthrough()
@@ -403,21 +403,21 @@ export const WebDataSchema = z.object({
 }).passthrough()
 
 export const WebDataExemptionSchema = z.object({
-  reason: z.enum(['noOnlinePresence', 'notCollectedDuringOnboarding']).optional()
+  reason: z.enum(["noOnlinePresence", "notCollectedDuringOnboarding"]).optional()
 }).passthrough()
 
 export const NumberAndBicAccountIdentificationSchema = z.object({
   accountNumber: z.string().max(34),
   additionalBankIdentification: AdditionalBankIdentificationSchema.optional(),
   bic: z.string().min(8).max(11),
-  type: z.enum(['numberAndBic'])
+  type: z.enum(["numberAndBic"])
 }).passthrough()
 
 export const CapabilitySettingsSchema = z.object({
   amountPerIndustry: z.record(z.string(), AmountSchema).optional(),
   authorizedCardUsers: z.boolean().optional(),
-  fundingSource: z.array(z.enum(['credit', 'debit', 'prepaid'])).optional(),
-  interval: z.enum(['daily', 'monthly', 'weekly']).optional(),
+  fundingSource: z.array(z.enum(["credit", "debit", "prepaid"])).optional(),
+  interval: z.enum(["daily", "monthly", "weekly"]).optional(),
   maxAmount: AmountSchema.optional()
 }).passthrough()
 
@@ -425,7 +425,7 @@ export const CapabilityProblemEntitySchema = z.object({
   documents: z.array(z.string()).optional(),
   id: z.string().optional(),
   owner: CapabilityProblemEntityRecursiveSchema.optional(),
-  type: z.enum(['BankAccount', 'Document', 'LegalEntity', 'product']).optional()
+  type: z.enum(["BankAccount", "Document", "LegalEntity", "product"]).optional()
 }).passthrough()
 
 export const DocumentReferenceSchema = z.object({
@@ -464,7 +464,7 @@ export const DocumentSchema = z.object({
   modificationDate: z.string().optional(),
   number: z.string().optional(),
   owner: OwnerEntitySchema.optional(),
-  type: z.enum(['bankStatement', 'driversLicense', 'identityCard', 'nationalIdNumber', 'passport', 'proofOfAddress', 'proofOfNationalIdNumber', 'proofOfResidency', 'registrationDocument', 'vatDocument', 'proofOfOrganizationTaxInfo', 'proofOfIndividualTaxId', 'proofOfOwnership', 'proofOfSignatory', 'liveSelfie', 'proofOfIndustry', 'constitutionalDocument', 'proofOfFundingOrWealthSource', 'proofOfRelationship'])
+  type: z.enum(["bankStatement", "driversLicense", "identityCard", "nationalIdNumber", "passport", "proofOfAddress", "proofOfNationalIdNumber", "proofOfResidency", "registrationDocument", "vatDocument", "proofOfOrganizationTaxInfo", "proofOfIndividualTaxId", "proofOfOwnership", "proofOfSignatory", "liveSelfie", "proofOfIndustry", "constitutionalDocument", "proofOfFundingOrWealthSource", "proofOfRelationship"])
 }).passthrough()
 
 export const GetPciQuestionnaireInfosResponseSchema = z.object({
@@ -472,10 +472,10 @@ export const GetPciQuestionnaireInfosResponseSchema = z.object({
 }).passthrough()
 
 export const VerificationErrorRecursiveSchema = z.object({
-  capabilities: z.array(z.enum(['acceptExternalFunding', 'acceptPspFunding', 'acceptTransactionInRestrictedCountries', 'acceptTransactionInRestrictedCountriesCommercial', 'acceptTransactionInRestrictedCountriesConsumer', 'acceptTransactionInRestrictedIndustries', 'acceptTransactionInRestrictedIndustriesCommercial', 'acceptTransactionInRestrictedIndustriesConsumer', 'acquiring', 'atmWithdrawal', 'atmWithdrawalCommercial', 'atmWithdrawalConsumer', 'atmWithdrawalInRestrictedCountries', 'atmWithdrawalInRestrictedCountriesCommercial', 'atmWithdrawalInRestrictedCountriesConsumer', 'authorisedPaymentInstrumentUser', 'getGrantOffers', 'issueBankAccount', 'issueCard', 'issueCardCommercial', 'issueCardConsumer', 'issueChargeCard', 'issueChargeCardCommercial', 'issueCreditLimit', 'localAcceptance', 'payout', 'payoutToTransferInstrument', 'processing', 'receiveFromBalanceAccount', 'receiveFromPlatformPayments', 'receiveFromThirdParty', 'receiveFromTransferInstrument', 'receiveGrants', 'receivePayments', 'sendToBalanceAccount', 'sendToThirdParty', 'sendToTransferInstrument', 'thirdPartyFunding', 'useCard', 'useCardCommercial', 'useCardConsumer', 'useCardInRestrictedCountries', 'useCardInRestrictedCountriesCommercial', 'useCardInRestrictedCountriesConsumer', 'useCardInRestrictedIndustries', 'useCardInRestrictedIndustriesCommercial', 'useCardInRestrictedIndustriesConsumer', 'useChargeCard', 'useChargeCardCommercial', 'withdrawFromAtm', 'withdrawFromAtmCommercial', 'withdrawFromAtmConsumer', 'withdrawFromAtmInRestrictedCountries', 'withdrawFromAtmInRestrictedCountriesCommercial', 'withdrawFromAtmInRestrictedCountriesConsumer'])).optional(),
+  capabilities: z.array(z.enum(["acceptExternalFunding", "acceptPspFunding", "acceptTransactionInRestrictedCountries", "acceptTransactionInRestrictedCountriesCommercial", "acceptTransactionInRestrictedCountriesConsumer", "acceptTransactionInRestrictedIndustries", "acceptTransactionInRestrictedIndustriesCommercial", "acceptTransactionInRestrictedIndustriesConsumer", "acquiring", "atmWithdrawal", "atmWithdrawalCommercial", "atmWithdrawalConsumer", "atmWithdrawalInRestrictedCountries", "atmWithdrawalInRestrictedCountriesCommercial", "atmWithdrawalInRestrictedCountriesConsumer", "authorisedPaymentInstrumentUser", "getGrantOffers", "issueBankAccount", "issueCard", "issueCardCommercial", "issueCardConsumer", "issueChargeCard", "issueChargeCardCommercial", "issueCreditLimit", "localAcceptance", "payout", "payoutToTransferInstrument", "processing", "receiveFromBalanceAccount", "receiveFromPlatformPayments", "receiveFromThirdParty", "receiveFromTransferInstrument", "receiveGrants", "receivePayments", "sendToBalanceAccount", "sendToThirdParty", "sendToTransferInstrument", "thirdPartyFunding", "useCard", "useCardCommercial", "useCardConsumer", "useCardInRestrictedCountries", "useCardInRestrictedCountriesCommercial", "useCardInRestrictedCountriesConsumer", "useCardInRestrictedIndustries", "useCardInRestrictedIndustriesCommercial", "useCardInRestrictedIndustriesConsumer", "useChargeCard", "useChargeCardCommercial", "withdrawFromAtm", "withdrawFromAtmCommercial", "withdrawFromAtmConsumer", "withdrawFromAtmInRestrictedCountries", "withdrawFromAtmInRestrictedCountriesCommercial", "withdrawFromAtmInRestrictedCountriesConsumer"])).optional(),
   code: z.string().optional(),
   message: z.string().optional(),
-  type: z.enum(['dataMissing', 'dataReview', 'invalidInput', 'pendingStatus', 'rejected']).optional(),
+  type: z.enum(["dataMissing", "dataReview", "invalidInput", "pendingStatus", "rejected"]).optional(),
   remediatingActions: z.array(RemediatingActionSchema).optional()
 }).passthrough()
 
@@ -490,7 +490,7 @@ export const SoleProprietorshipSchema = z.object({
   registrationNumber: z.string().optional(),
   taxAbsent: z.boolean().optional(),
   taxInformation: z.array(TaxInformationSchema).optional(),
-  vatAbsenceReason: z.enum(['industryExemption', 'belowTaxThreshold']).optional(),
+  vatAbsenceReason: z.enum(["industryExemption", "belowTaxThreshold"]).optional(),
   vatNumber: z.string().optional()
 }).passthrough()
 
@@ -504,8 +504,8 @@ export const UnincorporatedPartnershipSchema = z.object({
   registeredAddress: AddressSchema,
   registrationNumber: z.string().optional(),
   taxInformation: z.array(TaxInformationSchema).optional(),
-  type: z.enum(['limitedPartnership', 'generalPartnership', 'familyPartnership', 'commercialPartnership', 'publicPartnership', 'otherPartnership', 'gbr', 'gmbh', 'kgaa', 'cv', 'vof', 'maatschap', 'privateFundLimitedPartnership', 'businessTrustEntity', 'businessPartnership', 'limitedLiabilityPartnership', 'eg', 'cooperative', 'vos', 'comunidadDeBienes', 'herenciaYacente', 'comunidadDePropietarios', 'sep', 'sca', 'bt', 'kkt', 'scs', 'snc']).optional(),
-  vatAbsenceReason: z.enum(['industryExemption', 'belowTaxThreshold']).optional(),
+  type: z.enum(["limitedPartnership", "generalPartnership", "familyPartnership", "commercialPartnership", "publicPartnership", "otherPartnership", "gbr", "gmbh", "kgaa", "cv", "vof", "maatschap", "privateFundLimitedPartnership", "businessTrustEntity", "businessPartnership", "limitedLiabilityPartnership", "eg", "cooperative", "vos", "comunidadDeBienes", "herenciaYacente", "comunidadDePropietarios", "sep", "sca", "bt", "kkt", "scs", "snc"]).optional(),
+  vatAbsenceReason: z.enum(["industryExemption", "belowTaxThreshold"]).optional(),
   vatNumber: z.string().optional()
 }).passthrough()
 
@@ -523,9 +523,9 @@ export const TrustSchema = z.object({
   registeredAddress: AddressSchema,
   registrationNumber: z.string().optional(),
   taxInformation: z.array(TaxInformationSchema).optional(),
-  type: z.enum(['businessTrust', 'cashManagementTrust', 'charitableTrust', 'corporateUnitTrust', 'deceasedEstate', 'discretionaryTrust', 'discretionaryInvestmentTrust', 'discretionaryServicesManagementTrust', 'discretionaryTradingTrust', 'familyTrust', 'firstHomeSaverAccountsTrust', 'fixedTrust', 'fixedUnitTrust', 'hybridTrust', 'listedPublicUnitTrust', 'otherTrust', 'pooledSuperannuationTrust', 'publicTradingTrust', 'unlistedPublicUnitTrust']),
+  type: z.enum(["businessTrust", "cashManagementTrust", "charitableTrust", "corporateUnitTrust", "deceasedEstate", "discretionaryTrust", "discretionaryInvestmentTrust", "discretionaryServicesManagementTrust", "discretionaryTradingTrust", "familyTrust", "firstHomeSaverAccountsTrust", "fixedTrust", "fixedUnitTrust", "hybridTrust", "listedPublicUnitTrust", "otherTrust", "pooledSuperannuationTrust", "publicTradingTrust", "unlistedPublicUnitTrust"]),
   undefinedBeneficiaryInfo: z.array(UndefinedBeneficiarySchema).optional(),
-  vatAbsenceReason: z.enum(['industryExemption', 'belowTaxThreshold']).optional(),
+  vatAbsenceReason: z.enum(["industryExemption", "belowTaxThreshold"]).optional(),
   vatNumber: z.string().optional()
 }).passthrough()
 
@@ -552,30 +552,30 @@ export const OrganizationSchema = z.object({
   financialReports: z.array(FinancialReportSchema).optional(),
   globalLegalEntityIdentifier: z.string().optional(),
   headOfficeIndicator: z.boolean().optional(),
-  institutionalSector: z.enum(['nonFinancialCorporation', 'centralBank', 'creditInstitutions', 'depositTakingCorporations', 'moneyMarketFunds', 'nonMMFInvestmentFunds', 'financialVehicleCorporation', 'otherFinancialIntermediaries', 'financialAuxiliaries', 'captiveFinancialInstitutionsAndMoneyLenders', 'insuranceCorporations', 'pensionFunds', 'centralGovernment', 'stateGovernment', 'localGovernment', 'socialSecurityFunds', 'nonProfitInstitutionsServingHouseholds']).optional(),
+  institutionalSector: z.enum(["nonFinancialCorporation", "centralBank", "creditInstitutions", "depositTakingCorporations", "moneyMarketFunds", "nonMMFInvestmentFunds", "financialVehicleCorporation", "otherFinancialIntermediaries", "financialAuxiliaries", "captiveFinancialInstitutionsAndMoneyLenders", "insuranceCorporations", "pensionFunds", "centralGovernment", "stateGovernment", "localGovernment", "socialSecurityFunds", "nonProfitInstitutionsServingHouseholds"]).optional(),
   legalForm: z.string().optional(),
   legalName: z.string(),
   phone: PhoneNumberSchema.optional(),
   principalPlaceOfBusiness: AddressSchema.optional(),
   registeredAddress: AddressSchema,
   registrationNumber: z.string().optional(),
-  statusOfLegalProceeding: z.enum(['noLegalActionsTaken', 'underJudicialAdministration', 'bankruptcyInsolvency', 'otherLegalMeasures']).optional(),
+  statusOfLegalProceeding: z.enum(["noLegalActionsTaken", "underJudicialAdministration", "bankruptcyInsolvency", "otherLegalMeasures"]).optional(),
   stockData: StockDataSchema.optional(),
   taxInformation: z.array(TaxInformationSchema).optional(),
   taxReportingClassification: TaxReportingClassificationSchema.optional(),
-  type: z.enum(['associationIncorporated', 'governmentalOrganization', 'listedPublicCompany', 'nonProfit', 'partnershipIncorporated', 'privateCompany']).optional(),
-  vatAbsenceReason: z.enum(['industryExemption', 'belowTaxThreshold']).optional(),
+  type: z.enum(["associationIncorporated", "governmentalOrganization", "listedPublicCompany", "nonProfit", "partnershipIncorporated", "privateCompany"]).optional(),
+  vatAbsenceReason: z.enum(["industryExemption", "belowTaxThreshold"]).optional(),
   vatNumber: z.string().optional(),
   webData: WebDataSchema.optional()
 }).passthrough()
 
 export const BusinessLineInfoSchema = z.object({
-  capability: z.enum(['receivePayments', 'receiveFromPlatformPayments', 'issueBankAccount']).optional(),
+  capability: z.enum(["receivePayments", "receiveFromPlatformPayments", "issueBankAccount"]).optional(),
   industryCode: z.string(),
   industryCodeDescription: z.string().optional(),
   legalEntityId: z.string(),
   salesChannels: z.array(z.string()).optional(),
-  service: z.enum(['paymentProcessing', 'banking']),
+  service: z.enum(["paymentProcessing", "banking"]),
   sourceOfFunds: SourceOfFundsSchema.optional(),
   webData: z.array(WebDataSchema).optional(),
   webDataExemption: WebDataExemptionSchema.optional()
@@ -600,28 +600,28 @@ export const BankAccountInfoSchema = z.object({
 
 export const LegalEntityCapabilitySchema = z.object({
   allowed: z.boolean().optional(),
-  allowedLevel: z.enum(['high', 'low', 'medium', 'notApplicable']).optional(),
+  allowedLevel: z.enum(["high", "low", "medium", "notApplicable"]).optional(),
   allowedSettings: CapabilitySettingsSchema.optional(),
   requested: z.boolean().optional(),
-  requestedLevel: z.enum(['high', 'low', 'medium', 'notApplicable']).optional(),
+  requestedLevel: z.enum(["high", "low", "medium", "notApplicable"]).optional(),
   requestedSettings: CapabilitySettingsSchema.optional(),
   transferInstruments: z.array(SupportingEntityCapabilitySchema).optional(),
   verificationStatus: z.string().optional()
 }).passthrough()
 
 export const VerificationErrorSchema = z.object({
-  capabilities: z.array(z.enum(['acceptExternalFunding', 'acceptPspFunding', 'acceptTransactionInRestrictedCountries', 'acceptTransactionInRestrictedCountriesCommercial', 'acceptTransactionInRestrictedCountriesConsumer', 'acceptTransactionInRestrictedIndustries', 'acceptTransactionInRestrictedIndustriesCommercial', 'acceptTransactionInRestrictedIndustriesConsumer', 'acquiring', 'atmWithdrawal', 'atmWithdrawalCommercial', 'atmWithdrawalConsumer', 'atmWithdrawalInRestrictedCountries', 'atmWithdrawalInRestrictedCountriesCommercial', 'atmWithdrawalInRestrictedCountriesConsumer', 'authorisedPaymentInstrumentUser', 'getGrantOffers', 'issueBankAccount', 'issueCard', 'issueCardCommercial', 'issueCardConsumer', 'issueChargeCard', 'issueChargeCardCommercial', 'issueCreditLimit', 'localAcceptance', 'payout', 'payoutToTransferInstrument', 'processing', 'receiveFromBalanceAccount', 'receiveFromPlatformPayments', 'receiveFromThirdParty', 'receiveFromTransferInstrument', 'receiveGrants', 'receivePayments', 'sendToBalanceAccount', 'sendToThirdParty', 'sendToTransferInstrument', 'thirdPartyFunding', 'useCard', 'useCardCommercial', 'useCardConsumer', 'useCardInRestrictedCountries', 'useCardInRestrictedCountriesCommercial', 'useCardInRestrictedCountriesConsumer', 'useCardInRestrictedIndustries', 'useCardInRestrictedIndustriesCommercial', 'useCardInRestrictedIndustriesConsumer', 'useChargeCard', 'useChargeCardCommercial', 'withdrawFromAtm', 'withdrawFromAtmCommercial', 'withdrawFromAtmConsumer', 'withdrawFromAtmInRestrictedCountries', 'withdrawFromAtmInRestrictedCountriesCommercial', 'withdrawFromAtmInRestrictedCountriesConsumer'])).optional(),
+  capabilities: z.array(z.enum(["acceptExternalFunding", "acceptPspFunding", "acceptTransactionInRestrictedCountries", "acceptTransactionInRestrictedCountriesCommercial", "acceptTransactionInRestrictedCountriesConsumer", "acceptTransactionInRestrictedIndustries", "acceptTransactionInRestrictedIndustriesCommercial", "acceptTransactionInRestrictedIndustriesConsumer", "acquiring", "atmWithdrawal", "atmWithdrawalCommercial", "atmWithdrawalConsumer", "atmWithdrawalInRestrictedCountries", "atmWithdrawalInRestrictedCountriesCommercial", "atmWithdrawalInRestrictedCountriesConsumer", "authorisedPaymentInstrumentUser", "getGrantOffers", "issueBankAccount", "issueCard", "issueCardCommercial", "issueCardConsumer", "issueChargeCard", "issueChargeCardCommercial", "issueCreditLimit", "localAcceptance", "payout", "payoutToTransferInstrument", "processing", "receiveFromBalanceAccount", "receiveFromPlatformPayments", "receiveFromThirdParty", "receiveFromTransferInstrument", "receiveGrants", "receivePayments", "sendToBalanceAccount", "sendToThirdParty", "sendToTransferInstrument", "thirdPartyFunding", "useCard", "useCardCommercial", "useCardConsumer", "useCardInRestrictedCountries", "useCardInRestrictedCountriesCommercial", "useCardInRestrictedCountriesConsumer", "useCardInRestrictedIndustries", "useCardInRestrictedIndustriesCommercial", "useCardInRestrictedIndustriesConsumer", "useChargeCard", "useChargeCardCommercial", "withdrawFromAtm", "withdrawFromAtmCommercial", "withdrawFromAtmConsumer", "withdrawFromAtmInRestrictedCountries", "withdrawFromAtmInRestrictedCountriesCommercial", "withdrawFromAtmInRestrictedCountriesConsumer"])).optional(),
   code: z.string().optional(),
   message: z.string().optional(),
   remediatingActions: z.array(RemediatingActionSchema).optional(),
   subErrors: z.array(VerificationErrorRecursiveSchema).optional(),
-  type: z.enum(['dataMissing', 'dataReview', 'invalidInput', 'pendingStatus', 'rejected']).optional()
+  type: z.enum(["dataMissing", "dataReview", "invalidInput", "pendingStatus", "rejected"]).optional()
 }).passthrough()
 
 export const TransferInstrumentInfoSchema = z.object({
   bankAccount: BankAccountInfoSchema,
   legalEntityId: z.string(),
-  type: z.enum(['bankAccount', 'recurringDetail'])
+  type: z.enum(["bankAccount", "recurringDetail"])
 }).passthrough()
 
 export const LegalEntityInfoSchema = z.object({
@@ -632,7 +632,7 @@ export const LegalEntityInfoSchema = z.object({
   reference: z.string().max(150).optional(),
   soleProprietorship: SoleProprietorshipSchema.optional(),
   trust: TrustSchema.optional(),
-  type: z.enum(['individual', 'organization', 'soleProprietorship', 'trust', 'unincorporatedPartnership']).optional(),
+  type: z.enum(["individual", "organization", "soleProprietorship", "trust", "unincorporatedPartnership"]).optional(),
   unincorporatedPartnership: UnincorporatedPartnershipSchema.optional(),
   verificationPlan: z.string().optional()
 }).passthrough()
@@ -645,7 +645,7 @@ export const LegalEntityInfoRequiredTypeSchema = z.object({
   reference: z.string().max(150).optional(),
   soleProprietorship: SoleProprietorshipSchema.optional(),
   trust: TrustSchema.optional(),
-  type: z.enum(['individual', 'organization', 'soleProprietorship', 'trust', 'unincorporatedPartnership']),
+  type: z.enum(["individual", "organization", "soleProprietorship", "trust", "unincorporatedPartnership"]),
   unincorporatedPartnership: UnincorporatedPartnershipSchema.optional(),
   verificationPlan: z.string().optional()
 }).passthrough()
@@ -656,14 +656,14 @@ export const CapabilityProblemSchema = z.object({
 }).passthrough()
 
 export const BusinessLineSchema = z.object({
-  capability: z.enum(['receivePayments', 'receiveFromPlatformPayments', 'issueBankAccount']).optional(),
+  capability: z.enum(["receivePayments", "receiveFromPlatformPayments", "issueBankAccount"]).optional(),
   id: z.string(),
   industryCode: z.string(),
   industryCodeDescription: z.string().optional(),
   legalEntityId: z.string(),
   problems: z.array(CapabilityProblemSchema).optional(),
   salesChannels: z.array(z.string()).optional(),
-  service: z.enum(['paymentProcessing', 'banking']),
+  service: z.enum(["paymentProcessing", "banking"]),
   sourceOfFunds: SourceOfFundsSchema.optional(),
   webData: z.array(WebDataSchema).optional(),
   webDataExemption: WebDataExemptionSchema.optional()
@@ -682,7 +682,7 @@ export const LegalEntitySchema = z.object({
   soleProprietorship: SoleProprietorshipSchema.optional(),
   transferInstruments: z.array(TransferInstrumentReferenceSchema).optional(),
   trust: TrustSchema.optional(),
-  type: z.enum(['individual', 'organization', 'soleProprietorship', 'trust', 'unincorporatedPartnership']).optional(),
+  type: z.enum(["individual", "organization", "soleProprietorship", "trust", "unincorporatedPartnership"]).optional(),
   unincorporatedPartnership: UnincorporatedPartnershipSchema.optional(),
   verificationDeadlines: z.array(VerificationDeadlineSchema).optional(),
   verificationPlan: z.string().optional()
@@ -695,7 +695,7 @@ export const TransferInstrumentSchema = z.object({
   id: z.string(),
   legalEntityId: z.string(),
   problems: z.array(CapabilityProblemSchema).optional(),
-  type: z.enum(['bankAccount', 'recurringDetail'])
+  type: z.enum(["bankAccount", "recurringDetail"])
 }).passthrough()
 
 export const VerificationErrorsSchema = z.object({

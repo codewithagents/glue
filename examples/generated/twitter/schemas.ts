@@ -28,9 +28,9 @@ export const CashtagFieldsSchema = z.object({
 
 export const ComplianceJobNameSchema = z.string().max(64)
 
-export const ComplianceJobStatusSchema = z.enum(['created', 'in_progress', 'failed', 'complete', 'expired'])
+export const ComplianceJobStatusSchema = z.enum(["created", "in_progress", "failed", "complete", "expired"])
 
-export const ComplianceJobTypeSchema = z.enum(['tweets', 'users'])
+export const ComplianceJobTypeSchema = z.enum(["tweets", "users"])
 
 export const ContextAnnotationDomainFieldsSchema = z.object({
   description: z.string().optional(),
@@ -117,7 +117,7 @@ export const PaginationTokenLongSchema = z.string().min(1).max(19)
 
 export const PlaceIdSchema = z.string()
 
-export const PlaceTypeSchema = z.enum(['poi', 'neighborhood', 'city', 'admin', 'country', 'unknown'])
+export const PlaceTypeSchema = z.enum(["poi", "neighborhood", "city", "admin", "country", "unknown"])
 
 export const PollIdSchema = z.string().regex(new RegExp("^[0-9]{1,19}$"))
 
@@ -134,7 +134,7 @@ export const ProblemSchema = z.object({
   type: z.string()
 }).passthrough()
 
-export const ReplySettingsSchema = z.enum(['everyone', 'mentionedUsers', 'following', 'other'])
+export const ReplySettingsSchema = z.enum(["everyone", "mentionedUsers", "following", "other"])
 
 export const ResultCountSchema = z.number()
 
@@ -197,7 +197,7 @@ export const VariantSchema = z.object({
 export const CreateComplianceJobRequestSchema = z.object({
   name: ComplianceJobNameSchema.optional(),
   resumable: z.boolean().optional(),
-  type: z.enum(['tweets', 'users'])
+  type: z.enum(["tweets", "users"])
 }).passthrough()
 
 export const ContextAnnotationSchema = z.object({
@@ -208,12 +208,12 @@ export const ContextAnnotationSchema = z.object({
 export const TweetWithheldSchema = z.object({
   copyright: z.boolean(),
   country_codes: z.array(CountryCodeSchema).min(1),
-  scope: z.enum(['tweet', 'user']).optional()
+  scope: z.enum(["tweet", "user"]).optional()
 }).passthrough()
 
 export const UserWithheldSchema = z.object({
   country_codes: z.array(CountryCodeSchema).min(1),
-  scope: z.enum(['user']).optional()
+  scope: z.enum(["user"]).optional()
 }).passthrough()
 
 export const CashtagEntitySchema = EntityIndicesInclusiveExclusiveSchema.and(CashtagFieldsSchema)
@@ -247,7 +247,7 @@ export const PollOptionSchema = z.object({
 
 export const PointSchema = z.object({
   coordinates: PositionSchema,
-  type: z.enum(['Point'])
+  type: z.enum(["Point"])
 }).passthrough()
 
 export const BlockUserMutationResponseSchema = z.object({
@@ -267,14 +267,14 @@ export const BookmarkMutationResponseSchema = z.object({
 export const ClientDisconnectedProblemSchema = ProblemSchema
 
 export const ClientForbiddenProblemSchema = ProblemSchema.and(z.object({
-  reason: z.enum(['official-client-forbidden', 'client-not-enrolled']).optional(),
+  reason: z.enum(["official-client-forbidden", "client-not-enrolled"]).optional(),
   registration_url: z.string().optional()
 }).passthrough())
 
 export const ConflictProblemSchema = ProblemSchema
 
 export const ConnectionExceptionProblemSchema = ProblemSchema.and(z.object({
-  connection_issue: z.enum(['TooManyConnections', 'ProvisioningSubscription', 'RuleConfigurationIssue', 'RulesInvalidIssue']).optional()
+  connection_issue: z.enum(["TooManyConnections", "ProvisioningSubscription", "RuleConfigurationIssue", "RulesInvalidIssue"]).optional()
 }).passthrough())
 
 export const CreateDmEventResponseSchema = z.object({
@@ -287,8 +287,8 @@ export const CreateDmEventResponseSchema = z.object({
 
 export const DisallowedResourceProblemSchema = ProblemSchema.and(z.object({
   resource_id: z.string(),
-  resource_type: z.enum(['user', 'tweet', 'media', 'list', 'space']),
-  section: z.enum(['data', 'includes'])
+  resource_type: z.enum(["user", "tweet", "media", "list", "space"]),
+  section: z.enum(["data", "includes"])
 }).passthrough())
 
 export const DuplicateRuleProblemSchema = ProblemSchema.and(z.object({
@@ -298,8 +298,8 @@ export const DuplicateRuleProblemSchema = ProblemSchema.and(z.object({
 
 export const FieldUnauthorizedProblemSchema = ProblemSchema.and(z.object({
   field: z.string(),
-  resource_type: z.enum(['user', 'tweet', 'media', 'list', 'space']),
-  section: z.enum(['data', 'includes'])
+  resource_type: z.enum(["user", "tweet", "media", "list", "space"]),
+  section: z.enum(["data", "includes"])
 }).passthrough())
 
 export const GenericProblemSchema = ProblemSchema
@@ -375,28 +375,28 @@ export const NonCompliantRulesProblemSchema = ProblemSchema
 export const Oauth1PermissionsProblemSchema = ProblemSchema
 
 export const OperationalDisconnectProblemSchema = ProblemSchema.and(z.object({
-  disconnect_type: z.enum(['OperationalDisconnect', 'UpstreamOperationalDisconnect', 'ForceDisconnect', 'UpstreamUncleanDisconnect', 'SlowReader', 'InternalError', 'ClientApplicationStateDegraded', 'InvalidRules']).optional()
+  disconnect_type: z.enum(["OperationalDisconnect", "UpstreamOperationalDisconnect", "ForceDisconnect", "UpstreamUncleanDisconnect", "SlowReader", "InternalError", "ClientApplicationStateDegraded", "InvalidRules"]).optional()
 }).passthrough())
 
 export const ResourceNotFoundProblemSchema = ProblemSchema.and(z.object({
   parameter: z.string().min(1),
   resource_id: z.string(),
-  resource_type: z.enum(['user', 'tweet', 'media', 'list', 'space']),
+  resource_type: z.enum(["user", "tweet", "media", "list", "space"]),
   value: z.string()
 }).passthrough())
 
 export const ResourceUnauthorizedProblemSchema = ProblemSchema.and(z.object({
   parameter: z.string(),
   resource_id: z.string(),
-  resource_type: z.enum(['user', 'tweet', 'media', 'list', 'space']),
-  section: z.enum(['data', 'includes']),
+  resource_type: z.enum(["user", "tweet", "media", "list", "space"]),
+  section: z.enum(["data", "includes"]),
   value: z.string()
 }).passthrough())
 
 export const ResourceUnavailableProblemSchema = ProblemSchema.and(z.object({
   parameter: z.string().min(1),
   resource_id: z.string(),
-  resource_type: z.enum(['user', 'tweet', 'media', 'list', 'space'])
+  resource_type: z.enum(["user", "tweet", "media", "list", "space"])
 }).passthrough())
 
 export const RulesCapProblemSchema = ProblemSchema
@@ -411,8 +411,8 @@ export const TweetDeleteResponseSchema = z.object({
 export const UnsupportedAuthenticationProblemSchema = ProblemSchema
 
 export const UsageCapExceededProblemSchema = ProblemSchema.and(z.object({
-  period: z.enum(['Daily', 'Monthly']).optional(),
-  scope: z.enum(['Account', 'Product']).optional()
+  period: z.enum(["Daily", "Monthly"]).optional(),
+  scope: z.enum(["Account", "Product"]).optional()
 }).passthrough())
 
 export const UsersFollowingCreateResponseSchema = z.object({
@@ -597,7 +597,7 @@ export const SpaceSchema = z.object({
   scheduled_start: z.string().optional(),
   speaker_ids: z.array(UserIdSchema).optional(),
   started_at: z.string().optional(),
-  state: z.enum(['live', 'scheduled', 'ended']),
+  state: z.enum(["live", "scheduled", "ended"]),
   subscriber_count: z.number().optional(),
   title: z.string().optional(),
   topics: z.array(z.object({
@@ -632,14 +632,14 @@ export const TweetCreateRequestSchema = z.object({
   poll: z.object({
   duration_minutes: z.number().min(5).max(10080),
   options: z.array(z.string().min(1).max(25)).min(2).max(4),
-  reply_settings: z.enum(['following', 'mentionedUsers']).optional()
+  reply_settings: z.enum(["following", "mentionedUsers"]).optional()
 }).passthrough().optional(),
   quote_tweet_id: TweetIdSchema.optional(),
   reply: z.object({
   exclude_reply_user_ids: z.array(UserIdSchema).optional(),
   in_reply_to_tweet_id: TweetIdSchema
 }).passthrough().optional(),
-  reply_settings: z.enum(['following', 'mentionedUsers']).optional(),
+  reply_settings: z.enum(["following", "mentionedUsers"]).optional(),
   text: TweetTextSchema.optional()
 }).passthrough()
 
@@ -730,14 +730,14 @@ export const PollSchema = z.object({
   end_datetime: z.string().optional(),
   id: PollIdSchema,
   options: z.array(PollOptionSchema).min(2).max(4),
-  voting_status: z.enum(['open', 'closed']).optional()
+  voting_status: z.enum(["open", "closed"]).optional()
 }).passthrough()
 
 export const GeoSchema = z.object({
   bbox: z.array(z.number().min(-180).max(180)).min(4).max(4),
   geometry: PointSchema.optional(),
   properties: z.record(z.string(), z.unknown()),
-  type: z.enum(['Feature'])
+  type: z.enum(["Feature"])
 }).passthrough()
 
 export const AddRulesRequestSchema = z.object({
@@ -974,7 +974,7 @@ export const UserComplianceStreamResponseSchema = z.union([z.object({
 }).passthrough()])
 
 export const CreateDmConversationRequestSchema = z.object({
-  conversation_type: z.enum(['Group']),
+  conversation_type: z.enum(["Group"]),
   message: CreateMessageRequestSchema,
   participant_ids: DmParticipantsSchema
 }).passthrough()
@@ -1027,7 +1027,7 @@ export const TweetSchema = z.object({
 }).passthrough().optional(),
   referenced_tweets: z.array(z.object({
   id: TweetIdSchema,
-  type: z.enum(['retweeted', 'quoted', 'replied_to'])
+  type: z.enum(["retweeted", "quoted", "replied_to"])
 }).passthrough()).min(1).optional(),
   reply_settings: ReplySettingsSchema.optional(),
   source: z.string().optional(),

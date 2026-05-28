@@ -12,8 +12,10 @@ jobs:
   smoke:
     name: Smoke Tests (real HTTP)
     runs-on: ubuntu-latest
-    # Don't fail CI if a free API is temporarily down
-    continue-on-error: true
+    # Smoke tests hit free public APIs that may occasionally be down.
+    # The job is allowed to fail without blocking anything — but GitHub will still
+    # send a failure email to repo watchers when the scheduled run fails, which is
+    # exactly the notification we want.
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       - uses: pnpm/action-setup@0e279bb959325dab635dd2c09392533439d90093 # v6.0.8
@@ -34,4 +36,4 @@ jobs:
           done
 
       - name: Run smoke tests
-        run: pnpm --filter @codewithagents/examples run smoke
+        run: pnpm smoke

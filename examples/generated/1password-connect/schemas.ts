@@ -43,14 +43,14 @@ export const VaultSchema = z.object({
   attributeVersion: z.number().optional(),
   contentVersion: z.number().optional(),
   items: z.number().optional(),
-  type: z.enum(['USER_CREATED', 'PERSONAL', 'EVERYONE', 'TRANSFER']).optional(),
+  type: z.enum(["USER_CREATED", "PERSONAL", "EVERYONE", "TRANSFER"]).optional(),
   createdAt: z.string().optional(),
   updatedAt: z.string().optional()
 }).passthrough()
 
 export const GeneratorRecipeSchema = z.object({
   length: z.number().min(1).max(64).optional(),
-  characterSets: z.array(z.enum(['LETTERS', 'DIGITS', 'SYMBOLS'])).optional(),
+  characterSets: z.array(z.enum(["LETTERS", "DIGITS", "SYMBOLS"])).optional(),
   excludeCharacters: z.string().optional()
 }).passthrough()
 
@@ -60,7 +60,7 @@ export const ItemSchema = z.object({
   vault: z.object({
   id: z.string().regex(new RegExp("^[\\da-z]{26}$"))
 }).passthrough(),
-  category: z.enum(['LOGIN', 'PASSWORD', 'API_CREDENTIAL', 'SERVER', 'DATABASE', 'CREDIT_CARD', 'MEMBERSHIP', 'PASSPORT', 'SOFTWARE_LICENSE', 'OUTDOOR_LICENSE', 'SECURE_NOTE', 'WIRELESS_ROUTER', 'BANK_ACCOUNT', 'DRIVER_LICENSE', 'IDENTITY', 'REWARD_PROGRAM', 'DOCUMENT', 'EMAIL_ACCOUNT', 'SOCIAL_SECURITY_NUMBER', 'MEDICAL_RECORD', 'SSH_KEY', 'CUSTOM']),
+  category: z.enum(["LOGIN", "PASSWORD", "API_CREDENTIAL", "SERVER", "DATABASE", "CREDIT_CARD", "MEMBERSHIP", "PASSPORT", "SOFTWARE_LICENSE", "OUTDOOR_LICENSE", "SECURE_NOTE", "WIRELESS_ROUTER", "BANK_ACCOUNT", "DRIVER_LICENSE", "IDENTITY", "REWARD_PROGRAM", "DOCUMENT", "EMAIL_ACCOUNT", "SOCIAL_SECURITY_NUMBER", "MEDICAL_RECORD", "SSH_KEY", "CUSTOM"]),
   urls: z.array(z.object({
   label: z.string().optional(),
   primary: z.boolean().optional(),
@@ -69,7 +69,7 @@ export const ItemSchema = z.object({
   favorite: z.boolean().optional(),
   tags: z.array(z.string()).optional(),
   version: z.number().optional(),
-  state: z.enum(['ARCHIVED', 'DELETED']).optional(),
+  state: z.enum(["ARCHIVED", "DELETED"]).optional(),
   createdAt: z.string().optional(),
   updatedAt: z.string().optional(),
   lastEditedBy: z.string().optional()
@@ -78,8 +78,8 @@ export const ItemSchema = z.object({
 export const APIRequestSchema = z.object({
   requestId: z.string().uuid().optional(),
   timestamp: z.string().optional(),
-  action: z.enum(['READ', 'CREATE', 'UPDATE', 'DELETE']).optional(),
-  result: z.enum(['SUCCESS', 'DENY']).optional(),
+  action: z.enum(["READ", "CREATE", "UPDATE", "DELETE"]).optional(),
+  result: z.enum(["SUCCESS", "DENY"]).optional(),
   actor: z.object({
   id: z.string().uuid().optional(),
   account: z.string().optional(),
@@ -88,7 +88,7 @@ export const APIRequestSchema = z.object({
   requestIp: z.string().optional()
 }).passthrough().optional(),
   resource: z.object({
-  type: z.enum(['ITEM', 'VAULT']).optional(),
+  type: z.enum(["ITEM", "VAULT"]).optional(),
   vault: z.object({
   id: z.string().regex(new RegExp("^[\\da-z]{26}$")).optional()
 }).passthrough().optional(),
@@ -100,7 +100,7 @@ export const APIRequestSchema = z.object({
 }).passthrough()
 
 export const PatchSchema = z.array(z.object({
-  op: z.enum(['add', 'remove', 'replace']),
+  op: z.enum(["add", "remove", "replace"]),
   path: z.string(),
   value: z.record(z.string(), z.unknown()).optional()
 }).passthrough())
@@ -116,8 +116,8 @@ export const FieldSchema = z.object({
   section: z.object({
   id: z.string().optional()
 }).passthrough().optional(),
-  type: z.enum(['STRING', 'EMAIL', 'CONCEALED', 'URL', 'TOTP', 'DATE', 'MONTH_YEAR', 'MENU']),
-  purpose: z.enum(['', 'USERNAME', 'PASSWORD', 'NOTES']).optional(),
+  type: z.enum(["STRING", "EMAIL", "CONCEALED", "URL", "TOTP", "DATE", "MONTH_YEAR", "MENU"]),
+  purpose: z.enum(["", "USERNAME", "PASSWORD", "NOTES"]).optional(),
   label: z.string().optional(),
   value: z.string().optional(),
   generate: z.boolean().optional(),
