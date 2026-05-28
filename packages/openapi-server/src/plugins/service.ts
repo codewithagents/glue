@@ -19,7 +19,7 @@ function isRef(obj: unknown): obj is ReferenceObject {
 
 function refToName(ref: string): string {
   const parts = ref.split('/')
-  return parts[parts.length - 1]!
+  return toTypeName(parts[parts.length - 1]!)
 }
 
 /** Extract path param names in template order (matches {param} in path string) */
@@ -56,9 +56,11 @@ function deriveServiceName(spec: OpenAPIV3_1.Document): string {
     .map((s) => s.charAt(0).toUpperCase() + s.slice(1))
     .join('')
   if (pascal.length === 0) return 'ApiService'
+  // Guard against numeric-start identifiers (e.g. '1Password Connect' → '_1PasswordConnect')
+  const safePascal = /^[0-9]/.test(pascal) ? `_${pascal}` : pascal
   // Append 'Service' if not already ending in 'Service'
-  if (pascal.endsWith('Service')) return pascal
-  return `${pascal}Service`
+  if (safePascal.endsWith('Service')) return safePascal
+  return `${safePascal}Service`
 }
 
 /**
