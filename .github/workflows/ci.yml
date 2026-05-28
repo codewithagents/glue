@@ -41,6 +41,7 @@ jobs:
           use_oidc: true
           files: ./packages/api-errors/coverage/lcov.info
           flags: api-errors
+          disable_search: true   # prevent auto-discovery of other packages' lcov files
           fail_ci_if_error: false
 
       - name: Upload coverage to Codecov (openapi-gen)
@@ -49,6 +50,7 @@ jobs:
           use_oidc: true
           files: ./packages/openapi-gen/coverage/lcov.info
           flags: openapi-gen
+          disable_search: true
           fail_ci_if_error: false
 
       - name: Upload coverage to Codecov (openapi-react-query)
@@ -57,6 +59,7 @@ jobs:
           use_oidc: true
           files: ./packages/openapi-react-query/coverage/lcov.info
           flags: openapi-react-query
+          disable_search: true
           fail_ci_if_error: false
 
       - name: Upload coverage to Codecov (openapi-server)
@@ -65,6 +68,7 @@ jobs:
           use_oidc: true
           files: ./packages/openapi-server/coverage/lcov.info
           flags: openapi-server
+          disable_search: true
           fail_ci_if_error: false
 
   e2e:
