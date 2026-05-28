@@ -60,6 +60,9 @@ catalogs:
     vitest:
       specifier: ^4.1.7
       version: 4.1.7
+    zod:
+      specifier: ^4.4.3
+      version: 4.4.3
 
 overrides:
   qs: ^6.15.2
@@ -71,6 +74,21 @@ importers:
       typescript:
         specifier: ^6.0.0
         version: 6.0.3
+
+  examples:
+    devDependencies:
+      '@codewithagents/openapi-gen':
+        specifier: workspace:*
+        version: link:../packages/openapi-gen
+      typescript:
+        specifier: 'catalog:'
+        version: 6.0.3
+      vitest:
+        specifier: 'catalog:'
+        version: 4.1.7(@types/node@22.19.19)(@vitest/coverage-v8@4.1.7)(jsdom@26.1.0)(msw@2.14.6(@types/node@22.19.19)(typescript@6.0.3))(vite@7.3.3(@types/node@22.19.19)(tsx@4.22.3))
+      zod:
+        specifier: 'catalog:'
+        version: 4.4.3
 
   packages/api-errors:
     devDependencies:

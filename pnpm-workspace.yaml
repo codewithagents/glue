@@ -1,5 +1,6 @@
 packages:
   - 'packages/*'
+  - 'examples'
 
 catalog:
   # Test tooling — used across all packages
@@ -32,6 +33,9 @@ catalog:
   eslint: ^9.0.0
   '@typescript-eslint/eslint-plugin': ^8.0.0
   '@typescript-eslint/parser': ^8.0.0
+
+  # Zod (examples)
+  zod: ^4.4.3
 
   # React ecosystem (integration + petstore)
   react: ^19.0.0

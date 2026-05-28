@@ -1,5 +1,5 @@
 import type { OpenAPIV3_1 } from 'openapi-types'
-import { toPropertyKey } from '../utils/naming.js'
+import { toPropertyKey, toTypeName } from '../utils/naming.js'
 import type { GeneratedFile } from './types.js'
 
 type SchemaObject = OpenAPIV3_1.SchemaObject
@@ -11,13 +11,15 @@ function isRef(schema: SchemaObject | ReferenceObject): schema is ReferenceObjec
 }
 
 function refToSchemaName(ref: string): string {
+  // '#/components/schemas/Foo' -> 'FooSchema' (sanitized to a valid TS identifier)
   const parts = ref.split('/')
-  return `${parts[parts.length - 1]!}Schema`
+  return `${toTypeName(parts[parts.length - 1]!)}Schema`
 }
 
 function refToTypeName(ref: string): string {
+  // '#/components/schemas/Foo' -> 'Foo' (sanitized to a valid TS identifier)
   const parts = ref.split('/')
-  return parts[parts.length - 1]!
+  return toTypeName(parts[parts.length - 1]!)
 }
 
 /** Check whether a schema tree contains a $ref to the given schema name (self-reference). */
@@ -300,17 +302,19 @@ function topoSortSchemas(schemas: Record<string, SchemaObject | ReferenceObject>
 }
 
 function generateSchemaDeclaration(name: string, schema: SchemaObject | ReferenceObject, inCycle = false): string {
-  const useLazy = inCycle || (!isRef(schema) && hasSelfRef(schema, name))
+  // Sanitize schema name to a valid TS identifier (e.g. 'Foo-bar' → 'FooBar')
+  const safeName = toTypeName(name)
+  const useLazy = inCycle || (!isRef(schema) && hasSelfRef(schema, safeName))
 
   if (useLazy) {
     // Wrap in z.lazy() for circular/self-referential schemas.
     // z.lazy() defers evaluation until first use, by which point all
     // schema variables are declared — safe even for mutual cycles.
     const inner = schemaToZod(schema)
-    return `export const ${name}Schema: z.ZodType = z.lazy(() => ${inner})`
+    return `export const ${safeName}Schema: z.ZodType = z.lazy(() => ${inner})`
   }
 
-  return `export const ${name}Schema = ${schemaToZod(schema)}`
+  return `export const ${safeName}Schema = ${schemaToZod(schema)}`
 }
 
 export function generateZodSchemas(spec: OpenAPIV3_1.Document): GeneratedFile {
@@ -344,9 +348,16 @@ export function generateZodSchemas(spec: OpenAPIV3_1.Document): GeneratedFile {
   ]
 
   if (schemas !== undefined) {
-    const { sorted, cyclic } = topoSortSchemas(schemas)
+    // Sanitize schema names so the topo sort and ref-collection use consistent identifiers.
+    // Schema names like 'Foo-bar' become 'FooBar' — safe for use as TS variable names.
+    const sanitizedSchemas: Record<string, SchemaObject | ReferenceObject> = {}
+    for (const [name, schema] of Object.entries(schemas)) {
+      sanitizedSchemas[toTypeName(name)] = schema
+    }
+
+    const { sorted, cyclic } = topoSortSchemas(sanitizedSchemas)
     for (const name of sorted) {
-      const schema = schemas[name]!
+      const schema = sanitizedSchemas[name]!
       lines.push(generateSchemaDeclaration(name, schema, cyclic.has(name)))
       lines.push('')
     }

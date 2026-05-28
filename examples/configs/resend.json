@@ -1,0 +1,5 @@
+{
+  "input_openapi": "../specs/resend.json",
+  "output": "../generated/resend",
+  "input_schema": "../generated/resend/schemas.ts"
+}

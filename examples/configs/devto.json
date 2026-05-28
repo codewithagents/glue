@@ -1,0 +1,5 @@
+{
+  "input_openapi": "../specs/devto.json",
+  "output": "../generated/devto",
+  "input_schema": "../generated/devto/schemas.ts"
+}

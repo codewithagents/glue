@@ -1,0 +1,5 @@
+{
+  "input_openapi": "../specs/redocly-museum.yaml",
+  "output": "../generated/redocly-museum",
+  "input_schema": "../generated/redocly-museum/schemas.ts"
+}
