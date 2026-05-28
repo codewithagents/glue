@@ -1,22 +1,14 @@
 # examples
 
-Real-world OpenAPI specs run through `@codewithagents/openapi-gen`. Generated output is committed so CI can detect drift.
+128 real-world OpenAPI specs run through `@codewithagents/openapi-gen`. Two tiers: **showcase specs** with committed generated output and **compatibility matrix specs** that prove breadth.
 
-## What this proves
+## Two tiers
 
-Every spec here generates a Prettier-clean, `tsc --strict`-passing TypeScript client. Across 11 APIs from 8 different industries — payments, AI, security, fintech, email, weather, music, social — the generator handles:
+### Showcase specs (11)
 
-- Kebab-case operationIds (`post-applePay-sessions` → `postApplePaySessions`)
-- Hyphenated schema names (`CapabilityProblemEntity-recursive` → `CapabilityProblemEntityRecursive`)
-- Hyphenated path segments (`/api-keys` → `createApiKeys`)
-- Array query params (`project_ids[]` → TS property `project_ids`, wire name `project_ids[]`)
-- Dot-notation query params (`place.fields` → TS property `placeFields`, wire name `place.fields`)
-- Path-item level parameters (inherited by all operations in the path)
-- Schema name conflicts with global types (OpenAI has a schema called `Response`)
-- 100+ query parameters on a single endpoint (Open-Meteo)
-- 3.0.x specs alongside 3.1.x specs
+Generated output is committed to `examples/generated/`. CI regenerates on every relevant PR and fails if output has drifted. All 11 generated clients also pass `tsc --strict`.
 
-## Specs included
+These are the "golden examples" — they prove the generator handles real edge cases end-to-end.
 
 | Name | Version | Paths | Industry |
 |------|---------|-------|----------|
@@ -32,13 +24,43 @@ Every spec here generates a Prettier-clean, `tsc --strict`-passing TypeScript cl
 | `twitter` | 3.0.0 | 67 | Social |
 | `openai` | 3.0.0 | ~100 | AI |
 
-> **Note:** The `resend` spec was patched from `openapi: "3.1.2"` → `"3.1.0"` because 3.1.2 is not an official OpenAPI version. The 3.0.x specs are accepted by the generator (which runs against 3.1-shaped internals — 3.0-specific constructs like `nullable: true` pass through; full 3.0 normalization is a planned feature).
+### Compatibility matrix specs (117)
 
-## Regenerating
+Spec files are committed to `examples/specs/` and configs to `examples/configs/`. Generated output is **not** committed — CI generates all 117 at runtime and reports a pass/fail count.
+
+**Current pass rate: 74/117 (63%).**
+
+A sample of the APIs covered: Stripe, GitHub, Google Calendar, Google Drive, Google Sheets, Spotify, Slack, Vercel, Cloudflare, Twilio, Plaid, Notion, Jira, Okta, Asana, Bitbucket, Box, Brex, CircleCI, Figma (via Notion), Klarna, Linode, NASA, Pinecone, SendGrid, Square, Webflow, Xero, YouTube, Zoom, Zuora, and many more.
+
+## Known failure patterns
+
+These categories account for most of the 43 currently failing specs:
+
+- **Dots in operationIds** — e.g. `calendar.calendars.insert` in Google APIs (11 Google API specs). The generator tries to sanitize dots but produces invalid identifiers in some cases.
+- **Spaces in operationIds** — operationIds with whitespace that can't be cleanly converted to camelCase.
+- **Special characters** — parens, braces, and other non-alphanumeric characters in operationIds or schema names.
+
+These are tracked and fixes are in progress. The compat matrix is how we find and document them.
+
+## What the showcase specs prove
+
+The generator handles:
+
+- Kebab-case operationIds (`post-applePay-sessions` → `postApplePaySessions`)
+- Hyphenated schema names (`CapabilityProblemEntity-recursive` → `CapabilityProblemEntityRecursive`)
+- Hyphenated path segments (`/api-keys` → `createApiKeys`)
+- Array query params (`project_ids[]` → TS property `project_ids`, wire name `project_ids[]`)
+- Dot-notation query params (`place.fields` → TS property `placeFields`, wire name `place.fields`)
+- Path-item level parameters (inherited by all operations in the path)
+- Schema name conflicts with global types (OpenAI has a schema called `Response`)
+- 100+ query parameters on a single endpoint (Open-Meteo)
+- 3.0.x specs alongside 3.1.x specs
+
+## Regenerating showcase output
 
 ```bash
 cd examples
-pnpm generate    # runs openapi-gen on all 11 specs
+pnpm generate    # runs openapi-gen on all 11 showcase specs
 ```
 
 Or from the repo root:
@@ -55,11 +77,15 @@ pnpm --filter @codewithagents/examples run typecheck
 
 ## CI
 
-The `examples` job in `.github/workflows/ci.yml` runs in parallel with `Build, Lint & Test`. It:
+The `Examples` workflow (`.github/workflows/examples.yml`) is separate from the main CI:
 
-1. Builds the generator packages
-2. Runs `generate` to regenerate all output
-3. Runs `git diff --exit-code` on `examples/generated/` — fails if output changed
-4. Runs `tsc --noEmit` on all generated files
+- **Triggers**: path-filtered (`packages/openapi-gen/**`, `examples/**`) on PRs and pushes to main, plus weekly on Monday 6am UTC
+- **Steps**:
+  1. Build the generator packages
+  2. Run all 128 configs — reports `PASS`/`FAIL` per spec with a summary count
+  3. `git diff --exit-code examples/generated/` — fails if showcase output has drifted
+  4. `tsc --noEmit` on all generated output in `examples/generated/`
 
-If CI fails with "Generated output is out of date", run `pnpm generate` in `examples/` and commit the updated output.
+If CI fails with "Showcase generated output is out of date", run `pnpm generate` in `examples/` and commit the updated output.
+
+> **Note:** The `resend` spec was patched from `openapi: "3.1.2"` → `"3.1.0"` because 3.1.2 is not an official OpenAPI version. The 3.0.x specs are accepted by the generator (3.0-specific constructs like `nullable: true` pass through; full 3.0 normalization is a planned feature).

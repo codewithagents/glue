@@ -10,6 +10,7 @@ Generate TypeScript models and a native `fetch` client from an OpenAPI 3.1 spec.
 - **SSR-ready** — every generated function accepts a per-request config override. No global singleton mutation.
 - **OpenAPI 3.1 only** — `type: ['string', 'null']`, `$ref`, `allOf`, `anyOf`, `oneOf`. No legacy compat.
 - **TypeScript strict mode** — all output passes `strict: true`.
+- **Tested against 128 real-world specs** — Stripe, GitHub, Spotify, OpenAI, Adyen, Twilio, Slack, Vercel, and more. See the [`examples/`](../../examples/) directory.
 
 ---
 
