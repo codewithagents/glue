@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.0.0](https://github.com/codewithagents/glue/compare/openapi-server-v0.3.0...openapi-server-v1.0.0) (2026-05-27)
+
+
+### ⚠ BREAKING CHANGES
+
+* generated files are now Prettier-formatted. Re-generate after upgrading if you run prettier --check on committed output.
+
+### Features
+
+* regenerate with Prettier and add vitest unit tests ([#134](https://github.com/codewithagents/glue/issues/134)) ([1d50c89](https://github.com/codewithagents/glue/commit/1d50c8915432464bde64067720691431973bf494))
+* YAML/Zod pipeline tests + openapi-server Prettier and 1.0.0 ([#133](https://github.com/codewithagents/glue/issues/133)) ([8ec2f1e](https://github.com/codewithagents/glue/commit/8ec2f1ec17486fc3645939e515cbb401500927f3))
+
 ## [0.3.0](https://github.com/codewithagents/glue/compare/openapi-server-v0.2.0...openapi-server-v0.3.0) (2026-05-26)
 
 

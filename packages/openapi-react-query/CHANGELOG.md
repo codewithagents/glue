@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.3.0](https://github.com/codewithagents/glue/compare/openapi-react-query-v3.2.0...openapi-react-query-v3.3.0) (2026-05-27)
+
+
+### Features
+
+* format generated output with Prettier; ESLint validation in integration ([#131](https://github.com/codewithagents/glue/issues/131)) ([c1db744](https://github.com/codewithagents/glue/commit/c1db744c677655d541a943122f16e00dab6373e3))
+
 ## [3.2.0](https://github.com/codewithagents/glue/compare/openapi-react-query-v3.1.3...openapi-react-query-v3.2.0) (2026-05-27)
 
 
