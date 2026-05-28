@@ -35,6 +35,18 @@
     "typescript": "catalog:",
     "vitest": "catalog:"
   },
+  "keywords": [
+    "openapi",
+    "openapi-3.1",
+    "hono",
+    "server",
+    "codegen",
+    "typescript",
+    "zod",
+    "code-generator",
+    "service-interface",
+    "router"
+  ],
   "license": "MIT",
   "repository": {
     "type": "git",

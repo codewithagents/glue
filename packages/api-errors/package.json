@@ -21,12 +21,14 @@
     "lint": "tsc --noEmit"
   },
   "keywords": [
-    "api",
-    "errors",
-    "form",
+    "api-errors",
+    "form-errors",
     "react-hook-form",
     "validation",
-    "typescript"
+    "typescript",
+    "error-mapping",
+    "zod",
+    "field-errors"
   ],
   "license": "MIT",
   "repository": {
