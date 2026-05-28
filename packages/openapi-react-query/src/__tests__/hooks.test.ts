@@ -1335,6 +1335,63 @@ describe('Bug #105: cache key collision when multiple GET ops share same path pa
   })
 })
 
+// ── Bug: path segments with hyphens produce invalid identifiers ───────────────
+
+describe('generateHooks — path segment sanitization in deriveOperationName', () => {
+  it('/api-keys (no operationId) → createApiKeys (not createApi-keys)', () => {
+    const spec: OpenAPIV3_1.Document = {
+      openapi: '3.1.0',
+      info: { title: 'Test', version: '1.0.0' },
+      paths: {
+        '/api-keys': {
+          post: {
+            // no operationId — forces deriveOperationName
+            responses: { '201': { description: 'created' } },
+          },
+        },
+      },
+    }
+    const { content } = generateHooks(spec, { staleTime: 0, gcTime: 0 })
+    expect(content).toContain('createApiKeys')
+    expect(content).not.toContain('createApi-keys')
+  })
+
+  it('GET /api-keys → useGetApiKeys (not useGetApi-keys)', () => {
+    const spec: OpenAPIV3_1.Document = {
+      openapi: '3.1.0',
+      info: { title: 'Test', version: '1.0.0' },
+      paths: {
+        '/api-keys': {
+          get: {
+            responses: { '200': { description: 'ok' } },
+          },
+        },
+      },
+    }
+    const { content } = generateHooks(spec, { staleTime: 0, gcTime: 0 })
+    expect(content).toContain('export function useGetApiKeys')
+    expect(content).not.toContain('useGetApi-keys')
+  })
+
+  it('path param {api-key-id} → ByApiKeyId (not ByApi-key-id)', () => {
+    const spec: OpenAPIV3_1.Document = {
+      openapi: '3.1.0',
+      info: { title: 'Test', version: '1.0.0' },
+      paths: {
+        '/api-keys/{api-key-id}': {
+          get: {
+            parameters: [{ name: 'api-key-id', in: 'path', required: true, schema: { type: 'string' } }],
+            responses: { '200': { description: 'ok' } },
+          },
+        },
+      },
+    }
+    const { content } = generateHooks(spec, { staleTime: 0, gcTime: 0 })
+    expect(content).toContain('GetApiKeysByApiKeyId')
+    expect(content).not.toContain('Api-key')
+  })
+})
+
 // ── Bug #106: ...options spread overwrites auto-invalidation onSuccess ────────
 
 describe('Bug #106: ...options spread must not overwrite auto-invalidation onSuccess', () => {

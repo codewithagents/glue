@@ -63,6 +63,72 @@ jobs:
             echo "Failed specs:$failed_names"
           fi
 
+      - name: Generate React Query hooks (compatibility matrix)
+        run: |
+          cd examples
+          pass=0
+          fail=0
+          failed_names=""
+
+          for config in configs/*.json; do
+            name=$(basename "$config" .json)
+            input=$(node -e "process.stdout.write(require('./$config').input_openapi)")
+            tmp_config="configs/_tmp_rq_${name}.json"
+            printf '{"input_openapi":"%s","output":"../generated-rq/%s"}' "$input" "$name" > "$tmp_config"
+            if pnpm exec openapi-react-query --config "$tmp_config" > /tmp/rq_${name}.log 2>&1; then
+              echo "PASS: $name"
+              pass=$((pass + 1))
+            else
+              echo "FAIL: $name"
+              cat /tmp/rq_${name}.log | tail -5
+              fail=$((fail + 1))
+              failed_names="$failed_names $name"
+            fi
+            rm "$tmp_config"
+          done
+
+          total=$((pass + fail))
+          echo ""
+          echo "==================================="
+          echo "React Query hooks: $pass/$total specs generated successfully"
+          echo "==================================="
+          if [ -n "$failed_names" ]; then
+            echo "Failed specs:$failed_names"
+          fi
+
+      - name: Generate server stubs (compatibility matrix)
+        run: |
+          cd examples
+          pass=0
+          fail=0
+          failed_names=""
+
+          for config in configs/*.json; do
+            name=$(basename "$config" .json)
+            input=$(node -e "process.stdout.write(require('./$config').input_openapi)")
+            tmp_config="configs/_tmp_server_${name}.json"
+            printf '{"input_openapi":"%s","output":"../generated-server/%s"}' "$input" "$name" > "$tmp_config"
+            if pnpm exec openapi-server --config "$tmp_config" > /tmp/server_${name}.log 2>&1; then
+              echo "PASS: $name"
+              pass=$((pass + 1))
+            else
+              echo "FAIL: $name"
+              cat /tmp/server_${name}.log | tail -5
+              fail=$((fail + 1))
+              failed_names="$failed_names $name"
+            fi
+            rm "$tmp_config"
+          done
+
+          total=$((pass + fail))
+          echo ""
+          echo "==================================="
+          echo "Server stubs: $pass/$total specs generated successfully"
+          echo "==================================="
+          if [ -n "$failed_names" ]; then
+            echo "Failed specs:$failed_names"
+          fi
+
       - name: Verify showcase specs are up to date
         run: |
           git diff --exit-code examples/generated/ || (echo "Showcase generated output is out of date. Run 'pnpm generate' in examples/ and commit the result." && exit 1)

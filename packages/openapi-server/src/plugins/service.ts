@@ -19,7 +19,7 @@ function isRef(obj: unknown): obj is ReferenceObject {
 
 function refToName(ref: string): string {
   const parts = ref.split('/')
-  return parts[parts.length - 1]!
+  return toTypeName(parts[parts.length - 1]!)
 }
 
 /** Extract path param names in template order (matches {param} in path string) */
@@ -56,9 +56,11 @@ function deriveServiceName(spec: OpenAPIV3_1.Document): string {
     .map((s) => s.charAt(0).toUpperCase() + s.slice(1))
     .join('')
   if (pascal.length === 0) return 'ApiService'
+  // Guard against numeric-start identifiers (e.g. '1Password Connect' → '_1PasswordConnect')
+  const safePascal = /^[0-9]/.test(pascal) ? `_${pascal}` : pascal
   // Append 'Service' if not already ending in 'Service'
-  if (pascal.endsWith('Service')) return pascal
-  return `${pascal}Service`
+  if (safePascal.endsWith('Service')) return safePascal
+  return `${safePascal}Service`
 }
 
 /**
@@ -121,6 +123,18 @@ interface QueryParam {
   required: boolean
 }
 
+/** Normalize a raw query param name to a valid TypeScript identifier.
+ *  Strips trailing [] (array marker), converts separators to camelCase.
+ */
+function normalizeParamName(name: string): string {
+  return name
+    .replace(/\[\]$/, '')   // strip trailing []
+    .replace(/'/g, '')
+    .replace(/[^a-zA-Z0-9]+([a-zA-Z])/g, (_, char: string) => char.toUpperCase())
+    .replace(/[^a-zA-Z0-9]+$/, '')
+    .replace(/^[^a-zA-Z_$]/, '_')
+}
+
 function getQueryParams(operation: OperationObject, spec: OpenAPIV3_1.Document): QueryParam[] {
   const parameters = operation.parameters as (ParameterObject | ReferenceObject)[] | undefined
   if (parameters === undefined) return []
@@ -139,7 +153,7 @@ function getQueryParams(operation: OperationObject, spec: OpenAPIV3_1.Document):
     }
 
     result.push({
-      name: resolved.name,
+      name: normalizeParamName(resolved.name),
       tsType,
       required: resolved.required === true,
     })

@@ -46,9 +46,11 @@ function deriveOperationName(method: string, path: string): string {
   const parts = segments.split('/').map((seg) => {
     if (seg.startsWith('{') && seg.endsWith('}')) {
       const name = seg.slice(1, -1)
-      return 'By' + name.charAt(0).toUpperCase() + name.slice(1)
+      const sanitized = sanitizeOperationId(name)
+      return 'By' + sanitized.charAt(0).toUpperCase() + sanitized.slice(1)
     }
-    return seg.charAt(0).toUpperCase() + seg.slice(1)
+    const sanitized = sanitizeOperationId(seg)
+    return sanitized.charAt(0).toUpperCase() + sanitized.slice(1)
   })
 
   const joined = parts.join('')
@@ -480,6 +482,31 @@ function operationHasQueryParams(operation: OperationObject): boolean {
   })
 }
 
+/**
+ * Converts a raw operationId into a valid camelCase JS identifier.
+ * Mirrors the logic in openapi-gen/src/plugins/client.ts.
+ * e.g. "actions/add-custom-labels" → "actionsAddCustomLabels"
+ * e.g. "delete-storedPaymentMethods-id" → "deleteStoredPaymentMethodsId"
+ */
+function sanitizeOperationId(id: string): string {
+  const parts = id
+    .replace(/'/g, '')
+    .split(/[^a-zA-Z0-9]+/)
+    .filter(Boolean)
+  if (parts.length === 0) return 'unknown'
+  const [first = '', ...rest] = parts
+  const camel =
+    first.charAt(0).toLowerCase() +
+    first.slice(1) +
+    rest.map((p) => p.charAt(0).toUpperCase() + p.slice(1)).join('')
+  if (/^[0-9]/.test(camel)) return `_${camel}`
+  const RESERVED = new Set(['break','case','catch','class','const','continue','debugger','default',
+    'delete','do','else','export','extends','finally','for','function','if','import','in',
+    'instanceof','let','new','return','static','super','switch','this','throw','try','typeof',
+    'var','void','while','with','yield'])
+  return RESERVED.has(camel) ? `_${camel}` : camel
+}
+
 /** Returns true if any query parameter has required: true */
 function operationHasRequiredQueryParams(operation: OperationObject): boolean {
   const params = operation.parameters as (OpenAPIV3_1.ParameterObject | ReferenceObject)[] | undefined
@@ -511,8 +538,7 @@ export function generateHooks(
 
         let funcName: string
         if (operation.operationId !== undefined) {
-          const id = operation.operationId
-          funcName = id.charAt(0).toLowerCase() + id.slice(1)
+          funcName = sanitizeOperationId(operation.operationId)
         } else {
           funcName = deriveOperationName(method, path)
         }
