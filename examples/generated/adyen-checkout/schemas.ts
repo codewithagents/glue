@@ -21,50 +21,50 @@
 import { z } from 'zod'
 
 export const AccountInfoSchema = z.object({
-  accountAgeIndicator: z.enum(['notApplicable', 'thisTransaction', 'lessThan30Days', 'from30To60Days', 'moreThan60Days']).optional(),
+  accountAgeIndicator: z.enum(["notApplicable", "thisTransaction", "lessThan30Days", "from30To60Days", "moreThan60Days"]).optional(),
   accountChangeDate: z.string().optional(),
-  accountChangeIndicator: z.enum(['thisTransaction', 'lessThan30Days', 'from30To60Days', 'moreThan60Days']).optional(),
+  accountChangeIndicator: z.enum(["thisTransaction", "lessThan30Days", "from30To60Days", "moreThan60Days"]).optional(),
   accountCreationDate: z.string().optional(),
-  accountType: z.enum(['notApplicable', 'credit', 'debit']).optional(),
+  accountType: z.enum(["notApplicable", "credit", "debit"]).optional(),
   addCardAttemptsDay: z.number().optional(),
   deliveryAddressUsageDate: z.string().optional(),
-  deliveryAddressUsageIndicator: z.enum(['thisTransaction', 'lessThan30Days', 'from30To60Days', 'moreThan60Days']).optional(),
+  deliveryAddressUsageIndicator: z.enum(["thisTransaction", "lessThan30Days", "from30To60Days", "moreThan60Days"]).optional(),
   homePhone: z.string().optional(),
   mobilePhone: z.string().optional(),
   passwordChangeDate: z.string().optional(),
-  passwordChangeIndicator: z.enum(['notApplicable', 'thisTransaction', 'lessThan30Days', 'from30To60Days', 'moreThan60Days']).optional(),
+  passwordChangeIndicator: z.enum(["notApplicable", "thisTransaction", "lessThan30Days", "from30To60Days", "moreThan60Days"]).optional(),
   pastTransactionsDay: z.number().optional(),
   pastTransactionsYear: z.number().optional(),
   paymentAccountAge: z.string().optional(),
-  paymentAccountIndicator: z.enum(['notApplicable', 'thisTransaction', 'lessThan30Days', 'from30To60Days', 'moreThan60Days']).optional(),
+  paymentAccountIndicator: z.enum(["notApplicable", "thisTransaction", "lessThan30Days", "from30To60Days", "moreThan60Days"]).optional(),
   purchasesLast6Months: z.number().optional(),
   suspiciousActivity: z.boolean().optional(),
   workPhone: z.string().optional()
 }).passthrough()
 
 export const AcctInfoSchema = z.object({
-  chAccAgeInd: z.enum(['01', '02', '03', '04', '05']).optional(),
+  chAccAgeInd: z.enum(["01", "02", "03", "04", "05"]).optional(),
   chAccChange: z.string().optional(),
-  chAccChangeInd: z.enum(['01', '02', '03', '04']).optional(),
+  chAccChangeInd: z.enum(["01", "02", "03", "04"]).optional(),
   chAccPwChange: z.string().optional(),
-  chAccPwChangeInd: z.enum(['01', '02', '03', '04', '05']).optional(),
+  chAccPwChangeInd: z.enum(["01", "02", "03", "04", "05"]).optional(),
   chAccString: z.string().optional(),
   nbPurchaseAccount: z.string().optional(),
   paymentAccAge: z.string().optional(),
-  paymentAccInd: z.enum(['01', '02', '03', '04', '05']).optional(),
+  paymentAccInd: z.enum(["01", "02", "03", "04", "05"]).optional(),
   provisionAttemptsDay: z.string().optional(),
   shipAddressUsage: z.string().optional(),
-  shipAddressUsageInd: z.enum(['01', '02', '03', '04']).optional(),
-  shipNameIndicator: z.enum(['01', '02']).optional(),
-  suspiciousAccActivity: z.enum(['01', '02']).optional(),
+  shipAddressUsageInd: z.enum(["01", "02", "03", "04"]).optional(),
+  shipNameIndicator: z.enum(["01", "02"]).optional(),
+  suspiciousAccActivity: z.enum(["01", "02"]).optional(),
   txnActivityDay: z.string().max(3).optional(),
   txnActivityYear: z.string().max(3).optional()
 }).passthrough()
 
 export const AchDetailsSchema = z.object({
-  accountHolderType: z.enum(['business', 'personal']).optional(),
+  accountHolderType: z.enum(["business", "personal"]).optional(),
   bankAccountNumber: z.string().optional(),
-  bankAccountType: z.enum(['balance', 'checking', 'deposit', 'general', 'other', 'payment', 'savings']).optional(),
+  bankAccountType: z.enum(["balance", "checking", "deposit", "general", "other", "payment", "savings"]).optional(),
   bankLocationId: z.string().optional(),
   checkoutAttemptId: z.string().optional(),
   encryptedBankAccountNumber: z.string().optional(),
@@ -74,12 +74,12 @@ export const AchDetailsSchema = z.object({
   sdkData: z.string().max(50000).optional(),
   storedPaymentMethodId: z.string().max(64).optional(),
   transferInstrumentId: z.string().optional(),
-  type: z.enum(['ach', 'ach_plaid']).optional()
+  type: z.enum(["ach", "ach_plaid"]).optional()
 }).passthrough()
 
 export const AdditionalData3DSecureSchema = z.object({
   allow3DS2: z.string().optional(),
-  challengeWindowSize: z.enum(['01', '02', '03', '04', '05']).optional(),
+  challengeWindowSize: z.enum(["01", "02", "03", "04", "05"]).optional(),
   executeThreeD: z.string().optional(),
   mpiImplementationType: z.string().optional(),
   scaExemption: z.string().optional(),
@@ -151,7 +151,7 @@ export const AdditionalDataCommonSchema = z.object({
   authorisationType: z.string().optional(),
   autoRescue: z.string().optional(),
   customRoutingFlag: z.string().optional(),
-  industryUsage: z.enum(['NoShow', 'DelayedCharge']).optional(),
+  industryUsage: z.enum(["NoShow", "DelayedCharge"]).optional(),
   manualCapture: z.string().optional(),
   maxDaysToRescue: z.string().optional(),
   networkTxReference: z.string().optional(),
@@ -341,7 +341,7 @@ export const AddressSchema = z.object({
 export const AffirmDetailsSchema = z.object({
   checkoutAttemptId: z.string().optional(),
   sdkData: z.string().max(50000).optional(),
-  type: z.enum(['affirm']).optional()
+  type: z.enum(["affirm"]).optional()
 }).passthrough()
 
 export const AfterpayDetailsSchema = z.object({
@@ -352,7 +352,7 @@ export const AfterpayDetailsSchema = z.object({
   recurringDetailReference: z.string().optional(),
   sdkData: z.string().max(50000).optional(),
   storedPaymentMethodId: z.string().max(64).optional(),
-  type: z.enum(['afterpay_default', 'afterpaytouch', 'afterpay_b2b', 'clearpay'])
+  type: z.enum(["afterpay_default", "afterpaytouch", "afterpay_b2b", "clearpay"])
 }).passthrough()
 
 export const AgencySchema = z.object({
@@ -362,9 +362,9 @@ export const AgencySchema = z.object({
 
 export const AlmaDetailsSchema = z.object({
   checkoutAttemptId: z.string().optional(),
-  feeType: z.enum(['merchantPays', 'shopperPays']).optional(),
+  feeType: z.enum(["merchantPays", "shopperPays"]).optional(),
   sdkData: z.string().max(50000).optional(),
-  type: z.enum(['alma']).optional()
+  type: z.enum(["alma"]).optional()
 }).passthrough()
 
 export const AmazonPayDetailsSchema = z.object({
@@ -372,7 +372,7 @@ export const AmazonPayDetailsSchema = z.object({
   checkoutAttemptId: z.string().optional(),
   checkoutSessionId: z.string().optional(),
   sdkData: z.string().max(50000).optional(),
-  type: z.enum(['amazonpay']).optional()
+  type: z.enum(["amazonpay"]).optional()
 }).passthrough()
 
 export const AmountSchema = z.object({
@@ -391,13 +391,13 @@ export const AncvDetailsSchema = z.object({
   recurringDetailReference: z.string().optional(),
   sdkData: z.string().max(50000).optional(),
   storedPaymentMethodId: z.string().max(64).optional(),
-  type: z.enum(['ancv']).optional()
+  type: z.enum(["ancv"]).optional()
 }).passthrough()
 
 export const AndroidPayDetailsSchema = z.object({
   checkoutAttemptId: z.string().optional(),
   sdkData: z.string().max(50000).optional(),
-  type: z.enum(['androidpay']).optional()
+  type: z.enum(["androidpay"]).optional()
 }).passthrough()
 
 export const AppIdentifierInfoSchema = z.object({
@@ -408,21 +408,21 @@ export const AppIdentifierInfoSchema = z.object({
 export const ApplePayDetailsSchema = z.object({
   applePayToken: z.string().max(10000),
   checkoutAttemptId: z.string().optional(),
-  fundingSource: z.enum(['credit', 'debit', 'prepaid']).optional(),
+  fundingSource: z.enum(["credit", "debit", "prepaid"]).optional(),
   recurringDetailReference: z.string().optional(),
   sdkData: z.string().max(50000).optional(),
   storedPaymentMethodId: z.string().max(64).optional(),
-  type: z.enum(['applepay']).optional()
+  type: z.enum(["applepay"]).optional()
 }).passthrough()
 
 export const ApplePayDonationsSchema = z.object({
   applePayToken: z.string().max(10000),
   checkoutAttemptId: z.string().optional(),
-  fundingSource: z.enum(['credit', 'debit', 'prepaid']).optional(),
+  fundingSource: z.enum(["credit", "debit", "prepaid"]).optional(),
   recurringDetailReference: z.string().optional(),
   sdkData: z.string().max(50000).optional(),
   storedPaymentMethodId: z.string().max(64).optional(),
-  type: z.enum(['applepay']).optional()
+  type: z.enum(["applepay"]).optional()
 }).passthrough()
 
 export const ApplePaySessionRequestSchema = z.object({
@@ -444,14 +444,14 @@ export const BacsDirectDebitDetailsSchema = z.object({
   sdkData: z.string().max(50000).optional(),
   storedPaymentMethodId: z.string().max(64).optional(),
   transferInstrumentId: z.string().optional(),
-  type: z.enum(['directdebit_GB']).optional()
+  type: z.enum(["directdebit_GB"]).optional()
 }).passthrough()
 
 export const BillDeskDetailsSchema = z.object({
   checkoutAttemptId: z.string().optional(),
   issuer: z.string(),
   sdkData: z.string().max(50000).optional(),
-  type: z.enum(['billdesk_online', 'billdesk_wallet'])
+  type: z.enum(["billdesk_online", "billdesk_wallet"])
 }).passthrough()
 
 export const BillingAddressSchema = z.object({
@@ -469,7 +469,7 @@ export const BlikDetailsSchema = z.object({
   recurringDetailReference: z.string().optional(),
   sdkData: z.string().max(50000).optional(),
   storedPaymentMethodId: z.string().max(64).optional(),
-  type: z.enum(['blik']).optional()
+  type: z.enum(["blik"]).optional()
 }).passthrough()
 
 export const BrowserInfoSchema = z.object({
@@ -486,7 +486,7 @@ export const BrowserInfoSchema = z.object({
 
 export const CancelOrderResponseSchema = z.object({
   pspReference: z.string(),
-  resultCode: z.enum(['Received'])
+  resultCode: z.enum(["Received"])
 }).passthrough()
 
 export const CardBrandDetailsSchema = z.object({
@@ -509,7 +509,7 @@ export const CardDetailsSchema = z.object({
   expiryMonth: z.string().optional(),
   expiryYear: z.string().optional(),
   fastlaneData: z.string().optional(),
-  fundingSource: z.enum(['credit', 'debit', 'prepaid']).optional(),
+  fundingSource: z.enum(["credit", "debit", "prepaid"]).optional(),
   holderName: z.string().max(15000).optional(),
   networkPaymentReference: z.string().optional(),
   number: z.string().optional(),
@@ -522,7 +522,7 @@ export const CardDetailsSchema = z.object({
   srcTokenReference: z.string().optional(),
   storedPaymentMethodId: z.string().max(64).optional(),
   threeDS2SdkVersion: z.string().max(12).optional(),
-  type: z.enum(['bcmc', 'scheme', 'networkToken', 'giftcard', 'card', 'clicktopay']).optional()
+  type: z.enum(["bcmc", "scheme", "networkToken", "giftcard", "card", "clicktopay"]).optional()
 }).passthrough()
 
 export const CardDetailsRequestSchema = z.object({
@@ -548,7 +548,7 @@ export const CardDonationsSchema = z.object({
   expiryMonth: z.string().optional(),
   expiryYear: z.string().optional(),
   fastlaneData: z.string().optional(),
-  fundingSource: z.enum(['credit', 'debit', 'prepaid']).optional(),
+  fundingSource: z.enum(["credit", "debit", "prepaid"]).optional(),
   holderName: z.string().max(15000).optional(),
   networkPaymentReference: z.string().optional(),
   number: z.string().optional(),
@@ -561,7 +561,7 @@ export const CardDonationsSchema = z.object({
   srcTokenReference: z.string().optional(),
   storedPaymentMethodId: z.string().max(64).optional(),
   threeDS2SdkVersion: z.string().max(12).optional(),
-  type: z.enum(['bcmc', 'scheme', 'networkToken', 'giftcard', 'card', 'clicktopay']).optional()
+  type: z.enum(["bcmc", "scheme", "networkToken", "giftcard", "card", "clicktopay"]).optional()
 }).passthrough()
 
 export const CashAppDetailsSchema = z.object({
@@ -575,25 +575,25 @@ export const CashAppDetailsSchema = z.object({
   sdkData: z.string().max(50000).optional(),
   storedPaymentMethodId: z.string().max(64).optional(),
   subtype: z.string().optional(),
-  type: z.enum(['cashapp']).optional()
+  type: z.enum(["cashapp"]).optional()
 }).passthrough()
 
 export const CellulantDetailsSchema = z.object({
   checkoutAttemptId: z.string().optional(),
   issuer: z.string().optional(),
   sdkData: z.string().max(50000).optional(),
-  type: z.enum(['cellulant']).optional()
+  type: z.enum(["cellulant"]).optional()
 }).passthrough()
 
 export const CheckoutAwaitActionSchema = z.object({
   paymentData: z.string().optional(),
   paymentMethodType: z.string().optional(),
-  type: z.enum(['await']),
+  type: z.enum(["await"]),
   url: z.string().optional()
 }).passthrough()
 
 export const CheckoutBankAccountSchema = z.object({
-  accountType: z.enum(['balance', 'checking', 'deposit', 'general', 'other', 'payment', 'savings']).optional(),
+  accountType: z.enum(["balance", "checking", "deposit", "general", "other", "payment", "savings"]).optional(),
   bankAccountNumber: z.string().optional(),
   bankCity: z.string().optional(),
   bankLocationId: z.string().optional(),
@@ -610,7 +610,7 @@ export const CheckoutDelegatedAuthenticationActionSchema = z.object({
   paymentData: z.string().optional(),
   paymentMethodType: z.string().optional(),
   token: z.string().optional(),
-  type: z.enum(['delegatedAuthentication']),
+  type: z.enum(["delegatedAuthentication"]),
   url: z.string().optional()
 }).passthrough()
 
@@ -624,7 +624,7 @@ export const CheckoutForwardRequestCardSchema = z.object({
   expiryYear: z.string().optional(),
   holderName: z.string().optional(),
   number: z.string().optional(),
-  type: z.enum(['scheme']).optional()
+  type: z.enum(["scheme"]).optional()
 }).passthrough()
 
 export const CheckoutForwardResponseFromUrlSchema = z.object({
@@ -638,7 +638,7 @@ export const CheckoutNativeRedirectActionSchema = z.object({
   method: z.string().optional(),
   nativeRedirectData: z.string().optional(),
   paymentMethodType: z.string().optional(),
-  type: z.enum(['nativeRedirect']),
+  type: z.enum(["nativeRedirect"]),
   url: z.string().optional()
 }).passthrough()
 
@@ -651,7 +651,7 @@ export const CheckoutOutgoingForwardRequestSchema = z.object({
   body: z.string().max(20000),
   credentials: z.string().optional(),
   headers: z.record(z.string(), z.string()).optional(),
-  httpMethod: z.enum(['post', 'put', 'patch']),
+  httpMethod: z.enum(["post", "put", "patch"]),
   urlSuffix: z.string().optional()
 }).passthrough()
 
@@ -660,7 +660,7 @@ export const CheckoutQrCodeActionSchema = z.object({
   paymentData: z.string().optional(),
   paymentMethodType: z.string().optional(),
   qrCodeData: z.string().optional(),
-  type: z.enum(['qrCode']),
+  type: z.enum(["qrCode"]),
   url: z.string().optional()
 }).passthrough()
 
@@ -668,7 +668,7 @@ export const CheckoutRedirectActionSchema = z.object({
   data: z.record(z.string(), z.string()).optional(),
   method: z.string().optional(),
   paymentMethodType: z.string().optional(),
-  type: z.enum(['redirect']),
+  type: z.enum(["redirect"]),
   url: z.string().optional()
 }).passthrough()
 
@@ -676,12 +676,12 @@ export const CheckoutSDKActionSchema = z.object({
   paymentData: z.string().optional(),
   paymentMethodType: z.string().optional(),
   sdkData: z.record(z.string(), z.string()).optional(),
-  type: z.enum(['sdk', 'wechatpaySDK']),
+  type: z.enum(["sdk", "wechatpaySDK"]),
   url: z.string().optional()
 }).passthrough()
 
 export const CheckoutSessionInstallmentOptionSchema = z.object({
-  plans: z.array(z.enum(['bonus', 'buynow_paylater', 'interes_refund_prctg', 'interest_bonus', 'nointeres_refund_prctg', 'nointerest_bonus', 'refund_prctg', 'regular', 'revolving', 'with_interest'])).optional(),
+  plans: z.array(z.enum(["bonus", "buynow_paylater", "interes_refund_prctg", "interest_bonus", "nointeres_refund_prctg", "nointerest_bonus", "refund_prctg", "regular", "revolving", "with_interest"])).optional(),
   preselectedValue: z.number().optional(),
   values: z.array(z.number()).optional()
 }).passthrough()
@@ -692,7 +692,7 @@ export const CheckoutThreeDS2ActionSchema = z.object({
   paymentMethodType: z.string().optional(),
   subtype: z.string().optional(),
   token: z.string().optional(),
-  type: z.enum(['threeDS2']),
+  type: z.enum(["threeDS2"]),
   url: z.string().optional()
 }).passthrough()
 
@@ -737,8 +737,8 @@ export const DetailsRequestAuthenticationDataSchema = z.object({
 }).passthrough()
 
 export const DeviceRenderOptionsSchema = z.object({
-  sdkInterface: z.enum(['native', 'html', 'both']).optional(),
-  sdkUiType: z.array(z.enum(['multiSelect', 'otherHtml', 'outOfBand', 'singleSelect', 'text'])).optional()
+  sdkInterface: z.enum(["native", "html", "both"]).optional(),
+  sdkUiType: z.array(z.enum(["multiSelect", "otherHtml", "outOfBand", "singleSelect", "text"])).optional()
 }).passthrough()
 
 export const DirectDebitAuDetailsSchema = z.object({
@@ -749,7 +749,7 @@ export const DirectDebitAuDetailsSchema = z.object({
   recurringDetailReference: z.string().optional(),
   sdkData: z.string().max(50000).optional(),
   storedPaymentMethodId: z.string().max(64).optional(),
-  type: z.enum(['directdebit_AU']).optional()
+  type: z.enum(["directdebit_AU"]).optional()
 }).passthrough()
 
 export const DokuDetailsSchema = z.object({
@@ -758,7 +758,7 @@ export const DokuDetailsSchema = z.object({
   lastName: z.string(),
   sdkData: z.string().max(50000).optional(),
   shopperEmail: z.string(),
-  type: z.enum(['doku_mandiri_va', 'doku_cimb_va', 'doku_danamon_va', 'doku_bni_va', 'doku_permata_lite_atm', 'doku_bri_va', 'doku_bca_va', 'doku_alfamart', 'doku_indomaret', 'doku_wallet', 'doku_ovo'])
+  type: z.enum(["doku_mandiri_va", "doku_cimb_va", "doku_danamon_va", "doku_bni_va", "doku_permata_lite_atm", "doku_bri_va", "doku_bca_va", "doku_alfamart", "doku_indomaret", "doku_wallet", "doku_ovo"])
 }).passthrough()
 
 export const DonationSchema = z.object({
@@ -781,14 +781,14 @@ export const DragonpayDetailsSchema = z.object({
   issuer: z.string(),
   sdkData: z.string().max(50000).optional(),
   shopperEmail: z.string().optional(),
-  type: z.enum(['dragonpay_ebanking', 'dragonpay_otc_banking', 'dragonpay_otc_non_banking', 'dragonpay_otc_philippines'])
+  type: z.enum(["dragonpay_ebanking", "dragonpay_otc_banking", "dragonpay_otc_non_banking", "dragonpay_otc_philippines"])
 }).passthrough()
 
 export const EBankingFinlandDetailsSchema = z.object({
   checkoutAttemptId: z.string().optional(),
   issuer: z.string().optional(),
   sdkData: z.string().max(50000).optional(),
-  type: z.enum(['ebanking_FI'])
+  type: z.enum(["ebanking_FI"])
 }).passthrough()
 
 export const EcontextVoucherDetailsSchema = z.object({
@@ -798,7 +798,7 @@ export const EcontextVoucherDetailsSchema = z.object({
   sdkData: z.string().max(50000).optional(),
   shopperEmail: z.string(),
   telephoneNumber: z.string(),
-  type: z.enum(['econtext_seven_eleven', 'econtext_online', 'econtext', 'econtext_stores', 'econtext_atm'])
+  type: z.enum(["econtext_seven_eleven", "econtext_online", "econtext", "econtext_stores", "econtext_atm"])
 }).passthrough()
 
 export const EftDetailsSchema = z.object({
@@ -810,7 +810,7 @@ export const EftDetailsSchema = z.object({
   recurringDetailReference: z.string().optional(),
   sdkData: z.string().max(50000).optional(),
   storedPaymentMethodId: z.string().max(64).optional(),
-  type: z.enum(['eft_directdebit_CA']).optional()
+  type: z.enum(["eft_directdebit_CA"]).optional()
 }).passthrough()
 
 export const EncryptedOrderDataSchema = z.object({
@@ -831,8 +831,8 @@ export const ExternalTokenDetailsSchema = z.object({
   holderName: z.string().max(15000).optional(),
   number: z.string().optional(),
   storedPaymentMethodId: z.string().max(64),
-  subtype: z.enum(['hilton']),
-  type: z.enum(['externalToken'])
+  subtype: z.enum(["hilton"]),
+  type: z.enum(["externalToken"])
 }).passthrough()
 
 export const FastlaneDetailsSchema = z.object({
@@ -841,7 +841,7 @@ export const FastlaneDetailsSchema = z.object({
   recurringDetailReference: z.string().optional(),
   sdkData: z.string().max(50000).optional(),
   storedPaymentMethodId: z.string().max(64).optional(),
-  type: z.enum(['fastlane'])
+  type: z.enum(["fastlane"])
 }).passthrough()
 
 export const FraudCheckResultSchema = z.object({
@@ -856,31 +856,31 @@ export const GenericIssuerPaymentMethodDetailsSchema = z.object({
   recurringDetailReference: z.string().optional(),
   sdkData: z.string().max(50000).optional(),
   storedPaymentMethodId: z.string().max(64).optional(),
-  type: z.enum(['onlineBanking_PL', 'eps', 'onlineBanking_SK', 'onlineBanking_CZ', 'onlinebanking_IN'])
+  type: z.enum(["onlineBanking_PL", "eps", "onlineBanking_SK", "onlineBanking_CZ", "onlinebanking_IN"])
 }).passthrough()
 
 export const GooglePayDetailsSchema = z.object({
   checkoutAttemptId: z.string().optional(),
-  fundingSource: z.enum(['credit', 'debit', 'prepaid']).optional(),
+  fundingSource: z.enum(["credit", "debit", "prepaid"]).optional(),
   googlePayCardNetwork: z.string().optional(),
   googlePayToken: z.string().max(10000),
   recurringDetailReference: z.string().optional(),
   sdkData: z.string().max(50000).optional(),
   storedPaymentMethodId: z.string().max(64).optional(),
   threeDS2SdkVersion: z.string().max(12).optional(),
-  type: z.enum(['googlepay']).optional()
+  type: z.enum(["googlepay"]).optional()
 }).passthrough()
 
 export const GooglePayDonationsSchema = z.object({
   checkoutAttemptId: z.string().optional(),
-  fundingSource: z.enum(['credit', 'debit', 'prepaid']).optional(),
+  fundingSource: z.enum(["credit", "debit", "prepaid"]).optional(),
   googlePayCardNetwork: z.string().optional(),
   googlePayToken: z.string().max(10000),
   recurringDetailReference: z.string().optional(),
   sdkData: z.string().max(50000).optional(),
   storedPaymentMethodId: z.string().max(64).optional(),
   threeDS2SdkVersion: z.string().max(12).optional(),
-  type: z.enum(['googlepay']).optional()
+  type: z.enum(["googlepay"]).optional()
 }).passthrough()
 
 export const IdealDetailsSchema = z.object({
@@ -889,7 +889,7 @@ export const IdealDetailsSchema = z.object({
   recurringDetailReference: z.string().optional(),
   sdkData: z.string().max(50000).optional(),
   storedPaymentMethodId: z.string().max(64).optional(),
-  type: z.enum(['ideal']).optional()
+  type: z.enum(["ideal"]).optional()
 }).passthrough()
 
 export const IdealDonationsSchema = z.object({
@@ -898,19 +898,19 @@ export const IdealDonationsSchema = z.object({
   recurringDetailReference: z.string().optional(),
   sdkData: z.string().max(50000).optional(),
   storedPaymentMethodId: z.string().max(64).optional(),
-  type: z.enum(['ideal']).optional()
+  type: z.enum(["ideal"]).optional()
 }).passthrough()
 
 export const InstallmentOptionSchema = z.object({
   maxValue: z.number().optional(),
-  plans: z.array(z.enum(['bonus', 'buynow_paylater', 'interes_refund_prctg', 'interest_bonus', 'nointeres_refund_prctg', 'nointerest_bonus', 'refund_prctg', 'regular', 'revolving', 'with_interest'])).optional(),
+  plans: z.array(z.enum(["bonus", "buynow_paylater", "interes_refund_prctg", "interest_bonus", "nointeres_refund_prctg", "nointerest_bonus", "refund_prctg", "regular", "revolving", "with_interest"])).optional(),
   preselectedValue: z.number().optional(),
   values: z.array(z.number()).optional()
 }).passthrough()
 
 export const InstallmentsSchema = z.object({
   extra: z.number().optional(),
-  plan: z.enum(['bonus', 'buynow_paylater', 'interes_refund_prctg', 'interest_bonus', 'nointeres_refund_prctg', 'nointerest_bonus', 'refund_prctg', 'regular', 'revolving', 'with_interest']).optional(),
+  plan: z.enum(["bonus", "buynow_paylater", "interes_refund_prctg", "interest_bonus", "nointeres_refund_prctg", "nointerest_bonus", "refund_prctg", "regular", "revolving", "with_interest"]).optional(),
   value: z.number()
 }).passthrough()
 
@@ -939,7 +939,7 @@ export const KlarnaDetailsSchema = z.object({
   sdkData: z.string().max(50000).optional(),
   storedPaymentMethodId: z.string().max(64).optional(),
   subtype: z.string().optional(),
-  type: z.enum(['klarna', 'klarnapayments', 'klarnapayments_account', 'klarnapayments_b2b', 'klarna_paynow', 'klarna_account', 'klarna_b2b'])
+  type: z.enum(["klarna", "klarnapayments", "klarnapayments_account", "klarnapayments_b2b", "klarna_paynow", "klarna_account", "klarna_b2b"])
 }).passthrough()
 
 export const KlarnaNetworkDetailsSchema = z.object({
@@ -949,7 +949,7 @@ export const KlarnaNetworkDetailsSchema = z.object({
   recurringDetailReference: z.string().optional(),
   sdkData: z.string().max(50000).optional(),
   storedPaymentMethodId: z.string().max(64).optional(),
-  type: z.enum(['klarna_network'])
+  type: z.enum(["klarna_network"])
 }).passthrough()
 
 export const LegSchema = z.object({
@@ -987,22 +987,22 @@ export const LineItemSchema = z.object({
 
 export const MandateSchema = z.object({
   amount: z.string(),
-  amountRule: z.enum(['max', 'exact']).optional(),
-  billingAttemptsRule: z.enum(['on', 'before', 'after']).optional(),
+  amountRule: z.enum(["max", "exact"]).optional(),
+  billingAttemptsRule: z.enum(["on", "before", "after"]).optional(),
   billingDay: z.string().optional(),
   count: z.string().optional(),
   endsAt: z.string(),
-  frequency: z.enum(['adhoc', 'daily', 'weekly', 'biWeekly', 'monthly', 'quarterly', 'halfYearly', 'yearly']),
+  frequency: z.enum(["adhoc", "daily", "weekly", "biWeekly", "monthly", "quarterly", "halfYearly", "yearly"]),
   remarks: z.string().optional(),
   startsAt: z.string().optional()
 }).passthrough()
 
 export const MasterpassDetailsSchema = z.object({
   checkoutAttemptId: z.string().optional(),
-  fundingSource: z.enum(['credit', 'debit', 'prepaid']).optional(),
+  fundingSource: z.enum(["credit", "debit", "prepaid"]).optional(),
   masterpassTransactionId: z.string(),
   sdkData: z.string().max(50000).optional(),
-  type: z.enum(['masterpass']).optional()
+  type: z.enum(["masterpass"]).optional()
 }).passthrough()
 
 export const MbwayDetailsSchema = z.object({
@@ -1010,7 +1010,7 @@ export const MbwayDetailsSchema = z.object({
   sdkData: z.string().max(50000).optional(),
   shopperEmail: z.string(),
   telephoneNumber: z.string(),
-  type: z.enum(['mbway']).optional()
+  type: z.enum(["mbway"]).optional()
 }).passthrough()
 
 export const MerchantDeviceSchema = z.object({
@@ -1022,14 +1022,14 @@ export const MerchantDeviceSchema = z.object({
 export const MobilePayDetailsSchema = z.object({
   checkoutAttemptId: z.string().optional(),
   sdkData: z.string().max(50000).optional(),
-  type: z.enum(['mobilepay']).optional()
+  type: z.enum(["mobilepay"]).optional()
 }).passthrough()
 
 export const MolPayDetailsSchema = z.object({
   checkoutAttemptId: z.string().optional(),
   issuer: z.string(),
   sdkData: z.string().max(50000).optional(),
-  type: z.enum(['molpay_ebanking_fpx_MY', 'molpay_ebanking_TH'])
+  type: z.enum(["molpay_ebanking_fpx_MY", "molpay_ebanking_TH"])
 }).passthrough()
 
 export const NameSchema = z.object({
@@ -1045,7 +1045,7 @@ export const OpenInvoiceDetailsSchema = z.object({
   recurringDetailReference: z.string().optional(),
   sdkData: z.string().max(50000).optional(),
   storedPaymentMethodId: z.string().max(64).optional(),
-  type: z.enum(['openinvoice', 'afterpay_directdebit', 'atome_pos']).optional()
+  type: z.enum(["openinvoice", "afterpay_directdebit", "atome_pos"]).optional()
 }).passthrough()
 
 export const PassengerSchema = z.object({
@@ -1061,14 +1061,14 @@ export const PayByBankAISDirectDebitDetailsSchema = z.object({
   recurringDetailReference: z.string().optional(),
   sdkData: z.string().max(50000).optional(),
   storedPaymentMethodId: z.string().max(64).optional(),
-  type: z.enum(['paybybank_AIS_DD'])
+  type: z.enum(["paybybank_AIS_DD"])
 }).passthrough()
 
 export const PayByBankDetailsSchema = z.object({
   checkoutAttemptId: z.string().optional(),
   issuer: z.string().optional(),
   sdkData: z.string().max(50000).optional(),
-  type: z.enum(['paybybank'])
+  type: z.enum(["paybybank"])
 }).passthrough()
 
 export const PayPalDetailsSchema = z.object({
@@ -1080,8 +1080,8 @@ export const PayPalDetailsSchema = z.object({
   recurringDetailReference: z.string().optional(),
   sdkData: z.string().max(50000).optional(),
   storedPaymentMethodId: z.string().max(64).optional(),
-  subtype: z.enum(['express', 'redirect', 'sdk']).optional(),
-  type: z.enum(['paypal'])
+  subtype: z.enum(["express", "redirect", "sdk"]).optional(),
+  type: z.enum(["paypal"])
 }).passthrough()
 
 export const PayPayDetailsSchema = z.object({
@@ -1089,7 +1089,7 @@ export const PayPayDetailsSchema = z.object({
   recurringDetailReference: z.string().optional(),
   sdkData: z.string().max(50000).optional(),
   storedPaymentMethodId: z.string().max(64).optional(),
-  type: z.enum(['paypay']).optional()
+  type: z.enum(["paypay"]).optional()
 }).passthrough()
 
 export const PayToDetailsSchema = z.object({
@@ -1098,7 +1098,7 @@ export const PayToDetailsSchema = z.object({
   sdkData: z.string().max(50000).optional(),
   shopperAccountIdentifier: z.string().optional(),
   storedPaymentMethodId: z.string().max(64).optional(),
-  type: z.enum(['payto']).optional()
+  type: z.enum(["payto"]).optional()
 }).passthrough()
 
 export const PayUUpiDetailsSchema = z.object({
@@ -1107,30 +1107,30 @@ export const PayUUpiDetailsSchema = z.object({
   sdkData: z.string().max(50000).optional(),
   shopperNotificationReference: z.string().optional(),
   storedPaymentMethodId: z.string().max(64).optional(),
-  type: z.enum(['payu_IN_upi']),
+  type: z.enum(["payu_IN_upi"]),
   virtualPaymentAddress: z.string().optional()
 }).passthrough()
 
 export const PayWithGoogleDetailsSchema = z.object({
   checkoutAttemptId: z.string().optional(),
-  fundingSource: z.enum(['credit', 'debit', 'prepaid']).optional(),
+  fundingSource: z.enum(["credit", "debit", "prepaid"]).optional(),
   googlePayToken: z.string().max(5000),
   recurringDetailReference: z.string().optional(),
   sdkData: z.string().max(50000).optional(),
   storedPaymentMethodId: z.string().max(64).optional(),
   threeDS2SdkVersion: z.string().max(12).optional(),
-  type: z.enum(['paywithgoogle']).optional()
+  type: z.enum(["paywithgoogle"]).optional()
 }).passthrough()
 
 export const PayWithGoogleDonationsSchema = z.object({
   checkoutAttemptId: z.string().optional(),
-  fundingSource: z.enum(['credit', 'debit', 'prepaid']).optional(),
+  fundingSource: z.enum(["credit", "debit", "prepaid"]).optional(),
   googlePayToken: z.string().max(5000),
   recurringDetailReference: z.string().optional(),
   sdkData: z.string().max(50000).optional(),
   storedPaymentMethodId: z.string().max(64).optional(),
   threeDS2SdkVersion: z.string().max(12).optional(),
-  type: z.enum(['paywithgoogle']).optional()
+  type: z.enum(["paywithgoogle"]).optional()
 }).passthrough()
 
 export const PaymentCancelResponseSchema = z.object({
@@ -1138,7 +1138,7 @@ export const PaymentCancelResponseSchema = z.object({
   paymentPspReference: z.string(),
   pspReference: z.string(),
   reference: z.string().optional(),
-  status: z.enum(['received'])
+  status: z.enum(["received"])
 }).passthrough()
 
 export const PaymentCompletionDetailsSchema = z.object({
@@ -1167,7 +1167,7 @@ export const PaymentCompletionDetailsSchema = z.object({
 export const PaymentDetailsSchema = z.object({
   checkoutAttemptId: z.string().optional(),
   sdkData: z.string().max(50000).optional(),
-  type: z.enum(['alipay', 'multibanco', 'bankTransfer', 'bankTransfer_IBAN', 'paybright', 'paynow', 'affirm_pos', 'iris', 'wero', 'trustly', 'trustlyvector', 'oney', 'facilypay', 'facilypay_3x', 'facilypay_4x', 'facilypay_6x', 'facilypay_10x', 'facilypay_12x', 'unionpay', 'kcp_banktransfer', 'kcp_payco', 'kcp_creditcard', 'wechatpaySDK', 'wechatpayQR', 'wechatpayWeb', 'molpay_boost', 'wallet_IN', 'payu_IN_cashcard', 'payu_IN_nb', 'paytm', 'molpay_ebanking_VN', 'molpay_ebanking_MY', 'molpay_ebanking_direct_MY', 'swish', 'bizum', 'walley', 'walley_b2b', 'paypo', 'scalapay', 'scalapay_3x', 'scalapay_4x', 'molpay_fpx', 'payme', 'payme_pos', 'konbini', 'directEbanking', 'boletobancario', 'cashticket', 'ikano', 'karenmillen', 'oasis', 'warehouse', 'primeiropay_boleto', 'mada', 'benefit', 'knet', 'omannet', 'gopay_wallet', 'kcp_naverpay', 'fawry', 'atome', 'naps', 'nordea', 'boletobancario_bradesco', 'boletobancario_itau', 'boletobancario_santander', 'boletobancario_bancodobrasil', 'boletobancario_hsbc', 'molpay_maybank2u', 'molpay_cimb', 'molpay_rhb', 'molpay_amb', 'molpay_hlb', 'molpay_affin_epg', 'molpay_bankislam', 'molpay_publicbank', 'fpx_agrobank', 'touchngo', 'maybank2u_mae', 'duitnow', 'promptpay', 'twint_pos', 'alipay_hk', 'alipay_hk_web', 'alipay_hk_wap', 'alipay_wap', 'balanceplatform']).optional()
+  type: z.enum(["alipay", "multibanco", "bankTransfer", "bankTransfer_IBAN", "paybright", "paynow", "affirm_pos", "iris", "wero", "trustly", "trustlyvector", "oney", "facilypay", "facilypay_3x", "facilypay_4x", "facilypay_6x", "facilypay_10x", "facilypay_12x", "unionpay", "kcp_banktransfer", "kcp_payco", "kcp_creditcard", "wechatpaySDK", "wechatpayQR", "wechatpayWeb", "molpay_boost", "wallet_IN", "payu_IN_cashcard", "payu_IN_nb", "paytm", "molpay_ebanking_VN", "molpay_ebanking_MY", "molpay_ebanking_direct_MY", "swish", "bizum", "walley", "walley_b2b", "paypo", "scalapay", "scalapay_3x", "scalapay_4x", "molpay_fpx", "payme", "payme_pos", "konbini", "directEbanking", "boletobancario", "cashticket", "ikano", "karenmillen", "oasis", "warehouse", "primeiropay_boleto", "mada", "benefit", "knet", "omannet", "gopay_wallet", "kcp_naverpay", "fawry", "atome", "naps", "nordea", "boletobancario_bradesco", "boletobancario_itau", "boletobancario_santander", "boletobancario_bancodobrasil", "boletobancario_hsbc", "molpay_maybank2u", "molpay_cimb", "molpay_rhb", "molpay_amb", "molpay_hlb", "molpay_affin_epg", "molpay_bankislam", "molpay_publicbank", "fpx_agrobank", "touchngo", "maybank2u_mae", "duitnow", "promptpay", "twint_pos", "alipay_hk", "alipay_hk_web", "alipay_hk_wap", "alipay_wap", "balanceplatform"]).optional()
 }).passthrough()
 
 export const PaymentMethodGroupSchema = z.object({
@@ -1202,7 +1202,7 @@ export const PaymentReversalResponseSchema = z.object({
   paymentPspReference: z.string(),
   pspReference: z.string(),
   reference: z.string().optional(),
-  status: z.enum(['received'])
+  status: z.enum(["received"])
 }).passthrough()
 
 export const PaymentValidationsNameRequestSchema = z.object({
@@ -1226,7 +1226,7 @@ export const PaymentValidationsNameResultResponseSchema = z.object({
 
 export const PaypalUpdateOrderResponseSchema = z.object({
   paymentData: z.string(),
-  status: z.enum(['error', 'success'])
+  status: z.enum(["error", "success"])
 }).passthrough()
 
 export const PhoneSchema = z.object({
@@ -1235,7 +1235,7 @@ export const PhoneSchema = z.object({
 }).passthrough()
 
 export const PlatformChargebackLogicSchema = z.object({
-  behavior: z.enum(['deductFromOneBalanceAccount', 'deductAccordingToSplitRatio', 'deductFromLiableAccount']).optional(),
+  behavior: z.enum(["deductFromOneBalanceAccount", "deductAccordingToSplitRatio", "deductFromLiableAccount"]).optional(),
   costAllocationAccount: z.string().optional(),
   targetAccount: z.string().optional()
 }).passthrough()
@@ -1247,7 +1247,7 @@ export const PseDetailsSchema = z.object({
   identification: z.string(),
   identificationType: z.string(),
   sdkData: z.string().max(50000).optional(),
-  type: z.enum(['pse_payulatam']).optional()
+  type: z.enum(["pse_payulatam"]).optional()
 }).passthrough()
 
 export const RakutenPayDetailsSchema = z.object({
@@ -1255,7 +1255,7 @@ export const RakutenPayDetailsSchema = z.object({
   recurringDetailReference: z.string().optional(),
   sdkData: z.string().max(50000).optional(),
   storedPaymentMethodId: z.string().max(64).optional(),
-  type: z.enum(['rakutenpay']).optional()
+  type: z.enum(["rakutenpay"]).optional()
 }).passthrough()
 
 export const RatepayDetailsSchema = z.object({
@@ -1266,15 +1266,15 @@ export const RatepayDetailsSchema = z.object({
   recurringDetailReference: z.string().optional(),
   sdkData: z.string().max(50000).optional(),
   storedPaymentMethodId: z.string().max(64).optional(),
-  type: z.enum(['ratepay', 'ratepay_directdebit'])
+  type: z.enum(["ratepay", "ratepay_directdebit"])
 }).passthrough()
 
 export const RecurringSchema = z.object({
-  contract: z.enum(['ONECLICK', 'ONECLICK,RECURRING', 'RECURRING', 'PAYOUT', 'EXTERNAL']).optional(),
+  contract: z.enum(["ONECLICK", "ONECLICK,RECURRING", "RECURRING", "PAYOUT", "EXTERNAL"]).optional(),
   recurringDetailName: z.string().optional(),
   recurringExpiry: z.string().optional(),
   recurringFrequency: z.string().optional(),
-  tokenService: z.enum(['VISATOKENSERVICE', 'MCTOKENSERVICE', 'AMEXTOKENSERVICE', 'TOKEN_SHARING']).optional()
+  tokenService: z.enum(["VISATOKENSERVICE", "MCTOKENSERVICE", "AMEXTOKENSERVICE", "TOKEN_SHARING"]).optional()
 }).passthrough()
 
 export const ResponseAdditionalData3DSecureSchema = z.object({
@@ -1330,8 +1330,8 @@ export const ResponseAdditionalDataCommonSchema = z.object({
   extraCostsValue: z.string().optional(),
   'fraudCheck-[itemNr]-[FraudCheckname]': z.string().optional(),
   fraudManualReview: z.string().optional(),
-  fraudResultType: z.enum(['AMBER', 'GREEN', 'RED']).optional(),
-  fraudRiskLevel: z.enum(['veryLow', 'low', 'medium', 'high', 'veryHigh']).optional(),
+  fraudResultType: z.enum(["AMBER", "GREEN", "RED"]).optional(),
+  fraudRiskLevel: z.enum(["veryLow", "low", "medium", "high", "veryHigh"]).optional(),
   fundingSource: z.string().optional(),
   fundsAvailability: z.string().optional(),
   inferredRefusalReason: z.string().optional(),
@@ -1354,7 +1354,7 @@ export const ResponseAdditionalDataCommonSchema = z.object({
   'recurring.firstPspReference': z.string().optional(),
   'recurring.recurringDetailReference': z.string().optional(),
   'recurring.shopperReference': z.string().optional(),
-  recurringProcessingModel: z.enum(['CardOnFile', 'Subscription', 'UnscheduledCardOnFile']).optional(),
+  recurringProcessingModel: z.enum(["CardOnFile", "Subscription", "UnscheduledCardOnFile"]).optional(),
   referred: z.string().optional(),
   refusalReasonRaw: z.string().optional(),
   requestAmount: z.string().optional(),
@@ -1368,7 +1368,7 @@ export const ResponseAdditionalDataCommonSchema = z.object({
   threeDOfferedResponse: z.string().optional(),
   threeDSVersion: z.string().optional(),
   'tokenization.shopperReference': z.string().optional(),
-  'tokenization.store.operationType': z.enum(['created', 'updated', 'alreadyExisting']).optional(),
+  'tokenization.store.operationType': z.enum(["created", "updated", "alreadyExisting"]).optional(),
   'tokenization.storedPaymentMethodId': z.string().optional(),
   transactionLinkId: z.string().optional(),
   visaTransactionId: z.string().optional(),
@@ -1439,7 +1439,7 @@ export const RivertyDetailsSchema = z.object({
   sdkData: z.string().max(50000).optional(),
   storedPaymentMethodId: z.string().max(64).optional(),
   subtype: z.string().optional(),
-  type: z.enum(['riverty', 'riverty_account', 'riverty_installments', 'sepadirectdebit_riverty'])
+  type: z.enum(["riverty", "riverty_account", "riverty_installments", "sepadirectdebit_riverty"])
 }).passthrough()
 
 export const SDKEphemPubKeySchema = z.object({
@@ -1451,12 +1451,12 @@ export const SDKEphemPubKeySchema = z.object({
 
 export const SamsungPayDetailsSchema = z.object({
   checkoutAttemptId: z.string().optional(),
-  fundingSource: z.enum(['credit', 'debit', 'prepaid']).optional(),
+  fundingSource: z.enum(["credit", "debit", "prepaid"]).optional(),
   recurringDetailReference: z.string().optional(),
   samsungPayToken: z.string().max(10000),
   sdkData: z.string().max(50000).optional(),
   storedPaymentMethodId: z.string().max(64).optional(),
-  type: z.enum(['samsungpay']).optional()
+  type: z.enum(["samsungpay"]).optional()
 }).passthrough()
 
 export const ScreenDimensionsSchema = z.object({
@@ -1473,7 +1473,7 @@ export const SepaDirectDebitDetailsSchema = z.object({
   sdkData: z.string().max(50000).optional(),
   storedPaymentMethodId: z.string().max(64).optional(),
   transferInstrumentId: z.string().optional(),
-  type: z.enum(['sepadirectdebit', 'sepadirectdebit_amazonpay']).optional()
+  type: z.enum(["sepadirectdebit", "sepadirectdebit_amazonpay"]).optional()
 }).passthrough()
 
 export const ServiceErrorSchema = z.object({
@@ -1511,7 +1511,7 @@ export const StandalonePaymentCancelResponseSchema = z.object({
   paymentReference: z.string(),
   pspReference: z.string(),
   reference: z.string().optional(),
-  status: z.enum(['received'])
+  status: z.enum(["received"])
 }).passthrough()
 
 export const StoredPaymentMethodSchema = z.object({
@@ -1540,7 +1540,7 @@ export const StoredPaymentMethodDetailsSchema = z.object({
   recurringDetailReference: z.string().optional(),
   sdkData: z.string().max(50000).optional(),
   storedPaymentMethodId: z.string().max(64).optional(),
-  type: z.enum(['alipay_plus', 'alipay_plus_alipay_cn', 'alipay_plus_alipay_hk', 'alipay_plus_dana', 'alipay_plus_gcash', 'alipay_plus_kakaopay', 'alipay_plus_kplus', 'alipay_plus_naverpay', 'alipay_plus_rabbitlinepay', 'alipay_plus_tosspay', 'alipay_plus_touchngo', 'alipay_plus_truemoney', 'bcmc_mobile', 'bcmc_mobile_QR', 'bcmc_mobile_app', 'momo_wallet', 'momo_wallet_app', 'paymaya_wallet', 'grabpay_SG', 'grabpay_MY', 'grabpay_TH', 'grabpay_ID', 'grabpay_VN', 'grabpay_PH', 'oxxo', 'gcash', 'dana', 'kakaopay', 'truemoney', 'paysafecard']).optional()
+  type: z.enum(["alipay_plus", "alipay_plus_alipay_cn", "alipay_plus_alipay_hk", "alipay_plus_dana", "alipay_plus_gcash", "alipay_plus_kakaopay", "alipay_plus_kplus", "alipay_plus_naverpay", "alipay_plus_rabbitlinepay", "alipay_plus_tosspay", "alipay_plus_touchngo", "alipay_plus_truemoney", "bcmc_mobile", "bcmc_mobile_QR", "bcmc_mobile_app", "momo_wallet", "momo_wallet_app", "paymaya_wallet", "grabpay_SG", "grabpay_MY", "grabpay_TH", "grabpay_ID", "grabpay_VN", "grabpay_PH", "oxxo", "gcash", "dana", "kakaopay", "truemoney", "paysafecard"]).optional()
 }).passthrough()
 
 export const SubMerchantSchema = z.object({
@@ -1580,13 +1580,13 @@ export const ThreeDS2ResponseDataSchema = z.object({
 export const ThreeDS2ResultSchema = z.object({
   authenticationValue: z.string().optional(),
   cavvAlgorithm: z.string().optional(),
-  challengeCancel: z.enum(['01', '02', '03', '04', '05', '06', '07']).optional(),
+  challengeCancel: z.enum(["01", "02", "03", "04", "05", "06", "07"]).optional(),
   dsTransID: z.string().optional(),
   eci: z.string().optional(),
-  exemptionIndicator: z.enum(['lowValue', 'secureCorporate', 'trustedBeneficiary', 'transactionRiskAnalysis']).optional(),
+  exemptionIndicator: z.enum(["lowValue", "secureCorporate", "trustedBeneficiary", "transactionRiskAnalysis"]).optional(),
   messageVersion: z.string().optional(),
   riskScore: z.string().optional(),
-  threeDSRequestorChallengeInd: z.enum(['01', '02', '03', '04', '05', '06']).optional(),
+  threeDSRequestorChallengeInd: z.enum(["01", "02", "03", "04", "05", "06"]).optional(),
   threeDSServerTransID: z.string().optional(),
   timestamp: z.string().optional(),
   transStatus: z.string().optional(),
@@ -1595,31 +1595,31 @@ export const ThreeDS2ResultSchema = z.object({
 }).passthrough()
 
 export const ThreeDSRequestDataSchema = z.object({
-  challengeWindowSize: z.enum(['01', '02', '03', '04', '05']).optional(),
-  dataOnly: z.enum(['false', 'true']).optional(),
-  nativeThreeDS: z.enum(['preferred', 'disabled']).optional(),
-  threeDSVersion: z.enum(['2.1.0', '2.2.0']).optional()
+  challengeWindowSize: z.enum(["01", "02", "03", "04", "05"]).optional(),
+  dataOnly: z.enum(["false", "true"]).optional(),
+  nativeThreeDS: z.enum(["preferred", "disabled"]).optional(),
+  threeDSVersion: z.enum(["2.1.0", "2.2.0"]).optional()
 }).passthrough()
 
 export const ThreeDSRequestorAuthenticationInfoSchema = z.object({
   threeDSReqAuthData: z.string().optional(),
-  threeDSReqAuthMethod: z.enum(['01', '02', '03', '04', '05', '06']).optional(),
+  threeDSReqAuthMethod: z.enum(["01", "02", "03", "04", "05", "06"]).optional(),
   threeDSReqAuthTimestamp: z.string().min(12).max(12).optional()
 }).passthrough()
 
 export const ThreeDSRequestorPriorAuthenticationInfoSchema = z.object({
   threeDSReqPriorAuthData: z.string().optional(),
-  threeDSReqPriorAuthMethod: z.enum(['01', '02', '03', '04']).optional(),
+  threeDSReqPriorAuthMethod: z.enum(["01", "02", "03", "04"]).optional(),
   threeDSReqPriorAuthTimestamp: z.string().min(12).max(12).optional(),
   threeDSReqPriorRef: z.string().min(36).max(36).optional()
 }).passthrough()
 
 export const ThreeDSecureDataSchema = z.object({
-  authenticationResponse: z.enum(['Y', 'N', 'U', 'A']).optional(),
+  authenticationResponse: z.enum(["Y", "N", "U", "A"]).optional(),
   cavv: z.string().optional(),
   cavvAlgorithm: z.string().optional(),
-  challengeCancel: z.enum(['01', '02', '03', '04', '05', '06', '07']).optional(),
-  directoryResponse: z.enum(['A', 'C', 'D', 'I', 'N', 'R', 'U', 'Y']).optional(),
+  challengeCancel: z.enum(["01", "02", "03", "04", "05", "06", "07"]).optional(),
+  directoryResponse: z.enum(["A", "C", "D", "I", "N", "R", "U", "Y"]).optional(),
   dsTransID: z.string().optional(),
   eci: z.string().optional(),
   riskScore: z.string().optional(),
@@ -1638,13 +1638,13 @@ export const TicketSchema = z.object({
 export const TokenMandateSchema = z.object({
   accountIdType: z.string().optional(),
   amount: z.string(),
-  amountRule: z.enum(['max', 'exact']).optional(),
-  billingAttemptsRule: z.enum(['on', 'before', 'after']).optional(),
+  amountRule: z.enum(["max", "exact"]).optional(),
+  billingAttemptsRule: z.enum(["on", "before", "after"]).optional(),
   billingDay: z.string().optional(),
   count: z.string().optional(),
   currency: z.string(),
   endsAt: z.string(),
-  frequency: z.enum(['adhoc', 'daily', 'weekly', 'biWeekly', 'monthly', 'quarterly', 'halfYearly', 'yearly']),
+  frequency: z.enum(["adhoc", "daily", "weekly", "biWeekly", "monthly", "quarterly", "halfYearly", "yearly"]),
   mandateId: z.string(),
   maskedAccountId: z.string().optional(),
   minAmount: z.string().optional(),
@@ -1652,7 +1652,7 @@ export const TokenMandateSchema = z.object({
   recurringAmount: z.string().optional(),
   recurringStatement: z.string().max(35).optional(),
   remarks: z.string().optional(),
-  retryPolicy: z.enum(['true', 'false']).optional(),
+  retryPolicy: z.enum(["true", "false"]).optional(),
   startsAt: z.string().optional(),
   status: z.string(),
   txVariant: z.string()
@@ -1669,11 +1669,11 @@ export const TwintDetailsSchema = z.object({
   sdkData: z.string().max(50000).optional(),
   storedPaymentMethodId: z.string().max(64).optional(),
   subtype: z.string().optional(),
-  type: z.enum(['twint']).optional()
+  type: z.enum(["twint"]).optional()
 }).passthrough()
 
 export const UpdatePaymentLinkRequestSchema = z.object({
-  status: z.enum(['expired'])
+  status: z.enum(["expired"])
 }).passthrough()
 
 export const UpiCollectDetailsSchema = z.object({
@@ -1683,7 +1683,7 @@ export const UpiCollectDetailsSchema = z.object({
   sdkData: z.string().max(50000).optional(),
   shopperNotificationReference: z.string().optional(),
   storedPaymentMethodId: z.string().max(64).optional(),
-  type: z.enum(['upi_collect']),
+  type: z.enum(["upi_collect"]),
   virtualPaymentAddress: z.string().optional()
 }).passthrough()
 
@@ -1695,7 +1695,7 @@ export const UpiIntentDetailsSchema = z.object({
   sdkData: z.string().max(50000).optional(),
   shopperNotificationReference: z.string().optional(),
   storedPaymentMethodId: z.string().max(64).optional(),
-  type: z.enum(['upi_intent'])
+  type: z.enum(["upi_intent"])
 }).passthrough()
 
 export const UpiQrDetailsSchema = z.object({
@@ -1705,7 +1705,7 @@ export const UpiQrDetailsSchema = z.object({
   sdkData: z.string().max(50000).optional(),
   shopperNotificationReference: z.string().optional(),
   storedPaymentMethodId: z.string().max(64).optional(),
-  type: z.enum(['upi_qr'])
+  type: z.enum(["upi_qr"])
 }).passthrough()
 
 export const UtilityRequestSchema = z.object({
@@ -1722,21 +1722,21 @@ export const VippsDetailsSchema = z.object({
   sdkData: z.string().max(50000).optional(),
   storedPaymentMethodId: z.string().max(64).optional(),
   telephoneNumber: z.string(),
-  type: z.enum(['vipps']).optional()
+  type: z.enum(["vipps"]).optional()
 }).passthrough()
 
 export const VisaCheckoutDetailsSchema = z.object({
   checkoutAttemptId: z.string().optional(),
-  fundingSource: z.enum(['credit', 'debit', 'prepaid']).optional(),
+  fundingSource: z.enum(["credit", "debit", "prepaid"]).optional(),
   sdkData: z.string().max(50000).optional(),
-  type: z.enum(['visacheckout']).optional(),
+  type: z.enum(["visacheckout"]).optional(),
   visaCheckoutCallId: z.string()
 }).passthrough()
 
 export const WeChatPayDetailsSchema = z.object({
   checkoutAttemptId: z.string().optional(),
   sdkData: z.string().max(50000).optional(),
-  type: z.enum(['wechatpay', 'wechatpay_pos']).optional()
+  type: z.enum(["wechatpay", "wechatpay_pos"]).optional()
 }).passthrough()
 
 export const WeChatPayMiniProgramDetailsSchema = z.object({
@@ -1746,7 +1746,7 @@ export const WeChatPayMiniProgramDetailsSchema = z.object({
   recurringDetailReference: z.string().optional(),
   sdkData: z.string().max(50000).optional(),
   storedPaymentMethodId: z.string().max(64).optional(),
-  type: z.enum(['wechatpayMiniProgram']).optional()
+  type: z.enum(["wechatpayMiniProgram"]).optional()
 }).passthrough()
 
 export const ZipDetailsSchema = z.object({
@@ -1755,7 +1755,7 @@ export const ZipDetailsSchema = z.object({
   recurringDetailReference: z.string().optional(),
   sdkData: z.string().max(50000).optional(),
   storedPaymentMethodId: z.string().max(64).optional(),
-  type: z.enum(['zip', 'zip_pos']).optional()
+  type: z.enum(["zip", "zip_pos"]).optional()
 }).passthrough()
 
 export const InvalidFieldSchema = z.object({
@@ -1764,7 +1764,7 @@ export const InvalidFieldSchema = z.object({
   value: z.string()
 }).passthrough()
 
-export const ResultSchema = z.enum(['VALID', 'INVALID', 'UNKNOWN', 'NOT_REQUIRED'])
+export const ResultSchema = z.enum(["VALID", "INVALID", "UNKNOWN", "NOT_REQUIRED"])
 
 export const ShopperIdPaymentMethodSchema = z.object({
   type: z.string().min(0).max(50).regex(new RegExp("payTo|upi_collect"))
@@ -1784,7 +1784,7 @@ export const CheckoutBankTransferActionSchema = z.object({
   shopperEmail: z.string().optional(),
   sortCode: z.string().optional(),
   totalAmount: AmountSchema.optional(),
-  type: z.enum(['bankTransfer']),
+  type: z.enum(["bankTransfer"]),
   url: z.string().optional()
 }).passthrough()
 
@@ -1817,7 +1817,7 @@ export const CheckoutVoucherActionSchema = z.object({
   shopperName: z.string().optional(),
   surcharge: AmountSchema.optional(),
   totalAmount: AmountSchema.optional(),
-  type: z.enum(['voucher']),
+  type: z.enum(["voucher"]),
   url: z.string().optional()
 }).passthrough()
 
@@ -1833,7 +1833,7 @@ export const DeliveryMethodSchema = z.object({
   description: z.string().optional(),
   reference: z.string().optional(),
   selected: z.boolean().optional(),
-  type: z.enum(['Shipping']).optional()
+  type: z.enum(["Shipping"]).optional()
 }).passthrough()
 
 export const ForexQuoteSchema = z.object({
@@ -1853,10 +1853,10 @@ export const ForexQuoteSchema = z.object({
 
 export const MerchantRiskIndicatorSchema = z.object({
   addressMatch: z.boolean().optional(),
-  deliveryAddressIndicator: z.enum(['shipToBillingAddress', 'shipToVerifiedAddress', 'shipToNewAddress', 'shipToStore', 'digitalGoods', 'goodsNotShipped', 'other']).optional(),
+  deliveryAddressIndicator: z.enum(["shipToBillingAddress", "shipToVerifiedAddress", "shipToNewAddress", "shipToStore", "digitalGoods", "goodsNotShipped", "other"]).optional(),
   deliveryEmail: z.string().optional(),
   deliveryEmailAddress: z.string().max(254).optional(),
-  deliveryTimeframe: z.enum(['electronicDelivery', 'sameDayShipping', 'overnightShipping', 'twoOrMoreDaysShipping']).optional(),
+  deliveryTimeframe: z.enum(["electronicDelivery", "sameDayShipping", "overnightShipping", "twoOrMoreDaysShipping"]).optional(),
   giftCardAmount: AmountSchema.optional(),
   giftCardCount: z.number().optional(),
   giftCardCurr: z.string().optional(),
@@ -1872,7 +1872,7 @@ export const PixRecurringSchema = z.object({
   billingDate: z.string().optional(),
   businessDayOnly: z.boolean().optional(),
   endsAt: z.string().optional(),
-  frequency: z.enum(['weekly', 'monthly', 'quarterly', 'half-yearly', 'yearly']).optional(),
+  frequency: z.enum(["weekly", "monthly", "quarterly", "half-yearly", "yearly"]).optional(),
   minAmount: AmountSchema.optional(),
   originalPspReference: z.string().optional(),
   recurringAmount: AmountSchema.optional(),
@@ -1952,7 +1952,7 @@ export const PaymentMethodsRequestSchema = z.object({
   amount: AmountSchema.optional(),
   blockedPaymentMethods: z.array(z.string()).optional(),
   browserInfo: BrowserInfoSchema.optional(),
-  channel: z.enum(['iOS', 'Android', 'Web']).optional(),
+  channel: z.enum(["iOS", "Android", "Web"]).optional(),
   countryCode: z.string().optional(),
   merchantAccount: z.string(),
   order: EncryptedOrderDataSchema.optional(),
@@ -1963,7 +1963,7 @@ export const PaymentMethodsRequestSchema = z.object({
   shopperReference: z.string().optional(),
   splitCardFundingSources: z.boolean().optional(),
   store: z.string().min(1).max(16).optional(),
-  storeFiltrationMode: z.enum(['exclusive', 'inclusive', 'skipFilter']).optional(),
+  storeFiltrationMode: z.enum(["exclusive", "inclusive", "skipFilter"]).optional(),
   telephoneNumber: z.string().optional()
 }).passthrough()
 
@@ -2010,7 +2010,7 @@ export const PaymentDetailsRequestSchema = z.object({
 export const StoredPaymentMethodRequestSchema = z.object({
   merchantAccount: z.string(),
   paymentMethod: PaymentMethodToStoreSchema,
-  recurringProcessingModel: z.enum(['CardOnFile', 'Subscription', 'UnscheduledCardOnFile']),
+  recurringProcessingModel: z.enum(["CardOnFile", "Subscription", "UnscheduledCardOnFile"]),
   shopperEmail: z.string().optional(),
   shopperIP: z.string().optional(),
   shopperReference: z.string()
@@ -2023,13 +2023,13 @@ export const PaymentValidationsSchema = z.object({
 export const PaymentValidationsNameResponseSchema = z.object({
   rawResponse: PaymentValidationsNameResultRawResponseSchema.optional(),
   result: PaymentValidationsNameResultResponseSchema.optional(),
-  status: z.enum(['notPerformed', 'notSupported', 'performed']).optional()
+  status: z.enum(["notPerformed", "notSupported", "performed"]).optional()
 }).passthrough()
 
 export const CheckoutSessionThreeDS2RequestDataSchema = z.object({
   homePhone: PhoneSchema.optional(),
   mobilePhone: PhoneSchema.optional(),
-  threeDSRequestorChallengeInd: z.enum(['01', '02', '03', '04', '05', '06']).optional(),
+  threeDSRequestorChallengeInd: z.enum(["01", "02", "03", "04", "05", "06"]).optional(),
   workPhone: PhoneSchema.optional()
 }).passthrough()
 
@@ -2037,7 +2037,7 @@ export const PaymentSchema = z.object({
   amount: AmountSchema.optional(),
   paymentMethod: ResponsePaymentMethodSchema.optional(),
   pspReference: z.string().optional(),
-  resultCode: z.enum(['Authorised', 'Received', 'Pending']).optional()
+  resultCode: z.enum(["Authorised", "Received", "Pending"]).optional()
 }).passthrough()
 
 export const PixPayByBankRiskSignalsSchema = z.object({
@@ -2065,7 +2065,7 @@ export const SplitSchema = z.object({
   amount: SplitAmountSchema.optional(),
   description: z.string().optional(),
   reference: z.string().optional(),
-  type: z.enum(['AcquiringFees', 'AdyenCommission', 'AdyenFees', 'AdyenMarkup', 'BalanceAccount', 'Commission', 'Default', 'Interchange', 'MarketPlace', 'PaymentFee', 'Remainder', 'SchemeFee', 'Surcharge', 'Tip', 'TopUp', 'VAT'])
+  type: z.enum(["AcquiringFees", "AdyenCommission", "AdyenFees", "AdyenMarkup", "BalanceAccount", "Commission", "Default", "Interchange", "MarketPlace", "PaymentFee", "Remainder", "SchemeFee", "Surcharge", "Tip", "TopUp", "VAT"])
 }).passthrough()
 
 export const FundRecipientSchema = z.object({
@@ -2080,23 +2080,23 @@ export const FundRecipientSchema = z.object({
   telephoneNumber: z.string().optional(),
   walletIdentifier: z.string().optional(),
   walletOwnerTaxId: z.string().optional(),
-  walletPurpose: z.enum(['identifiedBoleto', 'transferDifferentWallet', 'transferOwnWallet', 'transferSameWallet', 'unidentifiedBoleto']).optional()
+  walletPurpose: z.enum(["identifiedBoleto", "transferDifferentWallet", "transferOwnWallet", "transferSameWallet", "unidentifiedBoleto"]).optional()
 }).passthrough()
 
 export const AuthenticationDataSchema = z.object({
-  attemptAuthentication: z.enum(['always', 'never']).optional(),
+  attemptAuthentication: z.enum(["always", "never"]).optional(),
   authenticationOnly: z.boolean().optional(),
   threeDSRequestData: ThreeDSRequestDataSchema.optional()
 }).passthrough()
 
 export const ThreeDS2RequestDataSchema = z.object({
   acctInfo: AcctInfoSchema.optional(),
-  acctType: z.enum(['01', '02', '03']).optional(),
+  acctType: z.enum(["01", "02", "03"]).optional(),
   acquirerBIN: z.string().optional(),
   acquirerMerchantID: z.string().optional(),
-  addrMatch: z.enum(['Y', 'N']).optional(),
+  addrMatch: z.enum(["Y", "N"]).optional(),
   authenticationOnly: z.boolean().optional(),
-  challengeIndicator: z.enum(['noPreference', 'requestNoChallenge', 'requestChallenge', 'requestChallengeAsMandate']).optional(),
+  challengeIndicator: z.enum(["noPreference", "requestNoChallenge", "requestChallenge", "requestChallengeAsMandate"]).optional(),
   deviceChannel: z.string(),
   deviceRenderOptions: DeviceRenderOptionsSchema.optional(),
   homePhone: PhoneSchema.optional(),
@@ -2120,25 +2120,25 @@ export const ThreeDS2RequestDataSchema = z.object({
   threeDSCompInd: z.string().optional(),
   threeDSRequestorAuthenticationInd: z.string().optional(),
   threeDSRequestorAuthenticationInfo: ThreeDSRequestorAuthenticationInfoSchema.optional(),
-  threeDSRequestorChallengeInd: z.enum(['01', '02', '03', '04', '05', '06']).optional(),
+  threeDSRequestorChallengeInd: z.enum(["01", "02", "03", "04", "05", "06"]).optional(),
   threeDSRequestorID: z.string().optional(),
   threeDSRequestorName: z.string().optional(),
   threeDSRequestorPriorAuthenticationInfo: ThreeDSRequestorPriorAuthenticationInfoSchema.optional(),
   threeDSRequestorURL: z.string().optional(),
-  transType: z.enum(['01', '03', '10', '11', '28']).optional(),
-  transactionType: z.enum(['goodsOrServicePurchase', 'checkAcceptance', 'accountFunding', 'quasiCashTransaction', 'prepaidActivationAndLoad']).optional(),
+  transType: z.enum(["01", "03", "10", "11", "28"]).optional(),
+  transactionType: z.enum(["goodsOrServicePurchase", "checkAcceptance", "accountFunding", "quasiCashTransaction", "prepaidActivationAndLoad"]).optional(),
   whiteListStatus: z.string().optional(),
   workPhone: PhoneSchema.optional()
 }).passthrough()
 
 export const ThreeDS2RequestFieldsSchema = z.object({
   acctInfo: AcctInfoSchema.optional(),
-  acctType: z.enum(['01', '02', '03']).optional(),
+  acctType: z.enum(["01", "02", "03"]).optional(),
   acquirerBIN: z.string().optional(),
   acquirerMerchantID: z.string().optional(),
-  addrMatch: z.enum(['Y', 'N']).optional(),
+  addrMatch: z.enum(["Y", "N"]).optional(),
   authenticationOnly: z.boolean().optional(),
-  challengeIndicator: z.enum(['noPreference', 'requestNoChallenge', 'requestChallenge', 'requestChallengeAsMandate']).optional(),
+  challengeIndicator: z.enum(["noPreference", "requestNoChallenge", "requestChallenge", "requestChallengeAsMandate"]).optional(),
   deviceRenderOptions: DeviceRenderOptionsSchema.optional(),
   homePhone: PhoneSchema.optional(),
   mcc: z.string().optional(),
@@ -2159,13 +2159,13 @@ export const ThreeDS2RequestFieldsSchema = z.object({
   threeDSCompInd: z.string().optional(),
   threeDSRequestorAuthenticationInd: z.string().optional(),
   threeDSRequestorAuthenticationInfo: ThreeDSRequestorAuthenticationInfoSchema.optional(),
-  threeDSRequestorChallengeInd: z.enum(['01', '02', '03', '04', '05', '06']).optional(),
+  threeDSRequestorChallengeInd: z.enum(["01", "02", "03", "04", "05", "06"]).optional(),
   threeDSRequestorID: z.string().optional(),
   threeDSRequestorName: z.string().optional(),
   threeDSRequestorPriorAuthenticationInfo: ThreeDSRequestorPriorAuthenticationInfoSchema.optional(),
   threeDSRequestorURL: z.string().optional(),
-  transType: z.enum(['01', '03', '10', '11', '28']).optional(),
-  transactionType: z.enum(['goodsOrServicePurchase', 'checkAcceptance', 'accountFunding', 'quasiCashTransaction', 'prepaidActivationAndLoad']).optional(),
+  transType: z.enum(["01", "03", "10", "11", "28"]).optional(),
+  transactionType: z.enum(["goodsOrServicePurchase", "checkAcceptance", "accountFunding", "quasiCashTransaction", "prepaidActivationAndLoad"]).optional(),
   whiteListStatus: z.string().optional(),
   workPhone: PhoneSchema.optional()
 }).passthrough()
@@ -2248,7 +2248,7 @@ export const PixDetailsSchema = z.object({
   recurringDetailReference: z.string().optional(),
   sdkData: z.string().max(50000).optional(),
   storedPaymentMethodId: z.string().max(64).optional(),
-  type: z.enum(['pix']).optional()
+  type: z.enum(["pix"]).optional()
 }).passthrough()
 
 export const PaypalUpdateOrderRequestSchema = z.object({
@@ -2282,7 +2282,7 @@ export const BalanceCheckResponseSchema = z.object({
   fraudResult: FraudResultSchema.optional(),
   pspReference: z.string().optional(),
   refusalReason: z.string().optional(),
-  resultCode: z.enum(['Success', 'NotEnoughBalance', 'Failed']),
+  resultCode: z.enum(["Success", "NotEnoughBalance", "Failed"]),
   transactionLimit: AmountSchema.optional()
 }).passthrough()
 
@@ -2296,7 +2296,7 @@ export const CreateOrderResponseSchema = z.object({
   reference: z.string().optional(),
   refusalReason: z.string().optional(),
   remainingAmount: AmountSchema,
-  resultCode: z.enum(['Success'])
+  resultCode: z.enum(["Success"])
 }).passthrough()
 
 export const InputDetailSchema = z.object({
@@ -2320,7 +2320,7 @@ export const SessionResultResponseSchema = z.object({
   id: z.string().optional(),
   payments: z.array(PaymentSchema).optional(),
   reference: z.string().optional(),
-  status: z.enum(['active', 'canceled', 'completed', 'expired', 'paymentPending', 'refused']).optional()
+  status: z.enum(["active", "canceled", "completed", "expired", "paymentPending", "refused"]).optional()
 }).passthrough()
 
 export const PixPayByBankDetailsSchema = z.object({
@@ -2331,19 +2331,19 @@ export const PixPayByBankDetailsSchema = z.object({
   riskSignals: PixPayByBankRiskSignalsSchema.optional(),
   sdkData: z.string().max(50000).optional(),
   storedPaymentMethodId: z.string().max(64).optional(),
-  type: z.enum(['paybybank_pix']).optional()
+  type: z.enum(["paybybank_pix"]).optional()
 }).passthrough()
 
 export const PaymentAmountUpdateResponseSchema = z.object({
   amount: AmountSchema,
-  industryUsage: z.enum(['delayedCharge', 'installment', 'noShow']).optional(),
+  industryUsage: z.enum(["delayedCharge", "installment", "noShow"]).optional(),
   lineItems: z.array(LineItemSchema).optional(),
   merchantAccount: z.string(),
   paymentPspReference: z.string(),
   pspReference: z.string(),
   reference: z.string(),
   splits: z.array(SplitSchema).optional(),
-  status: z.enum(['received'])
+  status: z.enum(["received"])
 }).passthrough()
 
 export const PaymentCaptureResponseSchema = z.object({
@@ -2355,7 +2355,7 @@ export const PaymentCaptureResponseSchema = z.object({
   pspReference: z.string(),
   reference: z.string().optional(),
   splits: z.array(SplitSchema).optional(),
-  status: z.enum(['received']),
+  status: z.enum(["received"]),
   subMerchants: z.array(SubMerchantInfoSchema).optional()
 }).passthrough()
 
@@ -2364,12 +2364,12 @@ export const PaymentRefundResponseSchema = z.object({
   capturePspReference: z.string().optional(),
   lineItems: z.array(LineItemSchema).optional(),
   merchantAccount: z.string(),
-  merchantRefundReason: z.enum(['FRAUD', 'CUSTOMER REQUEST', 'RETURN', 'DUPLICATE', 'OTHER']).optional(),
+  merchantRefundReason: z.enum(["FRAUD", "CUSTOMER REQUEST", "RETURN", "DUPLICATE", "OTHER"]).optional(),
   paymentPspReference: z.string(),
   pspReference: z.string(),
   reference: z.string().optional(),
   splits: z.array(SplitSchema).optional(),
-  status: z.enum(['received']),
+  status: z.enum(["received"]),
   store: z.string().optional()
 }).passthrough()
 
@@ -2396,9 +2396,9 @@ export const PaymentLinkRequestSchema = z.object({
   merchantOrderReference: z.string().max(1000).optional(),
   metadata: z.record(z.string(), z.string()).optional(),
   platformChargebackLogic: PlatformChargebackLogicSchema.optional(),
-  recurringProcessingModel: z.enum(['CardOnFile', 'Subscription', 'UnscheduledCardOnFile']).optional(),
+  recurringProcessingModel: z.enum(["CardOnFile", "Subscription", "UnscheduledCardOnFile"]).optional(),
   reference: z.string(),
-  requiredShopperFields: z.array(z.enum(['billingAddress', 'deliveryAddress', 'shopperEmail', 'shopperName', 'telephoneNumber'])).optional(),
+  requiredShopperFields: z.array(z.enum(["billingAddress", "deliveryAddress", "shopperEmail", "shopperName", "telephoneNumber"])).optional(),
   returnUrl: z.string().max(8000).optional(),
   reusable: z.boolean().optional(),
   riskData: RiskDataSchema.optional(),
@@ -2412,7 +2412,7 @@ export const PaymentLinkRequestSchema = z.object({
   splitCardFundingSources: z.boolean().optional(),
   splits: z.array(SplitSchema).optional(),
   store: z.string().optional(),
-  storePaymentMethodMode: z.enum(['askForConsent', 'disabled', 'enabled']).optional(),
+  storePaymentMethodMode: z.enum(["askForConsent", "disabled", "enabled"]).optional(),
   telephoneNumber: z.string().max(32).optional(),
   themeId: z.string().optional(),
   threeDS2RequestData: CheckoutSessionThreeDS2RequestDataSchema.optional()
@@ -2442,9 +2442,9 @@ export const PaymentLinkResponseSchema = z.object({
   merchantOrderReference: z.string().max(1000).optional(),
   metadata: z.record(z.string(), z.string()).optional(),
   platformChargebackLogic: PlatformChargebackLogicSchema.optional(),
-  recurringProcessingModel: z.enum(['CardOnFile', 'Subscription', 'UnscheduledCardOnFile']).optional(),
+  recurringProcessingModel: z.enum(["CardOnFile", "Subscription", "UnscheduledCardOnFile"]).optional(),
   reference: z.string(),
-  requiredShopperFields: z.array(z.enum(['billingAddress', 'deliveryAddress', 'shopperEmail', 'shopperName', 'telephoneNumber'])).optional(),
+  requiredShopperFields: z.array(z.enum(["billingAddress", "deliveryAddress", "shopperEmail", "shopperName", "telephoneNumber"])).optional(),
   returnUrl: z.string().max(8000).optional(),
   reusable: z.boolean().optional(),
   riskData: RiskDataSchema.optional(),
@@ -2457,9 +2457,9 @@ export const PaymentLinkResponseSchema = z.object({
   socialSecurityNumber: z.string().max(32).optional(),
   splitCardFundingSources: z.boolean().optional(),
   splits: z.array(SplitSchema).optional(),
-  status: z.enum(['active', 'completed', 'expired', 'paid', 'paymentPending']),
+  status: z.enum(["active", "completed", "expired", "paid", "paymentPending"]),
   store: z.string().optional(),
-  storePaymentMethodMode: z.enum(['askForConsent', 'disabled', 'enabled']).optional(),
+  storePaymentMethodMode: z.enum(["askForConsent", "disabled", "enabled"]).optional(),
   telephoneNumber: z.string().max(32).optional(),
   themeId: z.string().optional(),
   threeDS2RequestData: CheckoutSessionThreeDS2RequestDataSchema.optional(),
@@ -2478,7 +2478,7 @@ export const CreateCheckoutSessionRequestSchema = z.object({
   billingAddress: BillingAddressSchema.optional(),
   blockedPaymentMethods: z.array(z.string()).optional(),
   captureDelayHours: z.number().optional(),
-  channel: z.enum(['iOS', 'Android', 'Web']).optional(),
+  channel: z.enum(["iOS", "Android", "Web"]).optional(),
   company: CompanySchema.optional(),
   countryCode: z.string().optional(),
   dateOfBirth: z.string().optional(),
@@ -2497,12 +2497,12 @@ export const CreateCheckoutSessionRequestSchema = z.object({
   merchantAccount: z.string(),
   merchantOrderReference: z.string().optional(),
   metadata: z.record(z.string(), z.string()).optional(),
-  mode: z.enum(['embedded', 'hosted']).optional(),
+  mode: z.enum(["embedded", "hosted"]).optional(),
   mpiData: ThreeDSecureDataSchema.optional(),
   platformChargebackLogic: PlatformChargebackLogicSchema.optional(),
   recurringExpiry: z.string().optional(),
   recurringFrequency: z.string().optional(),
-  recurringProcessingModel: z.enum(['CardOnFile', 'Subscription', 'UnscheduledCardOnFile']).optional(),
+  recurringProcessingModel: z.enum(["CardOnFile", "Subscription", "UnscheduledCardOnFile"]).optional(),
   redirectFromIssuerMethod: z.string().optional(),
   redirectToIssuerMethod: z.string().optional(),
   reference: z.string(),
@@ -2510,7 +2510,7 @@ export const CreateCheckoutSessionRequestSchema = z.object({
   riskData: RiskDataSchema.optional(),
   shopperEmail: z.string().optional(),
   shopperIP: z.string().optional(),
-  shopperInteraction: z.enum(['Ecommerce', 'ContAuth', 'Moto', 'POS']).optional(),
+  shopperInteraction: z.enum(["Ecommerce", "ContAuth", "Moto", "POS"]).optional(),
   shopperLocale: z.string().optional(),
   shopperName: ShopperNameSchema.optional(),
   shopperReference: z.string().min(3).max(256).optional(),
@@ -2521,9 +2521,9 @@ export const CreateCheckoutSessionRequestSchema = z.object({
   splitCardFundingSources: z.boolean().optional(),
   splits: z.array(SplitSchema).optional(),
   store: z.string().optional(),
-  storeFiltrationMode: z.enum(['exclusive', 'inclusive', 'skipFilter']).optional(),
+  storeFiltrationMode: z.enum(["exclusive", "inclusive", "skipFilter"]).optional(),
   storePaymentMethod: z.boolean().optional(),
-  storePaymentMethodMode: z.enum(['askForConsent', 'disabled', 'enabled']).optional(),
+  storePaymentMethodMode: z.enum(["askForConsent", "disabled", "enabled"]).optional(),
   telephoneNumber: z.string().optional(),
   themeId: z.string().optional(),
   threeDS2RequestData: CheckoutSessionThreeDS2RequestDataSchema.optional(),
@@ -2542,7 +2542,7 @@ export const CreateCheckoutSessionResponseSchema = z.object({
   billingAddress: BillingAddressSchema.optional(),
   blockedPaymentMethods: z.array(z.string()).optional(),
   captureDelayHours: z.number().optional(),
-  channel: z.enum(['iOS', 'Android', 'Web']).optional(),
+  channel: z.enum(["iOS", "Android", "Web"]).optional(),
   company: CompanySchema.optional(),
   countryCode: z.string().optional(),
   dateOfBirth: z.string().optional(),
@@ -2562,12 +2562,12 @@ export const CreateCheckoutSessionResponseSchema = z.object({
   merchantAccount: z.string(),
   merchantOrderReference: z.string().optional(),
   metadata: z.record(z.string(), z.string()).optional(),
-  mode: z.enum(['embedded', 'hosted']).optional(),
+  mode: z.enum(["embedded", "hosted"]).optional(),
   mpiData: ThreeDSecureDataSchema.optional(),
   platformChargebackLogic: PlatformChargebackLogicSchema.optional(),
   recurringExpiry: z.string().optional(),
   recurringFrequency: z.string().optional(),
-  recurringProcessingModel: z.enum(['CardOnFile', 'Subscription', 'UnscheduledCardOnFile']).optional(),
+  recurringProcessingModel: z.enum(["CardOnFile", "Subscription", "UnscheduledCardOnFile"]).optional(),
   redirectFromIssuerMethod: z.string().optional(),
   redirectToIssuerMethod: z.string().optional(),
   reference: z.string(),
@@ -2576,7 +2576,7 @@ export const CreateCheckoutSessionResponseSchema = z.object({
   sessionData: z.string().optional(),
   shopperEmail: z.string().optional(),
   shopperIP: z.string().optional(),
-  shopperInteraction: z.enum(['Ecommerce', 'ContAuth', 'Moto', 'POS']).optional(),
+  shopperInteraction: z.enum(["Ecommerce", "ContAuth", "Moto", "POS"]).optional(),
   shopperLocale: z.string().optional(),
   shopperName: ShopperNameSchema.optional(),
   shopperReference: z.string().min(3).max(256).optional(),
@@ -2587,9 +2587,9 @@ export const CreateCheckoutSessionResponseSchema = z.object({
   splitCardFundingSources: z.boolean().optional(),
   splits: z.array(SplitSchema).optional(),
   store: z.string().optional(),
-  storeFiltrationMode: z.enum(['exclusive', 'inclusive', 'skipFilter']).optional(),
+  storeFiltrationMode: z.enum(["exclusive", "inclusive", "skipFilter"]).optional(),
   storePaymentMethod: z.boolean().optional(),
-  storePaymentMethodMode: z.enum(['askForConsent', 'disabled', 'enabled']).optional(),
+  storePaymentMethodMode: z.enum(["askForConsent", "disabled", "enabled"]).optional(),
   telephoneNumber: z.string().optional(),
   themeId: z.string().optional(),
   threeDS2RequestData: CheckoutSessionThreeDS2RequestDataSchema.optional(),
@@ -2623,14 +2623,14 @@ export const BalanceCheckRequestSchema = z.object({
   orderReference: z.string().optional(),
   paymentMethod: z.record(z.string(), z.string()),
   recurring: RecurringSchema.optional(),
-  recurringProcessingModel: z.enum(['CardOnFile', 'Subscription', 'UnscheduledCardOnFile']).optional(),
+  recurringProcessingModel: z.enum(["CardOnFile", "Subscription", "UnscheduledCardOnFile"]).optional(),
   reference: z.string().optional(),
   selectedBrand: z.string().optional(),
   selectedRecurringDetailReference: z.string().optional(),
   sessionId: z.string().optional(),
   shopperEmail: z.string().optional(),
   shopperIP: z.string().optional(),
-  shopperInteraction: z.enum(['Ecommerce', 'ContAuth', 'Moto', 'POS']).optional(),
+  shopperInteraction: z.enum(["Ecommerce", "ContAuth", "Moto", "POS"]).optional(),
   shopperLocale: z.string().optional(),
   shopperName: NameSchema.optional(),
   shopperReference: z.string().optional(),
@@ -2653,7 +2653,7 @@ export const DonationPaymentRequestSchema = z.object({
   authenticationData: AuthenticationDataSchema.optional(),
   billingAddress: BillingAddressSchema.optional(),
   browserInfo: BrowserInfoSchema.optional(),
-  channel: z.enum(['iOS', 'Android', 'Web']).optional(),
+  channel: z.enum(["iOS", "Android", "Web"]).optional(),
   checkoutAttemptId: z.string().optional(),
   conversionId: z.string().optional(),
   countryCode: z.string().max(100).optional(),
@@ -2672,7 +2672,7 @@ export const DonationPaymentRequestSchema = z.object({
   mpiData: ThreeDSecureDataSchema.optional(),
   origin: z.string().max(80).optional(),
   paymentMethod: z.union([ApplePayDonationsSchema, CardDonationsSchema, GooglePayDonationsSchema, IdealDonationsSchema, PayWithGoogleDonationsSchema]).optional(),
-  recurringProcessingModel: z.enum(['CardOnFile', 'Subscription', 'UnscheduledCardOnFile']).optional(),
+  recurringProcessingModel: z.enum(["CardOnFile", "Subscription", "UnscheduledCardOnFile"]).optional(),
   redirectFromIssuerMethod: z.string().optional(),
   redirectToIssuerMethod: z.string().optional(),
   reference: z.string(),
@@ -2680,7 +2680,7 @@ export const DonationPaymentRequestSchema = z.object({
   sessionValidity: z.string().optional(),
   shopperEmail: z.string().optional(),
   shopperIP: z.string().max(1000).optional(),
-  shopperInteraction: z.enum(['Ecommerce', 'ContAuth', 'Moto', 'POS']).optional(),
+  shopperInteraction: z.enum(["Ecommerce", "ContAuth", "Moto", "POS"]).optional(),
   shopperLocale: z.string().optional(),
   shopperName: ShopperNameSchema.optional(),
   shopperReference: z.string().min(3).max(256).optional(),
@@ -2707,7 +2707,7 @@ export const PaymentMethodSchema = z.object({
   brand: z.string().optional(),
   brands: z.array(z.string()).optional(),
   configuration: z.record(z.string(), z.string()).optional(),
-  fundingSource: z.enum(['credit', 'debit', 'prepaid']).optional(),
+  fundingSource: z.enum(["credit", "debit", "prepaid"]).optional(),
   group: PaymentMethodGroupSchema.optional(),
   inputDetails: z.array(InputDetailSchema).optional(),
   issuers: z.array(PaymentMethodIssuerSchema).optional(),
@@ -2729,7 +2729,7 @@ export const PaymentDetailsResponseSchema = z.object({
   pspReference: z.string().optional(),
   refusalReason: z.string().optional(),
   refusalReasonCode: z.string().optional(),
-  resultCode: z.enum(['AuthenticationFinished', 'AuthenticationNotRequired', 'Authorised', 'Cancelled', 'ChallengeShopper', 'Error', 'IdentifyShopper', 'PartiallyAuthorised', 'Pending', 'PresentToShopper', 'Received', 'RedirectShopper', 'Refused', 'Success']).optional(),
+  resultCode: z.enum(["AuthenticationFinished", "AuthenticationNotRequired", "Authorised", "Cancelled", "ChallengeShopper", "Error", "IdentifyShopper", "PartiallyAuthorised", "Pending", "PresentToShopper", "Received", "RedirectShopper", "Refused", "Success"]).optional(),
   shopperLocale: z.string().optional(),
   threeDS2ResponseData: ThreeDS2ResponseDataSchema.optional(),
   threeDS2Result: ThreeDS2ResultSchema.optional(),
@@ -2749,7 +2749,7 @@ export const PaymentResponseSchema = z.object({
   pspReference: z.string().optional(),
   refusalReason: z.string().optional(),
   refusalReasonCode: z.string().optional(),
-  resultCode: z.enum(['AuthenticationFinished', 'AuthenticationNotRequired', 'Authorised', 'Cancelled', 'ChallengeShopper', 'Error', 'IdentifyShopper', 'PartiallyAuthorised', 'Pending', 'PresentToShopper', 'Received', 'RedirectShopper', 'Refused', 'Success']).optional(),
+  resultCode: z.enum(["AuthenticationFinished", "AuthenticationNotRequired", "Authorised", "Cancelled", "ChallengeShopper", "Error", "IdentifyShopper", "PartiallyAuthorised", "Pending", "PresentToShopper", "Received", "RedirectShopper", "Refused", "Success"]).optional(),
   threeDS2ResponseData: ThreeDS2ResponseDataSchema.optional(),
   threeDS2Result: ThreeDS2ResultSchema.optional(),
   threeDSPaymentData: z.string().optional()
@@ -2759,7 +2759,7 @@ export const PaymentAmountUpdateRequestSchema = z.object({
   amount: AmountSchema,
   applicationInfo: ApplicationInfoSchema.optional(),
   enhancedSchemeData: EnhancedSchemeDataSchema.optional(),
-  industryUsage: z.enum(['delayedCharge', 'installment', 'noShow']).optional(),
+  industryUsage: z.enum(["delayedCharge", "installment", "noShow"]).optional(),
   lineItems: z.array(LineItemSchema).optional(),
   merchantAccount: z.string(),
   reference: z.string().optional(),
@@ -2792,7 +2792,7 @@ export const PaymentRefundRequestSchema = z.object({
   enhancedSchemeData: EnhancedSchemeDataSchema.optional(),
   lineItems: z.array(LineItemSchema).optional(),
   merchantAccount: z.string(),
-  merchantRefundReason: z.enum(['FRAUD', 'CUSTOMER REQUEST', 'RETURN', 'DUPLICATE', 'OTHER']).optional(),
+  merchantRefundReason: z.enum(["FRAUD", "CUSTOMER REQUEST", "RETURN", "DUPLICATE", "OTHER"]).optional(),
   reference: z.string().optional(),
   splits: z.array(SplitSchema).optional(),
   store: z.string().optional()
@@ -2809,7 +2809,7 @@ export const PaymentRequestSchema = z.object({
   billingAddress: BillingAddressSchema.optional(),
   browserInfo: BrowserInfoSchema.optional(),
   captureDelayHours: z.number().optional(),
-  channel: z.enum(['iOS', 'Android', 'Web']).optional(),
+  channel: z.enum(["iOS", "Android", "Web"]).optional(),
   checkoutAttemptId: z.string().max(256).optional(),
   company: CompanySchema.optional(),
   conversionId: z.string().optional(),
@@ -2824,11 +2824,11 @@ export const PaymentRequestSchema = z.object({
   enablePayOut: z.boolean().optional(),
   enableRecurring: z.boolean().optional(),
   enhancedSchemeData: EnhancedSchemeDataSchema.optional(),
-  entityType: z.enum(['NaturalPerson', 'CompanyName']).optional(),
+  entityType: z.enum(["NaturalPerson", "CompanyName"]).optional(),
   fraudOffset: z.number().optional(),
   fundOrigin: FundOriginSchema.optional(),
   fundRecipient: FundRecipientSchema.optional(),
-  industryUsage: z.enum(['delayedCharge', 'installment', 'noShow']).optional(),
+  industryUsage: z.enum(["delayedCharge", "installment", "noShow"]).optional(),
   installments: InstallmentsSchema.optional(),
   lineItems: z.array(LineItemSchema).optional(),
   localizedShopperStatement: z.record(z.string(), z.string()).optional(),
@@ -2847,7 +2847,7 @@ export const PaymentRequestSchema = z.object({
   platformChargebackLogic: PlatformChargebackLogicSchema.optional(),
   recurringExpiry: z.string().optional(),
   recurringFrequency: z.string().optional(),
-  recurringProcessingModel: z.enum(['CardOnFile', 'Subscription', 'UnscheduledCardOnFile']).optional(),
+  recurringProcessingModel: z.enum(["CardOnFile", "Subscription", "UnscheduledCardOnFile"]).optional(),
   redirectFromIssuerMethod: z.string().optional(),
   redirectToIssuerMethod: z.string().optional(),
   reference: z.string(),
@@ -2857,7 +2857,7 @@ export const PaymentRequestSchema = z.object({
   shopperConversionId: z.string().max(256).optional(),
   shopperEmail: z.string().optional(),
   shopperIP: z.string().max(1000).optional(),
-  shopperInteraction: z.enum(['Ecommerce', 'ContAuth', 'Moto', 'POS']).optional(),
+  shopperInteraction: z.enum(["Ecommerce", "ContAuth", "Moto", "POS"]).optional(),
   shopperLocale: z.string().optional(),
   shopperName: ShopperNameSchema.optional(),
   shopperReference: z.string().min(3).max(256).optional(),
@@ -2902,5 +2902,5 @@ export const DonationPaymentResponseSchema = z.object({
   merchantAccount: z.string().optional(),
   payment: PaymentResponseSchema.optional(),
   reference: z.string().optional(),
-  status: z.enum(['completed', 'pending', 'refused']).optional()
+  status: z.enum(["completed", "pending", "refused"]).optional()
 }).passthrough()

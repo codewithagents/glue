@@ -233,13 +233,13 @@ export async function getItemFiles(
   vaultUuid: string,
   itemUuid: string,
   params?: {
-    inline_files?: boolean;
+    inlineFiles?: boolean;
   },
   config?: Partial<ClientConfig>,
 ): Promise<File[]> {
   const searchParams = new URLSearchParams();
-  if (params?.inline_files != null)
-    searchParams.set("inline_files", String(params.inline_files));
+  if (params?.inlineFiles != null)
+    searchParams.set("inline_files", String(params.inlineFiles));
   const res = await _request(
     "GET",
     `/vaults/${encodeURIComponent(vaultUuid)}/items/${encodeURIComponent(itemUuid)}/files`,
@@ -259,13 +259,13 @@ export async function getDetailsOfFileById(
   itemUuid: string,
   fileUuid: string,
   params?: {
-    inline_files?: boolean;
+    inlineFiles?: boolean;
   },
   config?: Partial<ClientConfig>,
 ): Promise<File> {
   const searchParams = new URLSearchParams();
-  if (params?.inline_files != null)
-    searchParams.set("inline_files", String(params.inline_files));
+  if (params?.inlineFiles != null)
+    searchParams.set("inline_files", String(params.inlineFiles));
   const res = await _request(
     "GET",
     `/vaults/${encodeURIComponent(vaultUuid)}/items/${encodeURIComponent(itemUuid)}/files/${encodeURIComponent(fileUuid)}`,

@@ -125,7 +125,7 @@ export async function getMultipleArtists(
 export async function getAnArtistsAlbums(
   id: string,
   params?: {
-    include_groups?: string;
+    includeGroups?: string;
     market?: string;
     limit?: number;
     offset?: number;
@@ -133,8 +133,8 @@ export async function getAnArtistsAlbums(
   config?: Partial<ClientConfig>,
 ): Promise<void> {
   const searchParams = new URLSearchParams();
-  if (params?.include_groups != null)
-    searchParams.set("include_groups", String(params.include_groups));
+  if (params?.includeGroups != null)
+    searchParams.set("include_groups", String(params.includeGroups));
   if (params?.market != null) searchParams.set("market", String(params.market));
   if (params?.limit != null) searchParams.set("limit", String(params.limit));
   if (params?.offset != null) searchParams.set("offset", String(params.offset));
@@ -450,7 +450,7 @@ export async function search(
     market?: string;
     limit?: number;
     offset?: number;
-    include_external?: "audio";
+    includeExternal?: "audio";
   },
   config?: Partial<ClientConfig>,
 ): Promise<void> {
@@ -462,8 +462,8 @@ export async function search(
   if (params?.market != null) searchParams.set("market", String(params.market));
   if (params?.limit != null) searchParams.set("limit", String(params.limit));
   if (params?.offset != null) searchParams.set("offset", String(params.offset));
-  if (params?.include_external != null)
-    searchParams.set("include_external", String(params.include_external));
+  if (params?.includeExternal != null)
+    searchParams.set("include_external", String(params.includeExternal));
   await _request("GET", "/search", { searchParams }, config);
 }
 
@@ -474,35 +474,35 @@ export async function getCurrentUsersProfile(
 }
 
 export async function getPlaylist(
-  playlist_id: string,
+  playlistId: string,
   params?: {
     market?: string;
     fields?: string;
-    additional_types?: string;
+    additionalTypes?: string;
   },
   config?: Partial<ClientConfig>,
 ): Promise<void> {
   const searchParams = new URLSearchParams();
   if (params?.market != null) searchParams.set("market", String(params.market));
   if (params?.fields != null) searchParams.set("fields", String(params.fields));
-  if (params?.additional_types != null)
-    searchParams.set("additional_types", String(params.additional_types));
+  if (params?.additionalTypes != null)
+    searchParams.set("additional_types", String(params.additionalTypes));
   await _request(
     "GET",
-    `/playlists/${encodeURIComponent(playlist_id)}`,
+    `/playlists/${encodeURIComponent(playlistId)}`,
     { searchParams },
     config,
   );
 }
 
 export async function changePlaylistDetails(
-  playlist_id: string,
+  playlistId: string,
   body: Record<string, unknown>,
   config?: Partial<ClientConfig>,
 ): Promise<void> {
   await _request(
     "PUT",
-    `/playlists/${encodeURIComponent(playlist_id)}`,
+    `/playlists/${encodeURIComponent(playlistId)}`,
     { body },
     config,
   );
@@ -512,13 +512,13 @@ export async function changePlaylistDetails(
  * @deprecated
  */
 export async function getPlaylistsTracks(
-  playlist_id: string,
+  playlistId: string,
   params?: {
     market?: string;
     fields?: string;
     limit?: number;
     offset?: number;
-    additional_types?: string;
+    additionalTypes?: string;
   },
   config?: Partial<ClientConfig>,
 ): Promise<void> {
@@ -527,11 +527,11 @@ export async function getPlaylistsTracks(
   if (params?.fields != null) searchParams.set("fields", String(params.fields));
   if (params?.limit != null) searchParams.set("limit", String(params.limit));
   if (params?.offset != null) searchParams.set("offset", String(params.offset));
-  if (params?.additional_types != null)
-    searchParams.set("additional_types", String(params.additional_types));
+  if (params?.additionalTypes != null)
+    searchParams.set("additional_types", String(params.additionalTypes));
   await _request(
     "GET",
-    `/playlists/${encodeURIComponent(playlist_id)}/tracks`,
+    `/playlists/${encodeURIComponent(playlistId)}/tracks`,
     { searchParams },
     config,
   );
@@ -541,7 +541,7 @@ export async function getPlaylistsTracks(
  * @deprecated
  */
 export async function addTracksToPlaylist(
-  playlist_id: string,
+  playlistId: string,
   body: Record<string, unknown>,
   params?: {
     position?: number;
@@ -555,7 +555,7 @@ export async function addTracksToPlaylist(
   if (params?.uris != null) searchParams.set("uris", String(params.uris));
   await _request(
     "POST",
-    `/playlists/${encodeURIComponent(playlist_id)}/tracks`,
+    `/playlists/${encodeURIComponent(playlistId)}/tracks`,
     { searchParams, body },
     config,
   );
@@ -565,7 +565,7 @@ export async function addTracksToPlaylist(
  * @deprecated
  */
 export async function reorderOrReplacePlaylistsTracks(
-  playlist_id: string,
+  playlistId: string,
   body: Record<string, unknown>,
   params?: {
     uris?: string;
@@ -576,7 +576,7 @@ export async function reorderOrReplacePlaylistsTracks(
   if (params?.uris != null) searchParams.set("uris", String(params.uris));
   await _request(
     "PUT",
-    `/playlists/${encodeURIComponent(playlist_id)}/tracks`,
+    `/playlists/${encodeURIComponent(playlistId)}/tracks`,
     { searchParams, body },
     config,
   );
@@ -586,26 +586,26 @@ export async function reorderOrReplacePlaylistsTracks(
  * @deprecated
  */
 export async function removeTracksPlaylist(
-  playlist_id: string,
+  playlistId: string,
   body: Record<string, unknown>,
   config?: Partial<ClientConfig>,
 ): Promise<void> {
   await _request(
     "DELETE",
-    `/playlists/${encodeURIComponent(playlist_id)}/tracks`,
+    `/playlists/${encodeURIComponent(playlistId)}/tracks`,
     { body },
     config,
   );
 }
 
 export async function getPlaylistsItems(
-  playlist_id: string,
+  playlistId: string,
   params?: {
     market?: string;
     fields?: string;
     limit?: number;
     offset?: number;
-    additional_types?: string;
+    additionalTypes?: string;
   },
   config?: Partial<ClientConfig>,
 ): Promise<void> {
@@ -614,18 +614,18 @@ export async function getPlaylistsItems(
   if (params?.fields != null) searchParams.set("fields", String(params.fields));
   if (params?.limit != null) searchParams.set("limit", String(params.limit));
   if (params?.offset != null) searchParams.set("offset", String(params.offset));
-  if (params?.additional_types != null)
-    searchParams.set("additional_types", String(params.additional_types));
+  if (params?.additionalTypes != null)
+    searchParams.set("additional_types", String(params.additionalTypes));
   await _request(
     "GET",
-    `/playlists/${encodeURIComponent(playlist_id)}/items`,
+    `/playlists/${encodeURIComponent(playlistId)}/items`,
     { searchParams },
     config,
   );
 }
 
 export async function addItemsToPlaylist(
-  playlist_id: string,
+  playlistId: string,
   body: Record<string, unknown>,
   params?: {
     position?: number;
@@ -639,14 +639,14 @@ export async function addItemsToPlaylist(
   if (params?.uris != null) searchParams.set("uris", String(params.uris));
   await _request(
     "POST",
-    `/playlists/${encodeURIComponent(playlist_id)}/items`,
+    `/playlists/${encodeURIComponent(playlistId)}/items`,
     { searchParams, body },
     config,
   );
 }
 
 export async function reorderOrReplacePlaylistsItems(
-  playlist_id: string,
+  playlistId: string,
   body: Record<string, unknown>,
   params?: {
     uris?: string;
@@ -657,20 +657,20 @@ export async function reorderOrReplacePlaylistsItems(
   if (params?.uris != null) searchParams.set("uris", String(params.uris));
   await _request(
     "PUT",
-    `/playlists/${encodeURIComponent(playlist_id)}/items`,
+    `/playlists/${encodeURIComponent(playlistId)}/items`,
     { searchParams, body },
     config,
   );
 }
 
 export async function removeItemsPlaylist(
-  playlist_id: string,
+  playlistId: string,
   body: Record<string, unknown>,
   config?: Partial<ClientConfig>,
 ): Promise<void> {
   await _request(
     "DELETE",
-    `/playlists/${encodeURIComponent(playlist_id)}/items`,
+    `/playlists/${encodeURIComponent(playlistId)}/items`,
     { body },
     config,
   );
@@ -973,17 +973,17 @@ export async function checkUsersSavedShows(
  * @deprecated
  */
 export async function getUsersProfile(
-  user_id: string,
+  userId: string,
   config?: Partial<ClientConfig>,
 ): Promise<void> {
-  await _request("GET", `/users/${encodeURIComponent(user_id)}`, {}, config);
+  await _request("GET", `/users/${encodeURIComponent(userId)}`, {}, config);
 }
 
 /**
  * @deprecated
  */
 export async function getListUsersPlaylists(
-  user_id: string,
+  userId: string,
   params?: {
     limit?: number;
     offset?: number;
@@ -995,7 +995,7 @@ export async function getListUsersPlaylists(
   if (params?.offset != null) searchParams.set("offset", String(params.offset));
   await _request(
     "GET",
-    `/users/${encodeURIComponent(user_id)}/playlists`,
+    `/users/${encodeURIComponent(userId)}/playlists`,
     { searchParams },
     config,
   );
@@ -1005,13 +1005,13 @@ export async function getListUsersPlaylists(
  * @deprecated
  */
 export async function createPlaylistForUser(
-  user_id: string,
+  userId: string,
   body: Record<string, unknown>,
   config?: Partial<ClientConfig>,
 ): Promise<void> {
   await _request(
     "POST",
-    `/users/${encodeURIComponent(user_id)}/playlists`,
+    `/users/${encodeURIComponent(userId)}/playlists`,
     { body },
     config,
   );
@@ -1021,13 +1021,13 @@ export async function createPlaylistForUser(
  * @deprecated
  */
 export async function followPlaylist(
-  playlist_id: string,
+  playlistId: string,
   body: Record<string, unknown>,
   config?: Partial<ClientConfig>,
 ): Promise<void> {
   await _request(
     "PUT",
-    `/playlists/${encodeURIComponent(playlist_id)}/followers`,
+    `/playlists/${encodeURIComponent(playlistId)}/followers`,
     { body },
     config,
   );
@@ -1037,12 +1037,12 @@ export async function followPlaylist(
  * @deprecated
  */
 export async function unfollowPlaylist(
-  playlist_id: string,
+  playlistId: string,
   config?: Partial<ClientConfig>,
 ): Promise<void> {
   await _request(
     "DELETE",
-    `/playlists/${encodeURIComponent(playlist_id)}/followers`,
+    `/playlists/${encodeURIComponent(playlistId)}/followers`,
     {},
     config,
   );
@@ -1088,7 +1088,7 @@ export async function getCategories(
  * @deprecated
  */
 export async function getACategory(
-  category_id: string,
+  categoryId: string,
   params?: {
     locale?: string;
   },
@@ -1098,7 +1098,7 @@ export async function getACategory(
   if (params?.locale != null) searchParams.set("locale", String(params.locale));
   await _request(
     "GET",
-    `/browse/categories/${encodeURIComponent(category_id)}`,
+    `/browse/categories/${encodeURIComponent(categoryId)}`,
     { searchParams },
     config,
   );
@@ -1108,7 +1108,7 @@ export async function getACategory(
  * @deprecated
  */
 export async function getACategoriesPlaylists(
-  category_id: string,
+  categoryId: string,
   params?: {
     limit?: number;
     offset?: number;
@@ -1120,31 +1120,31 @@ export async function getACategoriesPlaylists(
   if (params?.offset != null) searchParams.set("offset", String(params.offset));
   await _request(
     "GET",
-    `/browse/categories/${encodeURIComponent(category_id)}/playlists`,
+    `/browse/categories/${encodeURIComponent(categoryId)}/playlists`,
     { searchParams },
     config,
   );
 }
 
 export async function getPlaylistCover(
-  playlist_id: string,
+  playlistId: string,
   config?: Partial<ClientConfig>,
 ): Promise<void> {
   await _request(
     "GET",
-    `/playlists/${encodeURIComponent(playlist_id)}/images`,
+    `/playlists/${encodeURIComponent(playlistId)}/images`,
     {},
     config,
   );
 }
 
 export async function uploadCustomPlaylistCover(
-  playlist_id: string,
+  playlistId: string,
   config?: Partial<ClientConfig>,
 ): Promise<void> {
   await _request(
     "PUT",
-    `/playlists/${encodeURIComponent(playlist_id)}/images`,
+    `/playlists/${encodeURIComponent(playlistId)}/images`,
     {},
     config,
   );
@@ -1235,7 +1235,7 @@ export async function checkCurrentUserFollows(
  * @deprecated
  */
 export async function checkIfUserFollowsPlaylist(
-  playlist_id: string,
+  playlistId: string,
   params?: {
     ids?: string;
   },
@@ -1245,7 +1245,7 @@ export async function checkIfUserFollowsPlaylist(
   if (params?.ids != null) searchParams.set("ids", String(params.ids));
   await _request(
     "GET",
-    `/playlists/${encodeURIComponent(playlist_id)}/followers/contains`,
+    `/playlists/${encodeURIComponent(playlistId)}/followers/contains`,
     { searchParams },
     config,
   );
@@ -1302,159 +1302,159 @@ export async function getRecommendations(
   params?: {
     limit?: number;
     market?: string;
-    seed_artists?: string;
-    seed_genres?: string;
-    seed_tracks?: string;
-    min_acousticness?: number;
-    max_acousticness?: number;
-    target_acousticness?: number;
-    min_danceability?: number;
-    max_danceability?: number;
-    target_danceability?: number;
-    min_duration_ms?: number;
-    max_duration_ms?: number;
-    target_duration_ms?: number;
-    min_energy?: number;
-    max_energy?: number;
-    target_energy?: number;
-    min_instrumentalness?: number;
-    max_instrumentalness?: number;
-    target_instrumentalness?: number;
-    min_key?: number;
-    max_key?: number;
-    target_key?: number;
-    min_liveness?: number;
-    max_liveness?: number;
-    target_liveness?: number;
-    min_loudness?: number;
-    max_loudness?: number;
-    target_loudness?: number;
-    min_mode?: number;
-    max_mode?: number;
-    target_mode?: number;
-    min_popularity?: number;
-    max_popularity?: number;
-    target_popularity?: number;
-    min_speechiness?: number;
-    max_speechiness?: number;
-    target_speechiness?: number;
-    min_tempo?: number;
-    max_tempo?: number;
-    target_tempo?: number;
-    min_time_signature?: number;
-    max_time_signature?: number;
-    target_time_signature?: number;
-    min_valence?: number;
-    max_valence?: number;
-    target_valence?: number;
+    seedArtists?: string;
+    seedGenres?: string;
+    seedTracks?: string;
+    minAcousticness?: number;
+    maxAcousticness?: number;
+    targetAcousticness?: number;
+    minDanceability?: number;
+    maxDanceability?: number;
+    targetDanceability?: number;
+    minDurationMs?: number;
+    maxDurationMs?: number;
+    targetDurationMs?: number;
+    minEnergy?: number;
+    maxEnergy?: number;
+    targetEnergy?: number;
+    minInstrumentalness?: number;
+    maxInstrumentalness?: number;
+    targetInstrumentalness?: number;
+    minKey?: number;
+    maxKey?: number;
+    targetKey?: number;
+    minLiveness?: number;
+    maxLiveness?: number;
+    targetLiveness?: number;
+    minLoudness?: number;
+    maxLoudness?: number;
+    targetLoudness?: number;
+    minMode?: number;
+    maxMode?: number;
+    targetMode?: number;
+    minPopularity?: number;
+    maxPopularity?: number;
+    targetPopularity?: number;
+    minSpeechiness?: number;
+    maxSpeechiness?: number;
+    targetSpeechiness?: number;
+    minTempo?: number;
+    maxTempo?: number;
+    targetTempo?: number;
+    minTimeSignature?: number;
+    maxTimeSignature?: number;
+    targetTimeSignature?: number;
+    minValence?: number;
+    maxValence?: number;
+    targetValence?: number;
   },
   config?: Partial<ClientConfig>,
 ): Promise<void> {
   const searchParams = new URLSearchParams();
   if (params?.limit != null) searchParams.set("limit", String(params.limit));
   if (params?.market != null) searchParams.set("market", String(params.market));
-  if (params?.seed_artists != null)
-    searchParams.set("seed_artists", String(params.seed_artists));
-  if (params?.seed_genres != null)
-    searchParams.set("seed_genres", String(params.seed_genres));
-  if (params?.seed_tracks != null)
-    searchParams.set("seed_tracks", String(params.seed_tracks));
-  if (params?.min_acousticness != null)
-    searchParams.set("min_acousticness", String(params.min_acousticness));
-  if (params?.max_acousticness != null)
-    searchParams.set("max_acousticness", String(params.max_acousticness));
-  if (params?.target_acousticness != null)
-    searchParams.set("target_acousticness", String(params.target_acousticness));
-  if (params?.min_danceability != null)
-    searchParams.set("min_danceability", String(params.min_danceability));
-  if (params?.max_danceability != null)
-    searchParams.set("max_danceability", String(params.max_danceability));
-  if (params?.target_danceability != null)
-    searchParams.set("target_danceability", String(params.target_danceability));
-  if (params?.min_duration_ms != null)
-    searchParams.set("min_duration_ms", String(params.min_duration_ms));
-  if (params?.max_duration_ms != null)
-    searchParams.set("max_duration_ms", String(params.max_duration_ms));
-  if (params?.target_duration_ms != null)
-    searchParams.set("target_duration_ms", String(params.target_duration_ms));
-  if (params?.min_energy != null)
-    searchParams.set("min_energy", String(params.min_energy));
-  if (params?.max_energy != null)
-    searchParams.set("max_energy", String(params.max_energy));
-  if (params?.target_energy != null)
-    searchParams.set("target_energy", String(params.target_energy));
-  if (params?.min_instrumentalness != null)
+  if (params?.seedArtists != null)
+    searchParams.set("seed_artists", String(params.seedArtists));
+  if (params?.seedGenres != null)
+    searchParams.set("seed_genres", String(params.seedGenres));
+  if (params?.seedTracks != null)
+    searchParams.set("seed_tracks", String(params.seedTracks));
+  if (params?.minAcousticness != null)
+    searchParams.set("min_acousticness", String(params.minAcousticness));
+  if (params?.maxAcousticness != null)
+    searchParams.set("max_acousticness", String(params.maxAcousticness));
+  if (params?.targetAcousticness != null)
+    searchParams.set("target_acousticness", String(params.targetAcousticness));
+  if (params?.minDanceability != null)
+    searchParams.set("min_danceability", String(params.minDanceability));
+  if (params?.maxDanceability != null)
+    searchParams.set("max_danceability", String(params.maxDanceability));
+  if (params?.targetDanceability != null)
+    searchParams.set("target_danceability", String(params.targetDanceability));
+  if (params?.minDurationMs != null)
+    searchParams.set("min_duration_ms", String(params.minDurationMs));
+  if (params?.maxDurationMs != null)
+    searchParams.set("max_duration_ms", String(params.maxDurationMs));
+  if (params?.targetDurationMs != null)
+    searchParams.set("target_duration_ms", String(params.targetDurationMs));
+  if (params?.minEnergy != null)
+    searchParams.set("min_energy", String(params.minEnergy));
+  if (params?.maxEnergy != null)
+    searchParams.set("max_energy", String(params.maxEnergy));
+  if (params?.targetEnergy != null)
+    searchParams.set("target_energy", String(params.targetEnergy));
+  if (params?.minInstrumentalness != null)
     searchParams.set(
       "min_instrumentalness",
-      String(params.min_instrumentalness),
+      String(params.minInstrumentalness),
     );
-  if (params?.max_instrumentalness != null)
+  if (params?.maxInstrumentalness != null)
     searchParams.set(
       "max_instrumentalness",
-      String(params.max_instrumentalness),
+      String(params.maxInstrumentalness),
     );
-  if (params?.target_instrumentalness != null)
+  if (params?.targetInstrumentalness != null)
     searchParams.set(
       "target_instrumentalness",
-      String(params.target_instrumentalness),
+      String(params.targetInstrumentalness),
     );
-  if (params?.min_key != null)
-    searchParams.set("min_key", String(params.min_key));
-  if (params?.max_key != null)
-    searchParams.set("max_key", String(params.max_key));
-  if (params?.target_key != null)
-    searchParams.set("target_key", String(params.target_key));
-  if (params?.min_liveness != null)
-    searchParams.set("min_liveness", String(params.min_liveness));
-  if (params?.max_liveness != null)
-    searchParams.set("max_liveness", String(params.max_liveness));
-  if (params?.target_liveness != null)
-    searchParams.set("target_liveness", String(params.target_liveness));
-  if (params?.min_loudness != null)
-    searchParams.set("min_loudness", String(params.min_loudness));
-  if (params?.max_loudness != null)
-    searchParams.set("max_loudness", String(params.max_loudness));
-  if (params?.target_loudness != null)
-    searchParams.set("target_loudness", String(params.target_loudness));
-  if (params?.min_mode != null)
-    searchParams.set("min_mode", String(params.min_mode));
-  if (params?.max_mode != null)
-    searchParams.set("max_mode", String(params.max_mode));
-  if (params?.target_mode != null)
-    searchParams.set("target_mode", String(params.target_mode));
-  if (params?.min_popularity != null)
-    searchParams.set("min_popularity", String(params.min_popularity));
-  if (params?.max_popularity != null)
-    searchParams.set("max_popularity", String(params.max_popularity));
-  if (params?.target_popularity != null)
-    searchParams.set("target_popularity", String(params.target_popularity));
-  if (params?.min_speechiness != null)
-    searchParams.set("min_speechiness", String(params.min_speechiness));
-  if (params?.max_speechiness != null)
-    searchParams.set("max_speechiness", String(params.max_speechiness));
-  if (params?.target_speechiness != null)
-    searchParams.set("target_speechiness", String(params.target_speechiness));
-  if (params?.min_tempo != null)
-    searchParams.set("min_tempo", String(params.min_tempo));
-  if (params?.max_tempo != null)
-    searchParams.set("max_tempo", String(params.max_tempo));
-  if (params?.target_tempo != null)
-    searchParams.set("target_tempo", String(params.target_tempo));
-  if (params?.min_time_signature != null)
-    searchParams.set("min_time_signature", String(params.min_time_signature));
-  if (params?.max_time_signature != null)
-    searchParams.set("max_time_signature", String(params.max_time_signature));
-  if (params?.target_time_signature != null)
+  if (params?.minKey != null)
+    searchParams.set("min_key", String(params.minKey));
+  if (params?.maxKey != null)
+    searchParams.set("max_key", String(params.maxKey));
+  if (params?.targetKey != null)
+    searchParams.set("target_key", String(params.targetKey));
+  if (params?.minLiveness != null)
+    searchParams.set("min_liveness", String(params.minLiveness));
+  if (params?.maxLiveness != null)
+    searchParams.set("max_liveness", String(params.maxLiveness));
+  if (params?.targetLiveness != null)
+    searchParams.set("target_liveness", String(params.targetLiveness));
+  if (params?.minLoudness != null)
+    searchParams.set("min_loudness", String(params.minLoudness));
+  if (params?.maxLoudness != null)
+    searchParams.set("max_loudness", String(params.maxLoudness));
+  if (params?.targetLoudness != null)
+    searchParams.set("target_loudness", String(params.targetLoudness));
+  if (params?.minMode != null)
+    searchParams.set("min_mode", String(params.minMode));
+  if (params?.maxMode != null)
+    searchParams.set("max_mode", String(params.maxMode));
+  if (params?.targetMode != null)
+    searchParams.set("target_mode", String(params.targetMode));
+  if (params?.minPopularity != null)
+    searchParams.set("min_popularity", String(params.minPopularity));
+  if (params?.maxPopularity != null)
+    searchParams.set("max_popularity", String(params.maxPopularity));
+  if (params?.targetPopularity != null)
+    searchParams.set("target_popularity", String(params.targetPopularity));
+  if (params?.minSpeechiness != null)
+    searchParams.set("min_speechiness", String(params.minSpeechiness));
+  if (params?.maxSpeechiness != null)
+    searchParams.set("max_speechiness", String(params.maxSpeechiness));
+  if (params?.targetSpeechiness != null)
+    searchParams.set("target_speechiness", String(params.targetSpeechiness));
+  if (params?.minTempo != null)
+    searchParams.set("min_tempo", String(params.minTempo));
+  if (params?.maxTempo != null)
+    searchParams.set("max_tempo", String(params.maxTempo));
+  if (params?.targetTempo != null)
+    searchParams.set("target_tempo", String(params.targetTempo));
+  if (params?.minTimeSignature != null)
+    searchParams.set("min_time_signature", String(params.minTimeSignature));
+  if (params?.maxTimeSignature != null)
+    searchParams.set("max_time_signature", String(params.maxTimeSignature));
+  if (params?.targetTimeSignature != null)
     searchParams.set(
       "target_time_signature",
-      String(params.target_time_signature),
+      String(params.targetTimeSignature),
     );
-  if (params?.min_valence != null)
-    searchParams.set("min_valence", String(params.min_valence));
-  if (params?.max_valence != null)
-    searchParams.set("max_valence", String(params.max_valence));
-  if (params?.target_valence != null)
-    searchParams.set("target_valence", String(params.target_valence));
+  if (params?.minValence != null)
+    searchParams.set("min_valence", String(params.minValence));
+  if (params?.maxValence != null)
+    searchParams.set("max_valence", String(params.maxValence));
+  if (params?.targetValence != null)
+    searchParams.set("target_valence", String(params.targetValence));
   await _request("GET", "/recommendations", { searchParams }, config);
 }
 
@@ -1470,14 +1470,14 @@ export async function getRecommendationGenres(
 export async function getInformationAboutTheUsersCurrentPlayback(
   params?: {
     market?: string;
-    additional_types?: string;
+    additionalTypes?: string;
   },
   config?: Partial<ClientConfig>,
 ): Promise<void> {
   const searchParams = new URLSearchParams();
   if (params?.market != null) searchParams.set("market", String(params.market));
-  if (params?.additional_types != null)
-    searchParams.set("additional_types", String(params.additional_types));
+  if (params?.additionalTypes != null)
+    searchParams.set("additional_types", String(params.additionalTypes));
   await _request("GET", "/me/player", { searchParams }, config);
 }
 
@@ -1497,14 +1497,14 @@ export async function getAUsersAvailableDevices(
 export async function getTheUsersCurrentlyPlayingTrack(
   params?: {
     market?: string;
-    additional_types?: string;
+    additionalTypes?: string;
   },
   config?: Partial<ClientConfig>,
 ): Promise<void> {
   const searchParams = new URLSearchParams();
   if (params?.market != null) searchParams.set("market", String(params.market));
-  if (params?.additional_types != null)
-    searchParams.set("additional_types", String(params.additional_types));
+  if (params?.additionalTypes != null)
+    searchParams.set("additional_types", String(params.additionalTypes));
   await _request(
     "GET",
     "/me/player/currently-playing",
@@ -1516,107 +1516,107 @@ export async function getTheUsersCurrentlyPlayingTrack(
 export async function startAUsersPlayback(
   body: Record<string, unknown>,
   params?: {
-    device_id?: string;
+    deviceId?: string;
   },
   config?: Partial<ClientConfig>,
 ): Promise<void> {
   const searchParams = new URLSearchParams();
-  if (params?.device_id != null)
-    searchParams.set("device_id", String(params.device_id));
+  if (params?.deviceId != null)
+    searchParams.set("device_id", String(params.deviceId));
   await _request("PUT", "/me/player/play", { searchParams, body }, config);
 }
 
 export async function pauseAUsersPlayback(
   params?: {
-    device_id?: string;
+    deviceId?: string;
   },
   config?: Partial<ClientConfig>,
 ): Promise<void> {
   const searchParams = new URLSearchParams();
-  if (params?.device_id != null)
-    searchParams.set("device_id", String(params.device_id));
+  if (params?.deviceId != null)
+    searchParams.set("device_id", String(params.deviceId));
   await _request("PUT", "/me/player/pause", { searchParams }, config);
 }
 
 export async function skipUsersPlaybackToNextTrack(
   params?: {
-    device_id?: string;
+    deviceId?: string;
   },
   config?: Partial<ClientConfig>,
 ): Promise<void> {
   const searchParams = new URLSearchParams();
-  if (params?.device_id != null)
-    searchParams.set("device_id", String(params.device_id));
+  if (params?.deviceId != null)
+    searchParams.set("device_id", String(params.deviceId));
   await _request("POST", "/me/player/next", { searchParams }, config);
 }
 
 export async function skipUsersPlaybackToPreviousTrack(
   params?: {
-    device_id?: string;
+    deviceId?: string;
   },
   config?: Partial<ClientConfig>,
 ): Promise<void> {
   const searchParams = new URLSearchParams();
-  if (params?.device_id != null)
-    searchParams.set("device_id", String(params.device_id));
+  if (params?.deviceId != null)
+    searchParams.set("device_id", String(params.deviceId));
   await _request("POST", "/me/player/previous", { searchParams }, config);
 }
 
 export async function seekToPositionInCurrentlyPlayingTrack(
   params: {
-    position_ms: number;
-    device_id?: string;
+    positionMs: number;
+    deviceId?: string;
   },
   config?: Partial<ClientConfig>,
 ): Promise<void> {
   const searchParams = new URLSearchParams();
-  if (params?.position_ms != null)
-    searchParams.set("position_ms", String(params.position_ms));
-  if (params?.device_id != null)
-    searchParams.set("device_id", String(params.device_id));
+  if (params?.positionMs != null)
+    searchParams.set("position_ms", String(params.positionMs));
+  if (params?.deviceId != null)
+    searchParams.set("device_id", String(params.deviceId));
   await _request("PUT", "/me/player/seek", { searchParams }, config);
 }
 
 export async function setRepeatModeOnUsersPlayback(
   params: {
     state: string;
-    device_id?: string;
+    deviceId?: string;
   },
   config?: Partial<ClientConfig>,
 ): Promise<void> {
   const searchParams = new URLSearchParams();
   if (params?.state != null) searchParams.set("state", String(params.state));
-  if (params?.device_id != null)
-    searchParams.set("device_id", String(params.device_id));
+  if (params?.deviceId != null)
+    searchParams.set("device_id", String(params.deviceId));
   await _request("PUT", "/me/player/repeat", { searchParams }, config);
 }
 
 export async function setVolumeForUsersPlayback(
   params: {
-    volume_percent: number;
-    device_id?: string;
+    volumePercent: number;
+    deviceId?: string;
   },
   config?: Partial<ClientConfig>,
 ): Promise<void> {
   const searchParams = new URLSearchParams();
-  if (params?.volume_percent != null)
-    searchParams.set("volume_percent", String(params.volume_percent));
-  if (params?.device_id != null)
-    searchParams.set("device_id", String(params.device_id));
+  if (params?.volumePercent != null)
+    searchParams.set("volume_percent", String(params.volumePercent));
+  if (params?.deviceId != null)
+    searchParams.set("device_id", String(params.deviceId));
   await _request("PUT", "/me/player/volume", { searchParams }, config);
 }
 
 export async function toggleShuffleForUsersPlayback(
   params: {
     state: boolean;
-    device_id?: string;
+    deviceId?: string;
   },
   config?: Partial<ClientConfig>,
 ): Promise<void> {
   const searchParams = new URLSearchParams();
   if (params?.state != null) searchParams.set("state", String(params.state));
-  if (params?.device_id != null)
-    searchParams.set("device_id", String(params.device_id));
+  if (params?.deviceId != null)
+    searchParams.set("device_id", String(params.deviceId));
   await _request("PUT", "/me/player/shuffle", { searchParams }, config);
 }
 
@@ -1642,14 +1642,14 @@ export async function getQueue(config?: Partial<ClientConfig>): Promise<void> {
 export async function addToQueue(
   params: {
     uri: string;
-    device_id?: string;
+    deviceId?: string;
   },
   config?: Partial<ClientConfig>,
 ): Promise<void> {
   const searchParams = new URLSearchParams();
   if (params?.uri != null) searchParams.set("uri", String(params.uri));
-  if (params?.device_id != null)
-    searchParams.set("device_id", String(params.device_id));
+  if (params?.deviceId != null)
+    searchParams.set("device_id", String(params.deviceId));
   await _request("POST", "/me/player/queue", { searchParams }, config);
 }
 
@@ -1664,15 +1664,15 @@ export async function getAvailableMarkets(
 
 export async function getUsersTopArtists(
   params?: {
-    time_range?: string;
+    timeRange?: string;
     limit?: number;
     offset?: number;
   },
   config?: Partial<ClientConfig>,
 ): Promise<void> {
   const searchParams = new URLSearchParams();
-  if (params?.time_range != null)
-    searchParams.set("time_range", String(params.time_range));
+  if (params?.timeRange != null)
+    searchParams.set("time_range", String(params.timeRange));
   if (params?.limit != null) searchParams.set("limit", String(params.limit));
   if (params?.offset != null) searchParams.set("offset", String(params.offset));
   await _request("GET", "/me/top/artists", { searchParams }, config);
@@ -1680,15 +1680,15 @@ export async function getUsersTopArtists(
 
 export async function getUsersTopTracks(
   params?: {
-    time_range?: string;
+    timeRange?: string;
     limit?: number;
     offset?: number;
   },
   config?: Partial<ClientConfig>,
 ): Promise<void> {
   const searchParams = new URLSearchParams();
-  if (params?.time_range != null)
-    searchParams.set("time_range", String(params.time_range));
+  if (params?.timeRange != null)
+    searchParams.set("time_range", String(params.timeRange));
   if (params?.limit != null) searchParams.set("limit", String(params.limit));
   if (params?.offset != null) searchParams.set("offset", String(params.offset));
   await _request("GET", "/me/top/tracks", { searchParams }, config);

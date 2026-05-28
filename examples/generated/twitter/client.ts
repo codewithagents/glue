@@ -141,15 +141,15 @@ export async function listBatchComplianceJobs(
   params: {
     type: "tweets" | "users";
     status?: "created" | "in_progress" | "failed" | "complete";
-    compliance_jobFields?: string[];
+    complianceJobFields?: string[];
   },
   config?: Partial<ClientConfig>,
 ): Promise<Get2ComplianceJobsResponse> {
   const searchParams = new URLSearchParams();
   if (params?.type != null) searchParams.set("type", String(params.type));
   if (params?.status != null) searchParams.set("status", String(params.status));
-  if (params?.compliance_jobFields != null) {
-    for (const v of params.compliance_jobFields)
+  if (params?.complianceJobFields != null) {
+    for (const v of params.complianceJobFields)
       searchParams.append("compliance_job.fields", String(v));
   }
   const res = await _request(
@@ -172,13 +172,13 @@ export async function createBatchComplianceJob(
 export async function getBatchComplianceJob(
   id: string,
   params?: {
-    compliance_jobFields?: string[];
+    complianceJobFields?: string[];
   },
   config?: Partial<ClientConfig>,
 ): Promise<Get2ComplianceJobsIdResponse> {
   const searchParams = new URLSearchParams();
-  if (params?.compliance_jobFields != null) {
-    for (const v of params.compliance_jobFields)
+  if (params?.complianceJobFields != null) {
+    for (const v of params.complianceJobFields)
       searchParams.append("compliance_job.fields", String(v));
   }
   const res = await _request(
@@ -199,12 +199,12 @@ export async function dmConversationIdCreate(
 }
 
 export async function getDmConversationsWithParticipantIdDmEvents(
-  participant_id: string,
+  participantId: string,
   params?: {
-    max_results?: number;
-    pagination_token?: string;
-    event_types?: string[];
-    dm_eventFields?: string[];
+    maxResults?: number;
+    paginationToken?: string;
+    eventTypes?: string[];
+    dmEventFields?: string[];
     expansions?: string[];
     mediaFields?: string[];
     userFields?: string[];
@@ -213,16 +213,16 @@ export async function getDmConversationsWithParticipantIdDmEvents(
   config?: Partial<ClientConfig>,
 ): Promise<Get2DmConversationsWithParticipantIdDmEventsResponse> {
   const searchParams = new URLSearchParams();
-  if (params?.max_results != null)
-    searchParams.set("max_results", String(params.max_results));
-  if (params?.pagination_token != null)
-    searchParams.set("pagination_token", String(params.pagination_token));
-  if (params?.event_types != null) {
-    for (const v of params.event_types)
+  if (params?.maxResults != null)
+    searchParams.set("max_results", String(params.maxResults));
+  if (params?.paginationToken != null)
+    searchParams.set("pagination_token", String(params.paginationToken));
+  if (params?.eventTypes != null) {
+    for (const v of params.eventTypes)
       searchParams.append("event_types", String(v));
   }
-  if (params?.dm_eventFields != null) {
-    for (const v of params.dm_eventFields)
+  if (params?.dmEventFields != null) {
+    for (const v of params.dmEventFields)
       searchParams.append("dm_event.fields", String(v));
   }
   if (params?.expansions != null) {
@@ -243,7 +243,7 @@ export async function getDmConversationsWithParticipantIdDmEvents(
   }
   const res = await _request(
     "GET",
-    `/2/dm_conversations/with/${encodeURIComponent(participant_id)}/dm_events`,
+    `/2/dm_conversations/with/${encodeURIComponent(participantId)}/dm_events`,
     { searchParams },
     config,
   );
@@ -251,13 +251,13 @@ export async function getDmConversationsWithParticipantIdDmEvents(
 }
 
 export async function dmConversationWithUserEventIdCreate(
-  participant_id: string,
+  participantId: string,
   body: CreateMessageRequest,
   config?: Partial<ClientConfig>,
 ): Promise<CreateDmEventResponse> {
   const res = await _request(
     "POST",
-    `/2/dm_conversations/with/${encodeURIComponent(participant_id)}/messages`,
+    `/2/dm_conversations/with/${encodeURIComponent(participantId)}/messages`,
     { body },
     config,
   );
@@ -265,13 +265,13 @@ export async function dmConversationWithUserEventIdCreate(
 }
 
 export async function dmConversationByIdEventIdCreate(
-  dm_conversation_id: string,
+  dmConversationId: string,
   body: CreateMessageRequest,
   config?: Partial<ClientConfig>,
 ): Promise<CreateDmEventResponse> {
   const res = await _request(
     "POST",
-    `/2/dm_conversations/${encodeURIComponent(dm_conversation_id)}/messages`,
+    `/2/dm_conversations/${encodeURIComponent(dmConversationId)}/messages`,
     { body },
     config,
   );
@@ -281,10 +281,10 @@ export async function dmConversationByIdEventIdCreate(
 export async function getDmConversationsIdDmEvents(
   id: string,
   params?: {
-    max_results?: number;
-    pagination_token?: string;
-    event_types?: string[];
-    dm_eventFields?: string[];
+    maxResults?: number;
+    paginationToken?: string;
+    eventTypes?: string[];
+    dmEventFields?: string[];
     expansions?: string[];
     mediaFields?: string[];
     userFields?: string[];
@@ -293,16 +293,16 @@ export async function getDmConversationsIdDmEvents(
   config?: Partial<ClientConfig>,
 ): Promise<Get2DmConversationsIdDmEventsResponse> {
   const searchParams = new URLSearchParams();
-  if (params?.max_results != null)
-    searchParams.set("max_results", String(params.max_results));
-  if (params?.pagination_token != null)
-    searchParams.set("pagination_token", String(params.pagination_token));
-  if (params?.event_types != null) {
-    for (const v of params.event_types)
+  if (params?.maxResults != null)
+    searchParams.set("max_results", String(params.maxResults));
+  if (params?.paginationToken != null)
+    searchParams.set("pagination_token", String(params.paginationToken));
+  if (params?.eventTypes != null) {
+    for (const v of params.eventTypes)
       searchParams.append("event_types", String(v));
   }
-  if (params?.dm_eventFields != null) {
-    for (const v of params.dm_eventFields)
+  if (params?.dmEventFields != null) {
+    for (const v of params.dmEventFields)
       searchParams.append("dm_event.fields", String(v));
   }
   if (params?.expansions != null) {
@@ -332,10 +332,10 @@ export async function getDmConversationsIdDmEvents(
 
 export async function getDmEvents(
   params?: {
-    max_results?: number;
-    pagination_token?: string;
-    event_types?: string[];
-    dm_eventFields?: string[];
+    maxResults?: number;
+    paginationToken?: string;
+    eventTypes?: string[];
+    dmEventFields?: string[];
     expansions?: string[];
     mediaFields?: string[];
     userFields?: string[];
@@ -344,16 +344,16 @@ export async function getDmEvents(
   config?: Partial<ClientConfig>,
 ): Promise<Get2DmEventsResponse> {
   const searchParams = new URLSearchParams();
-  if (params?.max_results != null)
-    searchParams.set("max_results", String(params.max_results));
-  if (params?.pagination_token != null)
-    searchParams.set("pagination_token", String(params.pagination_token));
-  if (params?.event_types != null) {
-    for (const v of params.event_types)
+  if (params?.maxResults != null)
+    searchParams.set("max_results", String(params.maxResults));
+  if (params?.paginationToken != null)
+    searchParams.set("pagination_token", String(params.paginationToken));
+  if (params?.eventTypes != null) {
+    for (const v of params.eventTypes)
       searchParams.append("event_types", String(v));
   }
-  if (params?.dm_eventFields != null) {
-    for (const v of params.dm_eventFields)
+  if (params?.dmEventFields != null) {
+    for (const v of params.dmEventFields)
       searchParams.append("dm_event.fields", String(v));
   }
   if (params?.expansions != null) {
@@ -445,8 +445,8 @@ export async function listIdDelete(
 export async function listGetFollowers(
   id: string,
   params?: {
-    max_results?: number;
-    pagination_token?: string;
+    maxResults?: number;
+    paginationToken?: string;
     userFields?: string[];
     expansions?: string[];
     tweetFields?: string[];
@@ -454,10 +454,10 @@ export async function listGetFollowers(
   config?: Partial<ClientConfig>,
 ): Promise<Get2ListsIdFollowersResponse> {
   const searchParams = new URLSearchParams();
-  if (params?.max_results != null)
-    searchParams.set("max_results", String(params.max_results));
-  if (params?.pagination_token != null)
-    searchParams.set("pagination_token", String(params.pagination_token));
+  if (params?.maxResults != null)
+    searchParams.set("max_results", String(params.maxResults));
+  if (params?.paginationToken != null)
+    searchParams.set("pagination_token", String(params.paginationToken));
   if (params?.userFields != null) {
     for (const v of params.userFields)
       searchParams.append("user.fields", String(v));
@@ -482,8 +482,8 @@ export async function listGetFollowers(
 export async function listGetMembers(
   id: string,
   params?: {
-    max_results?: number;
-    pagination_token?: string;
+    maxResults?: number;
+    paginationToken?: string;
     userFields?: string[];
     expansions?: string[];
     tweetFields?: string[];
@@ -491,10 +491,10 @@ export async function listGetMembers(
   config?: Partial<ClientConfig>,
 ): Promise<Get2ListsIdMembersResponse> {
   const searchParams = new URLSearchParams();
-  if (params?.max_results != null)
-    searchParams.set("max_results", String(params.max_results));
-  if (params?.pagination_token != null)
-    searchParams.set("pagination_token", String(params.pagination_token));
+  if (params?.maxResults != null)
+    searchParams.set("max_results", String(params.maxResults));
+  if (params?.paginationToken != null)
+    searchParams.set("pagination_token", String(params.paginationToken));
   if (params?.userFields != null) {
     for (const v of params.userFields)
       searchParams.append("user.fields", String(v));
@@ -532,12 +532,12 @@ export async function listAddMember(
 
 export async function listRemoveMember(
   id: string,
-  user_id: string,
+  userId: string,
   config?: Partial<ClientConfig>,
 ): Promise<ListMutateResponse> {
   const res = await _request(
     "DELETE",
-    `/2/lists/${encodeURIComponent(id)}/members/${encodeURIComponent(user_id)}`,
+    `/2/lists/${encodeURIComponent(id)}/members/${encodeURIComponent(userId)}`,
     {},
     config,
   );
@@ -547,8 +547,8 @@ export async function listRemoveMember(
 export async function listsIdTweets(
   id: string,
   params?: {
-    max_results?: number;
-    pagination_token?: string;
+    maxResults?: number;
+    paginationToken?: string;
     tweetFields?: string[];
     expansions?: string[];
     mediaFields?: string[];
@@ -559,10 +559,10 @@ export async function listsIdTweets(
   config?: Partial<ClientConfig>,
 ): Promise<Get2ListsIdTweetsResponse> {
   const searchParams = new URLSearchParams();
-  if (params?.max_results != null)
-    searchParams.set("max_results", String(params.max_results));
-  if (params?.pagination_token != null)
-    searchParams.set("pagination_token", String(params.pagination_token));
+  if (params?.maxResults != null)
+    searchParams.set("max_results", String(params.maxResults));
+  if (params?.paginationToken != null)
+    searchParams.set("pagination_token", String(params.paginationToken));
   if (params?.tweetFields != null) {
     for (const v of params.tweetFields)
       searchParams.append("tweet.fields", String(v));
@@ -639,7 +639,7 @@ export async function findSpacesByIds(
 
 export async function findSpacesByCreatorIds(
   params: {
-    user_ids: string[];
+    userIds: string[];
     spaceFields?: string[];
     expansions?: string[];
     userFields?: string[];
@@ -648,8 +648,8 @@ export async function findSpacesByCreatorIds(
   config?: Partial<ClientConfig>,
 ): Promise<Get2SpacesByCreatorIdsResponse> {
   const searchParams = new URLSearchParams();
-  if (params?.user_ids != null) {
-    for (const v of params.user_ids) searchParams.append("user_ids", String(v));
+  if (params?.userIds != null) {
+    for (const v of params.userIds) searchParams.append("user_ids", String(v));
   }
   if (params?.spaceFields != null) {
     for (const v of params.spaceFields)
@@ -680,7 +680,7 @@ export async function searchSpaces(
   params: {
     query: string;
     state?: "live" | "scheduled" | "all";
-    max_results?: number;
+    maxResults?: number;
     spaceFields?: string[];
     expansions?: string[];
     userFields?: string[];
@@ -691,8 +691,8 @@ export async function searchSpaces(
   const searchParams = new URLSearchParams();
   if (params?.query != null) searchParams.set("query", String(params.query));
   if (params?.state != null) searchParams.set("state", String(params.state));
-  if (params?.max_results != null)
-    searchParams.set("max_results", String(params.max_results));
+  if (params?.maxResults != null)
+    searchParams.set("max_results", String(params.maxResults));
   if (params?.spaceFields != null) {
     for (const v of params.spaceFields)
       searchParams.append("space.fields", String(v));
@@ -757,8 +757,8 @@ export async function findSpaceById(
 export async function spaceBuyers(
   id: string,
   params?: {
-    pagination_token?: string;
-    max_results?: number;
+    paginationToken?: string;
+    maxResults?: number;
     userFields?: string[];
     expansions?: string[];
     tweetFields?: string[];
@@ -766,10 +766,10 @@ export async function spaceBuyers(
   config?: Partial<ClientConfig>,
 ): Promise<Get2SpacesIdBuyersResponse> {
   const searchParams = new URLSearchParams();
-  if (params?.pagination_token != null)
-    searchParams.set("pagination_token", String(params.pagination_token));
-  if (params?.max_results != null)
-    searchParams.set("max_results", String(params.max_results));
+  if (params?.paginationToken != null)
+    searchParams.set("pagination_token", String(params.paginationToken));
+  if (params?.maxResults != null)
+    searchParams.set("max_results", String(params.maxResults));
   if (params?.userFields != null) {
     for (const v of params.userFields)
       searchParams.append("user.fields", String(v));
@@ -794,7 +794,7 @@ export async function spaceBuyers(
 export async function spaceTweets(
   id: string,
   params?: {
-    max_results?: number;
+    maxResults?: number;
     tweetFields?: string[];
     expansions?: string[];
     mediaFields?: string[];
@@ -805,8 +805,8 @@ export async function spaceTweets(
   config?: Partial<ClientConfig>,
 ): Promise<Get2SpacesIdTweetsResponse> {
   const searchParams = new URLSearchParams();
-  if (params?.max_results != null)
-    searchParams.set("max_results", String(params.max_results));
+  if (params?.maxResults != null)
+    searchParams.set("max_results", String(params.maxResults));
   if (params?.tweetFields != null) {
     for (const v of params.tweetFields)
       searchParams.append("tweet.fields", String(v));
@@ -894,22 +894,22 @@ export async function createTweet(
 
 export async function getTweetsComplianceStream(
   params: {
-    backfill_minutes?: number;
+    backfillMinutes?: number;
     partition: number;
-    start_time?: string;
-    end_time?: string;
+    startTime?: string;
+    endTime?: string;
   },
   config?: Partial<ClientConfig>,
 ): Promise<TweetComplianceStreamResponse> {
   const searchParams = new URLSearchParams();
-  if (params?.backfill_minutes != null)
-    searchParams.set("backfill_minutes", String(params.backfill_minutes));
+  if (params?.backfillMinutes != null)
+    searchParams.set("backfill_minutes", String(params.backfillMinutes));
   if (params?.partition != null)
     searchParams.set("partition", String(params.partition));
-  if (params?.start_time != null)
-    searchParams.set("start_time", String(params.start_time));
-  if (params?.end_time != null)
-    searchParams.set("end_time", String(params.end_time));
+  if (params?.startTime != null)
+    searchParams.set("start_time", String(params.startTime));
+  if (params?.endTime != null)
+    searchParams.set("end_time", String(params.endTime));
   const res = await _request(
     "GET",
     "/2/tweets/compliance/stream",
@@ -922,35 +922,35 @@ export async function getTweetsComplianceStream(
 export async function tweetCountsFullArchiveSearch(
   params: {
     query: string;
-    start_time?: string;
-    end_time?: string;
-    since_id?: string;
-    until_id?: string;
-    next_token?: string;
-    pagination_token?: string;
+    startTime?: string;
+    endTime?: string;
+    sinceId?: string;
+    untilId?: string;
+    nextToken?: string;
+    paginationToken?: string;
     granularity?: "minute" | "hour" | "day";
-    search_countFields?: string[];
+    searchCountFields?: string[];
   },
   config?: Partial<ClientConfig>,
 ): Promise<Get2TweetsCountsAllResponse> {
   const searchParams = new URLSearchParams();
   if (params?.query != null) searchParams.set("query", String(params.query));
-  if (params?.start_time != null)
-    searchParams.set("start_time", String(params.start_time));
-  if (params?.end_time != null)
-    searchParams.set("end_time", String(params.end_time));
-  if (params?.since_id != null)
-    searchParams.set("since_id", String(params.since_id));
-  if (params?.until_id != null)
-    searchParams.set("until_id", String(params.until_id));
-  if (params?.next_token != null)
-    searchParams.set("next_token", String(params.next_token));
-  if (params?.pagination_token != null)
-    searchParams.set("pagination_token", String(params.pagination_token));
+  if (params?.startTime != null)
+    searchParams.set("start_time", String(params.startTime));
+  if (params?.endTime != null)
+    searchParams.set("end_time", String(params.endTime));
+  if (params?.sinceId != null)
+    searchParams.set("since_id", String(params.sinceId));
+  if (params?.untilId != null)
+    searchParams.set("until_id", String(params.untilId));
+  if (params?.nextToken != null)
+    searchParams.set("next_token", String(params.nextToken));
+  if (params?.paginationToken != null)
+    searchParams.set("pagination_token", String(params.paginationToken));
   if (params?.granularity != null)
     searchParams.set("granularity", String(params.granularity));
-  if (params?.search_countFields != null) {
-    for (const v of params.search_countFields)
+  if (params?.searchCountFields != null) {
+    for (const v of params.searchCountFields)
       searchParams.append("search_count.fields", String(v));
   }
   const res = await _request(
@@ -965,35 +965,35 @@ export async function tweetCountsFullArchiveSearch(
 export async function tweetCountsRecentSearch(
   params: {
     query: string;
-    start_time?: string;
-    end_time?: string;
-    since_id?: string;
-    until_id?: string;
-    next_token?: string;
-    pagination_token?: string;
+    startTime?: string;
+    endTime?: string;
+    sinceId?: string;
+    untilId?: string;
+    nextToken?: string;
+    paginationToken?: string;
     granularity?: "minute" | "hour" | "day";
-    search_countFields?: string[];
+    searchCountFields?: string[];
   },
   config?: Partial<ClientConfig>,
 ): Promise<Get2TweetsCountsRecentResponse> {
   const searchParams = new URLSearchParams();
   if (params?.query != null) searchParams.set("query", String(params.query));
-  if (params?.start_time != null)
-    searchParams.set("start_time", String(params.start_time));
-  if (params?.end_time != null)
-    searchParams.set("end_time", String(params.end_time));
-  if (params?.since_id != null)
-    searchParams.set("since_id", String(params.since_id));
-  if (params?.until_id != null)
-    searchParams.set("until_id", String(params.until_id));
-  if (params?.next_token != null)
-    searchParams.set("next_token", String(params.next_token));
-  if (params?.pagination_token != null)
-    searchParams.set("pagination_token", String(params.pagination_token));
+  if (params?.startTime != null)
+    searchParams.set("start_time", String(params.startTime));
+  if (params?.endTime != null)
+    searchParams.set("end_time", String(params.endTime));
+  if (params?.sinceId != null)
+    searchParams.set("since_id", String(params.sinceId));
+  if (params?.untilId != null)
+    searchParams.set("until_id", String(params.untilId));
+  if (params?.nextToken != null)
+    searchParams.set("next_token", String(params.nextToken));
+  if (params?.paginationToken != null)
+    searchParams.set("pagination_token", String(params.paginationToken));
   if (params?.granularity != null)
     searchParams.set("granularity", String(params.granularity));
-  if (params?.search_countFields != null) {
-    for (const v of params.search_countFields)
+  if (params?.searchCountFields != null) {
+    for (const v of params.searchCountFields)
       searchParams.append("search_count.fields", String(v));
   }
   const res = await _request(
@@ -1007,10 +1007,10 @@ export async function tweetCountsRecentSearch(
 
 export async function getTweetsFirehoseStream(
   params: {
-    backfill_minutes?: number;
+    backfillMinutes?: number;
     partition: number;
-    start_time?: string;
-    end_time?: string;
+    startTime?: string;
+    endTime?: string;
     tweetFields?: string[];
     expansions?: string[];
     mediaFields?: string[];
@@ -1021,14 +1021,14 @@ export async function getTweetsFirehoseStream(
   config?: Partial<ClientConfig>,
 ): Promise<StreamingTweetResponse> {
   const searchParams = new URLSearchParams();
-  if (params?.backfill_minutes != null)
-    searchParams.set("backfill_minutes", String(params.backfill_minutes));
+  if (params?.backfillMinutes != null)
+    searchParams.set("backfill_minutes", String(params.backfillMinutes));
   if (params?.partition != null)
     searchParams.set("partition", String(params.partition));
-  if (params?.start_time != null)
-    searchParams.set("start_time", String(params.start_time));
-  if (params?.end_time != null)
-    searchParams.set("end_time", String(params.end_time));
+  if (params?.startTime != null)
+    searchParams.set("start_time", String(params.startTime));
+  if (params?.endTime != null)
+    searchParams.set("end_time", String(params.endTime));
   if (params?.tweetFields != null) {
     for (const v of params.tweetFields)
       searchParams.append("tweet.fields", String(v));
@@ -1064,19 +1064,19 @@ export async function getTweetsFirehoseStream(
 
 export async function getTweetsLabelStream(
   params?: {
-    backfill_minutes?: number;
-    start_time?: string;
-    end_time?: string;
+    backfillMinutes?: number;
+    startTime?: string;
+    endTime?: string;
   },
   config?: Partial<ClientConfig>,
 ): Promise<TweetLabelStreamResponse> {
   const searchParams = new URLSearchParams();
-  if (params?.backfill_minutes != null)
-    searchParams.set("backfill_minutes", String(params.backfill_minutes));
-  if (params?.start_time != null)
-    searchParams.set("start_time", String(params.start_time));
-  if (params?.end_time != null)
-    searchParams.set("end_time", String(params.end_time));
+  if (params?.backfillMinutes != null)
+    searchParams.set("backfill_minutes", String(params.backfillMinutes));
+  if (params?.startTime != null)
+    searchParams.set("start_time", String(params.startTime));
+  if (params?.endTime != null)
+    searchParams.set("end_time", String(params.endTime));
   const res = await _request(
     "GET",
     "/2/tweets/label/stream",
@@ -1088,7 +1088,7 @@ export async function getTweetsLabelStream(
 
 export async function sampleStream(
   params?: {
-    backfill_minutes?: number;
+    backfillMinutes?: number;
     tweetFields?: string[];
     expansions?: string[];
     mediaFields?: string[];
@@ -1099,8 +1099,8 @@ export async function sampleStream(
   config?: Partial<ClientConfig>,
 ): Promise<StreamingTweetResponse> {
   const searchParams = new URLSearchParams();
-  if (params?.backfill_minutes != null)
-    searchParams.set("backfill_minutes", String(params.backfill_minutes));
+  if (params?.backfillMinutes != null)
+    searchParams.set("backfill_minutes", String(params.backfillMinutes));
   if (params?.tweetFields != null) {
     for (const v of params.tweetFields)
       searchParams.append("tweet.fields", String(v));
@@ -1136,10 +1136,10 @@ export async function sampleStream(
 
 export async function getTweetsSample10Stream(
   params: {
-    backfill_minutes?: number;
+    backfillMinutes?: number;
     partition: number;
-    start_time?: string;
-    end_time?: string;
+    startTime?: string;
+    endTime?: string;
     tweetFields?: string[];
     expansions?: string[];
     mediaFields?: string[];
@@ -1150,14 +1150,14 @@ export async function getTweetsSample10Stream(
   config?: Partial<ClientConfig>,
 ): Promise<Get2TweetsSample10StreamResponse> {
   const searchParams = new URLSearchParams();
-  if (params?.backfill_minutes != null)
-    searchParams.set("backfill_minutes", String(params.backfill_minutes));
+  if (params?.backfillMinutes != null)
+    searchParams.set("backfill_minutes", String(params.backfillMinutes));
   if (params?.partition != null)
     searchParams.set("partition", String(params.partition));
-  if (params?.start_time != null)
-    searchParams.set("start_time", String(params.start_time));
-  if (params?.end_time != null)
-    searchParams.set("end_time", String(params.end_time));
+  if (params?.startTime != null)
+    searchParams.set("start_time", String(params.startTime));
+  if (params?.endTime != null)
+    searchParams.set("end_time", String(params.endTime));
   if (params?.tweetFields != null) {
     for (const v of params.tweetFields)
       searchParams.append("tweet.fields", String(v));
@@ -1194,14 +1194,14 @@ export async function getTweetsSample10Stream(
 export async function tweetsFullarchiveSearch(
   params: {
     query: string;
-    start_time?: string;
-    end_time?: string;
-    since_id?: string;
-    until_id?: string;
-    max_results?: number;
-    next_token?: string;
-    pagination_token?: string;
-    sort_order?: "recency" | "relevancy";
+    startTime?: string;
+    endTime?: string;
+    sinceId?: string;
+    untilId?: string;
+    maxResults?: number;
+    nextToken?: string;
+    paginationToken?: string;
+    sortOrder?: "recency" | "relevancy";
     tweetFields?: string[];
     expansions?: string[];
     mediaFields?: string[];
@@ -1213,22 +1213,22 @@ export async function tweetsFullarchiveSearch(
 ): Promise<Get2TweetsSearchAllResponse> {
   const searchParams = new URLSearchParams();
   if (params?.query != null) searchParams.set("query", String(params.query));
-  if (params?.start_time != null)
-    searchParams.set("start_time", String(params.start_time));
-  if (params?.end_time != null)
-    searchParams.set("end_time", String(params.end_time));
-  if (params?.since_id != null)
-    searchParams.set("since_id", String(params.since_id));
-  if (params?.until_id != null)
-    searchParams.set("until_id", String(params.until_id));
-  if (params?.max_results != null)
-    searchParams.set("max_results", String(params.max_results));
-  if (params?.next_token != null)
-    searchParams.set("next_token", String(params.next_token));
-  if (params?.pagination_token != null)
-    searchParams.set("pagination_token", String(params.pagination_token));
-  if (params?.sort_order != null)
-    searchParams.set("sort_order", String(params.sort_order));
+  if (params?.startTime != null)
+    searchParams.set("start_time", String(params.startTime));
+  if (params?.endTime != null)
+    searchParams.set("end_time", String(params.endTime));
+  if (params?.sinceId != null)
+    searchParams.set("since_id", String(params.sinceId));
+  if (params?.untilId != null)
+    searchParams.set("until_id", String(params.untilId));
+  if (params?.maxResults != null)
+    searchParams.set("max_results", String(params.maxResults));
+  if (params?.nextToken != null)
+    searchParams.set("next_token", String(params.nextToken));
+  if (params?.paginationToken != null)
+    searchParams.set("pagination_token", String(params.paginationToken));
+  if (params?.sortOrder != null)
+    searchParams.set("sort_order", String(params.sortOrder));
   if (params?.tweetFields != null) {
     for (const v of params.tweetFields)
       searchParams.append("tweet.fields", String(v));
@@ -1265,14 +1265,14 @@ export async function tweetsFullarchiveSearch(
 export async function tweetsRecentSearch(
   params: {
     query: string;
-    start_time?: string;
-    end_time?: string;
-    since_id?: string;
-    until_id?: string;
-    max_results?: number;
-    next_token?: string;
-    pagination_token?: string;
-    sort_order?: "recency" | "relevancy";
+    startTime?: string;
+    endTime?: string;
+    sinceId?: string;
+    untilId?: string;
+    maxResults?: number;
+    nextToken?: string;
+    paginationToken?: string;
+    sortOrder?: "recency" | "relevancy";
     tweetFields?: string[];
     expansions?: string[];
     mediaFields?: string[];
@@ -1284,22 +1284,22 @@ export async function tweetsRecentSearch(
 ): Promise<Get2TweetsSearchRecentResponse> {
   const searchParams = new URLSearchParams();
   if (params?.query != null) searchParams.set("query", String(params.query));
-  if (params?.start_time != null)
-    searchParams.set("start_time", String(params.start_time));
-  if (params?.end_time != null)
-    searchParams.set("end_time", String(params.end_time));
-  if (params?.since_id != null)
-    searchParams.set("since_id", String(params.since_id));
-  if (params?.until_id != null)
-    searchParams.set("until_id", String(params.until_id));
-  if (params?.max_results != null)
-    searchParams.set("max_results", String(params.max_results));
-  if (params?.next_token != null)
-    searchParams.set("next_token", String(params.next_token));
-  if (params?.pagination_token != null)
-    searchParams.set("pagination_token", String(params.pagination_token));
-  if (params?.sort_order != null)
-    searchParams.set("sort_order", String(params.sort_order));
+  if (params?.startTime != null)
+    searchParams.set("start_time", String(params.startTime));
+  if (params?.endTime != null)
+    searchParams.set("end_time", String(params.endTime));
+  if (params?.sinceId != null)
+    searchParams.set("since_id", String(params.sinceId));
+  if (params?.untilId != null)
+    searchParams.set("until_id", String(params.untilId));
+  if (params?.maxResults != null)
+    searchParams.set("max_results", String(params.maxResults));
+  if (params?.nextToken != null)
+    searchParams.set("next_token", String(params.nextToken));
+  if (params?.paginationToken != null)
+    searchParams.set("pagination_token", String(params.paginationToken));
+  if (params?.sortOrder != null)
+    searchParams.set("sort_order", String(params.sortOrder));
   if (params?.tweetFields != null) {
     for (const v of params.tweetFields)
       searchParams.append("tweet.fields", String(v));
@@ -1335,9 +1335,9 @@ export async function tweetsRecentSearch(
 
 export async function searchStream(
   params?: {
-    backfill_minutes?: number;
-    start_time?: string;
-    end_time?: string;
+    backfillMinutes?: number;
+    startTime?: string;
+    endTime?: string;
     tweetFields?: string[];
     expansions?: string[];
     mediaFields?: string[];
@@ -1348,12 +1348,12 @@ export async function searchStream(
   config?: Partial<ClientConfig>,
 ): Promise<FilteredStreamingTweetResponse> {
   const searchParams = new URLSearchParams();
-  if (params?.backfill_minutes != null)
-    searchParams.set("backfill_minutes", String(params.backfill_minutes));
-  if (params?.start_time != null)
-    searchParams.set("start_time", String(params.start_time));
-  if (params?.end_time != null)
-    searchParams.set("end_time", String(params.end_time));
+  if (params?.backfillMinutes != null)
+    searchParams.set("backfill_minutes", String(params.backfillMinutes));
+  if (params?.startTime != null)
+    searchParams.set("start_time", String(params.startTime));
+  if (params?.endTime != null)
+    searchParams.set("end_time", String(params.endTime));
   if (params?.tweetFields != null) {
     for (const v of params.tweetFields)
       searchParams.append("tweet.fields", String(v));
@@ -1390,8 +1390,8 @@ export async function searchStream(
 export async function getRules(
   params?: {
     ids?: string[];
-    max_results?: number;
-    pagination_token?: string;
+    maxResults?: number;
+    paginationToken?: string;
   },
   config?: Partial<ClientConfig>,
 ): Promise<RulesLookupResponse> {
@@ -1399,10 +1399,10 @@ export async function getRules(
   if (params?.ids != null) {
     for (const v of params.ids) searchParams.append("ids", String(v));
   }
-  if (params?.max_results != null)
-    searchParams.set("max_results", String(params.max_results));
-  if (params?.pagination_token != null)
-    searchParams.set("pagination_token", String(params.pagination_token));
+  if (params?.maxResults != null)
+    searchParams.set("max_results", String(params.maxResults));
+  if (params?.paginationToken != null)
+    searchParams.set("pagination_token", String(params.paginationToken));
   const res = await _request(
     "GET",
     "/2/tweets/search/stream/rules",
@@ -1415,13 +1415,13 @@ export async function getRules(
 export async function addOrDeleteRules(
   body: AddOrDeleteRulesRequest,
   params?: {
-    dry_run?: boolean;
+    dryRun?: boolean;
   },
   config?: Partial<ClientConfig>,
 ): Promise<AddOrDeleteRulesResponse> {
   const searchParams = new URLSearchParams();
-  if (params?.dry_run != null)
-    searchParams.set("dry_run", String(params.dry_run));
+  if (params?.dryRun != null)
+    searchParams.set("dry_run", String(params.dryRun));
   const res = await _request(
     "POST",
     "/2/tweets/search/stream/rules",
@@ -1493,8 +1493,8 @@ export async function deleteTweetById(
 export async function tweetsIdLikingUsers(
   id: string,
   params?: {
-    max_results?: number;
-    pagination_token?: string;
+    maxResults?: number;
+    paginationToken?: string;
     userFields?: string[];
     expansions?: string[];
     tweetFields?: string[];
@@ -1502,10 +1502,10 @@ export async function tweetsIdLikingUsers(
   config?: Partial<ClientConfig>,
 ): Promise<Get2TweetsIdLikingUsersResponse> {
   const searchParams = new URLSearchParams();
-  if (params?.max_results != null)
-    searchParams.set("max_results", String(params.max_results));
-  if (params?.pagination_token != null)
-    searchParams.set("pagination_token", String(params.pagination_token));
+  if (params?.maxResults != null)
+    searchParams.set("max_results", String(params.maxResults));
+  if (params?.paginationToken != null)
+    searchParams.set("pagination_token", String(params.paginationToken));
   if (params?.userFields != null) {
     for (const v of params.userFields)
       searchParams.append("user.fields", String(v));
@@ -1530,8 +1530,8 @@ export async function tweetsIdLikingUsers(
 export async function findTweetsThatQuoteATweet(
   id: string,
   params?: {
-    max_results?: number;
-    pagination_token?: string;
+    maxResults?: number;
+    paginationToken?: string;
     exclude?: string[];
     tweetFields?: string[];
     expansions?: string[];
@@ -1543,10 +1543,10 @@ export async function findTweetsThatQuoteATweet(
   config?: Partial<ClientConfig>,
 ): Promise<Get2TweetsIdQuoteTweetsResponse> {
   const searchParams = new URLSearchParams();
-  if (params?.max_results != null)
-    searchParams.set("max_results", String(params.max_results));
-  if (params?.pagination_token != null)
-    searchParams.set("pagination_token", String(params.pagination_token));
+  if (params?.maxResults != null)
+    searchParams.set("max_results", String(params.maxResults));
+  if (params?.paginationToken != null)
+    searchParams.set("pagination_token", String(params.paginationToken));
   if (params?.exclude != null) {
     for (const v of params.exclude) searchParams.append("exclude", String(v));
   }
@@ -1586,8 +1586,8 @@ export async function findTweetsThatQuoteATweet(
 export async function tweetsIdRetweetingUsers(
   id: string,
   params?: {
-    max_results?: number;
-    pagination_token?: string;
+    maxResults?: number;
+    paginationToken?: string;
     userFields?: string[];
     expansions?: string[];
     tweetFields?: string[];
@@ -1595,10 +1595,10 @@ export async function tweetsIdRetweetingUsers(
   config?: Partial<ClientConfig>,
 ): Promise<Get2TweetsIdRetweetedByResponse> {
   const searchParams = new URLSearchParams();
-  if (params?.max_results != null)
-    searchParams.set("max_results", String(params.max_results));
-  if (params?.pagination_token != null)
-    searchParams.set("pagination_token", String(params.pagination_token));
+  if (params?.maxResults != null)
+    searchParams.set("max_results", String(params.maxResults));
+  if (params?.paginationToken != null)
+    searchParams.set("pagination_token", String(params.paginationToken));
   if (params?.userFields != null) {
     for (const v of params.userFields)
       searchParams.append("user.fields", String(v));
@@ -1621,13 +1621,13 @@ export async function tweetsIdRetweetingUsers(
 }
 
 export async function hideReplyById(
-  tweet_id: string,
+  tweetId: string,
   body: TweetHideRequest,
   config?: Partial<ClientConfig>,
 ): Promise<TweetHideResponse> {
   const res = await _request(
     "PUT",
-    `/2/tweets/${encodeURIComponent(tweet_id)}/hidden`,
+    `/2/tweets/${encodeURIComponent(tweetId)}/hidden`,
     { body },
     config,
   );
@@ -1726,22 +1726,22 @@ export async function findUserByUsername(
 
 export async function getUsersComplianceStream(
   params: {
-    backfill_minutes?: number;
+    backfillMinutes?: number;
     partition: number;
-    start_time?: string;
-    end_time?: string;
+    startTime?: string;
+    endTime?: string;
   },
   config?: Partial<ClientConfig>,
 ): Promise<UserComplianceStreamResponse> {
   const searchParams = new URLSearchParams();
-  if (params?.backfill_minutes != null)
-    searchParams.set("backfill_minutes", String(params.backfill_minutes));
+  if (params?.backfillMinutes != null)
+    searchParams.set("backfill_minutes", String(params.backfillMinutes));
   if (params?.partition != null)
     searchParams.set("partition", String(params.partition));
-  if (params?.start_time != null)
-    searchParams.set("start_time", String(params.start_time));
-  if (params?.end_time != null)
-    searchParams.set("end_time", String(params.end_time));
+  if (params?.startTime != null)
+    searchParams.set("start_time", String(params.startTime));
+  if (params?.endTime != null)
+    searchParams.set("end_time", String(params.endTime));
   const res = await _request(
     "GET",
     "/2/users/compliance/stream",
@@ -1810,8 +1810,8 @@ export async function findUserById(
 export async function usersIdBlocking(
   id: string,
   params?: {
-    max_results?: number;
-    pagination_token?: string;
+    maxResults?: number;
+    paginationToken?: string;
     userFields?: string[];
     expansions?: string[];
     tweetFields?: string[];
@@ -1819,10 +1819,10 @@ export async function usersIdBlocking(
   config?: Partial<ClientConfig>,
 ): Promise<Get2UsersIdBlockingResponse> {
   const searchParams = new URLSearchParams();
-  if (params?.max_results != null)
-    searchParams.set("max_results", String(params.max_results));
-  if (params?.pagination_token != null)
-    searchParams.set("pagination_token", String(params.pagination_token));
+  if (params?.maxResults != null)
+    searchParams.set("max_results", String(params.maxResults));
+  if (params?.paginationToken != null)
+    searchParams.set("pagination_token", String(params.paginationToken));
   if (params?.userFields != null) {
     for (const v of params.userFields)
       searchParams.append("user.fields", String(v));
@@ -1861,8 +1861,8 @@ export async function usersIdBlock(
 export async function getUsersIdBookmarks(
   id: string,
   params?: {
-    max_results?: number;
-    pagination_token?: string;
+    maxResults?: number;
+    paginationToken?: string;
     tweetFields?: string[];
     expansions?: string[];
     mediaFields?: string[];
@@ -1873,10 +1873,10 @@ export async function getUsersIdBookmarks(
   config?: Partial<ClientConfig>,
 ): Promise<Get2UsersIdBookmarksResponse> {
   const searchParams = new URLSearchParams();
-  if (params?.max_results != null)
-    searchParams.set("max_results", String(params.max_results));
-  if (params?.pagination_token != null)
-    searchParams.set("pagination_token", String(params.pagination_token));
+  if (params?.maxResults != null)
+    searchParams.set("max_results", String(params.maxResults));
+  if (params?.paginationToken != null)
+    searchParams.set("pagination_token", String(params.paginationToken));
   if (params?.tweetFields != null) {
     for (const v of params.tweetFields)
       searchParams.append("tweet.fields", String(v));
@@ -1926,12 +1926,12 @@ export async function postUsersIdBookmarks(
 
 export async function usersIdBookmarksDelete(
   id: string,
-  tweet_id: string,
+  tweetId: string,
   config?: Partial<ClientConfig>,
 ): Promise<BookmarkMutationResponse> {
   const res = await _request(
     "DELETE",
-    `/2/users/${encodeURIComponent(id)}/bookmarks/${encodeURIComponent(tweet_id)}`,
+    `/2/users/${encodeURIComponent(id)}/bookmarks/${encodeURIComponent(tweetId)}`,
     {},
     config,
   );
@@ -1941,8 +1941,8 @@ export async function usersIdBookmarksDelete(
 export async function userFollowedLists(
   id: string,
   params?: {
-    max_results?: number;
-    pagination_token?: string;
+    maxResults?: number;
+    paginationToken?: string;
     listFields?: string[];
     expansions?: string[];
     userFields?: string[];
@@ -1950,10 +1950,10 @@ export async function userFollowedLists(
   config?: Partial<ClientConfig>,
 ): Promise<Get2UsersIdFollowedListsResponse> {
   const searchParams = new URLSearchParams();
-  if (params?.max_results != null)
-    searchParams.set("max_results", String(params.max_results));
-  if (params?.pagination_token != null)
-    searchParams.set("pagination_token", String(params.pagination_token));
+  if (params?.maxResults != null)
+    searchParams.set("max_results", String(params.maxResults));
+  if (params?.paginationToken != null)
+    searchParams.set("pagination_token", String(params.paginationToken));
   if (params?.listFields != null) {
     for (const v of params.listFields)
       searchParams.append("list.fields", String(v));
@@ -1991,12 +1991,12 @@ export async function listUserFollow(
 
 export async function listUserUnfollow(
   id: string,
-  list_id: string,
+  listId: string,
   config?: Partial<ClientConfig>,
 ): Promise<ListFollowedResponse> {
   const res = await _request(
     "DELETE",
-    `/2/users/${encodeURIComponent(id)}/followed_lists/${encodeURIComponent(list_id)}`,
+    `/2/users/${encodeURIComponent(id)}/followed_lists/${encodeURIComponent(listId)}`,
     {},
     config,
   );
@@ -2006,8 +2006,8 @@ export async function listUserUnfollow(
 export async function usersIdFollowers(
   id: string,
   params?: {
-    max_results?: number;
-    pagination_token?: string;
+    maxResults?: number;
+    paginationToken?: string;
     userFields?: string[];
     expansions?: string[];
     tweetFields?: string[];
@@ -2015,10 +2015,10 @@ export async function usersIdFollowers(
   config?: Partial<ClientConfig>,
 ): Promise<Get2UsersIdFollowersResponse> {
   const searchParams = new URLSearchParams();
-  if (params?.max_results != null)
-    searchParams.set("max_results", String(params.max_results));
-  if (params?.pagination_token != null)
-    searchParams.set("pagination_token", String(params.pagination_token));
+  if (params?.maxResults != null)
+    searchParams.set("max_results", String(params.maxResults));
+  if (params?.paginationToken != null)
+    searchParams.set("pagination_token", String(params.paginationToken));
   if (params?.userFields != null) {
     for (const v of params.userFields)
       searchParams.append("user.fields", String(v));
@@ -2043,8 +2043,8 @@ export async function usersIdFollowers(
 export async function usersIdFollowing(
   id: string,
   params?: {
-    max_results?: number;
-    pagination_token?: string;
+    maxResults?: number;
+    paginationToken?: string;
     userFields?: string[];
     expansions?: string[];
     tweetFields?: string[];
@@ -2052,10 +2052,10 @@ export async function usersIdFollowing(
   config?: Partial<ClientConfig>,
 ): Promise<Get2UsersIdFollowingResponse> {
   const searchParams = new URLSearchParams();
-  if (params?.max_results != null)
-    searchParams.set("max_results", String(params.max_results));
-  if (params?.pagination_token != null)
-    searchParams.set("pagination_token", String(params.pagination_token));
+  if (params?.maxResults != null)
+    searchParams.set("max_results", String(params.maxResults));
+  if (params?.paginationToken != null)
+    searchParams.set("pagination_token", String(params.paginationToken));
   if (params?.userFields != null) {
     for (const v of params.userFields)
       searchParams.append("user.fields", String(v));
@@ -2094,8 +2094,8 @@ export async function usersIdFollow(
 export async function usersIdLikedTweets(
   id: string,
   params?: {
-    max_results?: number;
-    pagination_token?: string;
+    maxResults?: number;
+    paginationToken?: string;
     tweetFields?: string[];
     expansions?: string[];
     mediaFields?: string[];
@@ -2106,10 +2106,10 @@ export async function usersIdLikedTweets(
   config?: Partial<ClientConfig>,
 ): Promise<Get2UsersIdLikedTweetsResponse> {
   const searchParams = new URLSearchParams();
-  if (params?.max_results != null)
-    searchParams.set("max_results", String(params.max_results));
-  if (params?.pagination_token != null)
-    searchParams.set("pagination_token", String(params.pagination_token));
+  if (params?.maxResults != null)
+    searchParams.set("max_results", String(params.maxResults));
+  if (params?.paginationToken != null)
+    searchParams.set("pagination_token", String(params.paginationToken));
   if (params?.tweetFields != null) {
     for (const v of params.tweetFields)
       searchParams.append("tweet.fields", String(v));
@@ -2159,12 +2159,12 @@ export async function usersIdLike(
 
 export async function usersIdUnlike(
   id: string,
-  tweet_id: string,
+  tweetId: string,
   config?: Partial<ClientConfig>,
 ): Promise<UsersLikesDeleteResponse> {
   const res = await _request(
     "DELETE",
-    `/2/users/${encodeURIComponent(id)}/likes/${encodeURIComponent(tweet_id)}`,
+    `/2/users/${encodeURIComponent(id)}/likes/${encodeURIComponent(tweetId)}`,
     {},
     config,
   );
@@ -2174,8 +2174,8 @@ export async function usersIdUnlike(
 export async function getUserListMemberships(
   id: string,
   params?: {
-    max_results?: number;
-    pagination_token?: string;
+    maxResults?: number;
+    paginationToken?: string;
     listFields?: string[];
     expansions?: string[];
     userFields?: string[];
@@ -2183,10 +2183,10 @@ export async function getUserListMemberships(
   config?: Partial<ClientConfig>,
 ): Promise<Get2UsersIdListMembershipsResponse> {
   const searchParams = new URLSearchParams();
-  if (params?.max_results != null)
-    searchParams.set("max_results", String(params.max_results));
-  if (params?.pagination_token != null)
-    searchParams.set("pagination_token", String(params.pagination_token));
+  if (params?.maxResults != null)
+    searchParams.set("max_results", String(params.maxResults));
+  if (params?.paginationToken != null)
+    searchParams.set("pagination_token", String(params.paginationToken));
   if (params?.listFields != null) {
     for (const v of params.listFields)
       searchParams.append("list.fields", String(v));
@@ -2211,12 +2211,12 @@ export async function getUserListMemberships(
 export async function usersIdMentions(
   id: string,
   params?: {
-    since_id?: string;
-    until_id?: string;
-    max_results?: number;
-    pagination_token?: string;
-    start_time?: string;
-    end_time?: string;
+    sinceId?: string;
+    untilId?: string;
+    maxResults?: number;
+    paginationToken?: string;
+    startTime?: string;
+    endTime?: string;
     tweetFields?: string[];
     expansions?: string[];
     mediaFields?: string[];
@@ -2227,18 +2227,18 @@ export async function usersIdMentions(
   config?: Partial<ClientConfig>,
 ): Promise<Get2UsersIdMentionsResponse> {
   const searchParams = new URLSearchParams();
-  if (params?.since_id != null)
-    searchParams.set("since_id", String(params.since_id));
-  if (params?.until_id != null)
-    searchParams.set("until_id", String(params.until_id));
-  if (params?.max_results != null)
-    searchParams.set("max_results", String(params.max_results));
-  if (params?.pagination_token != null)
-    searchParams.set("pagination_token", String(params.pagination_token));
-  if (params?.start_time != null)
-    searchParams.set("start_time", String(params.start_time));
-  if (params?.end_time != null)
-    searchParams.set("end_time", String(params.end_time));
+  if (params?.sinceId != null)
+    searchParams.set("since_id", String(params.sinceId));
+  if (params?.untilId != null)
+    searchParams.set("until_id", String(params.untilId));
+  if (params?.maxResults != null)
+    searchParams.set("max_results", String(params.maxResults));
+  if (params?.paginationToken != null)
+    searchParams.set("pagination_token", String(params.paginationToken));
+  if (params?.startTime != null)
+    searchParams.set("start_time", String(params.startTime));
+  if (params?.endTime != null)
+    searchParams.set("end_time", String(params.endTime));
   if (params?.tweetFields != null) {
     for (const v of params.tweetFields)
       searchParams.append("tweet.fields", String(v));
@@ -2275,8 +2275,8 @@ export async function usersIdMentions(
 export async function usersIdMuting(
   id: string,
   params?: {
-    max_results?: number;
-    pagination_token?: string;
+    maxResults?: number;
+    paginationToken?: string;
     userFields?: string[];
     expansions?: string[];
     tweetFields?: string[];
@@ -2284,10 +2284,10 @@ export async function usersIdMuting(
   config?: Partial<ClientConfig>,
 ): Promise<Get2UsersIdMutingResponse> {
   const searchParams = new URLSearchParams();
-  if (params?.max_results != null)
-    searchParams.set("max_results", String(params.max_results));
-  if (params?.pagination_token != null)
-    searchParams.set("pagination_token", String(params.pagination_token));
+  if (params?.maxResults != null)
+    searchParams.set("max_results", String(params.maxResults));
+  if (params?.paginationToken != null)
+    searchParams.set("pagination_token", String(params.paginationToken));
   if (params?.userFields != null) {
     for (const v of params.userFields)
       searchParams.append("user.fields", String(v));
@@ -2326,8 +2326,8 @@ export async function usersIdMute(
 export async function listUserOwnedLists(
   id: string,
   params?: {
-    max_results?: number;
-    pagination_token?: string;
+    maxResults?: number;
+    paginationToken?: string;
     listFields?: string[];
     expansions?: string[];
     userFields?: string[];
@@ -2335,10 +2335,10 @@ export async function listUserOwnedLists(
   config?: Partial<ClientConfig>,
 ): Promise<Get2UsersIdOwnedListsResponse> {
   const searchParams = new URLSearchParams();
-  if (params?.max_results != null)
-    searchParams.set("max_results", String(params.max_results));
-  if (params?.pagination_token != null)
-    searchParams.set("pagination_token", String(params.pagination_token));
+  if (params?.maxResults != null)
+    searchParams.set("max_results", String(params.maxResults));
+  if (params?.paginationToken != null)
+    searchParams.set("pagination_token", String(params.paginationToken));
   if (params?.listFields != null) {
     for (const v of params.listFields)
       searchParams.append("list.fields", String(v));
@@ -2407,12 +2407,12 @@ export async function listUserPin(
 
 export async function listUserUnpin(
   id: string,
-  list_id: string,
+  listId: string,
   config?: Partial<ClientConfig>,
 ): Promise<ListUnpinResponse> {
   const res = await _request(
     "DELETE",
-    `/2/users/${encodeURIComponent(id)}/pinned_lists/${encodeURIComponent(list_id)}`,
+    `/2/users/${encodeURIComponent(id)}/pinned_lists/${encodeURIComponent(listId)}`,
     {},
     config,
   );
@@ -2435,12 +2435,12 @@ export async function usersIdRetweets(
 
 export async function usersIdUnretweets(
   id: string,
-  source_tweet_id: string,
+  sourceTweetId: string,
   config?: Partial<ClientConfig>,
 ): Promise<UsersRetweetsDeleteResponse> {
   const res = await _request(
     "DELETE",
-    `/2/users/${encodeURIComponent(id)}/retweets/${encodeURIComponent(source_tweet_id)}`,
+    `/2/users/${encodeURIComponent(id)}/retweets/${encodeURIComponent(sourceTweetId)}`,
     {},
     config,
   );
@@ -2450,13 +2450,13 @@ export async function usersIdUnretweets(
 export async function usersIdTimeline(
   id: string,
   params?: {
-    since_id?: string;
-    until_id?: string;
-    max_results?: number;
-    pagination_token?: string;
+    sinceId?: string;
+    untilId?: string;
+    maxResults?: number;
+    paginationToken?: string;
     exclude?: string[];
-    start_time?: string;
-    end_time?: string;
+    startTime?: string;
+    endTime?: string;
     tweetFields?: string[];
     expansions?: string[];
     mediaFields?: string[];
@@ -2467,21 +2467,21 @@ export async function usersIdTimeline(
   config?: Partial<ClientConfig>,
 ): Promise<Get2UsersIdTimelinesReverseChronologicalResponse> {
   const searchParams = new URLSearchParams();
-  if (params?.since_id != null)
-    searchParams.set("since_id", String(params.since_id));
-  if (params?.until_id != null)
-    searchParams.set("until_id", String(params.until_id));
-  if (params?.max_results != null)
-    searchParams.set("max_results", String(params.max_results));
-  if (params?.pagination_token != null)
-    searchParams.set("pagination_token", String(params.pagination_token));
+  if (params?.sinceId != null)
+    searchParams.set("since_id", String(params.sinceId));
+  if (params?.untilId != null)
+    searchParams.set("until_id", String(params.untilId));
+  if (params?.maxResults != null)
+    searchParams.set("max_results", String(params.maxResults));
+  if (params?.paginationToken != null)
+    searchParams.set("pagination_token", String(params.paginationToken));
   if (params?.exclude != null) {
     for (const v of params.exclude) searchParams.append("exclude", String(v));
   }
-  if (params?.start_time != null)
-    searchParams.set("start_time", String(params.start_time));
-  if (params?.end_time != null)
-    searchParams.set("end_time", String(params.end_time));
+  if (params?.startTime != null)
+    searchParams.set("start_time", String(params.startTime));
+  if (params?.endTime != null)
+    searchParams.set("end_time", String(params.endTime));
   if (params?.tweetFields != null) {
     for (const v of params.tweetFields)
       searchParams.append("tweet.fields", String(v));
@@ -2518,13 +2518,13 @@ export async function usersIdTimeline(
 export async function usersIdTweets(
   id: string,
   params?: {
-    since_id?: string;
-    until_id?: string;
-    max_results?: number;
-    pagination_token?: string;
+    sinceId?: string;
+    untilId?: string;
+    maxResults?: number;
+    paginationToken?: string;
     exclude?: string[];
-    start_time?: string;
-    end_time?: string;
+    startTime?: string;
+    endTime?: string;
     tweetFields?: string[];
     expansions?: string[];
     mediaFields?: string[];
@@ -2535,21 +2535,21 @@ export async function usersIdTweets(
   config?: Partial<ClientConfig>,
 ): Promise<Get2UsersIdTweetsResponse> {
   const searchParams = new URLSearchParams();
-  if (params?.since_id != null)
-    searchParams.set("since_id", String(params.since_id));
-  if (params?.until_id != null)
-    searchParams.set("until_id", String(params.until_id));
-  if (params?.max_results != null)
-    searchParams.set("max_results", String(params.max_results));
-  if (params?.pagination_token != null)
-    searchParams.set("pagination_token", String(params.pagination_token));
+  if (params?.sinceId != null)
+    searchParams.set("since_id", String(params.sinceId));
+  if (params?.untilId != null)
+    searchParams.set("until_id", String(params.untilId));
+  if (params?.maxResults != null)
+    searchParams.set("max_results", String(params.maxResults));
+  if (params?.paginationToken != null)
+    searchParams.set("pagination_token", String(params.paginationToken));
   if (params?.exclude != null) {
     for (const v of params.exclude) searchParams.append("exclude", String(v));
   }
-  if (params?.start_time != null)
-    searchParams.set("start_time", String(params.start_time));
-  if (params?.end_time != null)
-    searchParams.set("end_time", String(params.end_time));
+  if (params?.startTime != null)
+    searchParams.set("start_time", String(params.startTime));
+  if (params?.endTime != null)
+    searchParams.set("end_time", String(params.endTime));
   if (params?.tweetFields != null) {
     for (const v of params.tweetFields)
       searchParams.append("tweet.fields", String(v));
@@ -2584,13 +2584,13 @@ export async function usersIdTweets(
 }
 
 export async function usersIdUnblock(
-  source_user_id: string,
-  target_user_id: string,
+  sourceUserId: string,
+  targetUserId: string,
   config?: Partial<ClientConfig>,
 ): Promise<BlockUserMutationResponse> {
   const res = await _request(
     "DELETE",
-    `/2/users/${encodeURIComponent(source_user_id)}/blocking/${encodeURIComponent(target_user_id)}`,
+    `/2/users/${encodeURIComponent(sourceUserId)}/blocking/${encodeURIComponent(targetUserId)}`,
     {},
     config,
   );
@@ -2598,13 +2598,13 @@ export async function usersIdUnblock(
 }
 
 export async function usersIdUnfollow(
-  source_user_id: string,
-  target_user_id: string,
+  sourceUserId: string,
+  targetUserId: string,
   config?: Partial<ClientConfig>,
 ): Promise<UsersFollowingDeleteResponse> {
   const res = await _request(
     "DELETE",
-    `/2/users/${encodeURIComponent(source_user_id)}/following/${encodeURIComponent(target_user_id)}`,
+    `/2/users/${encodeURIComponent(sourceUserId)}/following/${encodeURIComponent(targetUserId)}`,
     {},
     config,
   );
@@ -2612,13 +2612,13 @@ export async function usersIdUnfollow(
 }
 
 export async function usersIdUnmute(
-  source_user_id: string,
-  target_user_id: string,
+  sourceUserId: string,
+  targetUserId: string,
   config?: Partial<ClientConfig>,
 ): Promise<MuteUserMutationResponse> {
   const res = await _request(
     "DELETE",
-    `/2/users/${encodeURIComponent(source_user_id)}/muting/${encodeURIComponent(target_user_id)}`,
+    `/2/users/${encodeURIComponent(sourceUserId)}/muting/${encodeURIComponent(targetUserId)}`,
     {},
     config,
   );

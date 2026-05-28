@@ -187,39 +187,39 @@ export async function createEmails(
   return res.json();
 }
 
-export async function getEmailsByEmail_id(
-  email_id: string,
+export async function getEmailsByEmailId(
+  emailId: string,
   config?: Partial<ClientConfig>,
 ): Promise<Email> {
   const res = await _request(
     "GET",
-    `/emails/${encodeURIComponent(email_id)}`,
+    `/emails/${encodeURIComponent(emailId)}`,
     {},
     config,
   );
   return res.json();
 }
 
-export async function patchEmailsByEmail_id(
-  email_id: string,
+export async function patchEmailsByEmailId(
+  emailId: string,
   config?: Partial<ClientConfig>,
 ): Promise<UpdateEmailOptions> {
   const res = await _request(
     "PATCH",
-    `/emails/${encodeURIComponent(email_id)}`,
+    `/emails/${encodeURIComponent(emailId)}`,
     {},
     config,
   );
   return res.json();
 }
 
-export async function createEmailsByEmail_idCancel(
-  email_id: string,
+export async function createEmailsByEmailIdCancel(
+  emailId: string,
   config?: Partial<ClientConfig>,
 ): Promise<Email> {
   const res = await _request(
     "POST",
-    `/emails/${encodeURIComponent(email_id)}/cancel`,
+    `/emails/${encodeURIComponent(emailId)}/cancel`,
     {},
     config,
   );
@@ -247,8 +247,8 @@ export async function createEmailsBatch(
   return res.json();
 }
 
-export async function getEmailsByEmail_idAttachments(
-  email_id: string,
+export async function getEmailsByEmailIdAttachments(
+  emailId: string,
   params?: {
     limit?: number;
     after?: string;
@@ -262,21 +262,21 @@ export async function getEmailsByEmail_idAttachments(
   if (params?.before != null) searchParams.set("before", String(params.before));
   const res = await _request(
     "GET",
-    `/emails/${encodeURIComponent(email_id)}/attachments`,
+    `/emails/${encodeURIComponent(emailId)}/attachments`,
     { searchParams },
     config,
   );
   return res.json();
 }
 
-export async function getEmailsByEmail_idAttachmentsByAttachment_id(
-  email_id: string,
-  attachment_id: string,
+export async function getEmailsByEmailIdAttachmentsByAttachmentId(
+  emailId: string,
+  attachmentId: string,
   config?: Partial<ClientConfig>,
 ): Promise<RetrievedAttachment> {
   const res = await _request(
     "GET",
-    `/emails/${encodeURIComponent(email_id)}/attachments/${encodeURIComponent(attachment_id)}`,
+    `/emails/${encodeURIComponent(emailId)}/attachments/${encodeURIComponent(attachmentId)}`,
     {},
     config,
   );
@@ -304,21 +304,21 @@ export async function getEmailsReceiving(
   return res.json();
 }
 
-export async function getEmailsReceivingByEmail_id(
-  email_id: string,
+export async function getEmailsReceivingByEmailId(
+  emailId: string,
   config?: Partial<ClientConfig>,
 ): Promise<GetReceivedEmailResponse> {
   const res = await _request(
     "GET",
-    `/emails/receiving/${encodeURIComponent(email_id)}`,
+    `/emails/receiving/${encodeURIComponent(emailId)}`,
     {},
     config,
   );
   return res.json();
 }
 
-export async function getEmailsReceivingByEmail_idAttachments(
-  email_id: string,
+export async function getEmailsReceivingByEmailIdAttachments(
+  emailId: string,
   params?: {
     limit?: number;
     after?: string;
@@ -332,21 +332,21 @@ export async function getEmailsReceivingByEmail_idAttachments(
   if (params?.before != null) searchParams.set("before", String(params.before));
   const res = await _request(
     "GET",
-    `/emails/receiving/${encodeURIComponent(email_id)}/attachments`,
+    `/emails/receiving/${encodeURIComponent(emailId)}/attachments`,
     { searchParams },
     config,
   );
   return res.json();
 }
 
-export async function getEmailsReceivingByEmail_idAttachmentsByAttachment_id(
-  email_id: string,
-  attachment_id: string,
+export async function getEmailsReceivingByEmailIdAttachmentsByAttachmentId(
+  emailId: string,
+  attachmentId: string,
   config?: Partial<ClientConfig>,
 ): Promise<RetrievedAttachment> {
   const res = await _request(
     "GET",
-    `/emails/receiving/${encodeURIComponent(email_id)}/attachments/${encodeURIComponent(attachment_id)}`,
+    `/emails/receiving/${encodeURIComponent(emailId)}/attachments/${encodeURIComponent(attachmentId)}`,
     {},
     config,
   );
@@ -377,53 +377,53 @@ export async function createDomains(
   return res.json();
 }
 
-export async function getDomainsByDomain_id(
-  domain_id: string,
+export async function getDomainsByDomainId(
+  domainId: string,
   config?: Partial<ClientConfig>,
 ): Promise<Domain> {
   const res = await _request(
     "GET",
-    `/domains/${encodeURIComponent(domain_id)}`,
+    `/domains/${encodeURIComponent(domainId)}`,
     {},
     config,
   );
   return res.json();
 }
 
-export async function patchDomainsByDomain_id(
-  domain_id: string,
+export async function patchDomainsByDomainId(
+  domainId: string,
   body: UpdateDomainOptions,
   config?: Partial<ClientConfig>,
 ): Promise<UpdateDomainResponseSuccess> {
   const res = await _request(
     "PATCH",
-    `/domains/${encodeURIComponent(domain_id)}`,
+    `/domains/${encodeURIComponent(domainId)}`,
     { body },
     config,
   );
   return res.json();
 }
 
-export async function deleteDomainsByDomain_id(
-  domain_id: string,
+export async function deleteDomainsByDomainId(
+  domainId: string,
   config?: Partial<ClientConfig>,
 ): Promise<DeleteDomainResponse> {
   const res = await _request(
     "DELETE",
-    `/domains/${encodeURIComponent(domain_id)}`,
+    `/domains/${encodeURIComponent(domainId)}`,
     {},
     config,
   );
   return res.json();
 }
 
-export async function createDomainsByDomain_idVerify(
-  domain_id: string,
+export async function createDomainsByDomainIdVerify(
+  domainId: string,
   config?: Partial<ClientConfig>,
 ): Promise<VerifyDomainResponse> {
   const res = await _request(
     "POST",
-    `/domains/${encodeURIComponent(domain_id)}/verify`,
+    `/domains/${encodeURIComponent(domainId)}/verify`,
     {},
     config,
   );
@@ -454,13 +454,13 @@ export async function createApiKeys(
   return res.json();
 }
 
-export async function deleteApiKeysByApi_key_id(
-  api_key_id: string,
+export async function deleteApiKeysByApiKeyId(
+  apiKeyId: string,
   config?: Partial<ClientConfig>,
 ): Promise<DeleteApiKeyResponse> {
   const res = await _request(
     "DELETE",
-    `/api-keys/${encodeURIComponent(api_key_id)}`,
+    `/api-keys/${encodeURIComponent(apiKeyId)}`,
     {},
     config,
   );
@@ -612,7 +612,7 @@ export async function deleteAudiencesById(
 
 export async function getContacts(
   params?: {
-    segment_id?: string;
+    segmentId?: string;
     limit?: number;
     after?: string;
     before?: string;
@@ -620,8 +620,8 @@ export async function getContacts(
   config?: Partial<ClientConfig>,
 ): Promise<ListContactsResponseSuccess> {
   const searchParams = new URLSearchParams();
-  if (params?.segment_id != null)
-    searchParams.set("segment_id", String(params.segment_id));
+  if (params?.segmentId != null)
+    searchParams.set("segment_id", String(params.segmentId));
   if (params?.limit != null) searchParams.set("limit", String(params.limit));
   if (params?.after != null) searchParams.set("after", String(params.after));
   if (params?.before != null) searchParams.set("before", String(params.before));
@@ -779,40 +779,40 @@ export async function createWebhooks(
   return res.json();
 }
 
-export async function getWebhooksByWebhook_id(
-  webhook_id: string,
+export async function getWebhooksByWebhookId(
+  webhookId: string,
   config?: Partial<ClientConfig>,
 ): Promise<GetWebhookResponse> {
   const res = await _request(
     "GET",
-    `/webhooks/${encodeURIComponent(webhook_id)}`,
+    `/webhooks/${encodeURIComponent(webhookId)}`,
     {},
     config,
   );
   return res.json();
 }
 
-export async function patchWebhooksByWebhook_id(
-  webhook_id: string,
+export async function patchWebhooksByWebhookId(
+  webhookId: string,
   body: UpdateWebhookRequest,
   config?: Partial<ClientConfig>,
 ): Promise<UpdateWebhookResponse> {
   const res = await _request(
     "PATCH",
-    `/webhooks/${encodeURIComponent(webhook_id)}`,
+    `/webhooks/${encodeURIComponent(webhookId)}`,
     { body },
     config,
   );
   return res.json();
 }
 
-export async function deleteWebhooksByWebhook_id(
-  webhook_id: string,
+export async function deleteWebhooksByWebhookId(
+  webhookId: string,
   config?: Partial<ClientConfig>,
 ): Promise<DeleteWebhookResponse> {
   const res = await _request(
     "DELETE",
-    `/webhooks/${encodeURIComponent(webhook_id)}`,
+    `/webhooks/${encodeURIComponent(webhookId)}`,
     {},
     config,
   );
@@ -1002,8 +1002,8 @@ export async function deleteContactPropertiesById(
   return res.json();
 }
 
-export async function getContactsByContact_idSegments(
-  contact_id: string,
+export async function getContactsByContactIdSegments(
+  contactId: string,
   params?: {
     limit?: number;
     after?: string;
@@ -1017,43 +1017,43 @@ export async function getContactsByContact_idSegments(
   if (params?.before != null) searchParams.set("before", String(params.before));
   const res = await _request(
     "GET",
-    `/contacts/${encodeURIComponent(contact_id)}/segments`,
+    `/contacts/${encodeURIComponent(contactId)}/segments`,
     { searchParams },
     config,
   );
   return res.json();
 }
 
-export async function createContactsByContact_idSegmentsBySegment_id(
-  contact_id: string,
-  segment_id: string,
+export async function createContactsByContactIdSegmentsBySegmentId(
+  contactId: string,
+  segmentId: string,
   config?: Partial<ClientConfig>,
 ): Promise<AddContactToSegmentResponseSuccess> {
   const res = await _request(
     "POST",
-    `/contacts/${encodeURIComponent(contact_id)}/segments/${encodeURIComponent(segment_id)}`,
+    `/contacts/${encodeURIComponent(contactId)}/segments/${encodeURIComponent(segmentId)}`,
     {},
     config,
   );
   return res.json();
 }
 
-export async function deleteContactsByContact_idSegmentsBySegment_id(
-  contact_id: string,
-  segment_id: string,
+export async function deleteContactsByContactIdSegmentsBySegmentId(
+  contactId: string,
+  segmentId: string,
   config?: Partial<ClientConfig>,
 ): Promise<RemoveContactFromSegmentResponseSuccess> {
   const res = await _request(
     "DELETE",
-    `/contacts/${encodeURIComponent(contact_id)}/segments/${encodeURIComponent(segment_id)}`,
+    `/contacts/${encodeURIComponent(contactId)}/segments/${encodeURIComponent(segmentId)}`,
     {},
     config,
   );
   return res.json();
 }
 
-export async function getContactsByContact_idTopics(
-  contact_id: string,
+export async function getContactsByContactIdTopics(
+  contactId: string,
   params?: {
     limit?: number;
     after?: string;
@@ -1067,21 +1067,21 @@ export async function getContactsByContact_idTopics(
   if (params?.before != null) searchParams.set("before", String(params.before));
   const res = await _request(
     "GET",
-    `/contacts/${encodeURIComponent(contact_id)}/topics`,
+    `/contacts/${encodeURIComponent(contactId)}/topics`,
     { searchParams },
     config,
   );
   return res.json();
 }
 
-export async function patchContactsByContact_idTopics(
-  contact_id: string,
+export async function patchContactsByContactIdTopics(
+  contactId: string,
   body: UpdateContactTopicsOptions,
   config?: Partial<ClientConfig>,
 ): Promise<UpdateContactTopicsResponseSuccess> {
   const res = await _request(
     "PATCH",
-    `/contacts/${encodeURIComponent(contact_id)}/topics`,
+    `/contacts/${encodeURIComponent(contactId)}/topics`,
     { body },
     config,
   );
@@ -1104,13 +1104,13 @@ export async function getLogs(
   return res.json();
 }
 
-export async function getLogsByLog_id(
-  log_id: string,
+export async function getLogsByLogId(
+  logId: string,
   config?: Partial<ClientConfig>,
 ): Promise<Log> {
   const res = await _request(
     "GET",
-    `/logs/${encodeURIComponent(log_id)}`,
+    `/logs/${encodeURIComponent(logId)}`,
     {},
     config,
   );
@@ -1143,61 +1143,61 @@ export async function createAutomations(
   return res.json();
 }
 
-export async function getAutomationsByAutomation_id(
-  automation_id: string,
+export async function getAutomationsByAutomationId(
+  automationId: string,
   config?: Partial<ClientConfig>,
 ): Promise<Automation> {
   const res = await _request(
     "GET",
-    `/automations/${encodeURIComponent(automation_id)}`,
+    `/automations/${encodeURIComponent(automationId)}`,
     {},
     config,
   );
   return res.json();
 }
 
-export async function patchAutomationsByAutomation_id(
-  automation_id: string,
+export async function patchAutomationsByAutomationId(
+  automationId: string,
   body: PatchAutomationRequest,
   config?: Partial<ClientConfig>,
 ): Promise<PatchAutomationResponse> {
   const res = await _request(
     "PATCH",
-    `/automations/${encodeURIComponent(automation_id)}`,
+    `/automations/${encodeURIComponent(automationId)}`,
     { body },
     config,
   );
   return res.json();
 }
 
-export async function deleteAutomationsByAutomation_id(
-  automation_id: string,
+export async function deleteAutomationsByAutomationId(
+  automationId: string,
   config?: Partial<ClientConfig>,
 ): Promise<DeleteAutomationResponse> {
   const res = await _request(
     "DELETE",
-    `/automations/${encodeURIComponent(automation_id)}`,
+    `/automations/${encodeURIComponent(automationId)}`,
     {},
     config,
   );
   return res.json();
 }
 
-export async function createAutomationsByAutomation_idStop(
-  automation_id: string,
+export async function createAutomationsByAutomationIdStop(
+  automationId: string,
   config?: Partial<ClientConfig>,
 ): Promise<StopAutomationResponse> {
   const res = await _request(
     "POST",
-    `/automations/${encodeURIComponent(automation_id)}/stop`,
+    `/automations/${encodeURIComponent(automationId)}/stop`,
     {},
     config,
   );
   return res.json();
 }
 
-export async function getAutomationsByAutomation_idRuns(
-  automation_id: string,
+export async function getAutomationsByAutomationIdRuns(
+  automationId: string,
   params?: {
     status?: string;
     limit?: number;
@@ -1213,21 +1213,21 @@ export async function getAutomationsByAutomation_idRuns(
   if (params?.before != null) searchParams.set("before", String(params.before));
   const res = await _request(
     "GET",
-    `/automations/${encodeURIComponent(automation_id)}/runs`,
+    `/automations/${encodeURIComponent(automationId)}/runs`,
     { searchParams },
     config,
   );
   return res.json();
 }
 
-export async function getAutomationsByAutomation_idRunsByRun_id(
-  automation_id: string,
-  run_id: string,
+export async function getAutomationsByAutomationIdRunsByRunId(
+  automationId: string,
+  runId: string,
   config?: Partial<ClientConfig>,
 ): Promise<AutomationRun> {
   const res = await _request(
     "GET",
-    `/automations/${encodeURIComponent(automation_id)}/runs/${encodeURIComponent(run_id)}`,
+    `/automations/${encodeURIComponent(automationId)}/runs/${encodeURIComponent(runId)}`,
     {},
     config,
   );

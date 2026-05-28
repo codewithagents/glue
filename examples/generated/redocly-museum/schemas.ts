@@ -20,7 +20,7 @@
 
 import { z } from 'zod'
 
-export const TicketTypeSchema = z.enum(['event', 'general'])
+export const TicketTypeSchema = z.enum(["event", "general"])
 
 export const DateSchema = z.string()
 

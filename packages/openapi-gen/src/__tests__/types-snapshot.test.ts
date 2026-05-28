@@ -38,7 +38,7 @@ describe('types plugin explicit assertions per fixture', () => {
     it('TaskStatus is a string literal union, not an interface', async () => {
       const spec = await parseSpec(join(fixturesDir, 'task-manager.json'))
       const { content } = generateTypes(spec)
-      expect(content).toContain("export type TaskStatus = 'pending'")
+      expect(content).toContain(`export type TaskStatus = "pending"`)
       expect(content).not.toContain('interface TaskStatus')
     })
 
@@ -187,7 +187,7 @@ describe('schema-enhanced types generation', () => {
       schemaNames: new Set(['PetSchema', 'PetStatusSchema']),
       schemaImportPath: './schemas.js',
     })
-    expect(result.content).toContain("export type PetStatus = 'available' | 'adopted'")
+    expect(result.content).toContain(`export type PetStatus = "available" | "adopted"`)
     expect(result.content).not.toContain('export type PetStatus = z.infer')
   })
 

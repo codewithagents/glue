@@ -48,7 +48,7 @@ function schemaToTypeString(schema: SchemaObject | ReferenceObject): string {
     return schema.enum
       .map((v: unknown) => {
         if (v === null) return 'null'
-        if (typeof v === 'string') return `'${v}'`
+        if (typeof v === 'string') return JSON.stringify(v)  // double-quotes, handles apostrophes safely
         return String(v)
       })
       .join(' | ')
@@ -217,7 +217,7 @@ function generateSchemaDeclaration(name: string, schema: SchemaObject | Referenc
     const union = schema.enum!
       .map((v: unknown) => {
         if (v === null) return 'null'
-        if (typeof v === 'string') return `'${v}'`
+        if (typeof v === 'string') return JSON.stringify(v)  // double-quotes, handles apostrophes safely
         return String(v)
       })
       .join(' | ')

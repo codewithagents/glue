@@ -58,7 +58,7 @@ export const EmailSchema = z.object({
   bcc: z.array(z.string()).optional(),
   cc: z.array(z.string()).optional(),
   reply_to: z.array(z.string()).optional(),
-  last_event: z.enum(['bounced', 'canceled', 'clicked', 'complained', 'delivered', 'delivery_delayed', 'failed', 'opened', 'queued', 'scheduled', 'sent', 'suppressed']).optional()
+  last_event: z.enum(["bounced", "canceled", "clicked", "complained", "delivered", "delivery_delayed", "failed", "opened", "queued", "scheduled", "sent", "suppressed"]).optional()
 }).passthrough()
 
 export const CreateBatchEmailsResponseSchema = z.object({
@@ -68,16 +68,16 @@ export const CreateBatchEmailsResponseSchema = z.object({
 }).passthrough()
 
 export const DomainCapabilitiesSchema = z.object({
-  sending: z.enum(['enabled', 'disabled']).optional(),
-  receiving: z.enum(['enabled', 'disabled']).optional()
+  sending: z.enum(["enabled", "disabled"]).optional(),
+  receiving: z.enum(["enabled", "disabled"]).optional()
 }).passthrough()
 
 export const DomainRecordSchema = z.object({
-  record: z.enum(['SPF', 'DKIM', 'Receiving', 'Tracking', 'TrackingCAA']).optional(),
+  record: z.enum(["SPF", "DKIM", "Receiving", "Tracking", "TrackingCAA"]).optional(),
   name: z.string().optional(),
-  type: z.enum(['MX', 'TXT', 'CNAME', 'CAA']).optional(),
+  type: z.enum(["MX", "TXT", "CNAME", "CAA"]).optional(),
   ttl: z.string().optional(),
-  status: z.enum(['pending', 'verified', 'failed', 'temporary_failure', 'not_started']).optional(),
+  status: z.enum(["pending", "verified", "failed", "temporary_failure", "not_started"]).optional(),
   value: z.string().optional(),
   priority: z.number().optional()
 }).passthrough()
@@ -100,7 +100,7 @@ export const DeleteDomainResponseSchema = z.object({
 
 export const CreateApiKeyRequestSchema = z.object({
   name: z.string(),
-  permission: z.enum(['full_access', 'sending_access']).optional(),
+  permission: z.enum(["full_access", "sending_access"]).optional(),
   domain_id: z.string().optional()
 }).passthrough()
 
@@ -163,7 +163,7 @@ export const CreateContactOptionsSchema = z.object({
   segments: z.array(z.string()).optional(),
   topics: z.array(z.object({
   id: z.string().optional(),
-  subscription: z.enum(['opt_in', 'opt_out']).optional()
+  subscription: z.enum(["opt_in", "opt_out"]).optional()
 }).passthrough()).optional(),
   audience_id: z.string().optional()
 }).passthrough()
@@ -307,7 +307,7 @@ export const RetrievedAttachmentSchema = z.object({
   filename: z.string().optional(),
   content_type: z.string().optional(),
   content_id: z.string().optional(),
-  content_disposition: z.enum(['inline', 'attachment']).optional(),
+  content_disposition: z.enum(["inline", "attachment"]).optional(),
   download_url: z.string().optional(),
   expires_at: z.string().optional(),
   size: z.number().optional()
@@ -321,7 +321,7 @@ export const ListAttachmentsResponseSchema = z.object({
   filename: z.string().optional(),
   content_type: z.string().optional(),
   content_id: z.string().optional(),
-  content_disposition: z.enum(['inline', 'attachment']).optional(),
+  content_disposition: z.enum(["inline", "attachment"]).optional(),
   download_url: z.string().optional(),
   expires_at: z.string().optional(),
   size: z.number().optional()
@@ -347,7 +347,7 @@ export const GetReceivedEmailResponseSchema = z.object({
   filename: z.string().optional(),
   content_type: z.string().optional(),
   content_id: z.string().optional(),
-  content_disposition: z.enum(['inline', 'attachment']).optional(),
+  content_disposition: z.enum(["inline", "attachment"]).optional(),
   size: z.number().optional()
 }).passthrough()).optional()
 }).passthrough()
@@ -370,7 +370,7 @@ export const ListReceivedEmailsResponseSchema = z.object({
   filename: z.string().optional(),
   content_type: z.string().optional(),
   content_id: z.string().optional(),
-  content_disposition: z.enum(['inline', 'attachment']).optional(),
+  content_disposition: z.enum(["inline", "attachment"]).optional(),
   size: z.number().optional()
 }).passthrough()).optional()
 }).passthrough()).optional()
@@ -412,7 +412,7 @@ export const ListWebhooksResponseSchema = z.object({
 export const UpdateWebhookRequestSchema = z.object({
   endpoint: z.string().optional(),
   events: z.array(z.string()).min(1).optional(),
-  status: z.enum(['enabled', 'disabled']).optional()
+  status: z.enum(["enabled", "disabled"]).optional()
 }).passthrough()
 
 export const UpdateWebhookResponseSchema = z.object({
@@ -429,7 +429,7 @@ export const DeleteWebhookResponseSchema = z.object({
 export const TemplateVariableSchema = z.object({
   id: z.string().optional(),
   key: z.string(),
-  type: z.enum(['string', 'number', 'boolean', 'object', 'list']),
+  type: z.enum(["string", "number", "boolean", "object", "list"]),
   fallback_value: z.union([z.string(), z.number(), z.boolean(), z.record(z.string(), z.unknown()), z.array(z.unknown())]).optional(),
   created_at: z.string().optional(),
   updated_at: z.string().optional()
@@ -437,14 +437,14 @@ export const TemplateVariableSchema = z.object({
 
 export const TemplateVariableInputSchema = z.object({
   key: z.string(),
-  type: z.enum(['string', 'number', 'boolean', 'object', 'list']),
+  type: z.enum(["string", "number", "boolean", "object", "list"]),
   fallback_value: z.union([z.string(), z.number(), z.boolean(), z.record(z.string(), z.unknown()), z.array(z.unknown())]).optional()
 }).passthrough()
 
 export const TemplateListItemSchema = z.object({
   id: z.string().optional(),
   name: z.string().optional(),
-  status: z.enum(['draft', 'published']).optional(),
+  status: z.enum(["draft", "published"]).optional(),
   published_at: z.string().nullable().optional(),
   created_at: z.string().optional(),
   updated_at: z.string().optional(),
@@ -516,9 +516,9 @@ export const RemoveSegmentResponseSuccessSchema = z.object({
 
 export const CreateTopicOptionsSchema = z.object({
   name: z.string().max(50),
-  default_subscription: z.enum(['opt_in', 'opt_out']),
+  default_subscription: z.enum(["opt_in", "opt_out"]),
   description: z.string().max(200).optional(),
-  visibility: z.enum(['public', 'private']).optional()
+  visibility: z.enum(["public", "private"]).optional()
 }).passthrough()
 
 export const CreateTopicResponseSuccessSchema = z.object({
@@ -531,8 +531,8 @@ export const GetTopicResponseSuccessSchema = z.object({
   object: z.string().optional(),
   name: z.string().optional(),
   description: z.string().optional(),
-  default_subscription: z.enum(['opt_in', 'opt_out']).optional(),
-  visibility: z.enum(['public', 'private']).optional(),
+  default_subscription: z.enum(["opt_in", "opt_out"]).optional(),
+  visibility: z.enum(["public", "private"]).optional(),
   created_at: z.string().optional()
 }).passthrough()
 
@@ -543,8 +543,8 @@ export const ListTopicsResponseSuccessSchema = z.object({
   id: z.string().optional(),
   name: z.string().optional(),
   description: z.string().optional(),
-  default_subscription: z.enum(['opt_in', 'opt_out']).optional(),
-  visibility: z.enum(['public', 'private']).optional(),
+  default_subscription: z.enum(["opt_in", "opt_out"]).optional(),
+  visibility: z.enum(["public", "private"]).optional(),
   created_at: z.string().optional()
 }).passthrough()).optional()
 }).passthrough()
@@ -552,7 +552,7 @@ export const ListTopicsResponseSuccessSchema = z.object({
 export const UpdateTopicOptionsSchema = z.object({
   name: z.string().max(50).optional(),
   description: z.string().max(200).optional(),
-  visibility: z.enum(['public', 'private']).optional()
+  visibility: z.enum(["public", "private"]).optional()
 }).passthrough()
 
 export const UpdateTopicResponseSuccessSchema = z.object({
@@ -568,7 +568,7 @@ export const RemoveTopicResponseSuccessSchema = z.object({
 
 export const CreateContactPropertyOptionsSchema = z.object({
   key: z.string(),
-  type: z.enum(['string', 'number']),
+  type: z.enum(["string", "number"]),
   fallback_value: z.union([z.string(), z.number()]).optional()
 }).passthrough()
 
@@ -643,14 +643,14 @@ export const GetContactTopicsResponseSuccessSchema = z.object({
   id: z.string().optional(),
   name: z.string().optional(),
   description: z.string().optional(),
-  subscription: z.enum(['opt_in', 'opt_out']).optional()
+  subscription: z.enum(["opt_in", "opt_out"]).optional()
 }).passthrough()).optional()
 }).passthrough()
 
 export const UpdateContactTopicsOptionsSchema = z.object({
   topics: z.array(z.object({
   id: z.string().optional(),
-  subscription: z.enum(['opt_in', 'opt_out']).optional()
+  subscription: z.enum(["opt_in", "opt_out"]).optional()
 }).passthrough())
 }).passthrough()
 
@@ -659,7 +659,7 @@ export const UpdateContactTopicsResponseSuccessSchema = z.object({
   contact_id: z.string().optional(),
   topics: z.array(z.object({
   id: z.string().optional(),
-  subscription: z.enum(['opt_in', 'opt_out']).optional()
+  subscription: z.enum(["opt_in", "opt_out"]).optional()
 }).passthrough()).optional()
 }).passthrough()
 
@@ -667,7 +667,7 @@ export const LogSummarySchema = z.object({
   id: z.string().uuid().optional(),
   created_at: z.string().optional(),
   endpoint: z.string().optional(),
-  method: z.enum(['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS']).optional(),
+  method: z.enum(["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"]).optional(),
   response_status: z.number().optional(),
   user_agent: z.string().nullable().optional()
 }).passthrough()
@@ -677,7 +677,7 @@ export const LogSchema = z.object({
   id: z.string().uuid().optional(),
   created_at: z.string().optional(),
   endpoint: z.string().optional(),
-  method: z.enum(['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS']).optional(),
+  method: z.enum(["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"]).optional(),
   response_status: z.number().optional(),
   user_agent: z.string().nullable().optional(),
   request_body: z.unknown().nullable().optional(),
@@ -686,20 +686,20 @@ export const LogSchema = z.object({
 
 export const AutomationStepSchema = z.object({
   key: z.string(),
-  type: z.enum(['trigger', 'send_email', 'delay', 'wait_for_event', 'condition', 'contact_update', 'contact_delete', 'add_to_segment']),
+  type: z.enum(["trigger", "send_email", "delay", "wait_for_event", "condition", "contact_update", "contact_delete", "add_to_segment"]),
   config: z.record(z.string(), z.unknown())
 }).passthrough()
 
 export const AutomationStepResponseSchema = z.object({
   key: z.string().optional(),
-  type: z.enum(['trigger', 'send_email', 'delay', 'wait_for_event', 'condition', 'contact_update', 'contact_delete', 'add_to_segment']).optional(),
+  type: z.enum(["trigger", "send_email", "delay", "wait_for_event", "condition", "contact_update", "contact_delete", "add_to_segment"]).optional(),
   config: z.record(z.string(), z.unknown()).optional()
 }).passthrough()
 
 export const AutomationConnectionSchema = z.object({
   from: z.string(),
   to: z.string(),
-  type: z.enum(['default', 'condition_met', 'condition_not_met', 'timeout', 'event_received']).optional()
+  type: z.enum(["default", "condition_met", "condition_not_met", "timeout", "event_received"]).optional()
 }).passthrough()
 
 export const CreateAutomationResponseSchema = z.object({
@@ -710,7 +710,7 @@ export const CreateAutomationResponseSchema = z.object({
 export const AutomationListItemSchema = z.object({
   id: z.string().optional(),
   name: z.string().optional(),
-  status: z.enum(['enabled', 'disabled']).optional(),
+  status: z.enum(["enabled", "disabled"]).optional(),
   created_at: z.string().optional(),
   updated_at: z.string().optional()
 }).passthrough()
@@ -734,7 +734,7 @@ export const StopAutomationResponseSchema = z.object({
 
 export const AutomationRunStepSchema = z.object({
   key: z.string().optional(),
-  type: z.enum(['trigger', 'send_email', 'delay', 'wait_for_event', 'condition', 'contact_update', 'contact_delete', 'add_to_segment']).optional(),
+  type: z.enum(["trigger", "send_email", "delay", "wait_for_event", "condition", "contact_update", "contact_delete", "add_to_segment"]).optional(),
   status: z.string().optional(),
   started_at: z.string().nullable().optional(),
   completed_at: z.string().nullable().optional(),
@@ -745,7 +745,7 @@ export const AutomationRunStepSchema = z.object({
 
 export const AutomationRunListItemSchema = z.object({
   id: z.string().optional(),
-  status: z.enum(['running', 'completed', 'failed', 'cancelled']).optional(),
+  status: z.enum(["running", "completed", "failed", "cancelled"]).optional(),
   started_at: z.string().nullable().optional(),
   completed_at: z.string().nullable().optional(),
   created_at: z.string().optional()
@@ -830,11 +830,11 @@ export const ListEmailsResponseSchema = z.object({
 
 export const CreateDomainRequestSchema = z.object({
   name: z.string(),
-  region: z.enum(['us-east-1', 'eu-west-1', 'sa-east-1', 'ap-northeast-1']).optional(),
+  region: z.enum(["us-east-1", "eu-west-1", "sa-east-1", "ap-northeast-1"]).optional(),
   custom_return_path: z.string().optional(),
   open_tracking: z.boolean().optional(),
   click_tracking: z.boolean().optional(),
-  tls: z.enum(['opportunistic', 'enforced']).optional(),
+  tls: z.enum(["opportunistic", "enforced"]).optional(),
   capabilities: DomainCapabilitiesSchema.optional(),
   tracking_subdomain: z.string().optional()
 }).passthrough()
@@ -850,7 +850,7 @@ export const UpdateDomainOptionsSchema = z.object({
 export const ListDomainsItemSchema = z.object({
   id: z.string().optional(),
   name: z.string().optional(),
-  status: z.enum(['pending', 'verified', 'failed', 'not_started', 'partially_verified', 'partially_failed']).optional(),
+  status: z.enum(["pending", "verified", "failed", "not_started", "partially_verified", "partially_failed"]).optional(),
   created_at: z.string().optional(),
   region: z.string().optional(),
   capabilities: DomainCapabilitiesSchema.optional()
@@ -860,7 +860,7 @@ export const CreateDomainResponseSchema = z.object({
   id: z.string().optional(),
   name: z.string().optional(),
   created_at: z.string().optional(),
-  status: z.enum(['pending', 'verified', 'failed', 'not_started', 'partially_verified', 'partially_failed']).optional(),
+  status: z.enum(["pending", "verified", "failed", "not_started", "partially_verified", "partially_failed"]).optional(),
   capabilities: DomainCapabilitiesSchema.optional(),
   records: z.array(DomainRecordSchema).optional(),
   region: z.string().optional(),
@@ -873,7 +873,7 @@ export const DomainSchema = z.object({
   object: z.string().optional(),
   id: z.string().optional(),
   name: z.string().optional(),
-  status: z.enum(['pending', 'verified', 'failed', 'not_started', 'partially_verified', 'partially_failed']).optional(),
+  status: z.enum(["pending", "verified", "failed", "not_started", "partially_verified", "partially_failed"]).optional(),
   created_at: z.string().optional(),
   region: z.string().optional(),
   open_tracking: z.boolean().optional(),
@@ -903,7 +903,7 @@ export const TemplateSchema = z.object({
   variables: z.array(TemplateVariableSchema).optional(),
   created_at: z.string().optional(),
   updated_at: z.string().optional(),
-  status: z.enum(['draft', 'published']).optional(),
+  status: z.enum(["draft", "published"]).optional(),
   published_at: z.string().nullable().optional(),
   has_unpublished_versions: z.boolean().optional()
 }).passthrough()
@@ -944,7 +944,7 @@ export const ListLogsResponseSchema = z.object({
 
 export const CreateAutomationRequestSchema = z.object({
   name: z.string().min(1),
-  status: z.enum(['enabled', 'disabled']).optional(),
+  status: z.enum(["enabled", "disabled"]).optional(),
   steps: z.array(AutomationStepSchema).min(1).max(150),
   connections: z.array(AutomationConnectionSchema)
 }).passthrough()
@@ -953,7 +953,7 @@ export const AutomationSchema = z.object({
   object: z.string().optional(),
   id: z.string().optional(),
   name: z.string().optional(),
-  status: z.enum(['enabled', 'disabled']).optional(),
+  status: z.enum(["enabled", "disabled"]).optional(),
   created_at: z.string().optional(),
   updated_at: z.string().optional(),
   steps: z.array(AutomationStepResponseSchema).optional(),
@@ -962,7 +962,7 @@ export const AutomationSchema = z.object({
 
 export const PatchAutomationRequestSchema = z.object({
   name: z.string().min(1).optional(),
-  status: z.enum(['enabled', 'disabled']).optional(),
+  status: z.enum(["enabled", "disabled"]).optional(),
   steps: z.array(AutomationStepSchema).min(1).max(150).optional(),
   connections: z.array(AutomationConnectionSchema).optional()
 }).passthrough()
@@ -976,7 +976,7 @@ export const ListAutomationsResponseSchema = z.object({
 export const AutomationRunSchema = z.object({
   object: z.string().optional(),
   id: z.string().optional(),
-  status: z.enum(['running', 'completed', 'failed', 'cancelled']).optional(),
+  status: z.enum(["running", "completed", "failed", "cancelled"]).optional(),
   started_at: z.string().nullable().optional(),
   completed_at: z.string().nullable().optional(),
   created_at: z.string().optional(),

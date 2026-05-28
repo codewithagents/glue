@@ -597,7 +597,7 @@ describe('feature-showcase fixture', () => {
   // Feature 4: multipart/form-data
   it('upload endpoint uses FormData instead of JSON.stringify', () => {
     expect(content).toContain('new FormData()')
-    expect(content).toContain("formData.append('file'")
+    expect(content).toContain(`formData.append("file"`)
   })
 
   it('upload endpoint does NOT contain JSON.stringify(body)', () => {
@@ -1037,14 +1037,15 @@ describe('schema-enhanced client generation', () => {
     expect(out).toContain('return res.json()')
   })
 
-  it('with schema options: request body gets Schema.strip().parse(body) before fetch', () => {
+  it('with schema options: request body gets Schema.parse(body) validation before fetch', () => {
     const out = generateClient(petSpec, {
       schemaNames: new Set(['CreatePetRequestSchema', 'PetSchema']),
       schemaImportPath: './schemas.js',
     }).content
-    // .strip() removes unknown keys (e.g. form wizard fields) before sending —
-    // allows form schemas that extend the API schema without leaking UI-only fields
-    expect(out).toContain('CreatePetRequestSchema.strip().parse(body)')
+    // Validates the request body against the Zod schema before sending.
+    // Note: we use .parse() not .strip().parse() because not all schemas are ZodObject
+    // (allOf → ZodIntersection, oneOf/anyOf → ZodUnion — neither has .strip()).
+    expect(out).toContain('CreatePetRequestSchema.parse(body)')
   })
 
   it('with schema options: single-object response gets Schema.parse(await res.json())', () => {
@@ -1368,5 +1369,61 @@ describe('feature-conditional _request helper (issue #129)', () => {
     const out = generateClient(spec).content
     expect(out).toContain('credentials')
     expect(out).toContain('extraHeaders')
+  })
+})
+
+// ── sanitizeOperationId: real-world patterns ──────────────────────────────────
+// The function is private, so we test it by running generateClient on a spec
+// with the problematic operationId and asserting the generated function name.
+
+function specWithOperationId(operationId: string): OpenAPIV3_1.Document {
+  return {
+    openapi: '3.1.0',
+    info: { title: 'T', version: '1' },
+    paths: {
+      '/test': {
+        get: {
+          operationId,
+          responses: { '200': { content: { 'application/json': { schema: { type: 'string' } } } } },
+        },
+      },
+    },
+  }
+}
+
+describe('sanitizeOperationId: real-world operationId formats', () => {
+  it('kebab-case with mixed casing: post-applePay-sessions → postApplePaySessions', () => {
+    const out = generateClient(specWithOperationId('post-applePay-sessions')).content
+    expect(out).toContain('export async function postApplePaySessions(')
+  })
+
+  it('dot-separated (Google-style): calendar.calendars.insert → calendarCalendarsInsert', () => {
+    const out = generateClient(specWithOperationId('calendar.calendars.insert')).content
+    expect(out).toContain('export async function calendarCalendarsInsert(')
+  })
+
+  it('space-separated words: Get User Profile → getUserProfile', () => {
+    const out = generateClient(specWithOperationId('Get User Profile')).content
+    expect(out).toContain('export async function getUserProfile(')
+  })
+
+  it('parentheses: forgotPassword(oneTimeCode) → forgotPasswordOneTimeCode', () => {
+    const out = generateClient(specWithOperationId('forgotPassword(oneTimeCode)')).content
+    expect(out).toContain('export async function forgotPasswordOneTimeCode(')
+  })
+
+  it('braces: getSearchArticlesQuery{} → getSearchArticlesQuery', () => {
+    const out = generateClient(specWithOperationId('getSearchArticlesQuery{}')).content
+    expect(out).toContain('export async function getSearchArticlesQuery(')
+  })
+
+  it("apostrophe: user's group → usersGroup (apostrophe stripped, not split)", () => {
+    const out = generateClient(specWithOperationId("user's group")).content
+    expect(out).toContain('export async function usersGroup(')
+  })
+
+  it('mixed separators: api.v2/users-list → apiV2UsersList', () => {
+    const out = generateClient(specWithOperationId('api.v2/users-list')).content
+    expect(out).toContain('export async function apiV2UsersList(')
   })
 })

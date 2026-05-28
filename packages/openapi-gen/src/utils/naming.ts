@@ -4,6 +4,7 @@
 export function toTypeName(name: string): string {
   const result = name
     .replace(/[^a-zA-Z0-9]+(.)/g, (_, char: string) => char.toUpperCase())
+    .replace(/[^a-zA-Z0-9]+$/, '')   // strip trailing non-alphanumeric (e.g. trailing '}' from '{type}' in paths)
     .replace(/^[^a-zA-Z_$]/, '_')
     .replace(/^(.)/, (_, char: string) => char.toUpperCase())
   return result.length > 0 ? result : '_'

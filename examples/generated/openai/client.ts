@@ -295,12 +295,12 @@ export async function createAssistant(
  * @deprecated
  */
 export async function getAssistant(
-  assistant_id: string,
+  assistantId: string,
   config?: Partial<ClientConfig>,
 ): Promise<AssistantObject> {
   const res = await _request(
     "GET",
-    `/assistants/${encodeURIComponent(assistant_id)}`,
+    `/assistants/${encodeURIComponent(assistantId)}`,
     {},
     config,
   );
@@ -311,13 +311,13 @@ export async function getAssistant(
  * @deprecated
  */
 export async function modifyAssistant(
-  assistant_id: string,
+  assistantId: string,
   body: ModifyAssistantRequest,
   config?: Partial<ClientConfig>,
 ): Promise<AssistantObject> {
   const res = await _request(
     "POST",
-    `/assistants/${encodeURIComponent(assistant_id)}`,
+    `/assistants/${encodeURIComponent(assistantId)}`,
     { body },
     config,
   );
@@ -328,12 +328,12 @@ export async function modifyAssistant(
  * @deprecated
  */
 export async function deleteAssistant(
-  assistant_id: string,
+  assistantId: string,
   config?: Partial<ClientConfig>,
 ): Promise<DeleteAssistantResponse> {
   const res = await _request(
     "DELETE",
-    `/assistants/${encodeURIComponent(assistant_id)}`,
+    `/assistants/${encodeURIComponent(assistantId)}`,
     {},
     config,
   );
@@ -388,12 +388,12 @@ export async function createVoiceConsent(
 }
 
 export async function getVoiceConsent(
-  consent_id: string,
+  consentId: string,
   config?: Partial<ClientConfig>,
 ): Promise<VoiceConsentResource> {
   const res = await _request(
     "GET",
-    `/audio/voice_consents/${encodeURIComponent(consent_id)}`,
+    `/audio/voice_consents/${encodeURIComponent(consentId)}`,
     {},
     config,
   );
@@ -401,13 +401,13 @@ export async function getVoiceConsent(
 }
 
 export async function updateVoiceConsent(
-  consent_id: string,
+  consentId: string,
   body: UpdateVoiceConsentRequest,
   config?: Partial<ClientConfig>,
 ): Promise<VoiceConsentResource> {
   const res = await _request(
     "POST",
-    `/audio/voice_consents/${encodeURIComponent(consent_id)}`,
+    `/audio/voice_consents/${encodeURIComponent(consentId)}`,
     { body },
     config,
   );
@@ -415,12 +415,12 @@ export async function updateVoiceConsent(
 }
 
 export async function deleteVoiceConsent(
-  consent_id: string,
+  consentId: string,
   config?: Partial<ClientConfig>,
 ): Promise<VoiceConsentDeletedResource> {
   const res = await _request(
     "DELETE",
-    `/audio/voice_consents/${encodeURIComponent(consent_id)}`,
+    `/audio/voice_consents/${encodeURIComponent(consentId)}`,
     {},
     config,
   );
@@ -457,12 +457,12 @@ export async function createBatch(
 }
 
 export async function retrieveBatch(
-  batch_id: string,
+  batchId: string,
   config?: Partial<ClientConfig>,
 ): Promise<Batch> {
   const res = await _request(
     "GET",
-    `/batches/${encodeURIComponent(batch_id)}`,
+    `/batches/${encodeURIComponent(batchId)}`,
     {},
     config,
   );
@@ -470,12 +470,12 @@ export async function retrieveBatch(
 }
 
 export async function cancelBatch(
-  batch_id: string,
+  batchId: string,
   config?: Partial<ClientConfig>,
 ): Promise<Batch> {
   const res = await _request(
     "POST",
-    `/batches/${encodeURIComponent(batch_id)}/cancel`,
+    `/batches/${encodeURIComponent(batchId)}/cancel`,
     {},
     config,
   );
@@ -517,12 +517,12 @@ export async function createChatCompletion(
 }
 
 export async function getChatCompletion(
-  completion_id: string,
+  completionId: string,
   config?: Partial<ClientConfig>,
 ): Promise<CreateChatCompletionResponse> {
   const res = await _request(
     "GET",
-    `/chat/completions/${encodeURIComponent(completion_id)}`,
+    `/chat/completions/${encodeURIComponent(completionId)}`,
     {},
     config,
   );
@@ -530,13 +530,13 @@ export async function getChatCompletion(
 }
 
 export async function updateChatCompletion(
-  completion_id: string,
+  completionId: string,
   body: Record<string, unknown>,
   config?: Partial<ClientConfig>,
 ): Promise<CreateChatCompletionResponse> {
   const res = await _request(
     "POST",
-    `/chat/completions/${encodeURIComponent(completion_id)}`,
+    `/chat/completions/${encodeURIComponent(completionId)}`,
     { body },
     config,
   );
@@ -544,12 +544,12 @@ export async function updateChatCompletion(
 }
 
 export async function deleteChatCompletion(
-  completion_id: string,
+  completionId: string,
   config?: Partial<ClientConfig>,
 ): Promise<ChatCompletionDeleted> {
   const res = await _request(
     "DELETE",
-    `/chat/completions/${encodeURIComponent(completion_id)}`,
+    `/chat/completions/${encodeURIComponent(completionId)}`,
     {},
     config,
   );
@@ -557,7 +557,7 @@ export async function deleteChatCompletion(
 }
 
 export async function getChatCompletionMessages(
-  completion_id: string,
+  completionId: string,
   params?: {
     after?: string;
     limit?: number;
@@ -571,7 +571,7 @@ export async function getChatCompletionMessages(
   if (params?.order != null) searchParams.set("order", String(params.order));
   const res = await _request(
     "GET",
-    `/chat/completions/${encodeURIComponent(completion_id)}/messages`,
+    `/chat/completions/${encodeURIComponent(completionId)}/messages`,
     { searchParams },
     config,
   );
@@ -613,12 +613,12 @@ export async function createContainer(
 }
 
 export async function retrieveContainer(
-  container_id: string,
+  containerId: string,
   config?: Partial<ClientConfig>,
 ): Promise<ContainerResource> {
   const res = await _request(
     "GET",
-    `/containers/${encodeURIComponent(container_id)}`,
+    `/containers/${encodeURIComponent(containerId)}`,
     {},
     config,
   );
@@ -626,19 +626,19 @@ export async function retrieveContainer(
 }
 
 export async function deleteContainer(
-  container_id: string,
+  containerId: string,
   config?: Partial<ClientConfig>,
 ): Promise<void> {
   await _request(
     "DELETE",
-    `/containers/${encodeURIComponent(container_id)}`,
+    `/containers/${encodeURIComponent(containerId)}`,
     {},
     config,
   );
 }
 
 export async function listContainerFiles(
-  container_id: string,
+  containerId: string,
   params?: {
     limit?: number;
     order?: "asc" | "desc";
@@ -652,7 +652,7 @@ export async function listContainerFiles(
   if (params?.after != null) searchParams.set("after", String(params.after));
   const res = await _request(
     "GET",
-    `/containers/${encodeURIComponent(container_id)}/files`,
+    `/containers/${encodeURIComponent(containerId)}/files`,
     { searchParams },
     config,
   );
@@ -660,13 +660,13 @@ export async function listContainerFiles(
 }
 
 export async function createContainerFile(
-  container_id: string,
+  containerId: string,
   body: CreateContainerFileBody,
   config?: Partial<ClientConfig>,
 ): Promise<ContainerFileResource> {
   const res = await _request(
     "POST",
-    `/containers/${encodeURIComponent(container_id)}/files`,
+    `/containers/${encodeURIComponent(containerId)}/files`,
     { body },
     config,
   );
@@ -674,13 +674,13 @@ export async function createContainerFile(
 }
 
 export async function retrieveContainerFile(
-  container_id: string,
-  file_id: string,
+  containerId: string,
+  fileId: string,
   config?: Partial<ClientConfig>,
 ): Promise<ContainerFileResource> {
   const res = await _request(
     "GET",
-    `/containers/${encodeURIComponent(container_id)}/files/${encodeURIComponent(file_id)}`,
+    `/containers/${encodeURIComponent(containerId)}/files/${encodeURIComponent(fileId)}`,
     {},
     config,
   );
@@ -688,33 +688,33 @@ export async function retrieveContainerFile(
 }
 
 export async function deleteContainerFile(
-  container_id: string,
-  file_id: string,
+  containerId: string,
+  fileId: string,
   config?: Partial<ClientConfig>,
 ): Promise<void> {
   await _request(
     "DELETE",
-    `/containers/${encodeURIComponent(container_id)}/files/${encodeURIComponent(file_id)}`,
+    `/containers/${encodeURIComponent(containerId)}/files/${encodeURIComponent(fileId)}`,
     {},
     config,
   );
 }
 
 export async function retrieveContainerFileContent(
-  container_id: string,
-  file_id: string,
+  containerId: string,
+  fileId: string,
   config?: Partial<ClientConfig>,
 ): Promise<void> {
   await _request(
     "GET",
-    `/containers/${encodeURIComponent(container_id)}/files/${encodeURIComponent(file_id)}/content`,
+    `/containers/${encodeURIComponent(containerId)}/files/${encodeURIComponent(fileId)}/content`,
     {},
     config,
   );
 }
 
 export async function listConversationItems(
-  conversation_id: string,
+  conversationId: string,
   params?: {
     limit?: number;
     order?: "asc" | "desc";
@@ -732,7 +732,7 @@ export async function listConversationItems(
   }
   const res = await _request(
     "GET",
-    `/conversations/${encodeURIComponent(conversation_id)}/items`,
+    `/conversations/${encodeURIComponent(conversationId)}/items`,
     { searchParams },
     config,
   );
@@ -740,7 +740,7 @@ export async function listConversationItems(
 }
 
 export async function createConversationItems(
-  conversation_id: string,
+  conversationId: string,
   body: unknown,
   params?: {
     include?: string[];
@@ -753,7 +753,7 @@ export async function createConversationItems(
   }
   const res = await _request(
     "POST",
-    `/conversations/${encodeURIComponent(conversation_id)}/items`,
+    `/conversations/${encodeURIComponent(conversationId)}/items`,
     { searchParams, body },
     config,
   );
@@ -761,8 +761,8 @@ export async function createConversationItems(
 }
 
 export async function getConversationItem(
-  conversation_id: string,
-  item_id: string,
+  conversationId: string,
+  itemId: string,
   params?: {
     include?: string[];
   },
@@ -774,7 +774,7 @@ export async function getConversationItem(
   }
   const res = await _request(
     "GET",
-    `/conversations/${encodeURIComponent(conversation_id)}/items/${encodeURIComponent(item_id)}`,
+    `/conversations/${encodeURIComponent(conversationId)}/items/${encodeURIComponent(itemId)}`,
     { searchParams },
     config,
   );
@@ -782,13 +782,13 @@ export async function getConversationItem(
 }
 
 export async function deleteConversationItem(
-  conversation_id: string,
-  item_id: string,
+  conversationId: string,
+  itemId: string,
   config?: Partial<ClientConfig>,
 ): Promise<ConversationResource> {
   const res = await _request(
     "DELETE",
-    `/conversations/${encodeURIComponent(conversation_id)}/items/${encodeURIComponent(item_id)}`,
+    `/conversations/${encodeURIComponent(conversationId)}/items/${encodeURIComponent(itemId)}`,
     {},
     config,
   );
@@ -808,7 +808,7 @@ export async function listEvals(
     after?: string;
     limit?: number;
     order?: "asc" | "desc";
-    order_by?: "created_at" | "updated_at";
+    orderBy?: "created_at" | "updated_at";
   },
   config?: Partial<ClientConfig>,
 ): Promise<EvalList> {
@@ -816,8 +816,8 @@ export async function listEvals(
   if (params?.after != null) searchParams.set("after", String(params.after));
   if (params?.limit != null) searchParams.set("limit", String(params.limit));
   if (params?.order != null) searchParams.set("order", String(params.order));
-  if (params?.order_by != null)
-    searchParams.set("order_by", String(params.order_by));
+  if (params?.orderBy != null)
+    searchParams.set("order_by", String(params.orderBy));
   const res = await _request("GET", "/evals", { searchParams }, config);
   return res.json();
 }
@@ -831,12 +831,12 @@ export async function createEval(
 }
 
 export async function getEval(
-  eval_id: string,
+  evalId: string,
   config?: Partial<ClientConfig>,
 ): Promise<Eval> {
   const res = await _request(
     "GET",
-    `/evals/${encodeURIComponent(eval_id)}`,
+    `/evals/${encodeURIComponent(evalId)}`,
     {},
     config,
   );
@@ -844,13 +844,13 @@ export async function getEval(
 }
 
 export async function updateEval(
-  eval_id: string,
+  evalId: string,
   body: Record<string, unknown>,
   config?: Partial<ClientConfig>,
 ): Promise<Eval> {
   const res = await _request(
     "POST",
-    `/evals/${encodeURIComponent(eval_id)}`,
+    `/evals/${encodeURIComponent(evalId)}`,
     { body },
     config,
   );
@@ -861,12 +861,12 @@ export async function updateEval(
  * @throws {ApiError<404, Error>}
  */
 export async function deleteEval(
-  eval_id: string,
+  evalId: string,
   config?: Partial<ClientConfig>,
 ): Promise<Record<string, unknown>> {
   const res = await _request(
     "DELETE",
-    `/evals/${encodeURIComponent(eval_id)}`,
+    `/evals/${encodeURIComponent(evalId)}`,
     {},
     config,
   );
@@ -874,7 +874,7 @@ export async function deleteEval(
 }
 
 export async function getEvalRuns(
-  eval_id: string,
+  evalId: string,
   params?: {
     after?: string;
     limit?: number;
@@ -890,7 +890,7 @@ export async function getEvalRuns(
   if (params?.status != null) searchParams.set("status", String(params.status));
   const res = await _request(
     "GET",
-    `/evals/${encodeURIComponent(eval_id)}/runs`,
+    `/evals/${encodeURIComponent(evalId)}/runs`,
     { searchParams },
     config,
   );
@@ -901,13 +901,13 @@ export async function getEvalRuns(
  * @throws {ApiError<400, Error>}
  */
 export async function createEvalRun(
-  eval_id: string,
+  evalId: string,
   body: CreateEvalRunRequest,
   config?: Partial<ClientConfig>,
 ): Promise<EvalRun> {
   const res = await _request(
     "POST",
-    `/evals/${encodeURIComponent(eval_id)}/runs`,
+    `/evals/${encodeURIComponent(evalId)}/runs`,
     { body },
     config,
   );
@@ -915,13 +915,13 @@ export async function createEvalRun(
 }
 
 export async function getEvalRun(
-  eval_id: string,
-  run_id: string,
+  evalId: string,
+  runId: string,
   config?: Partial<ClientConfig>,
 ): Promise<EvalRun> {
   const res = await _request(
     "GET",
-    `/evals/${encodeURIComponent(eval_id)}/runs/${encodeURIComponent(run_id)}`,
+    `/evals/${encodeURIComponent(evalId)}/runs/${encodeURIComponent(runId)}`,
     {},
     config,
   );
@@ -929,13 +929,13 @@ export async function getEvalRun(
 }
 
 export async function cancelEvalRun(
-  eval_id: string,
-  run_id: string,
+  evalId: string,
+  runId: string,
   config?: Partial<ClientConfig>,
 ): Promise<EvalRun> {
   const res = await _request(
     "POST",
-    `/evals/${encodeURIComponent(eval_id)}/runs/${encodeURIComponent(run_id)}`,
+    `/evals/${encodeURIComponent(evalId)}/runs/${encodeURIComponent(runId)}`,
     {},
     config,
   );
@@ -946,13 +946,13 @@ export async function cancelEvalRun(
  * @throws {ApiError<404, Error>}
  */
 export async function deleteEvalRun(
-  eval_id: string,
-  run_id: string,
+  evalId: string,
+  runId: string,
   config?: Partial<ClientConfig>,
 ): Promise<Record<string, unknown>> {
   const res = await _request(
     "DELETE",
-    `/evals/${encodeURIComponent(eval_id)}/runs/${encodeURIComponent(run_id)}`,
+    `/evals/${encodeURIComponent(evalId)}/runs/${encodeURIComponent(runId)}`,
     {},
     config,
   );
@@ -960,8 +960,8 @@ export async function deleteEvalRun(
 }
 
 export async function getEvalRunOutputItems(
-  eval_id: string,
-  run_id: string,
+  evalId: string,
+  runId: string,
   params?: {
     after?: string;
     limit?: number;
@@ -977,7 +977,7 @@ export async function getEvalRunOutputItems(
   if (params?.order != null) searchParams.set("order", String(params.order));
   const res = await _request(
     "GET",
-    `/evals/${encodeURIComponent(eval_id)}/runs/${encodeURIComponent(run_id)}/output_items`,
+    `/evals/${encodeURIComponent(evalId)}/runs/${encodeURIComponent(runId)}/output_items`,
     { searchParams },
     config,
   );
@@ -985,14 +985,14 @@ export async function getEvalRunOutputItems(
 }
 
 export async function getEvalRunOutputItem(
-  eval_id: string,
-  run_id: string,
-  output_item_id: string,
+  evalId: string,
+  runId: string,
+  outputItemId: string,
   config?: Partial<ClientConfig>,
 ): Promise<EvalRunOutputItem> {
   const res = await _request(
     "GET",
-    `/evals/${encodeURIComponent(eval_id)}/runs/${encodeURIComponent(run_id)}/output_items/${encodeURIComponent(output_item_id)}`,
+    `/evals/${encodeURIComponent(evalId)}/runs/${encodeURIComponent(runId)}/output_items/${encodeURIComponent(outputItemId)}`,
     {},
     config,
   );
@@ -1026,12 +1026,12 @@ export async function createFile(
 }
 
 export async function retrieveFile(
-  file_id: string,
+  fileId: string,
   config?: Partial<ClientConfig>,
 ): Promise<OpenAIFile> {
   const res = await _request(
     "GET",
-    `/files/${encodeURIComponent(file_id)}`,
+    `/files/${encodeURIComponent(fileId)}`,
     {},
     config,
   );
@@ -1039,12 +1039,12 @@ export async function retrieveFile(
 }
 
 export async function deleteFile(
-  file_id: string,
+  fileId: string,
   config?: Partial<ClientConfig>,
 ): Promise<DeleteFileResponse> {
   const res = await _request(
     "DELETE",
-    `/files/${encodeURIComponent(file_id)}`,
+    `/files/${encodeURIComponent(fileId)}`,
     {},
     config,
   );
@@ -1052,12 +1052,12 @@ export async function deleteFile(
 }
 
 export async function downloadFile(
-  file_id: string,
+  fileId: string,
   config?: Partial<ClientConfig>,
 ): Promise<string> {
   const res = await _request(
     "GET",
-    `/files/${encodeURIComponent(file_id)}/content`,
+    `/files/${encodeURIComponent(fileId)}/content`,
     {},
     config,
   );
@@ -1091,9 +1091,9 @@ export async function validateGrader(
 }
 
 export async function listFineTuningCheckpointPermissions(
-  fine_tuned_model_checkpoint: string,
+  fineTunedModelCheckpoint: string,
   params?: {
-    project_id?: string;
+    projectId?: string;
     after?: string;
     limit?: number;
     order?: "ascending" | "descending";
@@ -1101,14 +1101,14 @@ export async function listFineTuningCheckpointPermissions(
   config?: Partial<ClientConfig>,
 ): Promise<ListFineTuningCheckpointPermissionResponse> {
   const searchParams = new URLSearchParams();
-  if (params?.project_id != null)
-    searchParams.set("project_id", String(params.project_id));
+  if (params?.projectId != null)
+    searchParams.set("project_id", String(params.projectId));
   if (params?.after != null) searchParams.set("after", String(params.after));
   if (params?.limit != null) searchParams.set("limit", String(params.limit));
   if (params?.order != null) searchParams.set("order", String(params.order));
   const res = await _request(
     "GET",
-    `/fine_tuning/checkpoints/${encodeURIComponent(fine_tuned_model_checkpoint)}/permissions`,
+    `/fine_tuning/checkpoints/${encodeURIComponent(fineTunedModelCheckpoint)}/permissions`,
     { searchParams },
     config,
   );
@@ -1116,13 +1116,13 @@ export async function listFineTuningCheckpointPermissions(
 }
 
 export async function createFineTuningCheckpointPermission(
-  fine_tuned_model_checkpoint: string,
+  fineTunedModelCheckpoint: string,
   body: CreateFineTuningCheckpointPermissionRequest,
   config?: Partial<ClientConfig>,
 ): Promise<ListFineTuningCheckpointPermissionResponse> {
   const res = await _request(
     "POST",
-    `/fine_tuning/checkpoints/${encodeURIComponent(fine_tuned_model_checkpoint)}/permissions`,
+    `/fine_tuning/checkpoints/${encodeURIComponent(fineTunedModelCheckpoint)}/permissions`,
     { body },
     config,
   );
@@ -1130,13 +1130,13 @@ export async function createFineTuningCheckpointPermission(
 }
 
 export async function deleteFineTuningCheckpointPermission(
-  fine_tuned_model_checkpoint: string,
-  permission_id: string,
+  fineTunedModelCheckpoint: string,
+  permissionId: string,
   config?: Partial<ClientConfig>,
 ): Promise<DeleteFineTuningCheckpointPermissionResponse> {
   const res = await _request(
     "DELETE",
-    `/fine_tuning/checkpoints/${encodeURIComponent(fine_tuned_model_checkpoint)}/permissions/${encodeURIComponent(permission_id)}`,
+    `/fine_tuning/checkpoints/${encodeURIComponent(fineTunedModelCheckpoint)}/permissions/${encodeURIComponent(permissionId)}`,
     {},
     config,
   );
@@ -1174,12 +1174,12 @@ export async function createFineTuningJob(
 }
 
 export async function retrieveFineTuningJob(
-  fine_tuning_job_id: string,
+  fineTuningJobId: string,
   config?: Partial<ClientConfig>,
 ): Promise<FineTuningJob> {
   const res = await _request(
     "GET",
-    `/fine_tuning/jobs/${encodeURIComponent(fine_tuning_job_id)}`,
+    `/fine_tuning/jobs/${encodeURIComponent(fineTuningJobId)}`,
     {},
     config,
   );
@@ -1187,12 +1187,12 @@ export async function retrieveFineTuningJob(
 }
 
 export async function cancelFineTuningJob(
-  fine_tuning_job_id: string,
+  fineTuningJobId: string,
   config?: Partial<ClientConfig>,
 ): Promise<FineTuningJob> {
   const res = await _request(
     "POST",
-    `/fine_tuning/jobs/${encodeURIComponent(fine_tuning_job_id)}/cancel`,
+    `/fine_tuning/jobs/${encodeURIComponent(fineTuningJobId)}/cancel`,
     {},
     config,
   );
@@ -1200,7 +1200,7 @@ export async function cancelFineTuningJob(
 }
 
 export async function listFineTuningJobCheckpoints(
-  fine_tuning_job_id: string,
+  fineTuningJobId: string,
   params?: {
     after?: string;
     limit?: number;
@@ -1212,7 +1212,7 @@ export async function listFineTuningJobCheckpoints(
   if (params?.limit != null) searchParams.set("limit", String(params.limit));
   const res = await _request(
     "GET",
-    `/fine_tuning/jobs/${encodeURIComponent(fine_tuning_job_id)}/checkpoints`,
+    `/fine_tuning/jobs/${encodeURIComponent(fineTuningJobId)}/checkpoints`,
     { searchParams },
     config,
   );
@@ -1220,7 +1220,7 @@ export async function listFineTuningJobCheckpoints(
 }
 
 export async function listFineTuningEvents(
-  fine_tuning_job_id: string,
+  fineTuningJobId: string,
   params?: {
     after?: string;
     limit?: number;
@@ -1232,7 +1232,7 @@ export async function listFineTuningEvents(
   if (params?.limit != null) searchParams.set("limit", String(params.limit));
   const res = await _request(
     "GET",
-    `/fine_tuning/jobs/${encodeURIComponent(fine_tuning_job_id)}/events`,
+    `/fine_tuning/jobs/${encodeURIComponent(fineTuningJobId)}/events`,
     { searchParams },
     config,
   );
@@ -1240,12 +1240,12 @@ export async function listFineTuningEvents(
 }
 
 export async function pauseFineTuningJob(
-  fine_tuning_job_id: string,
+  fineTuningJobId: string,
   config?: Partial<ClientConfig>,
 ): Promise<FineTuningJob> {
   const res = await _request(
     "POST",
-    `/fine_tuning/jobs/${encodeURIComponent(fine_tuning_job_id)}/pause`,
+    `/fine_tuning/jobs/${encodeURIComponent(fineTuningJobId)}/pause`,
     {},
     config,
   );
@@ -1253,12 +1253,12 @@ export async function pauseFineTuningJob(
 }
 
 export async function resumeFineTuningJob(
-  fine_tuning_job_id: string,
+  fineTuningJobId: string,
   config?: Partial<ClientConfig>,
 ): Promise<FineTuningJob> {
   const res = await _request(
     "POST",
-    `/fine_tuning/jobs/${encodeURIComponent(fine_tuning_job_id)}/resume`,
+    `/fine_tuning/jobs/${encodeURIComponent(fineTuningJobId)}/resume`,
     {},
     config,
   );
@@ -1364,12 +1364,12 @@ export async function adminApiKeysCreate(
 }
 
 export async function adminApiKeysGet(
-  key_id: string,
+  keyId: string,
   config?: Partial<ClientConfig>,
 ): Promise<AdminApiKey> {
   const res = await _request(
     "GET",
-    `/organization/admin_api_keys/${encodeURIComponent(key_id)}`,
+    `/organization/admin_api_keys/${encodeURIComponent(keyId)}`,
     {},
     config,
   );
@@ -1377,12 +1377,12 @@ export async function adminApiKeysGet(
 }
 
 export async function adminApiKeysDelete(
-  key_id: string,
+  keyId: string,
   config?: Partial<ClientConfig>,
 ): Promise<Record<string, unknown>> {
   const res = await _request(
     "DELETE",
-    `/organization/admin_api_keys/${encodeURIComponent(key_id)}`,
+    `/organization/admin_api_keys/${encodeURIComponent(keyId)}`,
     {},
     config,
   );
@@ -1391,12 +1391,12 @@ export async function adminApiKeysDelete(
 
 export async function listAuditLogs(
   params?: {
-    effective_at?: unknown;
-    project_ids?: string[];
-    event_types?: string[];
-    actor_ids?: string[];
-    actor_emails?: string[];
-    resource_ids?: string[];
+    effectiveAt?: unknown;
+    projectIds?: string[];
+    eventTypes?: string[];
+    actorIds?: string[];
+    actorEmails?: string[];
+    resourceIds?: string[];
     limit?: number;
     after?: string;
     before?: string;
@@ -1404,26 +1404,26 @@ export async function listAuditLogs(
   config?: Partial<ClientConfig>,
 ): Promise<ListAuditLogsResponse> {
   const searchParams = new URLSearchParams();
-  if (params?.effective_at != null)
-    searchParams.set("effective_at", String(params.effective_at));
-  if (params?.project_ids != null) {
-    for (const v of params.project_ids)
+  if (params?.effectiveAt != null)
+    searchParams.set("effective_at", String(params.effectiveAt));
+  if (params?.projectIds != null) {
+    for (const v of params.projectIds)
       searchParams.append("project_ids[]", String(v));
   }
-  if (params?.event_types != null) {
-    for (const v of params.event_types)
+  if (params?.eventTypes != null) {
+    for (const v of params.eventTypes)
       searchParams.append("event_types[]", String(v));
   }
-  if (params?.actor_ids != null) {
-    for (const v of params.actor_ids)
+  if (params?.actorIds != null) {
+    for (const v of params.actorIds)
       searchParams.append("actor_ids[]", String(v));
   }
-  if (params?.actor_emails != null) {
-    for (const v of params.actor_emails)
+  if (params?.actorEmails != null) {
+    for (const v of params.actorEmails)
       searchParams.append("actor_emails[]", String(v));
   }
-  if (params?.resource_ids != null) {
-    for (const v of params.resource_ids)
+  if (params?.resourceIds != null) {
+    for (const v of params.resourceIds)
       searchParams.append("resource_ids[]", String(v));
   }
   if (params?.limit != null) searchParams.set("limit", String(params.limit));
@@ -1499,7 +1499,7 @@ export async function deactivateOrganizationCertificates(
 }
 
 export async function getCertificate(
-  certificate_id: string,
+  certificateId: string,
   params?: {
     include?: string[];
   },
@@ -1511,7 +1511,7 @@ export async function getCertificate(
   }
   const res = await _request(
     "GET",
-    `/organization/certificates/${encodeURIComponent(certificate_id)}`,
+    `/organization/certificates/${encodeURIComponent(certificateId)}`,
     { searchParams },
     config,
   );
@@ -1519,13 +1519,13 @@ export async function getCertificate(
 }
 
 export async function modifyCertificate(
-  certificate_id: string,
+  certificateId: string,
   body: ModifyCertificateRequest,
   config?: Partial<ClientConfig>,
 ): Promise<Certificate> {
   const res = await _request(
     "POST",
-    `/organization/certificates/${encodeURIComponent(certificate_id)}`,
+    `/organization/certificates/${encodeURIComponent(certificateId)}`,
     { body },
     config,
   );
@@ -1533,12 +1533,12 @@ export async function modifyCertificate(
 }
 
 export async function deleteCertificate(
-  certificate_id: string,
+  certificateId: string,
   config?: Partial<ClientConfig>,
 ): Promise<DeleteCertificateResponse> {
   const res = await _request(
     "DELETE",
-    `/organization/certificates/${encodeURIComponent(certificate_id)}`,
+    `/organization/certificates/${encodeURIComponent(certificateId)}`,
     {},
     config,
   );
@@ -1547,34 +1547,34 @@ export async function deleteCertificate(
 
 export async function usageCosts(
   params: {
-    start_time: number;
-    end_time?: number;
-    bucket_width?: "1d";
-    project_ids?: string[];
-    api_key_ids?: string[];
-    group_by?: string[];
+    startTime: number;
+    endTime?: number;
+    bucketWidth?: "1d";
+    projectIds?: string[];
+    apiKeyIds?: string[];
+    groupBy?: string[];
     limit?: number;
     page?: string;
   },
   config?: Partial<ClientConfig>,
 ): Promise<UsageResponse> {
   const searchParams = new URLSearchParams();
-  if (params?.start_time != null)
-    searchParams.set("start_time", String(params.start_time));
-  if (params?.end_time != null)
-    searchParams.set("end_time", String(params.end_time));
-  if (params?.bucket_width != null)
-    searchParams.set("bucket_width", String(params.bucket_width));
-  if (params?.project_ids != null) {
-    for (const v of params.project_ids)
+  if (params?.startTime != null)
+    searchParams.set("start_time", String(params.startTime));
+  if (params?.endTime != null)
+    searchParams.set("end_time", String(params.endTime));
+  if (params?.bucketWidth != null)
+    searchParams.set("bucket_width", String(params.bucketWidth));
+  if (params?.projectIds != null) {
+    for (const v of params.projectIds)
       searchParams.append("project_ids", String(v));
   }
-  if (params?.api_key_ids != null) {
-    for (const v of params.api_key_ids)
+  if (params?.apiKeyIds != null) {
+    for (const v of params.apiKeyIds)
       searchParams.append("api_key_ids", String(v));
   }
-  if (params?.group_by != null) {
-    for (const v of params.group_by) searchParams.append("group_by", String(v));
+  if (params?.groupBy != null) {
+    for (const v of params.groupBy) searchParams.append("group_by", String(v));
   }
   if (params?.limit != null) searchParams.set("limit", String(params.limit));
   if (params?.page != null) searchParams.set("page", String(params.page));
@@ -1617,13 +1617,13 @@ export async function createGroup(
 }
 
 export async function updateGroup(
-  group_id: string,
+  groupId: string,
   body: UpdateGroupBody,
   config?: Partial<ClientConfig>,
 ): Promise<GroupResourceWithSuccess> {
   const res = await _request(
     "POST",
-    `/organization/groups/${encodeURIComponent(group_id)}`,
+    `/organization/groups/${encodeURIComponent(groupId)}`,
     { body },
     config,
   );
@@ -1631,12 +1631,12 @@ export async function updateGroup(
 }
 
 export async function deleteGroup(
-  group_id: string,
+  groupId: string,
   config?: Partial<ClientConfig>,
 ): Promise<GroupDeletedResource> {
   const res = await _request(
     "DELETE",
-    `/organization/groups/${encodeURIComponent(group_id)}`,
+    `/organization/groups/${encodeURIComponent(groupId)}`,
     {},
     config,
   );
@@ -1644,7 +1644,7 @@ export async function deleteGroup(
 }
 
 export async function listGroupRoleAssignments(
-  group_id: string,
+  groupId: string,
   params?: {
     limit?: number;
     after?: string;
@@ -1658,7 +1658,7 @@ export async function listGroupRoleAssignments(
   if (params?.order != null) searchParams.set("order", String(params.order));
   const res = await _request(
     "GET",
-    `/organization/groups/${encodeURIComponent(group_id)}/roles`,
+    `/organization/groups/${encodeURIComponent(groupId)}/roles`,
     { searchParams },
     config,
   );
@@ -1666,13 +1666,13 @@ export async function listGroupRoleAssignments(
 }
 
 export async function assignGroupRole(
-  group_id: string,
+  groupId: string,
   body: PublicAssignOrganizationGroupRoleBody,
   config?: Partial<ClientConfig>,
 ): Promise<GroupRoleAssignment> {
   const res = await _request(
     "POST",
-    `/organization/groups/${encodeURIComponent(group_id)}/roles`,
+    `/organization/groups/${encodeURIComponent(groupId)}/roles`,
     { body },
     config,
   );
@@ -1680,13 +1680,13 @@ export async function assignGroupRole(
 }
 
 export async function unassignGroupRole(
-  group_id: string,
-  role_id: string,
+  groupId: string,
+  roleId: string,
   config?: Partial<ClientConfig>,
 ): Promise<DeletedRoleAssignmentResource> {
   const res = await _request(
     "DELETE",
-    `/organization/groups/${encodeURIComponent(group_id)}/roles/${encodeURIComponent(role_id)}`,
+    `/organization/groups/${encodeURIComponent(groupId)}/roles/${encodeURIComponent(roleId)}`,
     {},
     config,
   );
@@ -1694,7 +1694,7 @@ export async function unassignGroupRole(
 }
 
 export async function listGroupUsers(
-  group_id: string,
+  groupId: string,
   params?: {
     limit?: number;
     after?: string;
@@ -1708,7 +1708,7 @@ export async function listGroupUsers(
   if (params?.order != null) searchParams.set("order", String(params.order));
   const res = await _request(
     "GET",
-    `/organization/groups/${encodeURIComponent(group_id)}/users`,
+    `/organization/groups/${encodeURIComponent(groupId)}/users`,
     { searchParams },
     config,
   );
@@ -1716,13 +1716,13 @@ export async function listGroupUsers(
 }
 
 export async function addGroupUser(
-  group_id: string,
+  groupId: string,
   body: CreateGroupUserBody,
   config?: Partial<ClientConfig>,
 ): Promise<GroupUserAssignment> {
   const res = await _request(
     "POST",
-    `/organization/groups/${encodeURIComponent(group_id)}/users`,
+    `/organization/groups/${encodeURIComponent(groupId)}/users`,
     { body },
     config,
   );
@@ -1730,13 +1730,13 @@ export async function addGroupUser(
 }
 
 export async function removeGroupUser(
-  group_id: string,
-  user_id: string,
+  groupId: string,
+  userId: string,
   config?: Partial<ClientConfig>,
 ): Promise<GroupUserDeletedResource> {
   const res = await _request(
     "DELETE",
-    `/organization/groups/${encodeURIComponent(group_id)}/users/${encodeURIComponent(user_id)}`,
+    `/organization/groups/${encodeURIComponent(groupId)}/users/${encodeURIComponent(userId)}`,
     {},
     config,
   );
@@ -1771,12 +1771,12 @@ export async function inviteUser(
 }
 
 export async function retrieveInvite(
-  invite_id: string,
+  inviteId: string,
   config?: Partial<ClientConfig>,
 ): Promise<Invite> {
   const res = await _request(
     "GET",
-    `/organization/invites/${encodeURIComponent(invite_id)}`,
+    `/organization/invites/${encodeURIComponent(inviteId)}`,
     {},
     config,
   );
@@ -1784,12 +1784,12 @@ export async function retrieveInvite(
 }
 
 export async function deleteInvite(
-  invite_id: string,
+  inviteId: string,
   config?: Partial<ClientConfig>,
 ): Promise<InviteDeleteResponse> {
   const res = await _request(
     "DELETE",
-    `/organization/invites/${encodeURIComponent(invite_id)}`,
+    `/organization/invites/${encodeURIComponent(inviteId)}`,
     {},
     config,
   );
@@ -1800,15 +1800,15 @@ export async function listProjects(
   params?: {
     limit?: number;
     after?: string;
-    include_archived?: boolean;
+    includeArchived?: boolean;
   },
   config?: Partial<ClientConfig>,
 ): Promise<ProjectListResponse> {
   const searchParams = new URLSearchParams();
   if (params?.limit != null) searchParams.set("limit", String(params.limit));
   if (params?.after != null) searchParams.set("after", String(params.after));
-  if (params?.include_archived != null)
-    searchParams.set("include_archived", String(params.include_archived));
+  if (params?.includeArchived != null)
+    searchParams.set("include_archived", String(params.includeArchived));
   const res = await _request(
     "GET",
     "/organization/projects",
@@ -1832,12 +1832,12 @@ export async function createProject(
 }
 
 export async function retrieveProject(
-  project_id: string,
+  projectId: string,
   config?: Partial<ClientConfig>,
 ): Promise<Project> {
   const res = await _request(
     "GET",
-    `/organization/projects/${encodeURIComponent(project_id)}`,
+    `/organization/projects/${encodeURIComponent(projectId)}`,
     {},
     config,
   );
@@ -1848,13 +1848,13 @@ export async function retrieveProject(
  * @throws {ApiError<400, ErrorResponse>}
  */
 export async function modifyProject(
-  project_id: string,
+  projectId: string,
   body: ProjectUpdateRequest,
   config?: Partial<ClientConfig>,
 ): Promise<Project> {
   const res = await _request(
     "POST",
-    `/organization/projects/${encodeURIComponent(project_id)}`,
+    `/organization/projects/${encodeURIComponent(projectId)}`,
     { body },
     config,
   );
@@ -1862,7 +1862,7 @@ export async function modifyProject(
 }
 
 export async function listProjectApiKeys(
-  project_id: string,
+  projectId: string,
   params?: {
     limit?: number;
     after?: string;
@@ -1874,7 +1874,7 @@ export async function listProjectApiKeys(
   if (params?.after != null) searchParams.set("after", String(params.after));
   const res = await _request(
     "GET",
-    `/organization/projects/${encodeURIComponent(project_id)}/api_keys`,
+    `/organization/projects/${encodeURIComponent(projectId)}/api_keys`,
     { searchParams },
     config,
   );
@@ -1882,13 +1882,13 @@ export async function listProjectApiKeys(
 }
 
 export async function retrieveProjectApiKey(
-  project_id: string,
-  api_key_id: string,
+  projectId: string,
+  apiKeyId: string,
   config?: Partial<ClientConfig>,
 ): Promise<ProjectApiKey> {
   const res = await _request(
     "GET",
-    `/organization/projects/${encodeURIComponent(project_id)}/api_keys/${encodeURIComponent(api_key_id)}`,
+    `/organization/projects/${encodeURIComponent(projectId)}/api_keys/${encodeURIComponent(apiKeyId)}`,
     {},
     config,
   );
@@ -1899,13 +1899,13 @@ export async function retrieveProjectApiKey(
  * @throws {ApiError<400, ErrorResponse>}
  */
 export async function deleteProjectApiKey(
-  project_id: string,
-  api_key_id: string,
+  projectId: string,
+  apiKeyId: string,
   config?: Partial<ClientConfig>,
 ): Promise<ProjectApiKeyDeleteResponse> {
   const res = await _request(
     "DELETE",
-    `/organization/projects/${encodeURIComponent(project_id)}/api_keys/${encodeURIComponent(api_key_id)}`,
+    `/organization/projects/${encodeURIComponent(projectId)}/api_keys/${encodeURIComponent(apiKeyId)}`,
     {},
     config,
   );
@@ -1913,12 +1913,12 @@ export async function deleteProjectApiKey(
 }
 
 export async function archiveProject(
-  project_id: string,
+  projectId: string,
   config?: Partial<ClientConfig>,
 ): Promise<Project> {
   const res = await _request(
     "POST",
-    `/organization/projects/${encodeURIComponent(project_id)}/archive`,
+    `/organization/projects/${encodeURIComponent(projectId)}/archive`,
     {},
     config,
   );
@@ -1926,7 +1926,7 @@ export async function archiveProject(
 }
 
 export async function listProjectCertificates(
-  project_id: string,
+  projectId: string,
   params?: {
     limit?: number;
     after?: string;
@@ -1940,7 +1940,7 @@ export async function listProjectCertificates(
   if (params?.order != null) searchParams.set("order", String(params.order));
   const res = await _request(
     "GET",
-    `/organization/projects/${encodeURIComponent(project_id)}/certificates`,
+    `/organization/projects/${encodeURIComponent(projectId)}/certificates`,
     { searchParams },
     config,
   );
@@ -1948,13 +1948,13 @@ export async function listProjectCertificates(
 }
 
 export async function activateProjectCertificates(
-  project_id: string,
+  projectId: string,
   body: ToggleCertificatesRequest,
   config?: Partial<ClientConfig>,
 ): Promise<OrganizationProjectCertificateActivationResponse> {
   const res = await _request(
     "POST",
-    `/organization/projects/${encodeURIComponent(project_id)}/certificates/activate`,
+    `/organization/projects/${encodeURIComponent(projectId)}/certificates/activate`,
     { body },
     config,
   );
@@ -1962,13 +1962,13 @@ export async function activateProjectCertificates(
 }
 
 export async function deactivateProjectCertificates(
-  project_id: string,
+  projectId: string,
   body: ToggleCertificatesRequest,
   config?: Partial<ClientConfig>,
 ): Promise<OrganizationProjectCertificateDeactivationResponse> {
   const res = await _request(
     "POST",
-    `/organization/projects/${encodeURIComponent(project_id)}/certificates/deactivate`,
+    `/organization/projects/${encodeURIComponent(projectId)}/certificates/deactivate`,
     { body },
     config,
   );
@@ -1976,7 +1976,7 @@ export async function deactivateProjectCertificates(
 }
 
 export async function listProjectGroups(
-  project_id: string,
+  projectId: string,
   params?: {
     limit?: number;
     after?: string;
@@ -1990,7 +1990,7 @@ export async function listProjectGroups(
   if (params?.order != null) searchParams.set("order", String(params.order));
   const res = await _request(
     "GET",
-    `/organization/projects/${encodeURIComponent(project_id)}/groups`,
+    `/organization/projects/${encodeURIComponent(projectId)}/groups`,
     { searchParams },
     config,
   );
@@ -1998,13 +1998,13 @@ export async function listProjectGroups(
 }
 
 export async function addProjectGroup(
-  project_id: string,
+  projectId: string,
   body: InviteProjectGroupBody,
   config?: Partial<ClientConfig>,
 ): Promise<ProjectGroup> {
   const res = await _request(
     "POST",
-    `/organization/projects/${encodeURIComponent(project_id)}/groups`,
+    `/organization/projects/${encodeURIComponent(projectId)}/groups`,
     { body },
     config,
   );
@@ -2012,13 +2012,13 @@ export async function addProjectGroup(
 }
 
 export async function removeProjectGroup(
-  project_id: string,
-  group_id: string,
+  projectId: string,
+  groupId: string,
   config?: Partial<ClientConfig>,
 ): Promise<ProjectGroupDeletedResource> {
   const res = await _request(
     "DELETE",
-    `/organization/projects/${encodeURIComponent(project_id)}/groups/${encodeURIComponent(group_id)}`,
+    `/organization/projects/${encodeURIComponent(projectId)}/groups/${encodeURIComponent(groupId)}`,
     {},
     config,
   );
@@ -2026,7 +2026,7 @@ export async function removeProjectGroup(
 }
 
 export async function listProjectRateLimits(
-  project_id: string,
+  projectId: string,
   params?: {
     limit?: number;
     after?: string;
@@ -2040,7 +2040,7 @@ export async function listProjectRateLimits(
   if (params?.before != null) searchParams.set("before", String(params.before));
   const res = await _request(
     "GET",
-    `/organization/projects/${encodeURIComponent(project_id)}/rate_limits`,
+    `/organization/projects/${encodeURIComponent(projectId)}/rate_limits`,
     { searchParams },
     config,
   );
@@ -2051,14 +2051,14 @@ export async function listProjectRateLimits(
  * @throws {ApiError<400, ErrorResponse>}
  */
 export async function updateProjectRateLimits(
-  project_id: string,
-  rate_limit_id: string,
+  projectId: string,
+  rateLimitId: string,
   body: ProjectRateLimitUpdateRequest,
   config?: Partial<ClientConfig>,
 ): Promise<ProjectRateLimit> {
   const res = await _request(
     "POST",
-    `/organization/projects/${encodeURIComponent(project_id)}/rate_limits/${encodeURIComponent(rate_limit_id)}`,
+    `/organization/projects/${encodeURIComponent(projectId)}/rate_limits/${encodeURIComponent(rateLimitId)}`,
     { body },
     config,
   );
@@ -2069,7 +2069,7 @@ export async function updateProjectRateLimits(
  * @throws {ApiError<400, ErrorResponse>}
  */
 export async function listProjectServiceAccounts(
-  project_id: string,
+  projectId: string,
   params?: {
     limit?: number;
     after?: string;
@@ -2081,7 +2081,7 @@ export async function listProjectServiceAccounts(
   if (params?.after != null) searchParams.set("after", String(params.after));
   const res = await _request(
     "GET",
-    `/organization/projects/${encodeURIComponent(project_id)}/service_accounts`,
+    `/organization/projects/${encodeURIComponent(projectId)}/service_accounts`,
     { searchParams },
     config,
   );
@@ -2092,13 +2092,13 @@ export async function listProjectServiceAccounts(
  * @throws {ApiError<400, ErrorResponse>}
  */
 export async function createProjectServiceAccount(
-  project_id: string,
+  projectId: string,
   body: ProjectServiceAccountCreateRequest,
   config?: Partial<ClientConfig>,
 ): Promise<ProjectServiceAccountCreateResponse> {
   const res = await _request(
     "POST",
-    `/organization/projects/${encodeURIComponent(project_id)}/service_accounts`,
+    `/organization/projects/${encodeURIComponent(projectId)}/service_accounts`,
     { body },
     config,
   );
@@ -2106,13 +2106,13 @@ export async function createProjectServiceAccount(
 }
 
 export async function retrieveProjectServiceAccount(
-  project_id: string,
-  service_account_id: string,
+  projectId: string,
+  serviceAccountId: string,
   config?: Partial<ClientConfig>,
 ): Promise<ProjectServiceAccount> {
   const res = await _request(
     "GET",
-    `/organization/projects/${encodeURIComponent(project_id)}/service_accounts/${encodeURIComponent(service_account_id)}`,
+    `/organization/projects/${encodeURIComponent(projectId)}/service_accounts/${encodeURIComponent(serviceAccountId)}`,
     {},
     config,
   );
@@ -2120,13 +2120,13 @@ export async function retrieveProjectServiceAccount(
 }
 
 export async function deleteProjectServiceAccount(
-  project_id: string,
-  service_account_id: string,
+  projectId: string,
+  serviceAccountId: string,
   config?: Partial<ClientConfig>,
 ): Promise<ProjectServiceAccountDeleteResponse> {
   const res = await _request(
     "DELETE",
-    `/organization/projects/${encodeURIComponent(project_id)}/service_accounts/${encodeURIComponent(service_account_id)}`,
+    `/organization/projects/${encodeURIComponent(projectId)}/service_accounts/${encodeURIComponent(serviceAccountId)}`,
     {},
     config,
   );
@@ -2137,7 +2137,7 @@ export async function deleteProjectServiceAccount(
  * @throws {ApiError<400, ErrorResponse>}
  */
 export async function listProjectUsers(
-  project_id: string,
+  projectId: string,
   params?: {
     limit?: number;
     after?: string;
@@ -2149,7 +2149,7 @@ export async function listProjectUsers(
   if (params?.after != null) searchParams.set("after", String(params.after));
   const res = await _request(
     "GET",
-    `/organization/projects/${encodeURIComponent(project_id)}/users`,
+    `/organization/projects/${encodeURIComponent(projectId)}/users`,
     { searchParams },
     config,
   );
@@ -2160,13 +2160,13 @@ export async function listProjectUsers(
  * @throws {ApiError<400, ErrorResponse>}
  */
 export async function createProjectUser(
-  project_id: string,
+  projectId: string,
   body: ProjectUserCreateRequest,
   config?: Partial<ClientConfig>,
 ): Promise<ProjectUser> {
   const res = await _request(
     "POST",
-    `/organization/projects/${encodeURIComponent(project_id)}/users`,
+    `/organization/projects/${encodeURIComponent(projectId)}/users`,
     { body },
     config,
   );
@@ -2174,13 +2174,13 @@ export async function createProjectUser(
 }
 
 export async function retrieveProjectUser(
-  project_id: string,
-  user_id: string,
+  projectId: string,
+  userId: string,
   config?: Partial<ClientConfig>,
 ): Promise<ProjectUser> {
   const res = await _request(
     "GET",
-    `/organization/projects/${encodeURIComponent(project_id)}/users/${encodeURIComponent(user_id)}`,
+    `/organization/projects/${encodeURIComponent(projectId)}/users/${encodeURIComponent(userId)}`,
     {},
     config,
   );
@@ -2191,14 +2191,14 @@ export async function retrieveProjectUser(
  * @throws {ApiError<400, ErrorResponse>}
  */
 export async function modifyProjectUser(
-  project_id: string,
-  user_id: string,
+  projectId: string,
+  userId: string,
   body: ProjectUserUpdateRequest,
   config?: Partial<ClientConfig>,
 ): Promise<ProjectUser> {
   const res = await _request(
     "POST",
-    `/organization/projects/${encodeURIComponent(project_id)}/users/${encodeURIComponent(user_id)}`,
+    `/organization/projects/${encodeURIComponent(projectId)}/users/${encodeURIComponent(userId)}`,
     { body },
     config,
   );
@@ -2209,13 +2209,13 @@ export async function modifyProjectUser(
  * @throws {ApiError<400, ErrorResponse>}
  */
 export async function deleteProjectUser(
-  project_id: string,
-  user_id: string,
+  projectId: string,
+  userId: string,
   config?: Partial<ClientConfig>,
 ): Promise<ProjectUserDeleteResponse> {
   const res = await _request(
     "DELETE",
-    `/organization/projects/${encodeURIComponent(project_id)}/users/${encodeURIComponent(user_id)}`,
+    `/organization/projects/${encodeURIComponent(projectId)}/users/${encodeURIComponent(userId)}`,
     {},
     config,
   );
@@ -2252,13 +2252,13 @@ export async function createRole(
 }
 
 export async function updateRole(
-  role_id: string,
+  roleId: string,
   body: PublicUpdateOrganizationRoleBody,
   config?: Partial<ClientConfig>,
 ): Promise<Role> {
   const res = await _request(
     "POST",
-    `/organization/roles/${encodeURIComponent(role_id)}`,
+    `/organization/roles/${encodeURIComponent(roleId)}`,
     { body },
     config,
   );
@@ -2266,12 +2266,12 @@ export async function updateRole(
 }
 
 export async function deleteRole(
-  role_id: string,
+  roleId: string,
   config?: Partial<ClientConfig>,
 ): Promise<RoleDeletedResource> {
   const res = await _request(
     "DELETE",
-    `/organization/roles/${encodeURIComponent(role_id)}`,
+    `/organization/roles/${encodeURIComponent(roleId)}`,
     {},
     config,
   );
@@ -2280,42 +2280,42 @@ export async function deleteRole(
 
 export async function usageAudioSpeeches(
   params: {
-    start_time: number;
-    end_time?: number;
-    bucket_width?: "1m" | "1h" | "1d";
-    project_ids?: string[];
-    user_ids?: string[];
-    api_key_ids?: string[];
+    startTime: number;
+    endTime?: number;
+    bucketWidth?: "1m" | "1h" | "1d";
+    projectIds?: string[];
+    userIds?: string[];
+    apiKeyIds?: string[];
     models?: string[];
-    group_by?: string[];
+    groupBy?: string[];
     limit?: number;
     page?: string;
   },
   config?: Partial<ClientConfig>,
 ): Promise<UsageResponse> {
   const searchParams = new URLSearchParams();
-  if (params?.start_time != null)
-    searchParams.set("start_time", String(params.start_time));
-  if (params?.end_time != null)
-    searchParams.set("end_time", String(params.end_time));
-  if (params?.bucket_width != null)
-    searchParams.set("bucket_width", String(params.bucket_width));
-  if (params?.project_ids != null) {
-    for (const v of params.project_ids)
+  if (params?.startTime != null)
+    searchParams.set("start_time", String(params.startTime));
+  if (params?.endTime != null)
+    searchParams.set("end_time", String(params.endTime));
+  if (params?.bucketWidth != null)
+    searchParams.set("bucket_width", String(params.bucketWidth));
+  if (params?.projectIds != null) {
+    for (const v of params.projectIds)
       searchParams.append("project_ids", String(v));
   }
-  if (params?.user_ids != null) {
-    for (const v of params.user_ids) searchParams.append("user_ids", String(v));
+  if (params?.userIds != null) {
+    for (const v of params.userIds) searchParams.append("user_ids", String(v));
   }
-  if (params?.api_key_ids != null) {
-    for (const v of params.api_key_ids)
+  if (params?.apiKeyIds != null) {
+    for (const v of params.apiKeyIds)
       searchParams.append("api_key_ids", String(v));
   }
   if (params?.models != null) {
     for (const v of params.models) searchParams.append("models", String(v));
   }
-  if (params?.group_by != null) {
-    for (const v of params.group_by) searchParams.append("group_by", String(v));
+  if (params?.groupBy != null) {
+    for (const v of params.groupBy) searchParams.append("group_by", String(v));
   }
   if (params?.limit != null) searchParams.set("limit", String(params.limit));
   if (params?.page != null) searchParams.set("page", String(params.page));
@@ -2330,42 +2330,42 @@ export async function usageAudioSpeeches(
 
 export async function usageAudioTranscriptions(
   params: {
-    start_time: number;
-    end_time?: number;
-    bucket_width?: "1m" | "1h" | "1d";
-    project_ids?: string[];
-    user_ids?: string[];
-    api_key_ids?: string[];
+    startTime: number;
+    endTime?: number;
+    bucketWidth?: "1m" | "1h" | "1d";
+    projectIds?: string[];
+    userIds?: string[];
+    apiKeyIds?: string[];
     models?: string[];
-    group_by?: string[];
+    groupBy?: string[];
     limit?: number;
     page?: string;
   },
   config?: Partial<ClientConfig>,
 ): Promise<UsageResponse> {
   const searchParams = new URLSearchParams();
-  if (params?.start_time != null)
-    searchParams.set("start_time", String(params.start_time));
-  if (params?.end_time != null)
-    searchParams.set("end_time", String(params.end_time));
-  if (params?.bucket_width != null)
-    searchParams.set("bucket_width", String(params.bucket_width));
-  if (params?.project_ids != null) {
-    for (const v of params.project_ids)
+  if (params?.startTime != null)
+    searchParams.set("start_time", String(params.startTime));
+  if (params?.endTime != null)
+    searchParams.set("end_time", String(params.endTime));
+  if (params?.bucketWidth != null)
+    searchParams.set("bucket_width", String(params.bucketWidth));
+  if (params?.projectIds != null) {
+    for (const v of params.projectIds)
       searchParams.append("project_ids", String(v));
   }
-  if (params?.user_ids != null) {
-    for (const v of params.user_ids) searchParams.append("user_ids", String(v));
+  if (params?.userIds != null) {
+    for (const v of params.userIds) searchParams.append("user_ids", String(v));
   }
-  if (params?.api_key_ids != null) {
-    for (const v of params.api_key_ids)
+  if (params?.apiKeyIds != null) {
+    for (const v of params.apiKeyIds)
       searchParams.append("api_key_ids", String(v));
   }
   if (params?.models != null) {
     for (const v of params.models) searchParams.append("models", String(v));
   }
-  if (params?.group_by != null) {
-    for (const v of params.group_by) searchParams.append("group_by", String(v));
+  if (params?.groupBy != null) {
+    for (const v of params.groupBy) searchParams.append("group_by", String(v));
   }
   if (params?.limit != null) searchParams.set("limit", String(params.limit));
   if (params?.page != null) searchParams.set("page", String(params.page));
@@ -2380,29 +2380,29 @@ export async function usageAudioTranscriptions(
 
 export async function usageCodeInterpreterSessions(
   params: {
-    start_time: number;
-    end_time?: number;
-    bucket_width?: "1m" | "1h" | "1d";
-    project_ids?: string[];
-    group_by?: string[];
+    startTime: number;
+    endTime?: number;
+    bucketWidth?: "1m" | "1h" | "1d";
+    projectIds?: string[];
+    groupBy?: string[];
     limit?: number;
     page?: string;
   },
   config?: Partial<ClientConfig>,
 ): Promise<UsageResponse> {
   const searchParams = new URLSearchParams();
-  if (params?.start_time != null)
-    searchParams.set("start_time", String(params.start_time));
-  if (params?.end_time != null)
-    searchParams.set("end_time", String(params.end_time));
-  if (params?.bucket_width != null)
-    searchParams.set("bucket_width", String(params.bucket_width));
-  if (params?.project_ids != null) {
-    for (const v of params.project_ids)
+  if (params?.startTime != null)
+    searchParams.set("start_time", String(params.startTime));
+  if (params?.endTime != null)
+    searchParams.set("end_time", String(params.endTime));
+  if (params?.bucketWidth != null)
+    searchParams.set("bucket_width", String(params.bucketWidth));
+  if (params?.projectIds != null) {
+    for (const v of params.projectIds)
       searchParams.append("project_ids", String(v));
   }
-  if (params?.group_by != null) {
-    for (const v of params.group_by) searchParams.append("group_by", String(v));
+  if (params?.groupBy != null) {
+    for (const v of params.groupBy) searchParams.append("group_by", String(v));
   }
   if (params?.limit != null) searchParams.set("limit", String(params.limit));
   if (params?.page != null) searchParams.set("page", String(params.page));
@@ -2417,44 +2417,44 @@ export async function usageCodeInterpreterSessions(
 
 export async function usageCompletions(
   params: {
-    start_time: number;
-    end_time?: number;
-    bucket_width?: "1m" | "1h" | "1d";
-    project_ids?: string[];
-    user_ids?: string[];
-    api_key_ids?: string[];
+    startTime: number;
+    endTime?: number;
+    bucketWidth?: "1m" | "1h" | "1d";
+    projectIds?: string[];
+    userIds?: string[];
+    apiKeyIds?: string[];
     models?: string[];
     batch?: boolean;
-    group_by?: string[];
+    groupBy?: string[];
     limit?: number;
     page?: string;
   },
   config?: Partial<ClientConfig>,
 ): Promise<UsageResponse> {
   const searchParams = new URLSearchParams();
-  if (params?.start_time != null)
-    searchParams.set("start_time", String(params.start_time));
-  if (params?.end_time != null)
-    searchParams.set("end_time", String(params.end_time));
-  if (params?.bucket_width != null)
-    searchParams.set("bucket_width", String(params.bucket_width));
-  if (params?.project_ids != null) {
-    for (const v of params.project_ids)
+  if (params?.startTime != null)
+    searchParams.set("start_time", String(params.startTime));
+  if (params?.endTime != null)
+    searchParams.set("end_time", String(params.endTime));
+  if (params?.bucketWidth != null)
+    searchParams.set("bucket_width", String(params.bucketWidth));
+  if (params?.projectIds != null) {
+    for (const v of params.projectIds)
       searchParams.append("project_ids", String(v));
   }
-  if (params?.user_ids != null) {
-    for (const v of params.user_ids) searchParams.append("user_ids", String(v));
+  if (params?.userIds != null) {
+    for (const v of params.userIds) searchParams.append("user_ids", String(v));
   }
-  if (params?.api_key_ids != null) {
-    for (const v of params.api_key_ids)
+  if (params?.apiKeyIds != null) {
+    for (const v of params.apiKeyIds)
       searchParams.append("api_key_ids", String(v));
   }
   if (params?.models != null) {
     for (const v of params.models) searchParams.append("models", String(v));
   }
   if (params?.batch != null) searchParams.set("batch", String(params.batch));
-  if (params?.group_by != null) {
-    for (const v of params.group_by) searchParams.append("group_by", String(v));
+  if (params?.groupBy != null) {
+    for (const v of params.groupBy) searchParams.append("group_by", String(v));
   }
   if (params?.limit != null) searchParams.set("limit", String(params.limit));
   if (params?.page != null) searchParams.set("page", String(params.page));
@@ -2469,42 +2469,42 @@ export async function usageCompletions(
 
 export async function usageEmbeddings(
   params: {
-    start_time: number;
-    end_time?: number;
-    bucket_width?: "1m" | "1h" | "1d";
-    project_ids?: string[];
-    user_ids?: string[];
-    api_key_ids?: string[];
+    startTime: number;
+    endTime?: number;
+    bucketWidth?: "1m" | "1h" | "1d";
+    projectIds?: string[];
+    userIds?: string[];
+    apiKeyIds?: string[];
     models?: string[];
-    group_by?: string[];
+    groupBy?: string[];
     limit?: number;
     page?: string;
   },
   config?: Partial<ClientConfig>,
 ): Promise<UsageResponse> {
   const searchParams = new URLSearchParams();
-  if (params?.start_time != null)
-    searchParams.set("start_time", String(params.start_time));
-  if (params?.end_time != null)
-    searchParams.set("end_time", String(params.end_time));
-  if (params?.bucket_width != null)
-    searchParams.set("bucket_width", String(params.bucket_width));
-  if (params?.project_ids != null) {
-    for (const v of params.project_ids)
+  if (params?.startTime != null)
+    searchParams.set("start_time", String(params.startTime));
+  if (params?.endTime != null)
+    searchParams.set("end_time", String(params.endTime));
+  if (params?.bucketWidth != null)
+    searchParams.set("bucket_width", String(params.bucketWidth));
+  if (params?.projectIds != null) {
+    for (const v of params.projectIds)
       searchParams.append("project_ids", String(v));
   }
-  if (params?.user_ids != null) {
-    for (const v of params.user_ids) searchParams.append("user_ids", String(v));
+  if (params?.userIds != null) {
+    for (const v of params.userIds) searchParams.append("user_ids", String(v));
   }
-  if (params?.api_key_ids != null) {
-    for (const v of params.api_key_ids)
+  if (params?.apiKeyIds != null) {
+    for (const v of params.apiKeyIds)
       searchParams.append("api_key_ids", String(v));
   }
   if (params?.models != null) {
     for (const v of params.models) searchParams.append("models", String(v));
   }
-  if (params?.group_by != null) {
-    for (const v of params.group_by) searchParams.append("group_by", String(v));
+  if (params?.groupBy != null) {
+    for (const v of params.groupBy) searchParams.append("group_by", String(v));
   }
   if (params?.limit != null) searchParams.set("limit", String(params.limit));
   if (params?.page != null) searchParams.set("page", String(params.page));
@@ -2519,50 +2519,50 @@ export async function usageEmbeddings(
 
 export async function usageImages(
   params: {
-    start_time: number;
-    end_time?: number;
-    bucket_width?: "1m" | "1h" | "1d";
+    startTime: number;
+    endTime?: number;
+    bucketWidth?: "1m" | "1h" | "1d";
     sources?: string[];
     sizes?: string[];
-    project_ids?: string[];
-    user_ids?: string[];
-    api_key_ids?: string[];
+    projectIds?: string[];
+    userIds?: string[];
+    apiKeyIds?: string[];
     models?: string[];
-    group_by?: string[];
+    groupBy?: string[];
     limit?: number;
     page?: string;
   },
   config?: Partial<ClientConfig>,
 ): Promise<UsageResponse> {
   const searchParams = new URLSearchParams();
-  if (params?.start_time != null)
-    searchParams.set("start_time", String(params.start_time));
-  if (params?.end_time != null)
-    searchParams.set("end_time", String(params.end_time));
-  if (params?.bucket_width != null)
-    searchParams.set("bucket_width", String(params.bucket_width));
+  if (params?.startTime != null)
+    searchParams.set("start_time", String(params.startTime));
+  if (params?.endTime != null)
+    searchParams.set("end_time", String(params.endTime));
+  if (params?.bucketWidth != null)
+    searchParams.set("bucket_width", String(params.bucketWidth));
   if (params?.sources != null) {
     for (const v of params.sources) searchParams.append("sources", String(v));
   }
   if (params?.sizes != null) {
     for (const v of params.sizes) searchParams.append("sizes", String(v));
   }
-  if (params?.project_ids != null) {
-    for (const v of params.project_ids)
+  if (params?.projectIds != null) {
+    for (const v of params.projectIds)
       searchParams.append("project_ids", String(v));
   }
-  if (params?.user_ids != null) {
-    for (const v of params.user_ids) searchParams.append("user_ids", String(v));
+  if (params?.userIds != null) {
+    for (const v of params.userIds) searchParams.append("user_ids", String(v));
   }
-  if (params?.api_key_ids != null) {
-    for (const v of params.api_key_ids)
+  if (params?.apiKeyIds != null) {
+    for (const v of params.apiKeyIds)
       searchParams.append("api_key_ids", String(v));
   }
   if (params?.models != null) {
     for (const v of params.models) searchParams.append("models", String(v));
   }
-  if (params?.group_by != null) {
-    for (const v of params.group_by) searchParams.append("group_by", String(v));
+  if (params?.groupBy != null) {
+    for (const v of params.groupBy) searchParams.append("group_by", String(v));
   }
   if (params?.limit != null) searchParams.set("limit", String(params.limit));
   if (params?.page != null) searchParams.set("page", String(params.page));
@@ -2577,42 +2577,42 @@ export async function usageImages(
 
 export async function usageModerations(
   params: {
-    start_time: number;
-    end_time?: number;
-    bucket_width?: "1m" | "1h" | "1d";
-    project_ids?: string[];
-    user_ids?: string[];
-    api_key_ids?: string[];
+    startTime: number;
+    endTime?: number;
+    bucketWidth?: "1m" | "1h" | "1d";
+    projectIds?: string[];
+    userIds?: string[];
+    apiKeyIds?: string[];
     models?: string[];
-    group_by?: string[];
+    groupBy?: string[];
     limit?: number;
     page?: string;
   },
   config?: Partial<ClientConfig>,
 ): Promise<UsageResponse> {
   const searchParams = new URLSearchParams();
-  if (params?.start_time != null)
-    searchParams.set("start_time", String(params.start_time));
-  if (params?.end_time != null)
-    searchParams.set("end_time", String(params.end_time));
-  if (params?.bucket_width != null)
-    searchParams.set("bucket_width", String(params.bucket_width));
-  if (params?.project_ids != null) {
-    for (const v of params.project_ids)
+  if (params?.startTime != null)
+    searchParams.set("start_time", String(params.startTime));
+  if (params?.endTime != null)
+    searchParams.set("end_time", String(params.endTime));
+  if (params?.bucketWidth != null)
+    searchParams.set("bucket_width", String(params.bucketWidth));
+  if (params?.projectIds != null) {
+    for (const v of params.projectIds)
       searchParams.append("project_ids", String(v));
   }
-  if (params?.user_ids != null) {
-    for (const v of params.user_ids) searchParams.append("user_ids", String(v));
+  if (params?.userIds != null) {
+    for (const v of params.userIds) searchParams.append("user_ids", String(v));
   }
-  if (params?.api_key_ids != null) {
-    for (const v of params.api_key_ids)
+  if (params?.apiKeyIds != null) {
+    for (const v of params.apiKeyIds)
       searchParams.append("api_key_ids", String(v));
   }
   if (params?.models != null) {
     for (const v of params.models) searchParams.append("models", String(v));
   }
-  if (params?.group_by != null) {
-    for (const v of params.group_by) searchParams.append("group_by", String(v));
+  if (params?.groupBy != null) {
+    for (const v of params.groupBy) searchParams.append("group_by", String(v));
   }
   if (params?.limit != null) searchParams.set("limit", String(params.limit));
   if (params?.page != null) searchParams.set("page", String(params.page));
@@ -2627,29 +2627,29 @@ export async function usageModerations(
 
 export async function usageVectorStores(
   params: {
-    start_time: number;
-    end_time?: number;
-    bucket_width?: "1m" | "1h" | "1d";
-    project_ids?: string[];
-    group_by?: string[];
+    startTime: number;
+    endTime?: number;
+    bucketWidth?: "1m" | "1h" | "1d";
+    projectIds?: string[];
+    groupBy?: string[];
     limit?: number;
     page?: string;
   },
   config?: Partial<ClientConfig>,
 ): Promise<UsageResponse> {
   const searchParams = new URLSearchParams();
-  if (params?.start_time != null)
-    searchParams.set("start_time", String(params.start_time));
-  if (params?.end_time != null)
-    searchParams.set("end_time", String(params.end_time));
-  if (params?.bucket_width != null)
-    searchParams.set("bucket_width", String(params.bucket_width));
-  if (params?.project_ids != null) {
-    for (const v of params.project_ids)
+  if (params?.startTime != null)
+    searchParams.set("start_time", String(params.startTime));
+  if (params?.endTime != null)
+    searchParams.set("end_time", String(params.endTime));
+  if (params?.bucketWidth != null)
+    searchParams.set("bucket_width", String(params.bucketWidth));
+  if (params?.projectIds != null) {
+    for (const v of params.projectIds)
       searchParams.append("project_ids", String(v));
   }
-  if (params?.group_by != null) {
-    for (const v of params.group_by) searchParams.append("group_by", String(v));
+  if (params?.groupBy != null) {
+    for (const v of params.groupBy) searchParams.append("group_by", String(v));
   }
   if (params?.limit != null) searchParams.set("limit", String(params.limit));
   if (params?.page != null) searchParams.set("page", String(params.page));
@@ -2686,12 +2686,12 @@ export async function listUsers(
 }
 
 export async function retrieveUser(
-  user_id: string,
+  userId: string,
   config?: Partial<ClientConfig>,
 ): Promise<User> {
   const res = await _request(
     "GET",
-    `/organization/users/${encodeURIComponent(user_id)}`,
+    `/organization/users/${encodeURIComponent(userId)}`,
     {},
     config,
   );
@@ -2699,13 +2699,13 @@ export async function retrieveUser(
 }
 
 export async function modifyUser(
-  user_id: string,
+  userId: string,
   body: UserRoleUpdateRequest,
   config?: Partial<ClientConfig>,
 ): Promise<User> {
   const res = await _request(
     "POST",
-    `/organization/users/${encodeURIComponent(user_id)}`,
+    `/organization/users/${encodeURIComponent(userId)}`,
     { body },
     config,
   );
@@ -2713,12 +2713,12 @@ export async function modifyUser(
 }
 
 export async function deleteUser(
-  user_id: string,
+  userId: string,
   config?: Partial<ClientConfig>,
 ): Promise<UserDeleteResponse> {
   const res = await _request(
     "DELETE",
-    `/organization/users/${encodeURIComponent(user_id)}`,
+    `/organization/users/${encodeURIComponent(userId)}`,
     {},
     config,
   );
@@ -2726,7 +2726,7 @@ export async function deleteUser(
 }
 
 export async function listUserRoleAssignments(
-  user_id: string,
+  userId: string,
   params?: {
     limit?: number;
     after?: string;
@@ -2740,7 +2740,7 @@ export async function listUserRoleAssignments(
   if (params?.order != null) searchParams.set("order", String(params.order));
   const res = await _request(
     "GET",
-    `/organization/users/${encodeURIComponent(user_id)}/roles`,
+    `/organization/users/${encodeURIComponent(userId)}/roles`,
     { searchParams },
     config,
   );
@@ -2748,13 +2748,13 @@ export async function listUserRoleAssignments(
 }
 
 export async function assignUserRole(
-  user_id: string,
+  userId: string,
   body: PublicAssignOrganizationGroupRoleBody,
   config?: Partial<ClientConfig>,
 ): Promise<UserRoleAssignment> {
   const res = await _request(
     "POST",
-    `/organization/users/${encodeURIComponent(user_id)}/roles`,
+    `/organization/users/${encodeURIComponent(userId)}/roles`,
     { body },
     config,
   );
@@ -2762,13 +2762,13 @@ export async function assignUserRole(
 }
 
 export async function unassignUserRole(
-  user_id: string,
-  role_id: string,
+  userId: string,
+  roleId: string,
   config?: Partial<ClientConfig>,
 ): Promise<DeletedRoleAssignmentResource> {
   const res = await _request(
     "DELETE",
-    `/organization/users/${encodeURIComponent(user_id)}/roles/${encodeURIComponent(role_id)}`,
+    `/organization/users/${encodeURIComponent(userId)}/roles/${encodeURIComponent(roleId)}`,
     {},
     config,
   );
@@ -2776,8 +2776,8 @@ export async function unassignUserRole(
 }
 
 export async function listProjectGroupRoleAssignments(
-  project_id: string,
-  group_id: string,
+  projectId: string,
+  groupId: string,
   params?: {
     limit?: number;
     after?: string;
@@ -2791,7 +2791,7 @@ export async function listProjectGroupRoleAssignments(
   if (params?.order != null) searchParams.set("order", String(params.order));
   const res = await _request(
     "GET",
-    `/projects/${encodeURIComponent(project_id)}/groups/${encodeURIComponent(group_id)}/roles`,
+    `/projects/${encodeURIComponent(projectId)}/groups/${encodeURIComponent(groupId)}/roles`,
     { searchParams },
     config,
   );
@@ -2799,14 +2799,14 @@ export async function listProjectGroupRoleAssignments(
 }
 
 export async function assignProjectGroupRole(
-  project_id: string,
-  group_id: string,
+  projectId: string,
+  groupId: string,
   body: PublicAssignOrganizationGroupRoleBody,
   config?: Partial<ClientConfig>,
 ): Promise<GroupRoleAssignment> {
   const res = await _request(
     "POST",
-    `/projects/${encodeURIComponent(project_id)}/groups/${encodeURIComponent(group_id)}/roles`,
+    `/projects/${encodeURIComponent(projectId)}/groups/${encodeURIComponent(groupId)}/roles`,
     { body },
     config,
   );
@@ -2814,14 +2814,14 @@ export async function assignProjectGroupRole(
 }
 
 export async function unassignProjectGroupRole(
-  project_id: string,
-  group_id: string,
-  role_id: string,
+  projectId: string,
+  groupId: string,
+  roleId: string,
   config?: Partial<ClientConfig>,
 ): Promise<DeletedRoleAssignmentResource> {
   const res = await _request(
     "DELETE",
-    `/projects/${encodeURIComponent(project_id)}/groups/${encodeURIComponent(group_id)}/roles/${encodeURIComponent(role_id)}`,
+    `/projects/${encodeURIComponent(projectId)}/groups/${encodeURIComponent(groupId)}/roles/${encodeURIComponent(roleId)}`,
     {},
     config,
   );
@@ -2829,7 +2829,7 @@ export async function unassignProjectGroupRole(
 }
 
 export async function listProjectRoles(
-  project_id: string,
+  projectId: string,
   params?: {
     limit?: number;
     after?: string;
@@ -2843,7 +2843,7 @@ export async function listProjectRoles(
   if (params?.order != null) searchParams.set("order", String(params.order));
   const res = await _request(
     "GET",
-    `/projects/${encodeURIComponent(project_id)}/roles`,
+    `/projects/${encodeURIComponent(projectId)}/roles`,
     { searchParams },
     config,
   );
@@ -2851,13 +2851,13 @@ export async function listProjectRoles(
 }
 
 export async function createProjectRole(
-  project_id: string,
+  projectId: string,
   body: PublicCreateOrganizationRoleBody,
   config?: Partial<ClientConfig>,
 ): Promise<Role> {
   const res = await _request(
     "POST",
-    `/projects/${encodeURIComponent(project_id)}/roles`,
+    `/projects/${encodeURIComponent(projectId)}/roles`,
     { body },
     config,
   );
@@ -2865,14 +2865,14 @@ export async function createProjectRole(
 }
 
 export async function updateProjectRole(
-  project_id: string,
-  role_id: string,
+  projectId: string,
+  roleId: string,
   body: PublicUpdateOrganizationRoleBody,
   config?: Partial<ClientConfig>,
 ): Promise<Role> {
   const res = await _request(
     "POST",
-    `/projects/${encodeURIComponent(project_id)}/roles/${encodeURIComponent(role_id)}`,
+    `/projects/${encodeURIComponent(projectId)}/roles/${encodeURIComponent(roleId)}`,
     { body },
     config,
   );
@@ -2880,13 +2880,13 @@ export async function updateProjectRole(
 }
 
 export async function deleteProjectRole(
-  project_id: string,
-  role_id: string,
+  projectId: string,
+  roleId: string,
   config?: Partial<ClientConfig>,
 ): Promise<RoleDeletedResource> {
   const res = await _request(
     "DELETE",
-    `/projects/${encodeURIComponent(project_id)}/roles/${encodeURIComponent(role_id)}`,
+    `/projects/${encodeURIComponent(projectId)}/roles/${encodeURIComponent(roleId)}`,
     {},
     config,
   );
@@ -2894,8 +2894,8 @@ export async function deleteProjectRole(
 }
 
 export async function listProjectUserRoleAssignments(
-  project_id: string,
-  user_id: string,
+  projectId: string,
+  userId: string,
   params?: {
     limit?: number;
     after?: string;
@@ -2909,7 +2909,7 @@ export async function listProjectUserRoleAssignments(
   if (params?.order != null) searchParams.set("order", String(params.order));
   const res = await _request(
     "GET",
-    `/projects/${encodeURIComponent(project_id)}/users/${encodeURIComponent(user_id)}/roles`,
+    `/projects/${encodeURIComponent(projectId)}/users/${encodeURIComponent(userId)}/roles`,
     { searchParams },
     config,
   );
@@ -2917,14 +2917,14 @@ export async function listProjectUserRoleAssignments(
 }
 
 export async function assignProjectUserRole(
-  project_id: string,
-  user_id: string,
+  projectId: string,
+  userId: string,
   body: PublicAssignOrganizationGroupRoleBody,
   config?: Partial<ClientConfig>,
 ): Promise<UserRoleAssignment> {
   const res = await _request(
     "POST",
-    `/projects/${encodeURIComponent(project_id)}/users/${encodeURIComponent(user_id)}/roles`,
+    `/projects/${encodeURIComponent(projectId)}/users/${encodeURIComponent(userId)}/roles`,
     { body },
     config,
   );
@@ -2932,14 +2932,14 @@ export async function assignProjectUserRole(
 }
 
 export async function unassignProjectUserRole(
-  project_id: string,
-  user_id: string,
-  role_id: string,
+  projectId: string,
+  userId: string,
+  roleId: string,
   config?: Partial<ClientConfig>,
 ): Promise<DeletedRoleAssignmentResource> {
   const res = await _request(
     "DELETE",
-    `/projects/${encodeURIComponent(project_id)}/users/${encodeURIComponent(user_id)}/roles/${encodeURIComponent(role_id)}`,
+    `/projects/${encodeURIComponent(projectId)}/users/${encodeURIComponent(userId)}/roles/${encodeURIComponent(roleId)}`,
     {},
     config,
   );
@@ -2953,51 +2953,51 @@ export async function createRealtimeCall(
 }
 
 export async function acceptRealtimeCall(
-  call_id: string,
+  callId: string,
   body: RealtimeSessionCreateRequestGA,
   config?: Partial<ClientConfig>,
 ): Promise<void> {
   await _request(
     "POST",
-    `/realtime/calls/${encodeURIComponent(call_id)}/accept`,
+    `/realtime/calls/${encodeURIComponent(callId)}/accept`,
     { body },
     config,
   );
 }
 
 export async function hangupRealtimeCall(
-  call_id: string,
+  callId: string,
   config?: Partial<ClientConfig>,
 ): Promise<void> {
   await _request(
     "POST",
-    `/realtime/calls/${encodeURIComponent(call_id)}/hangup`,
+    `/realtime/calls/${encodeURIComponent(callId)}/hangup`,
     {},
     config,
   );
 }
 
 export async function referRealtimeCall(
-  call_id: string,
+  callId: string,
   body: RealtimeCallReferRequest,
   config?: Partial<ClientConfig>,
 ): Promise<void> {
   await _request(
     "POST",
-    `/realtime/calls/${encodeURIComponent(call_id)}/refer`,
+    `/realtime/calls/${encodeURIComponent(callId)}/refer`,
     { body },
     config,
   );
 }
 
 export async function rejectRealtimeCall(
-  call_id: string,
+  callId: string,
   body: RealtimeCallRejectRequest,
   config?: Partial<ClientConfig>,
 ): Promise<void> {
   await _request(
     "POST",
-    `/realtime/calls/${encodeURIComponent(call_id)}/reject`,
+    `/realtime/calls/${encodeURIComponent(callId)}/reject`,
     { body },
     config,
   );
@@ -3059,12 +3059,12 @@ export async function createResponse(
 }
 
 export async function getResponse(
-  response_id: string,
+  responseId: string,
   params?: {
     include?: string[];
     stream?: boolean;
-    starting_after?: number;
-    include_obfuscation?: boolean;
+    startingAfter?: number;
+    includeObfuscation?: boolean;
   },
   config?: Partial<ClientConfig>,
 ): Promise<Response> {
@@ -3073,13 +3073,13 @@ export async function getResponse(
     for (const v of params.include) searchParams.append("include", String(v));
   }
   if (params?.stream != null) searchParams.set("stream", String(params.stream));
-  if (params?.starting_after != null)
-    searchParams.set("starting_after", String(params.starting_after));
-  if (params?.include_obfuscation != null)
-    searchParams.set("include_obfuscation", String(params.include_obfuscation));
+  if (params?.startingAfter != null)
+    searchParams.set("starting_after", String(params.startingAfter));
+  if (params?.includeObfuscation != null)
+    searchParams.set("include_obfuscation", String(params.includeObfuscation));
   const res = await _request(
     "GET",
-    `/responses/${encodeURIComponent(response_id)}`,
+    `/responses/${encodeURIComponent(responseId)}`,
     { searchParams },
     config,
   );
@@ -3090,12 +3090,12 @@ export async function getResponse(
  * @throws {ApiError<404, Error>}
  */
 export async function deleteResponse(
-  response_id: string,
+  responseId: string,
   config?: Partial<ClientConfig>,
 ): Promise<void> {
   await _request(
     "DELETE",
-    `/responses/${encodeURIComponent(response_id)}`,
+    `/responses/${encodeURIComponent(responseId)}`,
     {},
     config,
   );
@@ -3105,12 +3105,12 @@ export async function deleteResponse(
  * @throws {ApiError<404, Error>}
  */
 export async function cancelResponse(
-  response_id: string,
+  responseId: string,
   config?: Partial<ClientConfig>,
 ): Promise<Response> {
   const res = await _request(
     "POST",
-    `/responses/${encodeURIComponent(response_id)}/cancel`,
+    `/responses/${encodeURIComponent(responseId)}/cancel`,
     {},
     config,
   );
@@ -3118,7 +3118,7 @@ export async function cancelResponse(
 }
 
 export async function listInputItems(
-  response_id: string,
+  responseId: string,
   params?: {
     limit?: number;
     order?: "asc" | "desc";
@@ -3136,7 +3136,7 @@ export async function listInputItems(
   }
   const res = await _request(
     "GET",
-    `/responses/${encodeURIComponent(response_id)}/input_items`,
+    `/responses/${encodeURIComponent(responseId)}/input_items`,
     { searchParams },
     config,
   );
@@ -3160,12 +3160,12 @@ export async function createThreadAndRun(
 }
 
 export async function getThread(
-  thread_id: string,
+  threadId: string,
   config?: Partial<ClientConfig>,
 ): Promise<ThreadObject> {
   const res = await _request(
     "GET",
-    `/threads/${encodeURIComponent(thread_id)}`,
+    `/threads/${encodeURIComponent(threadId)}`,
     {},
     config,
   );
@@ -3173,13 +3173,13 @@ export async function getThread(
 }
 
 export async function modifyThread(
-  thread_id: string,
+  threadId: string,
   body: ModifyThreadRequest,
   config?: Partial<ClientConfig>,
 ): Promise<ThreadObject> {
   const res = await _request(
     "POST",
-    `/threads/${encodeURIComponent(thread_id)}`,
+    `/threads/${encodeURIComponent(threadId)}`,
     { body },
     config,
   );
@@ -3187,12 +3187,12 @@ export async function modifyThread(
 }
 
 export async function deleteThread(
-  thread_id: string,
+  threadId: string,
   config?: Partial<ClientConfig>,
 ): Promise<DeleteThreadResponse> {
   const res = await _request(
     "DELETE",
-    `/threads/${encodeURIComponent(thread_id)}`,
+    `/threads/${encodeURIComponent(threadId)}`,
     {},
     config,
   );
@@ -3200,13 +3200,13 @@ export async function deleteThread(
 }
 
 export async function listMessages(
-  thread_id: string,
+  threadId: string,
   params?: {
     limit?: number;
     order?: "asc" | "desc";
     after?: string;
     before?: string;
-    run_id?: string;
+    runId?: string;
   },
   config?: Partial<ClientConfig>,
 ): Promise<ListMessagesResponse> {
@@ -3215,10 +3215,10 @@ export async function listMessages(
   if (params?.order != null) searchParams.set("order", String(params.order));
   if (params?.after != null) searchParams.set("after", String(params.after));
   if (params?.before != null) searchParams.set("before", String(params.before));
-  if (params?.run_id != null) searchParams.set("run_id", String(params.run_id));
+  if (params?.runId != null) searchParams.set("run_id", String(params.runId));
   const res = await _request(
     "GET",
-    `/threads/${encodeURIComponent(thread_id)}/messages`,
+    `/threads/${encodeURIComponent(threadId)}/messages`,
     { searchParams },
     config,
   );
@@ -3226,13 +3226,13 @@ export async function listMessages(
 }
 
 export async function createMessage(
-  thread_id: string,
+  threadId: string,
   body: CreateMessageRequest,
   config?: Partial<ClientConfig>,
 ): Promise<MessageObject> {
   const res = await _request(
     "POST",
-    `/threads/${encodeURIComponent(thread_id)}/messages`,
+    `/threads/${encodeURIComponent(threadId)}/messages`,
     { body },
     config,
   );
@@ -3240,13 +3240,13 @@ export async function createMessage(
 }
 
 export async function getMessage(
-  thread_id: string,
-  message_id: string,
+  threadId: string,
+  messageId: string,
   config?: Partial<ClientConfig>,
 ): Promise<MessageObject> {
   const res = await _request(
     "GET",
-    `/threads/${encodeURIComponent(thread_id)}/messages/${encodeURIComponent(message_id)}`,
+    `/threads/${encodeURIComponent(threadId)}/messages/${encodeURIComponent(messageId)}`,
     {},
     config,
   );
@@ -3254,14 +3254,14 @@ export async function getMessage(
 }
 
 export async function modifyMessage(
-  thread_id: string,
-  message_id: string,
+  threadId: string,
+  messageId: string,
   body: ModifyMessageRequest,
   config?: Partial<ClientConfig>,
 ): Promise<MessageObject> {
   const res = await _request(
     "POST",
-    `/threads/${encodeURIComponent(thread_id)}/messages/${encodeURIComponent(message_id)}`,
+    `/threads/${encodeURIComponent(threadId)}/messages/${encodeURIComponent(messageId)}`,
     { body },
     config,
   );
@@ -3269,13 +3269,13 @@ export async function modifyMessage(
 }
 
 export async function deleteMessage(
-  thread_id: string,
-  message_id: string,
+  threadId: string,
+  messageId: string,
   config?: Partial<ClientConfig>,
 ): Promise<DeleteMessageResponse> {
   const res = await _request(
     "DELETE",
-    `/threads/${encodeURIComponent(thread_id)}/messages/${encodeURIComponent(message_id)}`,
+    `/threads/${encodeURIComponent(threadId)}/messages/${encodeURIComponent(messageId)}`,
     {},
     config,
   );
@@ -3283,7 +3283,7 @@ export async function deleteMessage(
 }
 
 export async function listRuns(
-  thread_id: string,
+  threadId: string,
   params?: {
     limit?: number;
     order?: "asc" | "desc";
@@ -3299,7 +3299,7 @@ export async function listRuns(
   if (params?.before != null) searchParams.set("before", String(params.before));
   const res = await _request(
     "GET",
-    `/threads/${encodeURIComponent(thread_id)}/runs`,
+    `/threads/${encodeURIComponent(threadId)}/runs`,
     { searchParams },
     config,
   );
@@ -3307,7 +3307,7 @@ export async function listRuns(
 }
 
 export async function createRun(
-  thread_id: string,
+  threadId: string,
   body: CreateRunRequest,
   params?: {
     include?: string[];
@@ -3320,7 +3320,7 @@ export async function createRun(
   }
   const res = await _request(
     "POST",
-    `/threads/${encodeURIComponent(thread_id)}/runs`,
+    `/threads/${encodeURIComponent(threadId)}/runs`,
     { searchParams, body },
     config,
   );
@@ -3328,13 +3328,13 @@ export async function createRun(
 }
 
 export async function getRun(
-  thread_id: string,
-  run_id: string,
+  threadId: string,
+  runId: string,
   config?: Partial<ClientConfig>,
 ): Promise<RunObject> {
   const res = await _request(
     "GET",
-    `/threads/${encodeURIComponent(thread_id)}/runs/${encodeURIComponent(run_id)}`,
+    `/threads/${encodeURIComponent(threadId)}/runs/${encodeURIComponent(runId)}`,
     {},
     config,
   );
@@ -3342,14 +3342,14 @@ export async function getRun(
 }
 
 export async function modifyRun(
-  thread_id: string,
-  run_id: string,
+  threadId: string,
+  runId: string,
   body: ModifyRunRequest,
   config?: Partial<ClientConfig>,
 ): Promise<RunObject> {
   const res = await _request(
     "POST",
-    `/threads/${encodeURIComponent(thread_id)}/runs/${encodeURIComponent(run_id)}`,
+    `/threads/${encodeURIComponent(threadId)}/runs/${encodeURIComponent(runId)}`,
     { body },
     config,
   );
@@ -3357,13 +3357,13 @@ export async function modifyRun(
 }
 
 export async function cancelRun(
-  thread_id: string,
-  run_id: string,
+  threadId: string,
+  runId: string,
   config?: Partial<ClientConfig>,
 ): Promise<RunObject> {
   const res = await _request(
     "POST",
-    `/threads/${encodeURIComponent(thread_id)}/runs/${encodeURIComponent(run_id)}/cancel`,
+    `/threads/${encodeURIComponent(threadId)}/runs/${encodeURIComponent(runId)}/cancel`,
     {},
     config,
   );
@@ -3371,8 +3371,8 @@ export async function cancelRun(
 }
 
 export async function listRunSteps(
-  thread_id: string,
-  run_id: string,
+  threadId: string,
+  runId: string,
   params?: {
     limit?: number;
     order?: "asc" | "desc";
@@ -3392,7 +3392,7 @@ export async function listRunSteps(
   }
   const res = await _request(
     "GET",
-    `/threads/${encodeURIComponent(thread_id)}/runs/${encodeURIComponent(run_id)}/steps`,
+    `/threads/${encodeURIComponent(threadId)}/runs/${encodeURIComponent(runId)}/steps`,
     { searchParams },
     config,
   );
@@ -3400,9 +3400,9 @@ export async function listRunSteps(
 }
 
 export async function getRunStep(
-  thread_id: string,
-  run_id: string,
-  step_id: string,
+  threadId: string,
+  runId: string,
+  stepId: string,
   params?: {
     include?: string[];
   },
@@ -3414,7 +3414,7 @@ export async function getRunStep(
   }
   const res = await _request(
     "GET",
-    `/threads/${encodeURIComponent(thread_id)}/runs/${encodeURIComponent(run_id)}/steps/${encodeURIComponent(step_id)}`,
+    `/threads/${encodeURIComponent(threadId)}/runs/${encodeURIComponent(runId)}/steps/${encodeURIComponent(stepId)}`,
     { searchParams },
     config,
   );
@@ -3422,14 +3422,14 @@ export async function getRunStep(
 }
 
 export async function submitToolOuputsToRun(
-  thread_id: string,
-  run_id: string,
+  threadId: string,
+  runId: string,
   body: SubmitToolOutputsRunRequest,
   config?: Partial<ClientConfig>,
 ): Promise<RunObject> {
   const res = await _request(
     "POST",
-    `/threads/${encodeURIComponent(thread_id)}/runs/${encodeURIComponent(run_id)}/submit_tool_outputs`,
+    `/threads/${encodeURIComponent(threadId)}/runs/${encodeURIComponent(runId)}/submit_tool_outputs`,
     { body },
     config,
   );
@@ -3445,12 +3445,12 @@ export async function createUpload(
 }
 
 export async function cancelUpload(
-  upload_id: string,
+  uploadId: string,
   config?: Partial<ClientConfig>,
 ): Promise<Upload> {
   const res = await _request(
     "POST",
-    `/uploads/${encodeURIComponent(upload_id)}/cancel`,
+    `/uploads/${encodeURIComponent(uploadId)}/cancel`,
     {},
     config,
   );
@@ -3458,13 +3458,13 @@ export async function cancelUpload(
 }
 
 export async function completeUpload(
-  upload_id: string,
+  uploadId: string,
   body: CompleteUploadRequest,
   config?: Partial<ClientConfig>,
 ): Promise<Upload> {
   const res = await _request(
     "POST",
-    `/uploads/${encodeURIComponent(upload_id)}/complete`,
+    `/uploads/${encodeURIComponent(uploadId)}/complete`,
     { body },
     config,
   );
@@ -3472,12 +3472,12 @@ export async function completeUpload(
 }
 
 export async function addUploadPart(
-  upload_id: string,
+  uploadId: string,
   config?: Partial<ClientConfig>,
 ): Promise<UploadPart> {
   const res = await _request(
     "POST",
-    `/uploads/${encodeURIComponent(upload_id)}/parts`,
+    `/uploads/${encodeURIComponent(uploadId)}/parts`,
     {},
     config,
   );
@@ -3511,12 +3511,12 @@ export async function createVectorStore(
 }
 
 export async function getVectorStore(
-  vector_store_id: string,
+  vectorStoreId: string,
   config?: Partial<ClientConfig>,
 ): Promise<VectorStoreObject> {
   const res = await _request(
     "GET",
-    `/vector_stores/${encodeURIComponent(vector_store_id)}`,
+    `/vector_stores/${encodeURIComponent(vectorStoreId)}`,
     {},
     config,
   );
@@ -3524,13 +3524,13 @@ export async function getVectorStore(
 }
 
 export async function modifyVectorStore(
-  vector_store_id: string,
+  vectorStoreId: string,
   body: UpdateVectorStoreRequest,
   config?: Partial<ClientConfig>,
 ): Promise<VectorStoreObject> {
   const res = await _request(
     "POST",
-    `/vector_stores/${encodeURIComponent(vector_store_id)}`,
+    `/vector_stores/${encodeURIComponent(vectorStoreId)}`,
     { body },
     config,
   );
@@ -3538,12 +3538,12 @@ export async function modifyVectorStore(
 }
 
 export async function deleteVectorStore(
-  vector_store_id: string,
+  vectorStoreId: string,
   config?: Partial<ClientConfig>,
 ): Promise<DeleteVectorStoreResponse> {
   const res = await _request(
     "DELETE",
-    `/vector_stores/${encodeURIComponent(vector_store_id)}`,
+    `/vector_stores/${encodeURIComponent(vectorStoreId)}`,
     {},
     config,
   );
@@ -3551,13 +3551,13 @@ export async function deleteVectorStore(
 }
 
 export async function createVectorStoreFileBatch(
-  vector_store_id: string,
+  vectorStoreId: string,
   body: CreateVectorStoreFileBatchRequest,
   config?: Partial<ClientConfig>,
 ): Promise<VectorStoreFileBatchObject> {
   const res = await _request(
     "POST",
-    `/vector_stores/${encodeURIComponent(vector_store_id)}/file_batches`,
+    `/vector_stores/${encodeURIComponent(vectorStoreId)}/file_batches`,
     { body },
     config,
   );
@@ -3565,13 +3565,13 @@ export async function createVectorStoreFileBatch(
 }
 
 export async function getVectorStoreFileBatch(
-  vector_store_id: string,
-  batch_id: string,
+  vectorStoreId: string,
+  batchId: string,
   config?: Partial<ClientConfig>,
 ): Promise<VectorStoreFileBatchObject> {
   const res = await _request(
     "GET",
-    `/vector_stores/${encodeURIComponent(vector_store_id)}/file_batches/${encodeURIComponent(batch_id)}`,
+    `/vector_stores/${encodeURIComponent(vectorStoreId)}/file_batches/${encodeURIComponent(batchId)}`,
     {},
     config,
   );
@@ -3579,13 +3579,13 @@ export async function getVectorStoreFileBatch(
 }
 
 export async function cancelVectorStoreFileBatch(
-  vector_store_id: string,
-  batch_id: string,
+  vectorStoreId: string,
+  batchId: string,
   config?: Partial<ClientConfig>,
 ): Promise<VectorStoreFileBatchObject> {
   const res = await _request(
     "POST",
-    `/vector_stores/${encodeURIComponent(vector_store_id)}/file_batches/${encodeURIComponent(batch_id)}/cancel`,
+    `/vector_stores/${encodeURIComponent(vectorStoreId)}/file_batches/${encodeURIComponent(batchId)}/cancel`,
     {},
     config,
   );
@@ -3593,8 +3593,8 @@ export async function cancelVectorStoreFileBatch(
 }
 
 export async function listFilesInVectorStoreBatch(
-  vector_store_id: string,
-  batch_id: string,
+  vectorStoreId: string,
+  batchId: string,
   params?: {
     limit?: number;
     order?: "asc" | "desc";
@@ -3612,7 +3612,7 @@ export async function listFilesInVectorStoreBatch(
   if (params?.filter != null) searchParams.set("filter", String(params.filter));
   const res = await _request(
     "GET",
-    `/vector_stores/${encodeURIComponent(vector_store_id)}/file_batches/${encodeURIComponent(batch_id)}/files`,
+    `/vector_stores/${encodeURIComponent(vectorStoreId)}/file_batches/${encodeURIComponent(batchId)}/files`,
     { searchParams },
     config,
   );
@@ -3620,7 +3620,7 @@ export async function listFilesInVectorStoreBatch(
 }
 
 export async function listVectorStoreFiles(
-  vector_store_id: string,
+  vectorStoreId: string,
   params?: {
     limit?: number;
     order?: "asc" | "desc";
@@ -3638,7 +3638,7 @@ export async function listVectorStoreFiles(
   if (params?.filter != null) searchParams.set("filter", String(params.filter));
   const res = await _request(
     "GET",
-    `/vector_stores/${encodeURIComponent(vector_store_id)}/files`,
+    `/vector_stores/${encodeURIComponent(vectorStoreId)}/files`,
     { searchParams },
     config,
   );
@@ -3646,13 +3646,13 @@ export async function listVectorStoreFiles(
 }
 
 export async function createVectorStoreFile(
-  vector_store_id: string,
+  vectorStoreId: string,
   body: CreateVectorStoreFileRequest,
   config?: Partial<ClientConfig>,
 ): Promise<VectorStoreFileObject> {
   const res = await _request(
     "POST",
-    `/vector_stores/${encodeURIComponent(vector_store_id)}/files`,
+    `/vector_stores/${encodeURIComponent(vectorStoreId)}/files`,
     { body },
     config,
   );
@@ -3660,13 +3660,13 @@ export async function createVectorStoreFile(
 }
 
 export async function getVectorStoreFile(
-  vector_store_id: string,
-  file_id: string,
+  vectorStoreId: string,
+  fileId: string,
   config?: Partial<ClientConfig>,
 ): Promise<VectorStoreFileObject> {
   const res = await _request(
     "GET",
-    `/vector_stores/${encodeURIComponent(vector_store_id)}/files/${encodeURIComponent(file_id)}`,
+    `/vector_stores/${encodeURIComponent(vectorStoreId)}/files/${encodeURIComponent(fileId)}`,
     {},
     config,
   );
@@ -3674,14 +3674,14 @@ export async function getVectorStoreFile(
 }
 
 export async function updateVectorStoreFileAttributes(
-  vector_store_id: string,
-  file_id: string,
+  vectorStoreId: string,
+  fileId: string,
   body: UpdateVectorStoreFileAttributesRequest,
   config?: Partial<ClientConfig>,
 ): Promise<VectorStoreFileObject> {
   const res = await _request(
     "POST",
-    `/vector_stores/${encodeURIComponent(vector_store_id)}/files/${encodeURIComponent(file_id)}`,
+    `/vector_stores/${encodeURIComponent(vectorStoreId)}/files/${encodeURIComponent(fileId)}`,
     { body },
     config,
   );
@@ -3689,13 +3689,13 @@ export async function updateVectorStoreFileAttributes(
 }
 
 export async function deleteVectorStoreFile(
-  vector_store_id: string,
-  file_id: string,
+  vectorStoreId: string,
+  fileId: string,
   config?: Partial<ClientConfig>,
 ): Promise<DeleteVectorStoreFileResponse> {
   const res = await _request(
     "DELETE",
-    `/vector_stores/${encodeURIComponent(vector_store_id)}/files/${encodeURIComponent(file_id)}`,
+    `/vector_stores/${encodeURIComponent(vectorStoreId)}/files/${encodeURIComponent(fileId)}`,
     {},
     config,
   );
@@ -3703,13 +3703,13 @@ export async function deleteVectorStoreFile(
 }
 
 export async function retrieveVectorStoreFileContent(
-  vector_store_id: string,
-  file_id: string,
+  vectorStoreId: string,
+  fileId: string,
   config?: Partial<ClientConfig>,
 ): Promise<VectorStoreFileContentResponse> {
   const res = await _request(
     "GET",
-    `/vector_stores/${encodeURIComponent(vector_store_id)}/files/${encodeURIComponent(file_id)}/content`,
+    `/vector_stores/${encodeURIComponent(vectorStoreId)}/files/${encodeURIComponent(fileId)}/content`,
     {},
     config,
   );
@@ -3717,13 +3717,13 @@ export async function retrieveVectorStoreFileContent(
 }
 
 export async function searchVectorStore(
-  vector_store_id: string,
+  vectorStoreId: string,
   body: VectorStoreSearchRequest,
   config?: Partial<ClientConfig>,
 ): Promise<VectorStoreSearchResultsPage> {
   const res = await _request(
     "POST",
-    `/vector_stores/${encodeURIComponent(vector_store_id)}/search`,
+    `/vector_stores/${encodeURIComponent(vectorStoreId)}/search`,
     { body },
     config,
   );
@@ -3739,12 +3739,12 @@ export async function createConversation(
 }
 
 export async function getConversation(
-  conversation_id: string,
+  conversationId: string,
   config?: Partial<ClientConfig>,
 ): Promise<ConversationResource> {
   const res = await _request(
     "GET",
-    `/conversations/${encodeURIComponent(conversation_id)}`,
+    `/conversations/${encodeURIComponent(conversationId)}`,
     {},
     config,
   );
@@ -3752,13 +3752,13 @@ export async function getConversation(
 }
 
 export async function updateConversation(
-  conversation_id: string,
+  conversationId: string,
   body: UpdateConversationBody,
   config?: Partial<ClientConfig>,
 ): Promise<ConversationResource> {
   const res = await _request(
     "POST",
-    `/conversations/${encodeURIComponent(conversation_id)}`,
+    `/conversations/${encodeURIComponent(conversationId)}`,
     { body },
     config,
   );
@@ -3766,12 +3766,12 @@ export async function updateConversation(
 }
 
 export async function deleteConversation(
-  conversation_id: string,
+  conversationId: string,
   config?: Partial<ClientConfig>,
 ): Promise<DeletedConversationResource> {
   const res = await _request(
     "DELETE",
-    `/conversations/${encodeURIComponent(conversation_id)}`,
+    `/conversations/${encodeURIComponent(conversationId)}`,
     {},
     config,
   );
@@ -3810,12 +3810,12 @@ export async function createVideoCharacter(
 }
 
 export async function getVideoCharacter(
-  character_id: string,
+  characterId: string,
   config?: Partial<ClientConfig>,
 ): Promise<VideoCharacterResource> {
   const res = await _request(
     "GET",
-    `/videos/characters/${encodeURIComponent(character_id)}`,
+    `/videos/characters/${encodeURIComponent(characterId)}`,
     {},
     config,
   );
@@ -3839,12 +3839,12 @@ export async function createVideoExtend(
 }
 
 export async function getVideo(
-  video_id: string,
+  videoId: string,
   config?: Partial<ClientConfig>,
 ): Promise<VideoResource> {
   const res = await _request(
     "GET",
-    `/videos/${encodeURIComponent(video_id)}`,
+    `/videos/${encodeURIComponent(videoId)}`,
     {},
     config,
   );
@@ -3852,12 +3852,12 @@ export async function getVideo(
 }
 
 export async function deleteVideo(
-  video_id: string,
+  videoId: string,
   config?: Partial<ClientConfig>,
 ): Promise<DeletedVideoResource> {
   const res = await _request(
     "DELETE",
-    `/videos/${encodeURIComponent(video_id)}`,
+    `/videos/${encodeURIComponent(videoId)}`,
     {},
     config,
   );
@@ -3865,7 +3865,7 @@ export async function deleteVideo(
 }
 
 export async function retrieveVideoContent(
-  video_id: string,
+  videoId: string,
   params?: {
     variant?: string;
   },
@@ -3876,7 +3876,7 @@ export async function retrieveVideoContent(
     searchParams.set("variant", String(params.variant));
   const res = await _request(
     "GET",
-    `/videos/${encodeURIComponent(video_id)}/content`,
+    `/videos/${encodeURIComponent(videoId)}/content`,
     { searchParams },
     config,
   );
@@ -3884,13 +3884,13 @@ export async function retrieveVideoContent(
 }
 
 export async function createVideoRemix(
-  video_id: string,
+  videoId: string,
   body: CreateVideoRemixBody,
   config?: Partial<ClientConfig>,
 ): Promise<VideoResource> {
   const res = await _request(
     "POST",
-    `/videos/${encodeURIComponent(video_id)}/remix`,
+    `/videos/${encodeURIComponent(videoId)}/remix`,
     { body },
     config,
   );
@@ -3943,12 +3943,12 @@ export async function createSkill(
 }
 
 export async function getSkill(
-  skill_id: string,
+  skillId: string,
   config?: Partial<ClientConfig>,
 ): Promise<SkillResource> {
   const res = await _request(
     "GET",
-    `/skills/${encodeURIComponent(skill_id)}`,
+    `/skills/${encodeURIComponent(skillId)}`,
     {},
     config,
   );
@@ -3956,13 +3956,13 @@ export async function getSkill(
 }
 
 export async function updateSkillDefaultVersion(
-  skill_id: string,
+  skillId: string,
   body: SetDefaultSkillVersionBody,
   config?: Partial<ClientConfig>,
 ): Promise<SkillResource> {
   const res = await _request(
     "POST",
-    `/skills/${encodeURIComponent(skill_id)}`,
+    `/skills/${encodeURIComponent(skillId)}`,
     { body },
     config,
   );
@@ -3970,12 +3970,12 @@ export async function updateSkillDefaultVersion(
 }
 
 export async function deleteSkill(
-  skill_id: string,
+  skillId: string,
   config?: Partial<ClientConfig>,
 ): Promise<DeletedSkillResource> {
   const res = await _request(
     "DELETE",
-    `/skills/${encodeURIComponent(skill_id)}`,
+    `/skills/${encodeURIComponent(skillId)}`,
     {},
     config,
   );
@@ -3983,12 +3983,12 @@ export async function deleteSkill(
 }
 
 export async function getSkillContent(
-  skill_id: string,
+  skillId: string,
   config?: Partial<ClientConfig>,
 ): Promise<string> {
   const res = await _request(
     "GET",
-    `/skills/${encodeURIComponent(skill_id)}/content`,
+    `/skills/${encodeURIComponent(skillId)}/content`,
     {},
     config,
   );
@@ -3996,7 +3996,7 @@ export async function getSkillContent(
 }
 
 export async function listSkillVersions(
-  skill_id: string,
+  skillId: string,
   params?: {
     limit?: number;
     order?: string;
@@ -4010,7 +4010,7 @@ export async function listSkillVersions(
   if (params?.after != null) searchParams.set("after", String(params.after));
   const res = await _request(
     "GET",
-    `/skills/${encodeURIComponent(skill_id)}/versions`,
+    `/skills/${encodeURIComponent(skillId)}/versions`,
     { searchParams },
     config,
   );
@@ -4018,13 +4018,13 @@ export async function listSkillVersions(
 }
 
 export async function createSkillVersion(
-  skill_id: string,
+  skillId: string,
   body: CreateSkillVersionBody,
   config?: Partial<ClientConfig>,
 ): Promise<SkillVersionResource> {
   const res = await _request(
     "POST",
-    `/skills/${encodeURIComponent(skill_id)}/versions`,
+    `/skills/${encodeURIComponent(skillId)}/versions`,
     { body },
     config,
   );
@@ -4032,13 +4032,13 @@ export async function createSkillVersion(
 }
 
 export async function getSkillVersion(
-  skill_id: string,
+  skillId: string,
   version: string,
   config?: Partial<ClientConfig>,
 ): Promise<SkillVersionResource> {
   const res = await _request(
     "GET",
-    `/skills/${encodeURIComponent(skill_id)}/versions/${encodeURIComponent(version)}`,
+    `/skills/${encodeURIComponent(skillId)}/versions/${encodeURIComponent(version)}`,
     {},
     config,
   );
@@ -4046,13 +4046,13 @@ export async function getSkillVersion(
 }
 
 export async function deleteSkillVersion(
-  skill_id: string,
+  skillId: string,
   version: string,
   config?: Partial<ClientConfig>,
 ): Promise<DeletedSkillVersionResource> {
   const res = await _request(
     "DELETE",
-    `/skills/${encodeURIComponent(skill_id)}/versions/${encodeURIComponent(version)}`,
+    `/skills/${encodeURIComponent(skillId)}/versions/${encodeURIComponent(version)}`,
     {},
     config,
   );
@@ -4060,13 +4060,13 @@ export async function deleteSkillVersion(
 }
 
 export async function getSkillVersionContent(
-  skill_id: string,
+  skillId: string,
   version: string,
   config?: Partial<ClientConfig>,
 ): Promise<string> {
   const res = await _request(
     "GET",
-    `/skills/${encodeURIComponent(skill_id)}/versions/${encodeURIComponent(version)}/content`,
+    `/skills/${encodeURIComponent(skillId)}/versions/${encodeURIComponent(version)}/content`,
     {},
     config,
   );
@@ -4074,12 +4074,12 @@ export async function getSkillVersionContent(
 }
 
 export async function cancelChatSessionMethod(
-  session_id: string,
+  sessionId: string,
   config?: Partial<ClientConfig>,
 ): Promise<ChatSessionResource> {
   const res = await _request(
     "POST",
-    `/chatkit/sessions/${encodeURIComponent(session_id)}/cancel`,
+    `/chatkit/sessions/${encodeURIComponent(sessionId)}/cancel`,
     {},
     config,
   );
@@ -4095,7 +4095,7 @@ export async function createChatSessionMethod(
 }
 
 export async function listThreadItemsMethod(
-  thread_id: string,
+  threadId: string,
   params?: {
     limit?: number;
     order?: string;
@@ -4111,7 +4111,7 @@ export async function listThreadItemsMethod(
   if (params?.before != null) searchParams.set("before", String(params.before));
   const res = await _request(
     "GET",
-    `/chatkit/threads/${encodeURIComponent(thread_id)}/items`,
+    `/chatkit/threads/${encodeURIComponent(threadId)}/items`,
     { searchParams },
     config,
   );
@@ -4119,12 +4119,12 @@ export async function listThreadItemsMethod(
 }
 
 export async function getThreadMethod(
-  thread_id: string,
+  threadId: string,
   config?: Partial<ClientConfig>,
 ): Promise<ThreadResource> {
   const res = await _request(
     "GET",
-    `/chatkit/threads/${encodeURIComponent(thread_id)}`,
+    `/chatkit/threads/${encodeURIComponent(threadId)}`,
     {},
     config,
   );
@@ -4132,12 +4132,12 @@ export async function getThreadMethod(
 }
 
 export async function deleteThreadMethod(
-  thread_id: string,
+  threadId: string,
   config?: Partial<ClientConfig>,
 ): Promise<DeletedThreadResource> {
   const res = await _request(
     "DELETE",
-    `/chatkit/threads/${encodeURIComponent(thread_id)}`,
+    `/chatkit/threads/${encodeURIComponent(threadId)}`,
     {},
     config,
   );

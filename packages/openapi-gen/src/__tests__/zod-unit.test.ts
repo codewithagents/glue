@@ -102,7 +102,7 @@ describe('optional fields', () => {
 describe('enum types', () => {
   it('string enum → z.enum([...])', () => {
     const out = genSingle('Status', { type: 'string', enum: ['active', 'inactive'] })
-    expect(out).toContain("z.enum(['active', 'inactive'])")
+    expect(out).toContain(`z.enum(["active", "inactive"])`)
   })
 
   it('integer enum → z.union([z.literal(...), ...])', () => {

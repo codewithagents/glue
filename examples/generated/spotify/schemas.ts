@@ -25,7 +25,7 @@ export const TrackRestrictionObjectSchema = z.object({
 }).passthrough()
 
 export const AlbumRestrictionObjectSchema = z.object({
-  reason: z.enum(['market', 'product', 'explicit']).optional()
+  reason: z.enum(["market", "product", "explicit"]).optional()
 }).passthrough()
 
 export const EpisodeRestrictionObjectSchema = z.object({
@@ -196,7 +196,7 @@ export const AudioFeaturesObjectSchema = z.object({
   tempo: TempoSchema.optional(),
   time_signature: TimeSignatureSchema.optional(),
   track_href: z.string().optional(),
-  type: z.enum(['audio_features']).optional(),
+  type: z.enum(["audio_features"]).optional(),
   uri: z.string().optional(),
   valence: z.number().min(0).max(1).optional()
 }).passthrough()
@@ -222,7 +222,7 @@ export const SimplifiedArtistObjectSchema = z.object({
   href: z.string().optional(),
   id: z.string().optional(),
   name: z.string().optional(),
-  type: z.enum(['artist']).optional(),
+  type: z.enum(["artist"]).optional(),
   uri: z.string().optional()
 }).passthrough()
 
@@ -230,7 +230,7 @@ export const PlaylistUserObjectSchema = z.object({
   external_urls: ExternalUrlObjectSchema.optional(),
   href: z.string().optional(),
   id: z.string().optional(),
-  type: z.enum(['user']).optional(),
+  type: z.enum(["user"]).optional(),
   uri: z.string().optional()
 }).passthrough()
 
@@ -250,7 +250,7 @@ export const ArtistObjectSchema = z.object({
   images: z.array(ImageObjectSchema).optional(),
   name: z.string().optional(),
   popularity: z.number().optional(),
-  type: z.enum(['artist']).optional(),
+  type: z.enum(["artist"]).optional(),
   uri: z.string().optional()
 }).passthrough()
 
@@ -261,7 +261,7 @@ export const PublicUserObjectSchema = z.object({
   href: z.string().optional(),
   id: z.string().optional(),
   images: z.array(ImageObjectSchema).optional(),
-  type: z.enum(['user']).optional(),
+  type: z.enum(["user"]).optional(),
   uri: z.string().optional()
 }).passthrough()
 
@@ -288,9 +288,9 @@ export const EpisodeBaseSchema = z.object({
   languages: z.array(z.string()),
   name: z.string(),
   release_date: z.string(),
-  release_date_precision: z.enum(['year', 'month', 'day']),
+  release_date_precision: z.enum(["year", "month", "day"]),
   resume_point: ResumePointObjectSchema.optional(),
-  type: z.enum(['episode']),
+  type: z.enum(["episode"]),
   uri: z.string(),
   restrictions: EpisodeRestrictionObjectSchema.optional()
 }).passthrough()
@@ -310,7 +310,7 @@ export const ShowBaseSchema = z.object({
   media_type: z.string(),
   name: z.string(),
   publisher: z.string(),
-  type: z.enum(['show']),
+  type: z.enum(["show"]),
   uri: z.string(),
   total_episodes: z.number()
 }).passthrough()
@@ -332,13 +332,13 @@ export const AudiobookBaseSchema = z.object({
   name: z.string(),
   narrators: z.array(NarratorObjectSchema),
   publisher: z.string(),
-  type: z.enum(['audiobook']),
+  type: z.enum(["audiobook"]),
   uri: z.string(),
   total_chapters: z.number()
 }).passthrough()
 
 export const AlbumBaseSchema = z.object({
-  album_type: z.enum(['album', 'single', 'compilation']),
+  album_type: z.enum(["album", "single", "compilation"]),
   total_tracks: z.number(),
   available_markets: z.array(z.string()),
   external_urls: ExternalUrlObjectSchema,
@@ -347,9 +347,9 @@ export const AlbumBaseSchema = z.object({
   images: z.array(ImageObjectSchema),
   name: z.string(),
   release_date: z.string(),
-  release_date_precision: z.enum(['year', 'month', 'day']),
+  release_date_precision: z.enum(["year", "month", "day"]),
   restrictions: AlbumRestrictionObjectSchema.optional(),
-  type: z.enum(['album']),
+  type: z.enum(["album"]),
   uri: z.string()
 }).passthrough()
 
@@ -369,9 +369,9 @@ export const ChapterBaseSchema = z.object({
   languages: z.array(z.string()),
   name: z.string(),
   release_date: z.string(),
-  release_date_precision: z.enum(['year', 'month', 'day']),
+  release_date_precision: z.enum(["year", "month", "day"]),
   resume_point: ResumePointObjectSchema.optional(),
-  type: z.enum(['episode']),
+  type: z.enum(["episode"]),
   uri: z.string(),
   restrictions: ChapterRestrictionObjectSchema.optional()
 }).passthrough()
@@ -548,13 +548,13 @@ export const TrackObjectSchema = z.object({
   popularity: z.number().optional(),
   preview_url: z.string().optional(),
   track_number: z.number().optional(),
-  type: z.enum(['track']).optional(),
+  type: z.enum(["track"]).optional(),
   uri: z.string().optional(),
   is_local: z.boolean().optional()
 }).passthrough()
 
 export const ArtistDiscographyAlbumObjectSchema = SimplifiedAlbumObjectSchema.and(z.object({
-  album_group: z.enum(['album', 'single', 'compilation', 'appears_on'])
+  album_group: z.enum(["album", "single", "compilation", "appears_on"])
 }).passthrough())
 
 export const PagingSimplifiedChapterObjectSchema = PagingObjectSchema.and(z.object({

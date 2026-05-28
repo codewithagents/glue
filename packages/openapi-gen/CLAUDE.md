@@ -36,3 +36,10 @@ pnpm test           # vitest (excludes integration)
 pnpm build          # tsc + chmod +x dist/cli.js
 ```
 Fixtures live in `src/__fixtures__/specs/` — all fictional, never real client specs.
+
+## Integration test suite — examples/
+The `examples/` directory at the repo root is the real-world integration suite for this generator:
+- **11 showcase specs** — committed generated output, snapshot drift detection, typecheck on every relevant PR
+- **117 compat matrix specs** — generated at CI time, current pass rate 74/117
+- Known failure patterns: dots in operationIds (Google APIs), spaces, special characters
+- See `examples/README.md` for the full breakdown

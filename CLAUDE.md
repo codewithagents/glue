@@ -12,6 +12,7 @@
 | `packages/openapi-gen` | Generate TS models + fetch client + Zod from OpenAPI 3.1 |
 | `packages/openapi-react-query` | Generate React Query v5 hooks (depends on openapi-gen) |
 | `packages/integration` | Private cross-package test harness, committed sample output |
+| `examples` | 128 real-world OpenAPI specs — compatibility matrix + 11 showcase specs with committed output |
 
 ## Key rules
 - **OpenAPI 3.1 only** — no 3.0.x support
@@ -27,5 +28,11 @@
 - **No major version increases without human approval** — if Release Please proposes a major bump, stop and confirm with Benjamin before merging
 
 ## CI
-- GitHub Actions: `Build, Lint & Test` + `CodeQL Advanced` on every PR
+| Workflow | Triggers | What it does |
+|---|---|---|
+| `CI` | Every PR | Build + Lint + Test |
+| `Examples` | Path-filtered (`packages/openapi-gen/**`, `examples/**`) + weekly | Generate all 128 specs (compat matrix), verify 11 showcase specs haven't drifted, typecheck |
+| `E2E` | Every PR | Petstore Playwright tests |
+| `CodeQL` | Every PR | Security scanning |
+
 - All checks must pass before merge — squash merge strategy
