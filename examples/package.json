@@ -5,11 +5,13 @@
   "type": "module",
   "scripts": {
     "generate": "bash generate.sh",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "smoke": "vitest run --config smoke/vitest.config.ts"
   },
   "devDependencies": {
     "@codewithagents/openapi-gen": "workspace:*",
     "typescript": "catalog:",
+    "vitest": "catalog:",
     "zod": "catalog:"
   }
 }

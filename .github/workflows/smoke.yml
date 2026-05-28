@@ -1,0 +1,37 @@
+name: Smoke Tests
+
+on:
+  schedule:
+    - cron: '0 4 * * 0'  # Weekly Sunday 4am UTC — low-traffic time for free APIs
+  workflow_dispatch:       # Manual trigger from GitHub UI
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    name: Smoke Tests (real HTTP)
+    runs-on: ubuntu-latest
+    # Don't fail CI if a free API is temporarily down
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: pnpm/action-setup@0e279bb959325dab635dd2c09392533439d90093 # v6.0.8
+      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
+
+      - name: Generate clients for smoke-tested APIs
+        run: |
+          cd examples
+          for spec in open-meteo canada_holidays exchangerate; do
+            echo "Generating $spec..."
+            pnpm exec openapi-gen --config configs/${spec}.json
+          done
+
+      - name: Run smoke tests
+        run: pnpm --filter @codewithagents/examples run smoke
