@@ -44,6 +44,16 @@ function deriveOperationName(method: string, path: string): string {
   let segments = path.replace(/^\/api\/v\d+\//, '').replace(/^\//, '')
 
   const parts = segments.split('/').map((seg) => {
+    // Handle mixed segments like "{maxLat}.{format}" — extract each {param} inside
+    const paramMatches = seg.match(/\{([^}]+)\}/g)
+    if (paramMatches !== null && !(seg.startsWith('{') && seg.endsWith('}'))) {
+      return paramMatches
+        .map((m) => {
+          const name = sanitizeOperationId(m.slice(1, -1))
+          return 'By' + name.charAt(0).toUpperCase() + name.slice(1)
+        })
+        .join('')
+    }
     if (seg.startsWith('{') && seg.endsWith('}')) {
       const name = seg.slice(1, -1)
       const sanitized = sanitizeOperationId(name)
@@ -60,7 +70,7 @@ function deriveOperationName(method: string, path: string): string {
 function extractPathParams(path: string): string[] {
   const matches = path.match(/\{([^}]+)\}/g)
   if (matches === null) return []
-  return matches.map((m) => m.slice(1, -1))
+  return matches.map((m) => sanitizeOperationId(m.slice(1, -1)))
 }
 
 /** Extract primary resource name from path (first static segment after stripping API prefix) */
@@ -74,9 +84,8 @@ function primaryResource(path: string): string {
 
 /** Convert tag to valid camelCase identifier, then singularize. e.g. page-selections → pageSelection */
 function toKeyFactoryName(resource: string): string {
-  // kebab-case and snake_case → camelCase
-  const camel = resource.replace(/[-_](.)/g, (_, c: string) => c.toUpperCase())
-  // simple singularization: trailing 's'
+  // Sanitize the resource to a valid camelCase identifier, then singularize
+  const camel = sanitizeOperationId(resource)
   return camel.endsWith('s') ? camel.slice(0, -1) : camel
 }
 

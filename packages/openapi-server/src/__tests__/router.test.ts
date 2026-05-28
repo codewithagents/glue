@@ -282,6 +282,45 @@ describe('generateRouter', () => {
     expect(result.content).not.toContain('event_types[]')
   })
 
+  it('path param with hyphens like {job-id}: c.req.param uses raw name from path', () => {
+    const spec = makeSpec({
+      '/jobs/{job-id}': {
+        get: {
+          operationId: 'getJob',
+          parameters: [{ name: 'job-id', in: 'path', required: true, schema: { type: 'string' } }],
+          responses: { '200': { description: 'ok' } },
+        },
+      },
+    })
+    const result = generateRouter(spec)
+    // c.req.param uses the raw OpenAPI path param name matching the Hono route :job-id
+    expect(result.content).toContain("c.req.param('job-id')")
+    // The generated code must call the service method
+    expect(result.content).toContain('service.getJob(')
+  })
+
+  it('mixed path segment "{maxLat}.{format}" (no operationId) does not break method name derivation', () => {
+    const spec = makeSpec({
+      '/map/{versionNumber}/tile/{maxLon}/{maxLat}.{format}': {
+        get: {
+          // no operationId — forces deriveOperationName to handle the mixed segment
+          parameters: [
+            { name: 'versionNumber', in: 'path', required: true, schema: { type: 'string' } },
+            { name: 'maxLon', in: 'path', required: true, schema: { type: 'string' } },
+            { name: 'maxLat', in: 'path', required: true, schema: { type: 'string' } },
+            { name: 'format', in: 'path', required: true, schema: { type: 'string' } },
+          ],
+          responses: { '200': { description: 'ok' } },
+        },
+      },
+    })
+    const result = generateRouter(spec)
+    // The derived method name must be a valid identifier — no }.{ from mixed segment
+    expect(result.content).not.toMatch(/service\.[a-zA-Z]*\}/)
+    // A route handler must be generated
+    expect(result.content).toContain('app.get(')
+  })
+
   it('service interface reference uses title-derived name', () => {
     const spec = makeSpec({}, 'My API')
     const result = generateRouter(spec)
