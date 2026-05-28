@@ -260,6 +260,28 @@ describe('generateRouter', () => {
     expect(result.content).toContain("c.req.param('petId')")
   })
 
+  it('query param name with [] suffix is normalized to a valid TypeScript identifier', () => {
+    const spec = makeSpec({
+      '/events': {
+        get: {
+          operationId: 'listEvents',
+          parameters: [
+            { name: 'project_ids[]', in: 'query', required: false, schema: { type: 'string' } },
+            { name: 'event_types[]', in: 'query', required: false, schema: { type: 'string' } },
+          ],
+          responses: { '200': { description: 'ok' } },
+        },
+      },
+    })
+    const result = generateRouter(spec)
+    // Normalized names must be used as TypeScript property names in the params object
+    expect(result.content).toContain('projectIds')
+    expect(result.content).toContain('eventTypes')
+    // Raw names with [] must not appear in generated TypeScript
+    expect(result.content).not.toContain('project_ids[]')
+    expect(result.content).not.toContain('event_types[]')
+  })
+
   it('service interface reference uses title-derived name', () => {
     const spec = makeSpec({}, 'My API')
     const result = generateRouter(spec)

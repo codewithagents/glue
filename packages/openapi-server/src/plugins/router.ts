@@ -121,6 +121,18 @@ interface QueryParam {
   required: boolean
 }
 
+/** Normalize a raw query param name to a valid TypeScript identifier.
+ *  Strips trailing [] (array marker), converts separators to camelCase.
+ */
+function normalizeParamName(name: string): string {
+  return name
+    .replace(/\[\]$/, '')   // strip trailing []
+    .replace(/'/g, '')
+    .replace(/[^a-zA-Z0-9]+([a-zA-Z])/g, (_, char: string) => char.toUpperCase())
+    .replace(/[^a-zA-Z0-9]+$/, '')
+    .replace(/^[^a-zA-Z_$]/, '_')
+}
+
 function getQueryParams(operation: OperationObject, spec: OpenAPIV3_1.Document): QueryParam[] {
   const parameters = operation.parameters as (ParameterObject | ReferenceObject)[] | undefined
   if (parameters === undefined) return []
@@ -139,7 +151,7 @@ function getQueryParams(operation: OperationObject, spec: OpenAPIV3_1.Document):
     }
 
     result.push({
-      name: resolved.name,
+      name: normalizeParamName(resolved.name),
       tsType,
       required: resolved.required === true,
     })

@@ -299,6 +299,27 @@ describe('generateService', () => {
     expect(content).toContain('updatePet(id: string, body: UpdatePetRequest)')
   })
 
+  it('query param name with [] suffix is normalized to a valid TypeScript identifier', () => {
+    const spec = makeSpec({
+      '/events': {
+        get: makeGetOp({
+          operationId: 'listEvents',
+          queryParams: [
+            { name: 'project_ids[]', required: false },
+            { name: 'event_types[]', required: false },
+          ],
+        }),
+      },
+    })
+    const { content } = generateService(spec)
+    // [] suffix must be stripped and separators camelCased
+    expect(content).toContain('projectIds?:')
+    expect(content).toContain('eventTypes?:')
+    // Raw names with [] must not appear in generated TypeScript
+    expect(content).not.toContain('project_ids[]')
+    expect(content).not.toContain('event_types[]')
+  })
+
   it('deduplicates type imports and sorts alphabetically', () => {
     const spec = makeSpec({
       '/pets': {

@@ -46,9 +46,11 @@ function deriveOperationName(method: string, path: string): string {
   const parts = segments.split('/').map((seg) => {
     if (seg.startsWith('{') && seg.endsWith('}')) {
       const name = seg.slice(1, -1)
-      return 'By' + name.charAt(0).toUpperCase() + name.slice(1)
+      const sanitized = sanitizeOperationId(name)
+      return 'By' + sanitized.charAt(0).toUpperCase() + sanitized.slice(1)
     }
-    return seg.charAt(0).toUpperCase() + seg.slice(1)
+    const sanitized = sanitizeOperationId(seg)
+    return sanitized.charAt(0).toUpperCase() + sanitized.slice(1)
   })
 
   const joined = parts.join('')
