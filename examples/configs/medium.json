@@ -1,0 +1,5 @@
+{
+  "input_openapi": "../specs/medium.json",
+  "output": "../generated/medium",
+  "input_schema": "../generated/medium/schemas.ts"
+}

@@ -1,0 +1,5 @@
+{
+  "input_openapi": "../specs/google_bigquery.json",
+  "output": "../generated/google_bigquery",
+  "input_schema": "../generated/google_bigquery/schemas.ts"
+}

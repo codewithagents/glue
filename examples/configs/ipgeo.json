@@ -1,0 +1,5 @@
+{
+  "input_openapi": "../specs/ipgeo.json",
+  "output": "../generated/ipgeo",
+  "input_schema": "../generated/ipgeo/schemas.ts"
+}

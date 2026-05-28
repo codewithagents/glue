@@ -1,0 +1,5 @@
+{
+  "input_openapi": "../specs/worldtime.json",
+  "output": "../generated/worldtime",
+  "input_schema": "../generated/worldtime/schemas.ts"
+}

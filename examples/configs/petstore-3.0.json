@@ -1,0 +1,5 @@
+{
+  "input_openapi": "../specs/petstore-3.0.yaml",
+  "output": "../generated/petstore-3.0",
+  "input_schema": "../generated/petstore-3.0/schemas.ts"
+}

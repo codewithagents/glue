@@ -1,0 +1,5 @@
+{
+  "input_openapi": "../specs/tomtom_maps.json",
+  "output": "../generated/tomtom_maps",
+  "input_schema": "../generated/tomtom_maps/schemas.ts"
+}

@@ -1,0 +1,5 @@
+{
+  "input_openapi": "../specs/wayback.json",
+  "output": "../generated/wayback",
+  "input_schema": "../generated/wayback/schemas.ts"
+}

@@ -1,0 +1,5 @@
+{
+  "input_openapi": "../specs/reverb.json",
+  "output": "../generated/reverb",
+  "input_schema": "../generated/reverb/schemas.ts"
+}

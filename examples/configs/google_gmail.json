@@ -1,0 +1,5 @@
+{
+  "input_openapi": "../specs/google_gmail.json",
+  "output": "../generated/google_gmail",
+  "input_schema": "../generated/google_gmail/schemas.ts"
+}

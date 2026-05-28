@@ -1,0 +1,5 @@
+{
+  "input_openapi": "../specs/ebay_marketing.json",
+  "output": "../generated/ebay_marketing",
+  "input_schema": "../generated/ebay_marketing/schemas.ts"
+}

@@ -1,0 +1,5 @@
+{
+  "input_openapi": "../specs/plaid.json",
+  "output": "../generated/plaid",
+  "input_schema": "../generated/plaid/schemas.ts"
+}

@@ -1,0 +1,5 @@
+{
+  "input_openapi": "../specs/twilio.json",
+  "output": "../generated/twilio",
+  "input_schema": "../generated/twilio/schemas.ts"
+}

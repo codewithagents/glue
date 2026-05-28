@@ -1,0 +1,5 @@
+{
+  "input_openapi": "../specs/google_logging.json",
+  "output": "../generated/google_logging",
+  "input_schema": "../generated/google_logging/schemas.ts"
+}

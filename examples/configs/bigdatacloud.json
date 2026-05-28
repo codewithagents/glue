@@ -1,0 +1,5 @@
+{
+  "input_openapi": "../specs/bigdatacloud.json",
+  "output": "../generated/bigdatacloud",
+  "input_schema": "../generated/bigdatacloud/schemas.ts"
+}

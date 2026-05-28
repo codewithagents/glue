@@ -1,0 +1,5 @@
+{
+  "input_openapi": "../specs/apple_appstore.json",
+  "output": "../generated/apple_appstore",
+  "input_schema": "../generated/apple_appstore/schemas.ts"
+}

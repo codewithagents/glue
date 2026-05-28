@@ -1,0 +1,5 @@
+{
+  "input_openapi": "../specs/jira.json",
+  "output": "../generated/jira",
+  "input_schema": "../generated/jira/schemas.ts"
+}

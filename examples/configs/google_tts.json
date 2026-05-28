@@ -1,0 +1,5 @@
+{
+  "input_openapi": "../specs/google_tts.json",
+  "output": "../generated/google_tts",
+  "input_schema": "../generated/google_tts/schemas.ts"
+}

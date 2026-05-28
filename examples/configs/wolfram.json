@@ -1,0 +1,5 @@
+{
+  "input_openapi": "../specs/wolfram.json",
+  "output": "../generated/wolfram",
+  "input_schema": "../generated/wolfram/schemas.ts"
+}

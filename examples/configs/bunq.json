@@ -1,0 +1,5 @@
+{
+  "input_openapi": "../specs/bunq.json",
+  "output": "../generated/bunq",
+  "input_schema": "../generated/bunq/schemas.ts"
+}

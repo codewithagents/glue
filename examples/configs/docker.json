@@ -1,0 +1,5 @@
+{
+  "input_openapi": "../specs/docker.json",
+  "output": "../generated/docker",
+  "input_schema": "../generated/docker/schemas.ts"
+}

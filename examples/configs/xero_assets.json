@@ -1,0 +1,5 @@
+{
+  "input_openapi": "../specs/xero_assets.json",
+  "output": "../generated/xero_assets",
+  "input_schema": "../generated/xero_assets/schemas.ts"
+}

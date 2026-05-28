@@ -16,6 +16,8 @@ export class ApiError extends Error {
   }
 }
 
+type _FetchResponse = Awaited<ReturnType<typeof fetch>>
+
 async function _request(
   method: string,
   path: string,
@@ -24,7 +26,7 @@ async function _request(
     body?: unknown
   },
   config?: Partial<ClientConfig>,
-): Promise<Response> {
+): Promise<_FetchResponse> {
   const { baseUrl, headers, onError } = { ...getConfig(), ...config }
   const base = baseUrl ? baseUrl.replace(/\\/$/, '') : ''
   const qs = opts.searchParams?.toString() ?? ''

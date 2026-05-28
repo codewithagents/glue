@@ -1,0 +1,5 @@
+{
+  "input_openapi": "../specs/google_calendar.json",
+  "output": "../generated/google_calendar",
+  "input_schema": "../generated/google_calendar/schemas.ts"
+}

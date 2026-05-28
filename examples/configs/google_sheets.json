@@ -1,0 +1,5 @@
+{
+  "input_openapi": "../specs/google_sheets.json",
+  "output": "../generated/google_sheets",
+  "input_schema": "../generated/google_sheets/schemas.ts"
+}

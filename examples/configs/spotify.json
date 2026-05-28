@@ -1,0 +1,5 @@
+{
+  "input_openapi": "../specs/spotify.yaml",
+  "output": "../generated/spotify",
+  "input_schema": "../generated/spotify/schemas.ts"
+}

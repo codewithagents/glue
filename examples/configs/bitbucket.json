@@ -1,0 +1,5 @@
+{
+  "input_openapi": "../specs/bitbucket.json",
+  "output": "../generated/bitbucket",
+  "input_schema": "../generated/bitbucket/schemas.ts"
+}

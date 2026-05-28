@@ -1,0 +1,5 @@
+{
+  "input_openapi": "../specs/airflow.json",
+  "output": "../generated/airflow",
+  "input_schema": "../generated/airflow/schemas.ts"
+}

@@ -1,0 +1,5 @@
+{
+  "input_openapi": "../specs/pinecone.json",
+  "output": "../generated/pinecone",
+  "input_schema": "../generated/pinecone/schemas.ts"
+}

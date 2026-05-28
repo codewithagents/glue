@@ -1,0 +1,5 @@
+{
+  "input_openapi": "../specs/square.json",
+  "output": "../generated/square",
+  "input_schema": "../generated/square/schemas.ts"
+}

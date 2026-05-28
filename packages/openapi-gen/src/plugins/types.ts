@@ -1,5 +1,5 @@
 import type { OpenAPIV3_1 } from 'openapi-types'
-import { toPropertyKey } from '../utils/naming.js'
+import { toPropertyKey, toTypeName } from '../utils/naming.js'
 
 export interface GeneratedFile {
   filename: string
@@ -15,9 +15,9 @@ function isRef(schema: SchemaObject | ReferenceObject): schema is ReferenceObjec
 }
 
 function refToTypeName(ref: string): string {
-  // '#/components/schemas/Foo' -> 'Foo'
+  // '#/components/schemas/Foo' -> 'Foo' (sanitized to a valid TS identifier)
   const parts = ref.split('/')
-  return parts[parts.length - 1]!
+  return toTypeName(parts[parts.length - 1]!)
 }
 
 /** Feature 3: Return an inline comment for date/date-time formats, or '' for others. */
@@ -197,17 +197,20 @@ interface TypesOptions {
 }
 
 function generateSchemaDeclaration(name: string, schema: SchemaObject | ReferenceObject, options?: TypesOptions): string {
+  // Sanitize schema name to a valid TypeScript identifier (e.g. 'Foo-bar' → 'FooBar')
+  const safeName = toTypeName(name)
+
   if (isRef(schema)) {
-    return `export type ${name} = ${refToTypeName(schema.$ref)}`
+    return `export type ${safeName} = ${refToTypeName(schema.$ref)}`
   }
 
   // Schema-enhanced mode: for object schemas with a matching Zod schema, use z.infer
   if (
     options?.schemaNames !== undefined &&
-    options.schemaNames.has(`${name}Schema`) &&
+    options.schemaNames.has(`${safeName}Schema`) &&
     isObjectSchema(schema)
   ) {
-    return `export type ${name} = z.infer<typeof ${name}Schema>`
+    return `export type ${safeName} = z.infer<typeof ${safeName}Schema>`
   }
 
   if (isEnumSchema(schema)) {
@@ -218,17 +221,17 @@ function generateSchemaDeclaration(name: string, schema: SchemaObject | Referenc
         return String(v)
       })
       .join(' | ')
-    const typeDecl = `export type ${name} = ${union}`
+    const typeDecl = `export type ${safeName} = ${union}`
     // Emit a values array for pure string and pure numeric enums so consumers can
     // iterate valid values (e.g. to populate a <select>) without hardcoding them.
     // Mixed enums (string + number, or containing null) intentionally get no array.
     if (isStringEnum(schema)) {
       const arr = (schema.enum as string[]).map(v => `'${v}'`).join(', ')
-      return `${typeDecl}\nexport const ${name}Values = [${arr}] as const`
+      return `${typeDecl}\nexport const ${safeName}Values = [${arr}] as const`
     }
     if (isNumericEnum(schema)) {
       const arr = (schema.enum as number[]).join(', ')
-      return `${typeDecl}\nexport const ${name}Values = [${arr}] as const`
+      return `${typeDecl}\nexport const ${safeName}Values = [${arr}] as const`
     }
     return typeDecl
   }
@@ -245,7 +248,7 @@ function generateSchemaDeclaration(name: string, schema: SchemaObject | Referenc
       (props === undefined || Object.keys(props).length === 0)
     ) {
       const valType = schemaToTypeString(schema.additionalProperties as SchemaObject | ReferenceObject)
-      return `export type ${name} = Record<string, ${valType}>`
+      return `export type ${safeName} = Record<string, ${valType}>`
     }
 
     const propLines: string[] = []
@@ -260,9 +263,9 @@ function generateSchemaDeclaration(name: string, schema: SchemaObject | Referenc
       }
     }
     if (propLines.length === 0) {
-      return `export type ${name} = Record<string, unknown>`
+      return `export type ${safeName} = Record<string, unknown>`
     }
-    return `export interface ${name} {\n${propLines.join('\n')}\n}`
+    return `export interface ${safeName} {\n${propLines.join('\n')}\n}`
   }
 
   // Feature 5: discriminated union via oneOf/anyOf + discriminator
@@ -286,12 +289,12 @@ function generateSchemaDeclaration(name: string, schema: SchemaObject | Referenc
         return `(${typeName} & { ${propertyName}: '${literalValue}' })`
       })
     const lines = variants.map((v, i) => (i === 0 ? `  | ${v}` : `  | ${v}`))
-    return `export type ${name} =\n${lines.join('\n')}`
+    return `export type ${safeName} =\n${lines.join('\n')}`
   }
 
   // allOf / anyOf / oneOf or other -> type alias
   const typeStr = schemaToTypeString(schema)
-  return `export type ${name} = ${typeStr}`
+  return `export type ${safeName} = ${typeStr}`
 }
 
 export function generateTypes(spec: OpenAPIV3_1.Document, options?: TypesOptions): GeneratedFile {
@@ -305,8 +308,9 @@ export function generateTypes(spec: OpenAPIV3_1.Document, options?: TypesOptions
     // Schema-enhanced mode: build header with Zod imports
     const importedSchemas: string[] = []
     for (const name of Object.keys(schemas ?? {})) {
-      if (options.schemaNames.has(`${name}Schema`)) {
-        importedSchemas.push(`${name}Schema`)
+      const safeName = toTypeName(name)
+      if (options.schemaNames.has(`${safeName}Schema`)) {
+        importedSchemas.push(`${safeName}Schema`)
       }
     }
 

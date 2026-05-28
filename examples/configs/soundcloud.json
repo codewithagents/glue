@@ -1,0 +1,5 @@
+{
+  "input_openapi": "../specs/soundcloud.json",
+  "output": "../generated/soundcloud",
+  "input_schema": "../generated/soundcloud/schemas.ts"
+}

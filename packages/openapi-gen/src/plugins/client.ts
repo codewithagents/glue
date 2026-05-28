@@ -1,4 +1,5 @@
 import type { OpenAPIV3_1 } from 'openapi-types'
+import { toPropertyKey, toTypeName } from '../utils/naming.js'
 import type { GeneratedFile } from './types.js'
 
 type OperationObject = OpenAPIV3_1.OperationObject
@@ -12,8 +13,9 @@ const SUPPORTED_METHODS = ['get', 'post', 'put', 'patch', 'delete'] as const
 type SupportedMethod = (typeof SUPPORTED_METHODS)[number]
 
 function refToTypeName(ref: string): string {
+  // '#/components/schemas/Foo' -> 'Foo' (sanitized to a valid TS identifier)
   const parts = ref.split('/')
-  return parts[parts.length - 1]!
+  return toTypeName(parts[parts.length - 1]!)
 }
 
 function isRef(obj: unknown): obj is ReferenceObject {
@@ -97,6 +99,21 @@ function pathToUrlExpression(path: string): string {
   })
 }
 
+/**
+ * Converts a raw operationId (which may be kebab-case, snake_case, or mixed)
+ * into a valid camelCase JS identifier.
+ * e.g. "post-applePay-sessions" → "postApplePaySessions"
+ */
+function sanitizeOperationId(id: string): string {
+  const parts = id.split(/[-_]+/)
+  const [first = '', ...rest] = parts
+  return (
+    first.charAt(0).toLowerCase() +
+    first.slice(1) +
+    rest.map((p) => p.charAt(0).toUpperCase() + p.slice(1)).join('')
+  )
+}
+
 function deriveOperationName(method: string, path: string): string {
   const prefixMap: Record<string, string> = {
     get: 'get',
@@ -111,12 +128,13 @@ function deriveOperationName(method: string, path: string): string {
   let segments = path.replace(/^\/api\/v\d+\//, '').replace(/^\//, '')
 
   // Remove path params (e.g., {id}) — keep the segment name for "ById"
+  // toTypeName handles hyphenated segments like 'api-keys' → 'ApiKeys'
   const parts = segments.split('/').map((seg) => {
     if (seg.startsWith('{') && seg.endsWith('}')) {
       const name = seg.slice(1, -1)
       return 'By' + name.charAt(0).toUpperCase() + name.slice(1)
     }
-    return seg.charAt(0).toUpperCase() + seg.slice(1)
+    return toTypeName(seg)
   })
 
   const joined = parts.join('')
@@ -170,29 +188,65 @@ function resolveParamRef(
   return resolved as ParameterObject
 }
 
-function getPathParams(operation: OperationObject, spec: OpenAPIV3_1.Document): string[] {
-  const params = operation.parameters as (ParameterObject | ReferenceObject)[] | undefined
-  if (params === undefined) return []
-  return params
-    .map((p) => resolveParamRef(p, spec))
-    .filter((p): p is ParameterObject => p !== null && p.in === 'path')
+type PathItemObject = OpenAPIV3_1.PathItemObject
+
+/**
+ * Merge path-item and operation parameters per the OpenAPI spec:
+ * "These parameters can be overridden at the operation level, but cannot be removed there."
+ * Operation-level params win when the same (name, in) pair appears at both levels.
+ */
+function mergeParams(
+  pathItem: PathItemObject,
+  operation: OperationObject,
+  spec: OpenAPIV3_1.Document,
+): ParameterObject[] {
+  const pathItemParams = (pathItem.parameters ?? []) as (ParameterObject | ReferenceObject)[]
+  const operationParams = (operation.parameters ?? []) as (ParameterObject | ReferenceObject)[]
+
+  const resolved = [
+    ...pathItemParams.map((p) => resolveParamRef(p, spec)),
+    ...operationParams.map((p) => resolveParamRef(p, spec)),
+  ].filter((p): p is ParameterObject => p !== null)
+
+  // Deduplicate: operation-level params override path-item params with the same (name, in)
+  const seen = new Map<string, ParameterObject>()
+  for (const p of resolved) {
+    seen.set(`${p.name}::${p.in}`, p)
+  }
+  return Array.from(seen.values())
+}
+
+function getPathParams(pathItem: PathItemObject, operation: OperationObject, spec: OpenAPIV3_1.Document): string[] {
+  return mergeParams(pathItem, operation, spec)
+    .filter((p) => p.in === 'path')
     .map((p) => p.name)
 }
 
 interface QueryParam {
-  name: string
+  name: string      // sanitized TS property name (e.g. 'project_ids' from 'project_ids[]')
+  urlName: string   // original wire name for URL query string (e.g. 'project_ids[]')
   type: string
   required: boolean
 }
 
-function getQueryParams(operation: OperationObject, spec: OpenAPIV3_1.Document): QueryParam[] {
-  const params = operation.parameters as (ParameterObject | ReferenceObject)[] | undefined
-  if (params === undefined) return []
-  return params
-    .map((p) => resolveParamRef(p, spec))
-    .filter((p): p is ParameterObject => p !== null && p.in === 'query')
+/**
+ * Normalize a query parameter name to a valid TypeScript identifier.
+ * - Strips the [] suffix used by some APIs (PHP/Rails array convention): 'ids[]' → 'ids'
+ * - Converts dot/hyphen-separated names to camelCase: 'place.fields' → 'placeFields'
+ * The original name is preserved separately (as urlName) for URL query string building.
+ */
+function normalizeQueryParamName(name: string): string {
+  return name
+    .replace(/\[\]$/, '') // strip trailing [] (array marker)
+    .replace(/[.\-]+([a-zA-Z])/g, (_, char: string) => char.toUpperCase()) // camelCase dots/hyphens
+}
+
+function getQueryParams(pathItem: PathItemObject, operation: OperationObject, spec: OpenAPIV3_1.Document): QueryParam[] {
+  return mergeParams(pathItem, operation, spec)
+    .filter((p) => p.in === 'query')
     .map((p) => ({
-      name: p.name,
+      name: normalizeQueryParamName(p.name),
+      urlName: p.name,
       type: queryParamType(p.schema as SchemaObject | ReferenceObject | undefined),
       required: p.required === true,
     }))
@@ -217,12 +271,9 @@ function headerNameToCamelCase(headerName: string): string {
     .join('')
 }
 
-function getHeaderParams(operation: OperationObject, spec: OpenAPIV3_1.Document): HeaderParam[] {
-  const params = operation.parameters as (ParameterObject | ReferenceObject)[] | undefined
-  if (params === undefined) return []
-  return params
-    .map((p) => resolveParamRef(p, spec))
-    .filter((p): p is ParameterObject => p !== null && p.in === 'header')
+function getHeaderParams(pathItem: PathItemObject, operation: OperationObject, spec: OpenAPIV3_1.Document): HeaderParam[] {
+  return mergeParams(pathItem, operation, spec)
+    .filter((p) => p.in === 'header')
     .map((p) => ({
       name: headerNameToCamelCase(p.name),
       headerName: p.name,
@@ -424,6 +475,10 @@ function detectBearerAuth(spec: OpenAPIV3_1.Document): boolean {
 function generateRequestHelpers(features: HelperFeatures): string {
   const lines: string[] = []
 
+  // Use a private type alias for the global fetch Response to avoid shadowing conflicts
+  // when a spec defines a schema also named 'Response' (e.g. OpenAI's spec).
+  lines.push(`type _FetchResponse = Awaited<ReturnType<typeof fetch>>`)
+  lines.push(``)
   // ── _request ───────────────────────────────────────────────────────────────
   lines.push(`async function _request(`)
   lines.push(`  method: string,`)
@@ -434,7 +489,7 @@ function generateRequestHelpers(features: HelperFeatures): string {
   if (features.hasHeaderParams) lines.push(`    extraHeaders?: Record<string, string>`)
   lines.push(`  },`)
   lines.push(`  config?: Partial<ClientConfig>,`)
-  lines.push(`): Promise<Response> {`)
+  lines.push(`): Promise<_FetchResponse> {`)
 
   // Destructure only the config fields that are actually used
   const configFields: string[] = ['baseUrl']
@@ -480,7 +535,7 @@ function generateRequestHelpers(features: HelperFeatures): string {
     if (features.hasHeaderParams) lines.push(`    extraHeaders?: Record<string, string>`)
     lines.push(`  },`)
     lines.push(`  config?: Partial<ClientConfig>,`)
-    lines.push(`): Promise<Response> {`)
+    lines.push(`): Promise<_FetchResponse> {`)
     lines.push(`  const { ${configFields.join(', ')} } = { ...getConfig(), ...config }`)
     lines.push(`  const base = baseUrl ? baseUrl.replace(/\\/$/, '') : ''`)
     lines.push(`  const qs = opts.searchParams?.toString() ?? ''`)
@@ -541,7 +596,7 @@ function generateFunctionCode(
   // Query params + header params share the same params object
   const allParamFields: string[] = []
   for (const qp of queryParams) {
-    allParamFields.push(`  ${qp.name}${qp.required ? '' : '?'}: ${qp.type}`)
+    allParamFields.push(`  ${toPropertyKey(qp.name)}${qp.required ? '' : '?'}: ${qp.type}`)
   }
   for (const hp of headerParams) {
     allParamFields.push(`  ${hp.name}${hp.required ? '' : '?'}: ${hp.type}`)
@@ -588,9 +643,10 @@ function generateFunctionCode(
     for (const qp of queryParams) {
       if (qp.type.endsWith('[]')) {
         // Array params: use append in a loop (not set) so multiple values are preserved
-        lines.push(`  if (params?.${qp.name} != null) { for (const v of params.${qp.name}) searchParams.append('${qp.name}', String(v)) }`)
+        // Use urlName for the wire format (may differ from TS name, e.g. 'ids[]' vs 'ids')
+        lines.push(`  if (params?.${qp.name} != null) { for (const v of params.${qp.name}) searchParams.append('${qp.urlName}', String(v)) }`)
       } else {
-        lines.push(`  if (params?.${qp.name} != null) searchParams.set('${qp.name}', String(params.${qp.name}))`)
+        lines.push(`  if (params?.${qp.name} != null) searchParams.set('${qp.urlName}', String(params.${qp.name}))`)
       }
     }
   }
@@ -734,15 +790,14 @@ export function generateClient(spec: OpenAPIV3_1.Document, options?: ClientOptio
         // Derive function name
         let funcName: string
         if (operation.operationId !== undefined) {
-          const id = operation.operationId
-          funcName = id.charAt(0).toLowerCase() + id.slice(1)
+          funcName = sanitizeOperationId(operation.operationId)
         } else {
           funcName = deriveOperationName(method, path)
         }
 
-        const pathParams = getPathParams(operation, spec)
-        const queryParams = getQueryParams(operation, spec)
-        const headerParams = getHeaderParams(operation, spec)
+        const pathParams = getPathParams(pathItem, operation, spec)
+        const queryParams = getQueryParams(pathItem, operation, spec)
+        const headerParams = getHeaderParams(pathItem, operation, spec)
         const bodyInfo = getRequestBodyInfo(operation)
         const returnType = getReturnType(operation)
         const deprecated = operation.deprecated === true

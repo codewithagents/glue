@@ -1,0 +1,5 @@
+{
+  "input_openapi": "../specs/tomtom_routing.json",
+  "output": "../generated/tomtom_routing",
+  "input_schema": "../generated/tomtom_routing/schemas.ts"
+}

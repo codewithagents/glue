@@ -1,0 +1,5 @@
+{
+  "input_openapi": "../specs/bbc.json",
+  "output": "../generated/bbc",
+  "input_schema": "../generated/bbc/schemas.ts"
+}

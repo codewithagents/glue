@@ -1,0 +1,5 @@
+{
+  "input_openapi": "../specs/aws_sqs.json",
+  "output": "../generated/aws_sqs",
+  "input_schema": "../generated/aws_sqs/schemas.ts"
+}

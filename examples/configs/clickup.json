@@ -1,0 +1,5 @@
+{
+  "input_openapi": "../specs/clickup.json",
+  "output": "../generated/clickup",
+  "input_schema": "../generated/clickup/schemas.ts"
+}

@@ -1,0 +1,5 @@
+{
+  "input_openapi": "../specs/google_functions.json",
+  "output": "../generated/google_functions",
+  "input_schema": "../generated/google_functions/schemas.ts"
+}

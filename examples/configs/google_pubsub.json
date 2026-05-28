@@ -1,0 +1,5 @@
+{
+  "input_openapi": "../specs/google_pubsub.json",
+  "output": "../generated/google_pubsub",
+  "input_schema": "../generated/google_pubsub/schemas.ts"
+}

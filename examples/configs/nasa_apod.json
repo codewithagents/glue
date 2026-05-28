@@ -1,0 +1,5 @@
+{
+  "input_openapi": "../specs/nasa_apod.json",
+  "output": "../generated/nasa_apod",
+  "input_schema": "../generated/nasa_apod/schemas.ts"
+}

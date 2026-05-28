@@ -1,0 +1,5 @@
+{
+  "input_openapi": "../specs/canada_holidays.json",
+  "output": "../generated/canada_holidays",
+  "input_schema": "../generated/canada_holidays/schemas.ts"
+}

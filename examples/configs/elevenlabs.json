@@ -1,0 +1,5 @@
+{
+  "input_openapi": "../specs/elevenlabs.json",
+  "output": "../generated/elevenlabs",
+  "input_schema": "../generated/elevenlabs/schemas.ts"
+}

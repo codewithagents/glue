@@ -1,5 +1,6 @@
 import type { OpenAPIV3_1 } from 'openapi-types'
 import type { GeneratedFile } from '@codewithagents/openapi-gen'
+import { toTypeName } from '@codewithagents/openapi-gen'
 
 type OperationObject = OpenAPIV3_1.OperationObject
 type ReferenceObject = OpenAPIV3_1.ReferenceObject
@@ -60,10 +61,25 @@ function deriveServiceName(spec: OpenAPIV3_1.Document): string {
   return `${pascal}Service`
 }
 
+/**
+ * Converts a raw operationId (which may be kebab-case, snake_case, or mixed)
+ * into a valid camelCase JS identifier.
+ * e.g. "post-applePay-sessions" → "postApplePaySessions"
+ */
+function sanitizeOperationId(id: string): string {
+  const parts = id.split(/[-_]+/)
+  const [first = '', ...rest] = parts
+  return (
+    first.charAt(0).toLowerCase() +
+    first.slice(1) +
+    rest.map((p) => p.charAt(0).toUpperCase() + p.slice(1)).join('')
+  )
+}
+
 /** Derive method name from operation */
 function deriveMethodName(operationId: string | undefined, method: string, path: string): string {
   if (operationId !== undefined && operationId.length > 0) {
-    return operationId.charAt(0).toLowerCase() + operationId.slice(1)
+    return sanitizeOperationId(operationId)
   }
   return deriveOperationName(method, path)
 }
@@ -84,7 +100,7 @@ function deriveOperationName(method: string, path: string): string {
       const name = seg.slice(1, -1)
       return 'By' + name.charAt(0).toUpperCase() + name.slice(1)
     }
-    return seg.charAt(0).toUpperCase() + seg.slice(1)
+    return toTypeName(seg)
   })
 
   return prefix + parts.join('')

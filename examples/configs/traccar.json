@@ -1,0 +1,5 @@
+{
+  "input_openapi": "../specs/traccar.json",
+  "output": "../generated/traccar",
+  "input_schema": "../generated/traccar/schemas.ts"
+}

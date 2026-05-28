@@ -1,0 +1,5 @@
+{
+  "input_openapi": "../specs/github.json",
+  "output": "../generated/github",
+  "input_schema": "../generated/github/schemas.ts"
+}

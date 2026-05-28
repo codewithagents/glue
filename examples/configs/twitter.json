@@ -1,0 +1,5 @@
+{
+  "input_openapi": "../specs/twitter.json",
+  "output": "../generated/twitter",
+  "input_schema": "../generated/twitter/schemas.ts"
+}

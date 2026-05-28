@@ -1,0 +1,5 @@
+{
+  "input_openapi": "../specs/apisguru.json",
+  "output": "../generated/apisguru",
+  "input_schema": "../generated/apisguru/schemas.ts"
+}

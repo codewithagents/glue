@@ -1,0 +1,5 @@
+{
+  "input_openapi": "../specs/asana.json",
+  "output": "../generated/asana",
+  "input_schema": "../generated/asana/schemas.ts"
+}

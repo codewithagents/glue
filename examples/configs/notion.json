@@ -1,0 +1,5 @@
+{
+  "input_openapi": "../specs/notion.json",
+  "output": "../generated/notion",
+  "input_schema": "../generated/notion/schemas.ts"
+}

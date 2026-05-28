@@ -1,0 +1,5 @@
+{
+  "input_openapi": "../specs/stackexchange.json",
+  "output": "../generated/stackexchange",
+  "input_schema": "../generated/stackexchange/schemas.ts"
+}

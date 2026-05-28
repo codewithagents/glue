@@ -1,0 +1,5 @@
+{
+  "input_openapi": "../specs/vonage.json",
+  "output": "../generated/vonage",
+  "input_schema": "../generated/vonage/schemas.ts"
+}

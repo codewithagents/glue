@@ -1,0 +1,5 @@
+{
+  "input_openapi": "../specs/discourse.json",
+  "output": "../generated/discourse",
+  "input_schema": "../generated/discourse/schemas.ts"
+}

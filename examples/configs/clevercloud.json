@@ -1,0 +1,5 @@
+{
+  "input_openapi": "../specs/clevercloud.json",
+  "output": "../generated/clevercloud",
+  "input_schema": "../generated/clevercloud/schemas.ts"
+}

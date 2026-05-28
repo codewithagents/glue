@@ -1,0 +1,5 @@
+{
+  "input_openapi": "../specs/gettyimages.json",
+  "output": "../generated/gettyimages",
+  "input_schema": "../generated/gettyimages/schemas.ts"
+}

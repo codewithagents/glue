@@ -1,0 +1,5 @@
+{
+  "input_openapi": "../specs/clicksend.json",
+  "output": "../generated/clicksend",
+  "input_schema": "../generated/clicksend/schemas.ts"
+}

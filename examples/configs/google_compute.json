@@ -1,0 +1,5 @@
+{
+  "input_openapi": "../specs/google_compute.json",
+  "output": "../generated/google_compute",
+  "input_schema": "../generated/google_compute/schemas.ts"
+}

@@ -1,0 +1,5 @@
+{
+  "input_openapi": "../specs/dnd5e.json",
+  "output": "../generated/dnd5e",
+  "input_schema": "../generated/dnd5e/schemas.ts"
+}

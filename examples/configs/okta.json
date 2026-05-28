@@ -1,0 +1,5 @@
+{
+  "input_openapi": "../specs/okta.json",
+  "output": "../generated/okta",
+  "input_schema": "../generated/okta/schemas.ts"
+}

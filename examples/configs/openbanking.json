@@ -1,0 +1,5 @@
+{
+  "input_openapi": "../specs/openbanking.json",
+  "output": "../generated/openbanking",
+  "input_schema": "../generated/openbanking/schemas.ts"
+}

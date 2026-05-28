@@ -1,0 +1,5 @@
+{
+  "input_openapi": "../specs/adyen-checkout.yaml",
+  "output": "../generated/adyen-checkout",
+  "input_schema": "../generated/adyen-checkout/schemas.ts"
+}

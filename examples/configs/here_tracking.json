@@ -1,0 +1,5 @@
+{
+  "input_openapi": "../specs/here_tracking.json",
+  "output": "../generated/here_tracking",
+  "input_schema": "../generated/here_tracking/schemas.ts"
+}

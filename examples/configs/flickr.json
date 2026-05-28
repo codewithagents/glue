@@ -1,0 +1,5 @@
+{
+  "input_openapi": "../specs/flickr.json",
+  "output": "../generated/flickr",
+  "input_schema": "../generated/flickr/schemas.ts"
+}

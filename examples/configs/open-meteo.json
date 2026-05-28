@@ -1,0 +1,5 @@
+{
+  "input_openapi": "../specs/open-meteo.yaml",
+  "output": "../generated/open-meteo",
+  "input_schema": "../generated/open-meteo/schemas.ts"
+}

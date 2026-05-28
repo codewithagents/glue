@@ -1,0 +1,5 @@
+{
+  "input_openapi": "../specs/xero.json",
+  "output": "../generated/xero",
+  "input_schema": "../generated/xero/schemas.ts"
+}
