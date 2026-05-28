@@ -1,0 +1,5 @@
+{
+  "input_openapi": "../specs/docusign.json",
+  "output": "../generated/docusign",
+  "input_schema": "../generated/docusign/schemas.ts"
+}

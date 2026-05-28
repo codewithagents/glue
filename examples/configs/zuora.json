@@ -1,0 +1,5 @@
+{
+  "input_openapi": "../specs/zuora.json",
+  "output": "../generated/zuora",
+  "input_schema": "../generated/zuora/schemas.ts"
+}

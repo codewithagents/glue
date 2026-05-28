@@ -1,0 +1,5 @@
+{
+  "input_openapi": "../specs/google_vision.json",
+  "output": "../generated/google_vision",
+  "input_schema": "../generated/google_vision/schemas.ts"
+}

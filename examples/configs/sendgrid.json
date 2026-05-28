@@ -1,0 +1,5 @@
+{
+  "input_openapi": "../specs/sendgrid.json",
+  "output": "../generated/sendgrid",
+  "input_schema": "../generated/sendgrid/schemas.ts"
+}

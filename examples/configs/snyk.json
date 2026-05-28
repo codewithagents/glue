@@ -1,0 +1,5 @@
+{
+  "input_openapi": "../specs/snyk.json",
+  "output": "../generated/snyk",
+  "input_schema": "../generated/snyk/schemas.ts"
+}

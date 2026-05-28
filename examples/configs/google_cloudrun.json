@@ -1,0 +1,5 @@
+{
+  "input_openapi": "../specs/google_cloudrun.json",
+  "output": "../generated/google_cloudrun",
+  "input_schema": "../generated/google_cloudrun/schemas.ts"
+}

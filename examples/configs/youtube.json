@@ -1,0 +1,5 @@
+{
+  "input_openapi": "../specs/youtube.json",
+  "output": "../generated/youtube",
+  "input_schema": "../generated/youtube/schemas.ts"
+}

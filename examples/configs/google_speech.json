@@ -1,0 +1,5 @@
+{
+  "input_openapi": "../specs/google_speech.json",
+  "output": "../generated/google_speech",
+  "input_schema": "../generated/google_speech/schemas.ts"
+}

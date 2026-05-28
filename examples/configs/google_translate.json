@@ -1,0 +1,5 @@
+{
+  "input_openapi": "../specs/google_translate.json",
+  "output": "../generated/google_translate",
+  "input_schema": "../generated/google_translate/schemas.ts"
+}

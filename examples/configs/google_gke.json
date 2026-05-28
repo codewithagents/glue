@@ -1,0 +1,5 @@
+{
+  "input_openapi": "../specs/google_gke.json",
+  "output": "../generated/google_gke",
+  "input_schema": "../generated/google_gke/schemas.ts"
+}

@@ -1,0 +1,5 @@
+{
+  "input_openapi": "../specs/braze.json",
+  "output": "../generated/braze",
+  "input_schema": "../generated/braze/schemas.ts"
+}

@@ -1,0 +1,5 @@
+{
+  "input_openapi": "../specs/box.json",
+  "output": "../generated/box",
+  "input_schema": "../generated/box/schemas.ts"
+}
