@@ -43,7 +43,7 @@ jobs:
 
           for config in configs/*.json; do
             name=$(basename "$config" .json)
-            if node_modules/.bin/openapi-gen --config "$config" > /tmp/gen_${name}.log 2>&1; then
+            if pnpm exec openapi-gen --config "$config" > /tmp/gen_${name}.log 2>&1; then
               echo "PASS: $name"
               pass=$((pass + 1))
             else
