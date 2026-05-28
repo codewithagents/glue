@@ -1,8 +1,12 @@
 # @codewithagents/openapi-server
 
+[![npm](https://img.shields.io/npm/v/@codewithagents/openapi-server.svg)](https://npmjs.com/package/@codewithagents/openapi-server)
+[![codecov](https://codecov.io/gh/codewithagents/glue/graph/badge.svg?flag=openapi-server)](https://codecov.io/gh/codewithagents/glue)
+
 Generate a typed server-side service interface and a [Hono](https://hono.dev) router from an OpenAPI 3.1 spec.
 
 - **Type-safe contract** — a TypeScript interface derived directly from your spec. The compiler tells you if your implementation drifts.
+- **Prettier-clean output** — every generated file passes `prettier --check` out of the box. Commit it, lint it, ship it.
 - **Zero boilerplate routing** — a ready-to-mount Hono router that extracts path params, query params, and request bodies, then delegates to your service.
 - **OpenAPI 3.1 only** — `$ref`, `allOf`, `anyOf`, `oneOf`, `type: ['string', 'null']`. No legacy compat.
 - **TypeScript strict mode** — all output passes `strict: true`.

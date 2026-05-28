@@ -1,8 +1,12 @@
 # @codewithagents/openapi-gen
 
+[![npm](https://img.shields.io/npm/v/@codewithagents/openapi-gen.svg)](https://npmjs.com/package/@codewithagents/openapi-gen)
+[![codecov](https://codecov.io/gh/codewithagents/glue/graph/badge.svg?flag=openapi-gen)](https://codecov.io/gh/codewithagents/glue)
+
 Generate TypeScript models and a native `fetch` client from an OpenAPI 3.1 spec.
 
 - **Zero runtime footprint** — generated code uses only `fetch`. No axios, no wrapper libraries.
+- **Prettier-clean output** — every generated file passes `prettier --check` out of the box. Commit it, lint it, ship it.
 - **SSR-ready** — every generated function accepts a per-request config override. No global singleton mutation.
 - **OpenAPI 3.1 only** — `type: ['string', 'null']`, `$ref`, `allOf`, `anyOf`, `oneOf`. No legacy compat.
 - **TypeScript strict mode** — all output passes `strict: true`.
@@ -277,6 +281,15 @@ export const CreatePetFormSchema = CreatePetRequestSchema.extend({
 
 ---
 
-## Roadmap
+## Ecosystem
 
-- **`@codewithagents/openapi-gen-react-query`** — separate package generating React Query v5 `queryOptions` + `useMutation` hooks on top of the generated client.
+These packages work together — all driven from the same OpenAPI 3.1 spec:
+
+| Package | What it generates |
+|---|---|
+| **`@codewithagents/openapi-gen`** | TypeScript models + native fetch client + Zod schemas |
+| [`@codewithagents/openapi-react-query`](https://www.npmjs.com/package/@codewithagents/openapi-react-query) | React Query v5 hooks (`useQuery`, `useMutation`, key factories) |
+| [`@codewithagents/openapi-server`](https://www.npmjs.com/package/@codewithagents/openapi-server) | Hono router + typed service interface |
+| [`@codewithagents/api-errors`](https://www.npmjs.com/package/@codewithagents/api-errors) | Maps API error responses to form field errors |
+
+See the [petstore demo](https://github.com/codewithagents/glue/tree/main/packages/petstore) for a full-stack example using all four packages together.

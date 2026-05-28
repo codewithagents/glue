@@ -5,7 +5,9 @@
 
 Generate typed [React Query v5](https://tanstack.com/query/v5) hooks from an OpenAPI 3.1 spec. Run once, get a fully typed `useQuery` hook per GET endpoint and a `useMutation` hook per write operation — no hand-written boilerplate.
 
-Works alongside [`@codewithagents/openapi-gen`](../openapi-gen) which generates the underlying typed fetch client.
+Works alongside [`@codewithagents/openapi-gen`](https://www.npmjs.com/package/@codewithagents/openapi-gen) which generates the underlying typed fetch client. All generated files are **Prettier-clean** out of the box — commit them without running a formatter.
+
+See the [petstore demo](https://github.com/codewithagents/glue/tree/main/packages/petstore) for a full-stack example combining all four packages.
 
 ## Install
 
