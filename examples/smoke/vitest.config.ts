@@ -5,7 +5,7 @@ export default defineConfig({
     include: ['smoke/**/*.test.ts'],
     // Sequential — never run smoke tests in parallel (rate limiting + shared configureClient state)
     pool: 'forks',
-    poolOptions: { forks: { singleFork: true } },
+    singleFork: true,
     // Real network: generous timeout per test
     testTimeout: 15_000,
     // Retry once on flaky network
