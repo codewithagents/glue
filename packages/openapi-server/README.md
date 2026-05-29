@@ -1,16 +1,18 @@
 # @codewithagents/openapi-server
 
 [![npm](https://img.shields.io/npm/v/@codewithagents/openapi-server.svg)](https://npmjs.com/package/@codewithagents/openapi-server)
+[![CI](https://github.com/codewithagents/glue/actions/workflows/ci.yml/badge.svg)](https://github.com/codewithagents/glue/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/codewithagents/glue/graph/badge.svg?flag=openapi-server)](https://codecov.io/gh/codewithagents/glue)
+[![CodeQL](https://github.com/codewithagents/glue/actions/workflows/codeql.yml/badge.svg)](https://github.com/codewithagents/glue/actions/workflows/codeql.yml)
 
-Generate a typed service interface from your OpenAPI 3.x spec. Framework-agnostic by design — wire it to Hono, Express, Fastify, or any router you already use.
+Generate a typed service interface from your OpenAPI 3.x spec. Framework-agnostic by design: wire it to Hono, Express, Fastify, or any router you already use.
 
-- **Framework-agnostic service interface** — `service.ts` is a plain TypeScript interface with no framework imports. Implement it however you want: Hono, Express, Fastify, Koa, plain `http`, Bun, Deno — anything.
-- **Optional router scaffolding** — set `"framework": "hono"` and get a ready-to-mount Hono router as a starting point. Set `"framework": "none"` and wire the interface yourself. The generated code only ever imports what you already have.
-- **Type-safe contract** — the compiler tells you if your implementation drifts from the spec. Add an endpoint in the spec and forget to implement it: TypeScript fails the build.
-- **Prettier-clean output** — every generated file passes `prettier --check` out of the box.
-- **OpenAPI 3.x** — 3.1.x primary target, 3.0.x best-effort. Full support for `$ref`, `allOf`, `anyOf`, `oneOf`, `nullable`.
-- **TypeScript strict mode** — all output passes `strict: true`.
+- **Framework-agnostic service interface**: `service.ts` is a plain TypeScript interface with no framework imports. Implement it however you want: Hono, Express, Fastify, Koa, plain `http`, Bun, Deno, or anything else.
+- **Optional router scaffolding**: set `"framework": "hono"` and get a ready-to-mount Hono router as a starting point. Set `"framework": "none"` and wire the interface yourself. The generated code only ever imports what you already have.
+- **Type-safe contract**: the compiler tells you if your implementation drifts from the spec. Add an endpoint in the spec and forget to implement it. TypeScript fails the build.
+- **Prettier-clean output**: every generated file passes `prettier --check` out of the box.
+- **OpenAPI 3.x**: 3.1.x primary target, 3.0.x best-effort. Full support for `$ref`, `allOf`, `anyOf`, `oneOf`, `nullable`.
+- **TypeScript strict mode**: all output passes `strict: true`.
 
 ---
 
@@ -22,7 +24,7 @@ pnpm add -D @codewithagents/openapi-server
 npm install -D @codewithagents/openapi-server
 ```
 
-Requires [`@codewithagents/openapi-gen`](../openapi-gen) — run both generators together.
+Requires [`@codewithagents/openapi-gen`](../openapi-gen). Run both generators together.
 
 ---
 
@@ -48,8 +50,8 @@ npx openapi-server
 
 | File | What it contains |
 |---|---|
-| `service.ts` | TypeScript interface — one method per API operation |
-| `router.ts` | `createRouter(service)` factory — mounts every route on a Hono app |
+| `service.ts` | TypeScript interface, one method per API operation |
+| `router.ts` | `createRouter(service)` factory, mounts every route on a Hono app |
 
 Run `openapi-gen` first (or together) so `models.ts` exists before `service.ts` imports from it:
 
@@ -133,7 +135,7 @@ The router handles:
 - Path params: `{id}` → `:id` (Hono style), extracted via `c.req.param()`
 - Query params: extracted and typed (`string`, `number`, `boolean`)
 - Request bodies: parsed via `c.req.json<T>()` with the correct model type
-- Response status: `200` for GET, `201` for POST, `204` for DELETE — derived from your spec
+- Response status: `200` for GET, `201` for POST, `204` for DELETE, derived from your spec
 
 ---
 
@@ -207,19 +209,19 @@ serve({ fetch: app.fetch, port: 3001 })
 
 ```json
 {
-  "input_openapi": "./spec/api.json",       // required — path to OpenAPI 3.x spec (JSON or YAML)
-  "output": "./generated",                  // required — directory to write generated files
-  "framework": "hono",                      // optional — router target (default: "hono")
-  "input_schema": "./generated/schemas.ts"  // optional — Zod schema file for request validation
+  "input_openapi": "./spec/api.json",       // required: path to OpenAPI 3.x spec (JSON or YAML)
+  "output": "./generated",                  // required: directory to write generated files
+  "framework": "hono",                      // optional: router target (default: "hono")
+  "input_schema": "./generated/schemas.ts"  // optional: Zod schema file for request validation
 }
 ```
 
 | Field | Required | Default | Description |
 |---|---|---|---|
-| `input_openapi` | Yes | — | Path to OpenAPI 3.x spec |
-| `output` | Yes | — | Directory to write `service.ts` and `router.ts` |
+| `input_openapi` | Yes | n/a | Path to OpenAPI 3.x spec |
+| `output` | Yes | n/a | Directory to write `service.ts` and `router.ts` |
 | `framework` | No | `"hono"` | Router framework to generate. Use `"none"` to generate only `service.ts` |
-| `input_schema` | No | — | Path to user-owned Zod schema file. Enables server-side request validation (see below) |
+| `input_schema` | No | none | Path to user-owned Zod schema file. Enables server-side request validation (see below) |
 
 Use `--config <path>` to point at a config file in a different location:
 
@@ -270,9 +272,9 @@ Invalid requests get a structured `422` response instead of reaching your servic
 }
 ```
 
-**Same schemas, both sides of the wire** — `openapi-gen` validates outgoing requests in the browser; `openapi-server` validates incoming requests on the server. One `schemas.ts`, one source of truth.
+**Same schemas, both sides of the wire**: `openapi-gen` validates outgoing requests in the browser; `openapi-server` validates incoming requests on the server. One `schemas.ts`, one source of truth.
 
-**Drift detection** — if schemas diverge from the spec (extra schema, missing schema), the generator warns to stderr. Builds still succeed — the warning is advisory.
+**Drift detection**: if schemas diverge from the spec (extra schema, missing schema), the generator warns to stderr. Builds still succeed; the warning is advisory.
 
 ---
 
@@ -285,6 +287,6 @@ Invalid requests get a structured `422` response instead of reaching your servic
 | Value | What you get |
 |---|---|
 | `"none"` | Only `service.ts`. Wire the interface to Express, Fastify, Koa, plain Node `http`, Bun, Deno, or anything else yourself. |
-| `"hono"` | `service.ts` + a ready-to-mount `router.ts` using [Hono](https://hono.dev). Hono must be in your own `dependencies` — this package adds nothing. |
+| `"hono"` | `service.ts` + a ready-to-mount `router.ts` using [Hono](https://hono.dev). Hono must be in your own `dependencies`; this package adds nothing. |
 
 More router targets (Express, Fastify) are planned. The `"none"` path is always available and keeps the zero-footprint promise: the generated code has no runtime dependencies that you did not already choose.

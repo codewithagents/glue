@@ -1,16 +1,35 @@
 # @codewithagents/openapi-gen
 
 [![npm](https://img.shields.io/npm/v/@codewithagents/openapi-gen.svg)](https://npmjs.com/package/@codewithagents/openapi-gen)
+[![CI](https://github.com/codewithagents/glue/actions/workflows/ci.yml/badge.svg)](https://github.com/codewithagents/glue/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/codewithagents/glue/graph/badge.svg?flag=openapi-gen)](https://codecov.io/gh/codewithagents/glue)
+[![CodeQL](https://github.com/codewithagents/glue/actions/workflows/codeql.yml/badge.svg)](https://github.com/codewithagents/glue/actions/workflows/codeql.yml)
 
-Generate TypeScript models and a native `fetch` client from an OpenAPI 3.x spec.
+Generate TypeScript types, a typed native `fetch` client, and Zod validation from your OpenAPI spec. Zero runtime footprint. Part of a full-pipeline suite tested against 128 real-world specs.
 
-- **Zero runtime footprint** — generated code uses only `fetch`. No axios, no wrapper libraries.
-- **Prettier-clean output** — every generated file passes `prettier --check` out of the box. Commit it, lint it, ship it.
-- **SSR-ready** — every generated function accepts a per-request config override. No global singleton mutation.
-- **OpenAPI 3.x** — 3.1.x primary target (3.1.1 supported), 3.0.x best-effort. Full support for `$ref`, `allOf`, `anyOf`, `oneOf`, `nullable`.
-- **TypeScript strict mode** — all output passes `strict: true`.
-- **Tested against 128 real-world specs** — Stripe, GitHub, Spotify, OpenAI, Adyen, Twilio, Slack, Vercel, and more. See the [`examples/`](../../examples/) directory.
+- **Tested against 128 real-world specs**: Stripe, GitHub, Spotify, OpenAI, Adyen, Twilio, Slack, Vercel, and more generate without errors on every PR. See the [`examples/`](../../examples/) directory.
+- **Zero runtime footprint**: generated code uses only `fetch`. No axios, no wrapper libraries.
+- **Prettier-clean output**: every generated file passes `prettier --check` out of the box. Commit it, lint it, ship it.
+- **SSR-ready**: every generated function accepts a per-request config override. No global singleton mutation.
+- **OpenAPI 3.x**: 3.1.x primary target (3.1.1 supported), 3.0.x best-effort. Full support for `$ref`, `allOf`, `anyOf`, `oneOf`, `nullable`.
+- **TypeScript strict mode**: all output passes `strict: true`.
+
+---
+
+## Why choose this?
+
+Most OpenAPI generators either produce types only (you still need to write the fetch calls yourself) or add framework weight such as axios adapters and runtime wrappers. `@codewithagents/openapi-gen` generates a complete, ready-to-use typed `fetch` client alongside the types, with nothing added to your runtime bundle.
+
+It is also the foundation of a full pipeline. Combine it with [`@codewithagents/openapi-react-query`](https://npmjs.com/package/@codewithagents/openapi-react-query) for React Query hooks and [`@codewithagents/openapi-server`](https://npmjs.com/package/@codewithagents/openapi-server) for a typed server interface. All three share one spec and one output directory.
+
+| Package | What it generates |
+|---|---|
+| **`@codewithagents/openapi-gen`** | TypeScript types + native `fetch` client + Zod validation |
+| [`@codewithagents/openapi-react-query`](https://npmjs.com/package/@codewithagents/openapi-react-query) | React Query v5 hooks (`useQuery`, `useMutation`, key factories) |
+| [`@codewithagents/openapi-server`](https://npmjs.com/package/@codewithagents/openapi-server) | Framework-agnostic service interface + optional Hono router |
+| [`@codewithagents/api-errors`](https://npmjs.com/package/@codewithagents/api-errors) | Maps API error responses to form field errors |
+
+See the [petstore demo](https://github.com/codewithagents/glue/tree/main/packages/petstore) for a full-stack example using all four packages.
 
 ---
 
@@ -46,9 +65,9 @@ npx openapi-gen
 | File | What it contains |
 |---|---|
 | `models.ts` | TypeScript types for every schema in `components.schemas` |
-| `client-config.ts` | `configureClient()` — call once at startup to set your base URL and auth |
+| `client-config.ts` | `configureClient()`: call once at startup to set base URL and auth |
 | `client.ts` | One `async function` per API operation, using native `fetch` |
-| `server.ts` *(optional)* | `createServerClient()` factory — generated when `server_client: true` |
+| `server.ts` *(optional)* | `createServerClient()` factory, generated when `server_client: true` |
 
 ---
 
@@ -98,7 +117,7 @@ import { configureClient } from './src/api/client-config'
 
 configureClient({
   baseUrl: 'https://api.example.com',
-  token: () => getAccessToken(),   // sync or async — called per request
+  token: () => getAccessToken(),   // sync or async, called per request
   credentials: 'omit',
 })
 ```
@@ -116,7 +135,7 @@ configureClient({
 
 ## SSR support (Next.js, Remix, RSC)
 
-Every generated function accepts an optional `config` override as its last parameter. This merges with the global config for that single call — no singleton mutation, safe for concurrent server requests.
+Every generated function accepts an optional `config` override as its last parameter. This merges with the global config for that single call, with no singleton mutation and safe for concurrent server requests.
 
 ```typescript
 // app/tasks/page.tsx (Next.js Server Component)
@@ -137,15 +156,15 @@ export default async function TasksPage() {
 ```
 
 ```typescript
-// Client component — uses global config set at startup, no override needed
+// Client component: uses global config set at startup, no override needed
 const tasks = await getTasks({ page: 1 })
 ```
 
 ---
 
-## Next.js RSC — server client factory
+## Next.js RSC: server client factory
 
-When `server_client: true` in config, the generator also writes `server.ts` alongside the other files. It exports `createServerClient()` — a factory that pre-binds a per-request `ClientConfig` to every function:
+When `server_client: true` in config, the generator also writes `server.ts` alongside the other files. It exports `createServerClient()`, a factory that pre-binds a per-request `ClientConfig` to every function:
 
 ```ts
 // Generated: src/api/server.ts
@@ -180,7 +199,7 @@ export default async function TasksPage() {
 }
 ```
 
-Without this, you'd pass config to every call manually. With it, bind once per request, call freely.
+Without this, you would pass config to every call manually. With it, bind once per request and call freely.
 
 ---
 
@@ -190,11 +209,11 @@ Without this, you'd pass config to every call manually. With it, bind once per r
 
 ```json
 {
-  "input_openapi": "./openapi.json",   // required
-  "output": "./src/api",               // required
-  "input_schema": "./src/api/zod.ts",  // optional — Zod bootstrap (write-once)
-  "baseUrl": "https://api.example.com", // optional — sets default base URL in generated client-config
-  "server_client": false               // optional — generate server.ts factory (default: false)
+  "input_openapi": "./openapi.json",    // required
+  "output": "./src/api",                // required
+  "input_schema": "./src/api/zod.ts",   // optional: Zod bootstrap file (write-once, never overwritten)
+  "baseUrl": "https://api.example.com", // optional: sets default base URL in generated client-config
+  "server_client": false                // optional: generate server.ts factory (default: false)
 }
 ```
 
@@ -222,7 +241,7 @@ try {
 
 Point `input_schema` at a user-owned Zod schema file and the generator upgrades its output:
 
-**1. Bootstrap once** — if the file doesn't exist yet, `openapi-gen` writes a `schemas.ts` for you:
+**1. Bootstrap once**: if the file doesn't exist yet, `openapi-gen` writes a `schemas.ts` for you:
 
 ```ts
 // generated/schemas.ts  (bootstrapped, then yours to edit)
@@ -238,7 +257,7 @@ export const CreatePetRequestSchema = z.object({
 })
 ```
 
-**2. Add your rules** — refine freely. The file is never overwritten:
+**2. Add your rules**: refine freely. The file is never overwritten:
 
 ```ts
 export const CreatePetRequestSchema = z.object({
@@ -247,7 +266,7 @@ export const CreatePetRequestSchema = z.object({
 })
 ```
 
-**3. Re-run the generator** — `models.ts` switches to `z.infer<>` types, `client.ts` adds runtime validation:
+**3. Re-run the generator**: `models.ts` switches to `z.infer<>` types, `client.ts` adds runtime validation:
 
 ```ts
 // models.ts (regenerated)
@@ -258,7 +277,7 @@ export type CreatePetRequest = z.infer<typeof CreatePetRequestSchema>
 ```
 
 ```ts
-// client.ts (regenerated) — pre-send and post-receive validation
+// client.ts (regenerated): pre-send and post-receive validation
 export async function createPet(body: CreatePetRequest): Promise<Pet> {
   const validatedBody = CreatePetRequestSchema.strip().parse(body)  // strips UI-only fields
   const res = await fetch(...)
@@ -266,10 +285,10 @@ export async function createPet(body: CreatePetRequest): Promise<Pet> {
 }
 ```
 
-**Form wizard pattern** — extend API schemas for UI-only fields without leaking them to the backend:
+**Form wizard pattern**: extend API schemas for UI-only fields without leaking them to the backend:
 
 ```ts
-// Your form schema — adds step + confirmTerms on top of the API schema
+// Your form schema: adds step + confirmTerms on top of the API schema
 export const CreatePetFormSchema = CreatePetRequestSchema.extend({
   step: z.number(),
   confirmTerms: z.boolean(),
@@ -278,19 +297,19 @@ export const CreatePetFormSchema = CreatePetRequestSchema.extend({
 // The generated client calls .strip().parse() before sending, so step and confirmTerms never reach the API.
 ```
 
-**Drift detection** — if you add a schema to `schemas.ts` that has no matching component in the spec (or vice versa), the generator warns to stderr. Your build still succeeds — the warning is advisory.
+**Drift detection**: if you add a schema to `schemas.ts` that has no matching component in the spec (or vice versa), the generator warns to stderr. Your build still succeeds; the warning is advisory.
 
 ---
 
 ## Ecosystem
 
-These packages work together — all driven from the same OpenAPI 3.x spec:
+These packages work together, all driven from the same OpenAPI 3.x spec:
 
 | Package | What it generates |
 |---|---|
 | **`@codewithagents/openapi-gen`** | TypeScript models + native fetch client + Zod schemas |
 | [`@codewithagents/openapi-react-query`](https://www.npmjs.com/package/@codewithagents/openapi-react-query) | React Query v5 hooks (`useQuery`, `useMutation`, key factories) |
-| [`@codewithagents/openapi-server`](https://www.npmjs.com/package/@codewithagents/openapi-server) | Hono router + typed service interface |
+| [`@codewithagents/openapi-server`](https://www.npmjs.com/package/@codewithagents/openapi-server) | Framework-agnostic service interface + optional Hono router |
 | [`@codewithagents/api-errors`](https://www.npmjs.com/package/@codewithagents/api-errors) | Maps API error responses to form field errors |
 
 See the [petstore demo](https://github.com/codewithagents/glue/tree/main/packages/petstore) for a full-stack example using all four packages together.
