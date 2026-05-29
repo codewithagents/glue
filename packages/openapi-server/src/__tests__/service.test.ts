@@ -383,3 +383,170 @@ describe('generateService', () => {
     expect(petCount).toBe(1)
   })
 })
+
+describe('coverage: requestBody as $ref — body param is omitted from service method', () => {
+  it('requestBody $ref produces a service method without a typed body param', () => {
+    // Covers the `if (isRef(requestBody)) return { typeName: undefined }` branch in getBodyInfo
+    const spec = makeSpec({
+      '/items': {
+        post: {
+          operationId: 'createItem',
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          requestBody: { $ref: '#/components/requestBodies/ItemBody' } as any,
+          responses: { '201': { description: 'created' } },
+        },
+      },
+    })
+    const { content } = generateService(spec)
+    expect(content).toContain('createItem(')
+    // requestBody is a $ref (unresolvable) so body has no named model type — falls back to unknown
+    expect(content).toContain('body: unknown')
+  })
+})
+
+describe('coverage: 200/$ref response — getReturnInfo falls through to void', () => {
+  it('$ref 200 response is skipped and return type falls back to Promise<void>', () => {
+    // Covers the `if (isRef(response)) continue` branch in getReturnInfo
+    const spec = makeSpec({
+      '/items/{id}': {
+        get: {
+          operationId: 'getItem',
+          parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }],
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          responses: { '200': { $ref: '#/components/responses/ItemResponse' } as any },
+        },
+      },
+    })
+    const { content } = generateService(spec)
+    expect(content).toContain('getItem(')
+    expect(content).toContain('Promise<void>')
+  })
+})
+
+describe('coverage: spec.info without title — service name falls back to ApiService', () => {
+  it('spec with no title generates ApiService interface name', () => {
+    // Covers the `spec.info?.title ?? ''` null-coalescing branch and `pascal.length === 0` fallback
+    const spec: OpenAPIV3_1.Document = {
+      openapi: '3.1.0',
+      info: { version: '1.0.0' } as OpenAPIV3_1.InfoObject,
+      paths: {},
+    }
+    const { content } = generateService(spec)
+    expect(content).toContain('export interface ApiService')
+  })
+})
+
+describe('coverage: sanitizeOperationId — all-punctuation operationId returns unknown', () => {
+  it('operationId consisting entirely of non-alphanumeric characters → unknown method name', () => {
+    // Covers `if (parts.length === 0) return 'unknown'` in sanitizeOperationId (service.ts line ~80)
+    const spec = makeSpec({
+      '/items': {
+        get: {
+          operationId: '---',
+          responses: { '200': { description: 'ok' } },
+        },
+      },
+    })
+    const { content } = generateService(spec)
+    expect(content).toContain('unknown(')
+  })
+})
+
+describe('coverage: operationId starting with a digit — prefixed with underscore', () => {
+  it('operationId that begins with a digit is prefixed with _ to be a valid JS identifier', () => {
+    // Covers the `/^[0-9]/.test(camel) ? `_${camel}` : camel` true branch in sanitizeOperationId
+    const spec = makeSpec({
+      '/items': {
+        get: {
+          operationId: '123getItems',
+          responses: { '200': { description: 'ok' } },
+        },
+      },
+    })
+    const { content } = generateService(spec)
+    expect(content).toContain('_123getItems(')
+  })
+})
+
+describe('coverage: requestBody with no content property in service — body is omitted', () => {
+  it('requestBody without content generates a method without a typed body param', () => {
+    // Covers `if (content === undefined) return { typeName: undefined }` in getBodyInfo (service.ts)
+    const spec = makeSpec({
+      '/items': {
+        post: {
+          operationId: 'createItem',
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          requestBody: { required: true } as any, // no content property
+          responses: { '201': { description: 'created' } },
+        },
+      },
+    })
+    const { content } = generateService(spec)
+    expect(content).toContain('createItem(')
+    expect(content).toContain('body: unknown')
+  })
+})
+
+describe('coverage: operation with no responses in service — returns Promise<void>', () => {
+  it('operation without a responses property generates Promise<void> return type', () => {
+    // Covers `if (responses === undefined) return { typeName: undefined, isArray: false, isVoid: true }` in getReturnInfo
+    const spec = makeSpec({
+      '/items': {
+        get: {
+          operationId: 'listItems',
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } as any, // no responses property
+      },
+    })
+    const { content } = generateService(spec)
+    expect(content).toContain('listItems(')
+    expect(content).toContain('Promise<void>')
+  })
+})
+
+describe('coverage: spec with paths=undefined in service — generates empty interface', () => {
+  it('spec without a paths property generates an empty service interface', () => {
+    // Covers `if (paths === undefined) return []` in collectOperations (service.ts)
+    const spec = {
+      openapi: '3.1.0',
+      info: { title: 'Empty', version: '1.0.0' },
+      // no paths property
+    } as OpenAPIV3_1.Document
+    const { content } = generateService(spec)
+    expect(content).toContain('export interface EmptyService')
+    // No method signatures since there are no operations
+    expect(content).not.toContain('(')
+  })
+})
+
+describe('coverage: resolveParamRef — component parameter that is itself a $ref', () => {
+  it('parameter component that is a $ref is treated as unresolvable (no expansion)', () => {
+    // Covers the `isRef(resolved)` branch in resolveParamRef — double-indirection ref
+    const spec: OpenAPIV3_1.Document = {
+      openapi: '3.1.0',
+      info: { title: 'Test API', version: '1.0.0' },
+      paths: {
+        '/items': {
+          get: {
+            operationId: 'listItems',
+            parameters: [
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              { $ref: '#/components/parameters/FilterParam' } as any,
+            ],
+            responses: { '200': { description: 'ok' } },
+          },
+        },
+      },
+      components: {
+        parameters: {
+          // This parameter is itself a $ref — double indirection, treated as unresolvable
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          FilterParam: { $ref: '#/components/parameters/BaseFilter' } as any,
+        },
+      },
+    }
+    const { content } = generateService(spec)
+    // The operation is still generated, just without the unresolvable query param
+    expect(content).toContain('listItems(')
+  })
+})

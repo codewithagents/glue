@@ -95,6 +95,12 @@ describe('extractFieldErrors — Spring Boot array format', () => {
       { field: 'email', message: 'bad' },
     ])
   })
+
+  it('returns [] when errors array contains only non-object items', () => {
+    // Covers the `result.length > 0 ? result : null` null branch — tryParseSpringArray returns null
+    // when all items are non-objects (skipped), causing fallthrough to other parsers which also return null
+    expect(extractFieldErrors({ errors: [null, 42, 'string'] })).toEqual([])
+  })
 })
 
 // ---------------------------------------------------------------------------
@@ -153,6 +159,20 @@ describe('extractFieldErrors — flat array format', () => {
 
   it('returns [] when all items are missing a message', () => {
     expect(extractFieldErrors([{ field: 'email' }, { field: 'name' }])).toEqual([])
+  })
+
+  it('skips non-object items in the array', () => {
+    // Covers the `!isObject(item) → continue` branch in tryParseFlatArray
+    expect(
+      extractFieldErrors([null, 42, { field: 'email', message: 'Invalid' }]),
+    ).toEqual([{ field: 'email', message: 'Invalid' }])
+  })
+
+  it('uses fallbackField when item has no string field key', () => {
+    // Covers the `typeof item['field'] === 'string' ? field : fallbackField` false branch
+    expect(
+      extractFieldErrors([{ message: 'Required' }], { fallbackField: 'base' }),
+    ).toEqual([{ field: 'base', message: 'Required' }])
   })
 })
 
@@ -343,6 +363,22 @@ describe('extractFieldErrors — statusCodes filtering', () => {
       { field: 'email', message: 'Invalid' },
     ])
   })
+
+  it('proceeds normally when error is not an object (non-object error with statusCodes)', () => {
+    // Covers the `if (isObject(error))` false branch — status stays undefined → no filtering
+    expect(extractFieldErrors(null, { statusCodes: [422] })).toEqual([])
+    expect(extractFieldErrors('raw string error', { statusCodes: [422] })).toEqual([])
+  })
+
+  it('does not extract status when response.status is not a number', () => {
+    // Covers the `typeof r['status'] === 'number'` false branch in Axios-style detection
+    // response is an object but status is not numeric → status stays undefined → no filtering
+    const err = { response: { status: 'not-a-number', data: { errors: { email: ['Invalid'] } } } }
+    // status stays undefined → statusCodes filter is bypassed → errors are extracted normally
+    expect(extractFieldErrors(err, { statusCodes: [422] })).toEqual([
+      { field: 'email', message: 'Invalid' },
+    ])
+  })
 })
 
 // ---------------------------------------------------------------------------
@@ -449,5 +485,17 @@ describe('extractFieldErrors — ApiError body unwrapping', () => {
     expect(
       extractFieldErrors(apiError, { transformField: (f) => f.replace(/([A-Z])/g, '.$1').toLowerCase() }),
     ).toEqual([{ field: 'email.address', message: 'invalid' }])
+  })
+
+  it('returns [] when transformField throws during field mapping', () => {
+    // Triggers the outer catch block — any unhandled exception in the parse path returns []
+    const body = { errors: { email: ['invalid'] } }
+    expect(
+      extractFieldErrors(body, {
+        transformField: () => {
+          throw new Error('transform exploded')
+        },
+      }),
+    ).toEqual([])
   })
 })

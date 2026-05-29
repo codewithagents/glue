@@ -408,4 +408,86 @@ describe('number validation constraints', () => {
     expect(out).not.toContain('.min(')
     expect(out).not.toContain('.max(')
   })
+
+  it('exclusiveMinimum (numeric, OpenAPI 3.0 style) → .min(n)', () => {
+    // Covers the `typeof schema.exclusiveMinimum === 'number'` branch
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    expect(genSingle('A', { type: 'number', exclusiveMinimum: 0 } as any)).toContain('z.number().min(0)')
+  })
+
+  it('exclusiveMaximum (numeric, OpenAPI 3.0 style) → .max(n)', () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    expect(genSingle('A', { type: 'integer', exclusiveMaximum: 100 } as any)).toContain('z.number().max(100)')
+  })
+
+  it('exclusiveMinimum + exclusiveMaximum both numeric → chained .min().max()', () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    expect(genSingle('A', { type: 'number', exclusiveMinimum: 1, exclusiveMaximum: 99 } as any)).toContain('z.number().min(1).max(99)')
+  })
+})
+
+describe('coverage: array type with single non-null element (no null)', () => {
+  it("type: ['string'] → z.string() (false branch of isNullable check)", () => {
+    // Covers the `return isNullable ? ... : base` false branch — isNullable is false
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const out = genSingle('A', { type: ['string'] } as any)
+    expect(out).toContain('z.string()')
+    expect(out).not.toContain('.nullable()')
+  })
+})
+
+describe('coverage: hasSelfRef — additionalProperties self-reference', () => {
+  it('schema with additionalProperties pointing to itself generates z.lazy()', () => {
+    // Covers the additionalProperties branch in hasSelfRef
+    // The schema Foo has additionalProperties: { $ref: 'Foo' } which is a self-reference
+    const out = gen({
+      Foo: {
+        type: 'object',
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        additionalProperties: { $ref: '#/components/schemas/Foo' } as any,
+      },
+    })
+    // Self-referential schemas are wrapped in z.lazy()
+    expect(out).toContain('z.lazy(')
+    expect(out).toContain('FooSchema')
+  })
+})
+
+describe('coverage: hasSelfRef — visited cycle guard', () => {
+  it('schema whose property is the same object as a sibling property does not infinite-loop', () => {
+    // Covers the `if (visited.has(schema)) return false` cycle guard
+    // Build a spec programmatically so two properties share the same object reference
+    const sharedProp: OpenAPIV3_1.SchemaObject = { type: 'string' }
+    const spec: OpenAPIV3_1.Document = {
+      openapi: '3.1.0',
+      info: { title: 'Test', version: '1.0.0' },
+      paths: {},
+      components: {
+        schemas: {
+          Item: {
+            type: 'object',
+            properties: {
+              a: sharedProp,
+              b: sharedProp, // same object reference — visited guard fires on second traversal
+            },
+          },
+        },
+      },
+    }
+    const { content } = generateZodSchemas(spec)
+    expect(content).toContain('ItemSchema')
+  })
+})
+
+describe('coverage: multi-type array with null member (zod.ts line 118 TRUE branch)', () => {
+  it("type: ['string', 'number', 'null'] produces z.union with z.null() (t === 'null' TRUE)", () => {
+    // nonNull = ['string', 'number'] (length > 1) → reaches const parts = types.map(...)
+    // For 'null' in the original types array: t === 'null' → TRUE → 'z.null()'
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const out = genSingle('A', { type: ['string', 'number', 'null'] } as any)
+    expect(out).toContain('z.union(')
+    expect(out).toContain('z.null()')
+    expect(out).toContain('z.string()')
+    expect(out).toContain('z.number()')
+  })
 })

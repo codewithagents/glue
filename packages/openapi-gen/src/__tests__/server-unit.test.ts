@@ -183,3 +183,43 @@ describe('generateServer — derived operation names (no operationId)', () => {
     expect(content).toContain('deleteItemsById: (id: Parameters<typeof deleteItemsById>[0]) => deleteItemsById(id, config),')
   })
 })
+
+describe('coverage: $ref parameters are skipped in operationHasQueryParams / operationHasRequiredQueryParams', () => {
+  it('operation with a $ref parameter and an inline query param generates correctly', () => {
+    // $ref parameters are skipped (return false early). The inline query param is still picked up.
+    const spec = makeSpec({
+      '/search': {
+        get: {
+          operationId: 'search',
+          parameters: [
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            { $ref: '#/components/parameters/PageParam' } as any,
+            { name: 'q', in: 'query', required: false, schema: { type: 'string' } },
+          ],
+          responses: { '200': { description: 'ok' } },
+        },
+      },
+    })
+    const { content } = generateServer(spec)
+    // Route is generated and picks up the inline query param 'q'
+    expect(content).toContain('search: (params?: Parameters<typeof search>[0])')
+  })
+
+  it('operation with only a $ref parameter is treated as having no query params', () => {
+    const spec = makeSpec({
+      '/search': {
+        get: {
+          operationId: 'searchOnly',
+          parameters: [
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            { $ref: '#/components/parameters/PageParam' } as any,
+          ],
+          responses: { '200': { description: 'ok' } },
+        },
+      },
+    })
+    const { content } = generateServer(spec)
+    // No inline query params found, so the method has no params signature
+    expect(content).toContain('searchOnly: () => searchOnly(config)')
+  })
+})

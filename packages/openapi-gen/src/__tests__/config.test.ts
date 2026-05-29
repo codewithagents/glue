@@ -76,6 +76,11 @@ describe('loadConfig', () => {
     await expect(loadConfig(tmpDir)).rejects.toThrow('input_schema')
   })
 
+  it('throws when server_client is not a boolean', async () => {
+    writeConfig({ input_openapi: 'openapi.json', output: 'src/api', server_client: 'yes' })
+    await expect(loadConfig(tmpDir)).rejects.toThrow('"server_client" must be a boolean')
+  })
+
   it('ignores unknown config fields', async () => {
     writeConfig({ input_openapi: 'openapi.json', output: 'src/api', unknown_field: 'ignored' })
     const config = await loadConfig(tmpDir)
