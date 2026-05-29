@@ -6,7 +6,7 @@ export default defineConfig({
       provider: 'v8',
       include: ['src/**/*.ts'],
       exclude: ['src/**/*.test.ts', 'src/cli.ts', 'src/generator.ts'],
-      reporter: ['text', 'lcov'],
+      reporter: ['text', ['lcov', { projectRoot: '../../' }]],
     },
   },
 })

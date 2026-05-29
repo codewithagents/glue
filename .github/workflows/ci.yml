@@ -35,16 +35,6 @@ jobs:
       - run: pnpm --filter @codewithagents/openapi-react-query run test:coverage
       - run: pnpm --filter @codewithagents/openapi-server run test:coverage
 
-      # Vitest V8 emits paths relative to each package root (e.g. "src/index.ts").
-      # Codecov needs repo-relative paths ("packages/api-errors/src/index.ts") to
-      # match source files in git. Rewrite SF: lines in each lcov before upload.
-      - name: Fix lcov paths for Codecov (monorepo prefix)
-        run: |
-          for pkg in api-errors openapi-gen openapi-react-query openapi-server; do
-            lcov="packages/$pkg/coverage/lcov.info"
-            [ -f "$lcov" ] && sed -i "s|^SF:src/|SF:packages/$pkg/src/|g" "$lcov"
-          done
-
       - name: Upload coverage to Codecov (api-errors)
         uses: codecov/codecov-action@v5
         with:

@@ -12,7 +12,7 @@ export default defineConfig({
         lines: 75,
         statements: 75,
       },
-      reporter: ['text', 'lcov'],
+      reporter: ['text', ['lcov', { projectRoot: '../../' }]],
     },
   },
 })
