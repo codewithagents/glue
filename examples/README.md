@@ -28,7 +28,7 @@ These are the "golden examples" — they prove the generator handles real edge c
 
 Spec files are committed to `examples/specs/` and configs to `examples/configs/`. Generated output is **not** committed — CI generates all 117 at runtime as part of `pnpm test` in each package.
 
-**Current pass rate: 117/117 (100%).**
+**All 117 generate without errors** — together with the 11 showcase specs, that's 128/128 total.
 
 A sample of the APIs covered: Stripe, GitHub, Google Calendar, Google Drive, Google Sheets, Spotify, Slack, Vercel, Cloudflare, Twilio, Plaid, Notion, Jira, Okta, Asana, Bitbucket, Box, Brex, CircleCI, Figma (via Notion), Klarna, Linode, NASA, Pinecone, SendGrid, Square, Webflow, Xero, YouTube, Zoom, Zuora, and many more.
 
