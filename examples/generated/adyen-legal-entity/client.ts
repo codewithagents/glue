@@ -36,6 +36,41 @@ import type {
   VerificationErrors,
 } from "./models.js";
 import { getConfig, type ClientConfig } from "./client-config.js";
+import {
+  AcceptTermsOfServiceRequestSchema,
+  AcceptTermsOfServiceResponseSchema,
+  BusinessLineInfoSchema,
+  BusinessLineInfoUpdateSchema,
+  BusinessLineSchema,
+  BusinessLinesSchema,
+  CalculatePciStatusRequestSchema,
+  CalculatePciStatusResponseSchema,
+  CalculateTermsOfServiceStatusResponseSchema,
+  CheckTaxElectronicDeliveryConsentResponseSchema,
+  DataReviewConfirmationResponseSchema,
+  DocumentSchema,
+  GeneratePciDescriptionRequestSchema,
+  GeneratePciDescriptionResponseSchema,
+  GetAcceptedTermsOfServiceDocumentResponseSchema,
+  GetPciQuestionnaireInfosResponseSchema,
+  GetPciQuestionnaireResponseSchema,
+  GetTermsOfServiceAcceptanceInfosResponseSchema,
+  GetTermsOfServiceDocumentRequestSchema,
+  GetTermsOfServiceDocumentResponseSchema,
+  LegalEntityInfoRequiredTypeSchema,
+  LegalEntityInfoSchema,
+  LegalEntitySchema,
+  OnboardingLinkInfoSchema,
+  OnboardingLinkSchema,
+  OnboardingThemeSchema,
+  OnboardingThemesSchema,
+  PciSigningRequestSchema,
+  PciSigningResponseSchema,
+  SetTaxElectronicDeliveryConsentRequestSchema,
+  TransferInstrumentInfoSchema,
+  TransferInstrumentSchema,
+  VerificationErrorsSchema,
+} from "./schemas.js";
 
 export class ApiError extends Error {
   constructor(
@@ -95,8 +130,9 @@ export async function postBusinessLines(
   body: BusinessLineInfo,
   config?: Partial<ClientConfig>,
 ): Promise<BusinessLine> {
+  BusinessLineInfoSchema.parse(body);
   const res = await _request("POST", "/businessLines", { body }, config);
-  return res.json();
+  return BusinessLineSchema.parse(await res.json());
 }
 
 /**
@@ -116,7 +152,7 @@ export async function getBusinessLinesId(
     {},
     config,
   );
-  return res.json();
+  return BusinessLineSchema.parse(await res.json());
 }
 
 /**
@@ -131,13 +167,14 @@ export async function patchBusinessLinesId(
   body: BusinessLineInfoUpdate,
   config?: Partial<ClientConfig>,
 ): Promise<BusinessLine> {
+  BusinessLineInfoUpdateSchema.parse(body);
   const res = await _request(
     "PATCH",
     `/businessLines/${encodeURIComponent(id)}`,
     { body },
     config,
   );
-  return res.json();
+  return BusinessLineSchema.parse(await res.json());
 }
 
 /**
@@ -178,13 +215,14 @@ export async function postDocuments(
       ? { "x-requested-verification-code": params.xRequestedVerificationCode }
       : {}),
   };
+  DocumentSchema.parse(body);
   const res = await _request(
     "POST",
     "/documents",
     { body, extraHeaders },
     config,
   );
-  return res.json();
+  return DocumentSchema.parse(await res.json());
 }
 
 /**
@@ -210,7 +248,7 @@ export async function getDocumentsId(
     { searchParams },
     config,
   );
-  return res.json();
+  return DocumentSchema.parse(await res.json());
 }
 
 /**
@@ -233,13 +271,14 @@ export async function patchDocumentsId(
       ? { "x-requested-verification-code": params.xRequestedVerificationCode }
       : {}),
   };
+  DocumentSchema.parse(body);
   const res = await _request(
     "PATCH",
     `/documents/${encodeURIComponent(id)}`,
     { body, extraHeaders },
     config,
   );
-  return res.json();
+  return DocumentSchema.parse(await res.json());
 }
 
 /**
@@ -275,13 +314,14 @@ export async function postLegalEntities(
       ? { "x-requested-verification-code": params.xRequestedVerificationCode }
       : {}),
   };
+  LegalEntityInfoRequiredTypeSchema.parse(body);
   const res = await _request(
     "POST",
     "/legalEntities",
     { body, extraHeaders },
     config,
   );
-  return res.json();
+  return LegalEntitySchema.parse(await res.json());
 }
 
 /**
@@ -301,7 +341,7 @@ export async function getLegalEntitiesId(
     {},
     config,
   );
-  return res.json();
+  return LegalEntitySchema.parse(await res.json());
 }
 
 /**
@@ -324,13 +364,14 @@ export async function patchLegalEntitiesId(
       ? { "x-requested-verification-code": params.xRequestedVerificationCode }
       : {}),
   };
+  LegalEntityInfoSchema.parse(body);
   const res = await _request(
     "PATCH",
     `/legalEntities/${encodeURIComponent(id)}`,
     { body, extraHeaders },
     config,
   );
-  return res.json();
+  return LegalEntitySchema.parse(await res.json());
 }
 
 /**
@@ -360,7 +401,9 @@ export async function getLegalEntitiesIdAcceptedTermsOfServiceDocumentTermsofser
     { searchParams },
     config,
   );
-  return res.json();
+  return GetAcceptedTermsOfServiceDocumentResponseSchema.parse(
+    await res.json(),
+  );
 }
 
 /**
@@ -380,7 +423,7 @@ export async function getLegalEntitiesIdBusinessLines(
     {},
     config,
   );
-  return res.json();
+  return BusinessLinesSchema.parse(await res.json());
 }
 
 /**
@@ -400,7 +443,9 @@ export async function postLegalEntitiesIdCheckTaxElectronicDeliveryConsent(
     {},
     config,
   );
-  return res.json();
+  return CheckTaxElectronicDeliveryConsentResponseSchema.parse(
+    await res.json(),
+  );
 }
 
 /**
@@ -420,7 +465,7 @@ export async function postLegalEntitiesIdCheckVerificationErrors(
     {},
     config,
   );
-  return res.json();
+  return VerificationErrorsSchema.parse(await res.json());
 }
 
 /**
@@ -440,7 +485,7 @@ export async function postLegalEntitiesIdConfirmDataReview(
     {},
     config,
   );
-  return res.json();
+  return DataReviewConfirmationResponseSchema.parse(await res.json());
 }
 
 /**
@@ -455,13 +500,14 @@ export async function postLegalEntitiesIdOnboardingLinks(
   body: OnboardingLinkInfo,
   config?: Partial<ClientConfig>,
 ): Promise<OnboardingLink> {
+  OnboardingLinkInfoSchema.parse(body);
   const res = await _request(
     "POST",
     `/legalEntities/${encodeURIComponent(id)}/onboardingLinks`,
     { body },
     config,
   );
-  return res.json();
+  return OnboardingLinkSchema.parse(await res.json());
 }
 
 /**
@@ -481,7 +527,7 @@ export async function getLegalEntitiesIdPciQuestionnaires(
     {},
     config,
   );
-  return res.json();
+  return GetPciQuestionnaireInfosResponseSchema.parse(await res.json());
 }
 
 /**
@@ -496,13 +542,14 @@ export async function postLegalEntitiesIdPciQuestionnairesGeneratePciTemplates(
   body: GeneratePciDescriptionRequest,
   config?: Partial<ClientConfig>,
 ): Promise<GeneratePciDescriptionResponse> {
+  GeneratePciDescriptionRequestSchema.parse(body);
   const res = await _request(
     "POST",
     `/legalEntities/${encodeURIComponent(id)}/pciQuestionnaires/generatePciTemplates`,
     { body },
     config,
   );
-  return res.json();
+  return GeneratePciDescriptionResponseSchema.parse(await res.json());
 }
 
 /**
@@ -517,13 +564,14 @@ export async function postLegalEntitiesIdPciQuestionnairesSignPciTemplates(
   body: PciSigningRequest,
   config?: Partial<ClientConfig>,
 ): Promise<PciSigningResponse> {
+  PciSigningRequestSchema.parse(body);
   const res = await _request(
     "POST",
     `/legalEntities/${encodeURIComponent(id)}/pciQuestionnaires/signPciTemplates`,
     { body },
     config,
   );
-  return res.json();
+  return PciSigningResponseSchema.parse(await res.json());
 }
 
 /**
@@ -538,13 +586,14 @@ export async function postLegalEntitiesIdPciQuestionnairesSigningRequired(
   body: CalculatePciStatusRequest,
   config?: Partial<ClientConfig>,
 ): Promise<CalculatePciStatusResponse> {
+  CalculatePciStatusRequestSchema.parse(body);
   const res = await _request(
     "POST",
     `/legalEntities/${encodeURIComponent(id)}/pciQuestionnaires/signingRequired`,
     { body },
     config,
   );
-  return res.json();
+  return CalculatePciStatusResponseSchema.parse(await res.json());
 }
 
 /**
@@ -565,7 +614,7 @@ export async function getLegalEntitiesIdPciQuestionnairesPciid(
     {},
     config,
   );
-  return res.json();
+  return GetPciQuestionnaireResponseSchema.parse(await res.json());
 }
 
 /**
@@ -580,6 +629,7 @@ export async function postLegalEntitiesIdSetTaxElectronicDeliveryConsent(
   body: SetTaxElectronicDeliveryConsentRequest,
   config?: Partial<ClientConfig>,
 ): Promise<void> {
+  SetTaxElectronicDeliveryConsentRequestSchema.parse(body);
   await _request(
     "POST",
     `/legalEntities/${encodeURIComponent(id)}/setTaxElectronicDeliveryConsent`,
@@ -600,13 +650,14 @@ export async function postLegalEntitiesIdTermsOfService(
   body: GetTermsOfServiceDocumentRequest,
   config?: Partial<ClientConfig>,
 ): Promise<GetTermsOfServiceDocumentResponse> {
+  GetTermsOfServiceDocumentRequestSchema.parse(body);
   const res = await _request(
     "POST",
     `/legalEntities/${encodeURIComponent(id)}/termsOfService`,
     { body },
     config,
   );
-  return res.json();
+  return GetTermsOfServiceDocumentResponseSchema.parse(await res.json());
 }
 
 /**
@@ -622,13 +673,14 @@ export async function patchLegalEntitiesIdTermsOfServiceTermsofservicedocumentid
   body: AcceptTermsOfServiceRequest,
   config?: Partial<ClientConfig>,
 ): Promise<AcceptTermsOfServiceResponse> {
+  AcceptTermsOfServiceRequestSchema.parse(body);
   const res = await _request(
     "PATCH",
     `/legalEntities/${encodeURIComponent(id)}/termsOfService/${encodeURIComponent(termsofservicedocumentid)}`,
     { body },
     config,
   );
-  return res.json();
+  return AcceptTermsOfServiceResponseSchema.parse(await res.json());
 }
 
 /**
@@ -648,7 +700,7 @@ export async function getLegalEntitiesIdTermsOfServiceAcceptanceInfos(
     {},
     config,
   );
-  return res.json();
+  return GetTermsOfServiceAcceptanceInfosResponseSchema.parse(await res.json());
 }
 
 /**
@@ -668,7 +720,7 @@ export async function getLegalEntitiesIdTermsOfServiceStatus(
     {},
     config,
   );
-  return res.json();
+  return CalculateTermsOfServiceStatusResponseSchema.parse(await res.json());
 }
 
 /**
@@ -682,7 +734,7 @@ export async function getThemes(
   config?: Partial<ClientConfig>,
 ): Promise<OnboardingThemes> {
   const res = await _request("GET", "/themes", {}, config);
-  return res.json();
+  return OnboardingThemesSchema.parse(await res.json());
 }
 
 /**
@@ -702,7 +754,7 @@ export async function getThemesId(
     {},
     config,
   );
-  return res.json();
+  return OnboardingThemeSchema.parse(await res.json());
 }
 
 /**
@@ -724,13 +776,14 @@ export async function postTransferInstruments(
       ? { "x-requested-verification-code": params.xRequestedVerificationCode }
       : {}),
   };
+  TransferInstrumentInfoSchema.parse(body);
   const res = await _request(
     "POST",
     "/transferInstruments",
     { body, extraHeaders },
     config,
   );
-  return res.json();
+  return TransferInstrumentSchema.parse(await res.json());
 }
 
 /**
@@ -750,7 +803,7 @@ export async function getTransferInstrumentsId(
     {},
     config,
   );
-  return res.json();
+  return TransferInstrumentSchema.parse(await res.json());
 }
 
 /**
@@ -773,13 +826,14 @@ export async function patchTransferInstrumentsId(
       ? { "x-requested-verification-code": params.xRequestedVerificationCode }
       : {}),
   };
+  TransferInstrumentInfoSchema.parse(body);
   const res = await _request(
     "PATCH",
     `/transferInstruments/${encodeURIComponent(id)}`,
     { body, extraHeaders },
     config,
   );
-  return res.json();
+  return TransferInstrumentSchema.parse(await res.json());
 }
 
 /**
