@@ -9,7 +9,7 @@ async function formatTs(content: string, filePath: string): Promise<string> {
 }
 import { parseSpec } from '@codewithagents/openapi-gen'
 import { generateService } from './plugins/service.js'
-import { generateRouter } from './plugins/router.js'
+import { generateRouter, generateExpressRouter, generateFastifyRouter } from './plugins/router.js'
 
 export async function generate(cwd: string, configPath?: string): Promise<void> {
   console.log('Loading config...')
@@ -29,6 +29,12 @@ export async function generate(cwd: string, configPath?: string): Promise<void> 
   if (framework === 'hono') {
     // First pass: generate router without schema validation
     generatedFiles.push(generateRouter(spec))
+  } else if (framework === 'express') {
+    // TODO: add Zod validation support for Express (currently Hono-only)
+    generatedFiles.push(generateExpressRouter(spec))
+  } else if (framework === 'fastify') {
+    // TODO: add Zod validation support for Fastify (currently Hono-only)
+    generatedFiles.push(generateFastifyRouter(spec))
   }
 
   console.log(`Writing output to: ${outputDir}`)

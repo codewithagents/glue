@@ -4,7 +4,7 @@ import { readdirSync, readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { parseSpec } from '@codewithagents/openapi-gen'
 import { generateService } from '../plugins/service.js'
-import { generateRouter } from '../plugins/router.js'
+import { generateRouter, generateExpressRouter, generateFastifyRouter } from '../plugins/router.js'
 
 const configsDir = resolve(import.meta.dirname, '../../../../examples/configs')
 
@@ -17,9 +17,19 @@ const cases = readdirSync(configsDir)
   })
 
 describe.each(cases)('compat — $name', ({ specPath }) => {
-  it('generates without throwing', async () => {
+  it('generates without throwing (hono)', async () => {
     const spec = await parseSpec(specPath)
     generateService(spec)
     generateRouter(spec)
+  })
+
+  it('generates without throwing (express)', async () => {
+    const spec = await parseSpec(specPath)
+    generateExpressRouter(spec)
+  })
+
+  it('generates without throwing (fastify)', async () => {
+    const spec = await parseSpec(specPath)
+    generateFastifyRouter(spec)
   })
 })

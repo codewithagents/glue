@@ -88,8 +88,20 @@ describe('loadConfig', () => {
   })
 
   it('throws when framework is an invalid value', async () => {
+    writeConfig({ input_openapi: 'openapi.json', output: 'src/generated', framework: 'koa' })
+    await expect(loadConfig(tmpDir)).rejects.toThrow('"framework" must be one of:')
+  })
+
+  it('loads a full config with framework: express', async () => {
     writeConfig({ input_openapi: 'openapi.json', output: 'src/generated', framework: 'express' })
-    await expect(loadConfig(tmpDir)).rejects.toThrow('"framework" must be either "hono" or "none"')
+    const config = await loadConfig(tmpDir)
+    expect(config.framework).toBe('express')
+  })
+
+  it('loads a full config with framework: fastify', async () => {
+    writeConfig({ input_openapi: 'openapi.json', output: 'src/generated', framework: 'fastify' })
+    const config = await loadConfig(tmpDir)
+    expect(config.framework).toBe('fastify')
   })
 
   it('ignores unknown config fields', async () => {

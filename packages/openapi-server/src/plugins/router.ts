@@ -347,6 +347,223 @@ function buildRouteHandler(
   return lines.join('\n')
 }
 
+// ── Express router generator ───────────────────────────────────────────────────
+
+function buildExpressRouteHandler(op: RouteOperation, indent: string): string {
+  const lines: string[] = []
+  lines.push(`${indent}router.${op.httpMethod}('${op.honoPath}', async (req: Request, res: Response) => {`)
+
+  // Query params extraction
+  if (op.queryParams.length > 0) {
+    const fields = op.queryParams
+      .map((q) => {
+        if (q.tsType === 'number') {
+          return `    ${q.name}: Number(req.query['${q.name}'] as string)`
+        }
+        if (q.tsType === 'boolean') {
+          return `    ${q.name}: req.query['${q.name}'] === 'true'`
+        }
+        return `    ${q.name}: req.query['${q.name}'] as string | undefined`
+      })
+      .join(',\n')
+    lines.push(`${indent}  const params = {`)
+    lines.push(fields)
+    lines.push(`${indent}  }`)
+  }
+
+  // Body extraction
+  if (op.bodyInfo !== undefined) {
+    const typeAnnotation = op.bodyInfo.typeName !== undefined ? ` as ${op.bodyInfo.typeName}` : ''
+    lines.push(`${indent}  const body = req.body${typeAnnotation}`)
+  }
+
+  // Build service call args
+  const serviceArgs: string[] = []
+  for (const p of op.pathParams) {
+    serviceArgs.push(`req.params['${p}']!`)
+  }
+  if (op.bodyInfo !== undefined) {
+    serviceArgs.push('body')
+  }
+  if (op.queryParams.length > 0) {
+    serviceArgs.push('params')
+  }
+
+  const serviceCall = `service.${op.methodName}(${serviceArgs.join(', ')})`
+
+  // Response
+  if (op.responseStatus.isVoid) {
+    lines.push(`${indent}  await ${serviceCall}`)
+    lines.push(`${indent}  res.status(${op.responseStatus.status}).end()`)
+  } else if (op.responseStatus.status === 201) {
+    lines.push(`${indent}  res.status(201).json(await ${serviceCall})`)
+  } else {
+    lines.push(`${indent}  res.json(await ${serviceCall})`)
+  }
+
+  lines.push(`${indent}})`)
+  return lines.join('\n')
+}
+
+export function generateExpressRouter(spec: OpenAPIV3_1.Document): GeneratedFile {
+  const serviceName = deriveServiceName(spec)
+  const operations = collectOperations(spec)
+
+  // Collect body type names for import from models.js
+  const bodyTypes = new Set<string>()
+  for (const op of operations) {
+    if (op.bodyInfo?.typeName !== undefined) {
+      bodyTypes.add(op.bodyInfo.typeName)
+    }
+  }
+  const sortedBodyTypes = Array.from(bodyTypes).sort()
+
+  const lines: string[] = []
+  lines.push('// This file is auto-generated. Do not edit manually.')
+  lines.push('// Express: apply express.json() middleware before mounting this router so req.body is populated.')
+  lines.push('')
+  lines.push("import { Router } from 'express'")
+  lines.push("import type { Request, Response } from 'express'")
+  if (sortedBodyTypes.length > 0) {
+    lines.push(`import type { ${sortedBodyTypes.join(', ')} } from './models.js'`)
+  }
+  lines.push(`import type { ${serviceName} } from './service.js'`)
+  lines.push('')
+  lines.push(`export function createRouter(service: ${serviceName}): Router {`)
+  lines.push('  const router = Router()')
+  lines.push('')
+
+  for (const op of operations) {
+    lines.push(buildExpressRouteHandler(op, '  '))
+    lines.push('')
+  }
+
+  lines.push('  return router')
+  lines.push('}')
+  lines.push('')
+
+  return {
+    filename: 'router.ts',
+    content: lines.join('\n'),
+  }
+}
+
+// ── Fastify router generator ───────────────────────────────────────────────────
+
+function buildFastifyRouteHandler(op: RouteOperation, indent: string): string {
+  const lines: string[] = []
+
+  // Build generic type argument
+  const genericParts: string[] = []
+
+  if (op.queryParams.length > 0) {
+    const queryFields = op.queryParams
+      .map((q) => {
+        if (q.tsType === 'number') return `${q.name}?: number`
+        if (q.tsType === 'boolean') return `${q.name}?: boolean`
+        return `${q.name}?: string`
+      })
+      .join('; ')
+    genericParts.push(`Querystring: { ${queryFields} }`)
+  }
+
+  if (op.bodyInfo !== undefined && op.bodyInfo.typeName !== undefined) {
+    genericParts.push(`Body: ${op.bodyInfo.typeName}`)
+  } else if (op.bodyInfo !== undefined) {
+    genericParts.push('Body: unknown')
+  }
+
+  if (op.pathParams.length > 0) {
+    const paramFields = op.pathParams.map((p) => `${p}: string`).join('; ')
+    genericParts.push(`Params: { ${paramFields} }`)
+  }
+
+  const generic = genericParts.length > 0 ? `<{ ${genericParts.join('; ')} }>` : ''
+  lines.push(`${indent}app.${op.httpMethod}${generic}('${op.honoPath}', async (req, reply) => {`)
+
+  // Query params extraction
+  if (op.queryParams.length > 0) {
+    const fields = op.queryParams
+      .map((q) => `    ${q.name}: req.query.${q.name}`)
+      .join(',\n')
+    lines.push(`${indent}  const params = {`)
+    lines.push(fields)
+    lines.push(`${indent}  }`)
+  }
+
+  // Build service call args
+  const serviceArgs: string[] = []
+  for (const p of op.pathParams) {
+    serviceArgs.push(`req.params.${p}`)
+  }
+  if (op.bodyInfo !== undefined) {
+    serviceArgs.push('req.body')
+  }
+  if (op.queryParams.length > 0) {
+    serviceArgs.push('params')
+  }
+
+  const serviceCall = `service.${op.methodName}(${serviceArgs.join(', ')})`
+
+  // Response
+  if (op.responseStatus.isVoid) {
+    lines.push(`${indent}  await ${serviceCall}`)
+    lines.push(`${indent}  reply.status(${op.responseStatus.status}).send()`)
+  } else if (op.responseStatus.status === 201) {
+    lines.push(`${indent}  reply.status(201)`)
+    lines.push(`${indent}  return ${serviceCall}`)
+  } else {
+    lines.push(`${indent}  return ${serviceCall}`)
+  }
+
+  lines.push(`${indent}})`)
+  return lines.join('\n')
+}
+
+export function generateFastifyRouter(spec: OpenAPIV3_1.Document): GeneratedFile {
+  const serviceName = deriveServiceName(spec)
+  const operations = collectOperations(spec)
+
+  // Collect body type names for import from models.js
+  const bodyTypes = new Set<string>()
+  for (const op of operations) {
+    if (op.bodyInfo?.typeName !== undefined) {
+      bodyTypes.add(op.bodyInfo.typeName)
+    }
+  }
+  const sortedBodyTypes = Array.from(bodyTypes).sort()
+
+  const lines: string[] = []
+  lines.push('// This file is auto-generated. Do not edit manually.')
+  lines.push('')
+  lines.push("import type { FastifyInstance } from 'fastify'")
+  if (sortedBodyTypes.length > 0) {
+    lines.push(`import type { ${sortedBodyTypes.join(', ')} } from './models.js'`)
+  }
+  lines.push(`import type { ${serviceName} } from './service.js'`)
+  lines.push('')
+  lines.push(`export function createRouter(app: FastifyInstance, service: ${serviceName}): void {`)
+
+  for (const op of operations) {
+    lines.push('')
+    lines.push(buildFastifyRouteHandler(op, '  '))
+  }
+
+  if (operations.length > 0) {
+    lines.push('}')
+  } else {
+    lines.push('}')
+  }
+  lines.push('')
+
+  return {
+    filename: 'router.ts',
+    content: lines.join('\n'),
+  }
+}
+
+// ── Hono router generator ─────────────────────────────────────────────────────
+
 interface RouterOptions {
   schemaNames?: Set<string>
   schemaImportPath?: string
