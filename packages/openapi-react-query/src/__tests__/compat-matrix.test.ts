@@ -7,7 +7,7 @@ import { generateHooks } from '../plugins/hooks.js'
 const configsDir = resolve(import.meta.dirname, '../../../../examples/configs')
 
 const cases = readdirSync(configsDir)
-  .filter((f) => f.endsWith('.json') && !f.startsWith('_tmp'))
+  .filter((f) => f.endsWith('.json') && !f.startsWith('_'))
   .map((f) => {
     const config = JSON.parse(readFileSync(resolve(configsDir, f), 'utf-8')) as { input_openapi: string }
     const specPath = resolve(configsDir, config.input_openapi)

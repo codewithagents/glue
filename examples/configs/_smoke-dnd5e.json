@@ -1,0 +1,4 @@
+{
+  "input_openapi": "../specs/dnd5e.json",
+  "output": "../generated/dnd5e"
+}

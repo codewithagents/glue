@@ -1,6 +1,8 @@
 name: Smoke Tests
 
 on:
+  push:
+    branches: [main]
   schedule:
     - cron: '0 4 * * 0'  # Weekly Sunday 4am UTC — low-traffic time for free APIs
   workflow_dispatch:       # Manual trigger from GitHub UI
@@ -29,10 +31,11 @@ jobs:
 
       - name: Generate clients for smoke-tested APIs
         run: |
+          REPO_ROOT=$(pwd)
           cd examples
-          for spec in open-meteo canada_holidays exchangerate; do
+          for spec in open-meteo canada_holidays exchangerate _smoke-dnd5e; do
             echo "Generating $spec..."
-            pnpm exec openapi-gen --config configs/${spec}.json
+            node "$REPO_ROOT/packages/openapi-gen/dist/cli.cjs" --config configs/${spec}.json
           done
 
       - name: Run smoke tests

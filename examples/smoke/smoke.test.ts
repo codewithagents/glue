@@ -5,7 +5,7 @@
  * not just that they compile. Each test makes one real network call and asserts
  * the response has a plausible shape.
  *
- * Run by the smoke.yml GitHub workflow (weekly + manual). Never runs on every PR.
+ * Run by the smoke.yml GitHub workflow (weekly + manual + every push to main).
  *
  * Rate limiting: tests run sequentially (vitest concurrency=1) and each call is
  * followed by a 500ms pause to be polite to free-tier APIs.
@@ -17,6 +17,14 @@ import { configureClient as configureCanada } from '../generated/canada_holidays
 import { holidays } from '../generated/canada_holidays/client.js'
 import { configureClient as configureExchangeRate } from '../generated/exchangerate/client-config.js'
 import { getLatestByBaseCurrency } from '../generated/exchangerate/client.js'
+import { configureClient as configureDnd5e } from '../generated/dnd5e/client-config.js'
+import {
+  getApi,
+  getApiByEndpoint,
+  getApiAbilityScoresByIndex,
+  getApiMonsters,
+  getApiMonstersByIndex,
+} from '../generated/dnd5e/client.js'
 
 /** Pause between API calls — be polite to free-tier services */
 const sleep = (ms = 500) => new Promise((r) => setTimeout(r, ms))
@@ -98,6 +106,96 @@ describe('Exchange Rate API (currency rates, no auth)', () => {
     expect(data.base).toBe('EUR')
     expect(typeof data.rates).toBe('object')
     expect(typeof data.rates!['USD']).toBe('number')
+
+    await sleep()
+  })
+})
+
+// ─── D&D 5e ──────────────────────────────────────────────────────────────────
+
+describe('D&D 5e API (game data, no auth)', () => {
+  it('returns the root resource index with known keys', async () => {
+    configureDnd5e({
+      baseUrl: 'https://www.dnd5eapi.co',
+      credentials: 'omit',
+    })
+
+    const result = await getApi()
+
+    expect(result).toBeDefined()
+    const index = result as Record<string, unknown>
+    expect(typeof index['ability-scores']).toBe('string')
+    expect(typeof index['monsters']).toBe('string')
+
+    await sleep()
+  })
+
+  it('returns the ability-scores list with count and results', async () => {
+    configureDnd5e({
+      baseUrl: 'https://www.dnd5eapi.co',
+      credentials: 'omit',
+    })
+
+    const result = await getApiByEndpoint('ability-scores')
+
+    expect(result).toBeDefined()
+    const list = result as { count?: number; results?: unknown[] }
+    expect(typeof list.count).toBe('number')
+    expect((list.count as number)).toBeGreaterThan(0)
+    expect(Array.isArray(list.results)).toBe(true)
+    expect((list.results as unknown[]).length).toBeGreaterThan(0)
+
+    await sleep()
+  })
+
+  it('returns full detail for the STR ability score', async () => {
+    configureDnd5e({
+      baseUrl: 'https://www.dnd5eapi.co',
+      credentials: 'omit',
+    })
+
+    const result = await getApiAbilityScoresByIndex('str')
+
+    expect(result).toBeDefined()
+    const score = result as { index?: string; full_name?: string }
+    expect(score.index).toBe('str')
+    expect(typeof score.full_name).toBe('string')
+    expect((score.full_name as string).length).toBeGreaterThan(0)
+
+    await sleep()
+  })
+
+  it('returns the monsters list with count and results', async () => {
+    configureDnd5e({
+      baseUrl: 'https://www.dnd5eapi.co',
+      credentials: 'omit',
+    })
+
+    const result = await getApiMonsters()
+
+    expect(result).toBeDefined()
+    const list = result as { count?: number; results?: unknown[] }
+    expect(typeof list.count).toBe('number')
+    expect((list.count as number)).toBeGreaterThan(0)
+    expect(Array.isArray(list.results)).toBe(true)
+    expect((list.results as unknown[]).length).toBeGreaterThan(0)
+
+    await sleep()
+  })
+
+  it('returns full detail for the aboleth monster', async () => {
+    configureDnd5e({
+      baseUrl: 'https://www.dnd5eapi.co',
+      credentials: 'omit',
+    })
+
+    const result = await getApiMonstersByIndex('aboleth')
+
+    expect(result).toBeDefined()
+    const monster = result as { index?: string; name?: string; hit_points?: number }
+    expect(monster.index).toBe('aboleth')
+    expect(typeof monster.name).toBe('string')
+    expect(typeof monster.hit_points).toBe('number')
 
     await sleep()
   })
