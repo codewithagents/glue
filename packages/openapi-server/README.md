@@ -3,7 +3,7 @@
 [![npm](https://img.shields.io/npm/v/@codewithagents/openapi-server.svg)](https://npmjs.com/package/@codewithagents/openapi-server)
 [![codecov](https://codecov.io/gh/codewithagents/glue/graph/badge.svg?flag=openapi-server)](https://codecov.io/gh/codewithagents/glue)
 
-Generate a typed server-side service interface and a [Hono](https://hono.dev) router from an OpenAPI 3.1 spec.
+Generate a typed server-side service interface and a [Hono](https://hono.dev) router from an OpenAPI 3.x spec.
 
 - **Type-safe contract** — a TypeScript interface derived directly from your spec. The compiler tells you if your implementation drifts.
 - **Prettier-clean output** — every generated file passes `prettier --check` out of the box. Commit it, lint it, ship it.

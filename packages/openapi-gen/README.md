@@ -3,7 +3,7 @@
 [![npm](https://img.shields.io/npm/v/@codewithagents/openapi-gen.svg)](https://npmjs.com/package/@codewithagents/openapi-gen)
 [![codecov](https://codecov.io/gh/codewithagents/glue/graph/badge.svg?flag=openapi-gen)](https://codecov.io/gh/codewithagents/glue)
 
-Generate TypeScript models and a native `fetch` client from an OpenAPI 3.1 spec.
+Generate TypeScript models and a native `fetch` client from an OpenAPI 3.x spec.
 
 - **Zero runtime footprint** — generated code uses only `fetch`. No axios, no wrapper libraries.
 - **Prettier-clean output** — every generated file passes `prettier --check` out of the box. Commit it, lint it, ship it.
