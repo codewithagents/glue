@@ -6,13 +6,20 @@
     "build": "pnpm -r run build",
     "test": "pnpm -r run test",
     "lint": "pnpm -r run lint",
-    "smoke": "pnpm --filter @codewithagents/examples run smoke"
+    "smoke": "pnpm --filter @codewithagents/examples run smoke",
+    "fallow": "fallow",
+    "fallow:audit": "fallow audit",
+    "fallow:watch": "fallow watch"
   },
   "devDependencies": {
+    "fallow": "^2.84.0",
     "typescript": "^6.0.0"
   },
   "pnpm": {
-    "onlyBuiltDependencies": ["esbuild", "msw"],
+    "onlyBuiltDependencies": [
+      "esbuild",
+      "msw"
+    ],
     "overrides": {
       "qs": "^6.15.2"
     }
