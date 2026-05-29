@@ -24,6 +24,11 @@ jobs:
       - run: pnpm install --frozen-lockfile
       # TODO: pin to a specific commit SHA once fallow-rs/fallow@v2 publishes a stable ref
       - uses: fallow-rs/fallow@v2
+        env:
+          # fallow-rs/fallow@v2 uses actions/github-script internally which pins Node.js 20.
+          # GitHub is forcing all action runners to Node.js 24 on 2026-06-02.
+          # This env var opts in early so we catch breakage before it becomes forced.
+          FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
         with:
           command: audit
           comment: true           # sticky PR summary comment
