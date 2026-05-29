@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.4.0](https://github.com/codewithagents/glue/compare/openapi-react-query-v3.3.1...openapi-react-query-v3.4.0) (2026-05-29)
+
+
+### Features
+
+* **smoke:** expand to 9 real API requests, run on every push to main ([#144](https://github.com/codewithagents/glue/issues/144)) ([ba0c7c3](https://github.com/codewithagents/glue/commit/ba0c7c39c97f4f0a152fed67676346c035de90fd))
+
 ## [3.3.1](https://github.com/codewithagents/glue/compare/openapi-react-query-v3.3.0...openapi-react-query-v3.3.1) (2026-05-29)
 
 
