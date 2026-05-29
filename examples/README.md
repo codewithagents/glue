@@ -26,35 +26,27 @@ These are the "golden examples" — they prove the generator handles real edge c
 
 ### Compatibility matrix specs (117)
 
-Spec files are committed to `examples/specs/` and configs to `examples/configs/`. Generated output is **not** committed — CI generates all 117 at runtime and reports a pass/fail count.
+Spec files are committed to `examples/specs/` and configs to `examples/configs/`. Generated output is **not** committed — CI generates all 117 at runtime as part of `pnpm test` in each package.
 
-**Current pass rate: 74/117 (63%).**
+**Current pass rate: 117/117 (100%).**
 
 A sample of the APIs covered: Stripe, GitHub, Google Calendar, Google Drive, Google Sheets, Spotify, Slack, Vercel, Cloudflare, Twilio, Plaid, Notion, Jira, Okta, Asana, Bitbucket, Box, Brex, CircleCI, Figma (via Notion), Klarna, Linode, NASA, Pinecone, SendGrid, Square, Webflow, Xero, YouTube, Zoom, Zuora, and many more.
 
-## Known failure patterns
+## What the generator handles
 
-These categories account for most of the 43 currently failing specs:
+Edge cases covered by the full 128-spec suite:
 
-- **Dots in operationIds** — e.g. `calendar.calendars.insert` in Google APIs (11 Google API specs). The generator tries to sanitize dots but produces invalid identifiers in some cases.
-- **Spaces in operationIds** — operationIds with whitespace that can't be cleanly converted to camelCase.
-- **Special characters** — parens, braces, and other non-alphanumeric characters in operationIds or schema names.
-
-These are tracked and fixes are in progress. The compat matrix is how we find and document them.
-
-## What the showcase specs prove
-
-The generator handles:
-
-- Kebab-case operationIds (`post-applePay-sessions` → `postApplePaySessions`)
-- Hyphenated schema names (`CapabilityProblemEntity-recursive` → `CapabilityProblemEntityRecursive`)
-- Hyphenated path segments (`/api-keys` → `createApiKeys`)
-- Array query params (`project_ids[]` → TS property `project_ids`, wire name `project_ids[]`)
-- Dot-notation query params (`place.fields` → TS property `placeFields`, wire name `place.fields`)
-- Path-item level parameters (inherited by all operations in the path)
-- Schema name conflicts with global types (OpenAI has a schema called `Response`)
-- 100+ query parameters on a single endpoint (Open-Meteo)
-- 3.0.x specs alongside 3.1.x specs
+- **Dots in operationIds** — `calendar.calendars.insert` → `calendarCalendarsInsert` (Google API style)
+- **Spaces and special characters** — operationIds with whitespace, parens, or braces are sanitized to valid identifiers
+- **Kebab-case operationIds** — `post-applePay-sessions` → `postApplePaySessions`
+- **Hyphenated schema names** — `CapabilityProblemEntity-recursive` → `CapabilityProblemEntityRecursive`
+- **Hyphenated and mixed path segments** — `/api-keys` → `createApiKeys`
+- **Array query params** — `project_ids[]` → TS property `project_ids`, wire name `project_ids[]`
+- **Dot-notation query params** — `place.fields` → TS property `placeFields`, wire name `place.fields`
+- **Path-item level parameters** — inherited by all operations in the path
+- **Schema name conflicts with global types** — OpenAI has a schema called `Response`
+- **100+ query parameters on a single endpoint** — Open-Meteo
+- **3.0.x specs alongside 3.1.x specs**
 
 ## Regenerating showcase output
 
@@ -77,12 +69,12 @@ pnpm --filter @codewithagents/examples run typecheck
 
 ## CI
 
-The `Examples` workflow (`.github/workflows/examples.yml`) is separate from the main CI:
+The `Examples` workflow (`.github/workflows/examples.yml`) runs on every relevant PR:
 
 - **Triggers**: path-filtered (`packages/openapi-gen/**`, `examples/**`) on PRs and pushes to main, plus weekly on Monday 6am UTC
 - **Steps**:
   1. Build the generator packages
-  2. Run all 128 configs — reports `PASS`/`FAIL` per spec with a summary count
+  2. Run all 128 configs — all 117 compat matrix specs must generate without errors (parameterized tests via `pnpm test`)
   3. `git diff --exit-code examples/generated/` — fails if showcase output has drifted
   4. `tsc --noEmit` on all generated output in `examples/generated/`
 

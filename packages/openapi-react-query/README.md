@@ -3,7 +3,7 @@
 [![npm](https://img.shields.io/npm/v/@codewithagents/openapi-react-query.svg)](https://npmjs.com/package/@codewithagents/openapi-react-query)
 [![codecov](https://codecov.io/gh/codewithagents/glue/graph/badge.svg?flag=openapi-react-query)](https://codecov.io/gh/codewithagents/glue)
 
-Generate typed [React Query v5](https://tanstack.com/query/v5) hooks from an OpenAPI 3.1 spec. Run once, get a fully typed `useQuery` hook per GET endpoint and a `useMutation` hook per write operation — no hand-written boilerplate.
+Generate typed [React Query v5](https://tanstack.com/query/v5) hooks from an OpenAPI 3.x spec. Run once, get a fully typed `useQuery` hook per GET endpoint and a `useMutation` hook per write operation — no hand-written boilerplate.
 
 Works alongside [`@codewithagents/openapi-gen`](https://www.npmjs.com/package/@codewithagents/openapi-gen) which generates the underlying typed fetch client. All generated files are **Prettier-clean** out of the box — commit them without running a formatter.
 
@@ -33,7 +33,7 @@ Create `openapi-react-query.config.json` in your project root:
 
 | Field | Required | Default | Description |
 |---|---|---|---|
-| `input_openapi` | ✅ | — | Path to OpenAPI 3.1 spec (JSON or YAML) |
+| `input_openapi` | ✅ | — | OpenAPI 3.x spec (JSON or YAML) |
 | `output` | ✅ | — | Directory to write generated files (same as openapi-gen output) |
 | `stale_time` | — | `0` | `staleTime` in ms applied to all `useQuery` hooks |
 | `gc_time` | — | `300000` | `gcTime` in ms applied to all `useQuery` hooks |

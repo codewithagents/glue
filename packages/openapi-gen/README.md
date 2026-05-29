@@ -8,7 +8,7 @@ Generate TypeScript models and a native `fetch` client from an OpenAPI 3.1 spec.
 - **Zero runtime footprint** — generated code uses only `fetch`. No axios, no wrapper libraries.
 - **Prettier-clean output** — every generated file passes `prettier --check` out of the box. Commit it, lint it, ship it.
 - **SSR-ready** — every generated function accepts a per-request config override. No global singleton mutation.
-- **OpenAPI 3.1 only** — `type: ['string', 'null']`, `$ref`, `allOf`, `anyOf`, `oneOf`. No legacy compat.
+- **OpenAPI 3.x** — 3.1.x primary target (3.1.1 supported), 3.0.x best-effort. Full support for `$ref`, `allOf`, `anyOf`, `oneOf`, `nullable`.
 - **TypeScript strict mode** — all output passes `strict: true`.
 - **Tested against 128 real-world specs** — Stripe, GitHub, Spotify, OpenAI, Adyen, Twilio, Slack, Vercel, and more. See the [`examples/`](../../examples/) directory.
 
@@ -284,7 +284,7 @@ export const CreatePetFormSchema = CreatePetRequestSchema.extend({
 
 ## Ecosystem
 
-These packages work together — all driven from the same OpenAPI 3.1 spec:
+These packages work together — all driven from the same OpenAPI 3.x spec:
 
 | Package | What it generates |
 |---|---|

@@ -8,7 +8,7 @@ Generate a typed server-side service interface and a [Hono](https://hono.dev) ro
 - **Type-safe contract** — a TypeScript interface derived directly from your spec. The compiler tells you if your implementation drifts.
 - **Prettier-clean output** — every generated file passes `prettier --check` out of the box. Commit it, lint it, ship it.
 - **Zero boilerplate routing** — a ready-to-mount Hono router that extracts path params, query params, and request bodies, then delegates to your service.
-- **OpenAPI 3.1 only** — `$ref`, `allOf`, `anyOf`, `oneOf`, `type: ['string', 'null']`. No legacy compat.
+- **OpenAPI 3.x** — 3.1.x primary target, 3.0.x best-effort. Full support for `$ref`, `allOf`, `anyOf`, `oneOf`, `nullable`.
 - **TypeScript strict mode** — all output passes `strict: true`.
 
 ---
@@ -206,7 +206,7 @@ serve({ fetch: app.fetch, port: 3001 })
 
 ```json
 {
-  "input_openapi": "./spec/api.json",       // required — path to OpenAPI 3.1 spec (JSON or YAML)
+  "input_openapi": "./spec/api.json",       // required — path to OpenAPI 3.x spec (JSON or YAML)
   "output": "./generated",                  // required — directory to write generated files
   "framework": "hono",                      // optional — router target (default: "hono")
   "input_schema": "./generated/schemas.ts"  // optional — Zod schema file for request validation
@@ -215,7 +215,7 @@ serve({ fetch: app.fetch, port: 3001 })
 
 | Field | Required | Default | Description |
 |---|---|---|---|
-| `input_openapi` | Yes | — | Path to OpenAPI 3.1 spec (JSON or YAML) |
+| `input_openapi` | Yes | — | Path to OpenAPI 3.x spec |
 | `output` | Yes | — | Directory to write `service.ts` and `router.ts` |
 | `framework` | No | `"hono"` | Router framework to generate. Use `"none"` to generate only `service.ts` |
 | `input_schema` | No | — | Path to user-owned Zod schema file. Enables server-side request validation (see below) |

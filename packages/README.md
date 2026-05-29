@@ -7,9 +7,9 @@ This directory contains all packages in the `@codewithagents/glue` monorepo.
 | Package | Version | Description |
 |---|---|---|
 | [`api-errors`](./api-errors) | [![npm](https://img.shields.io/npm/v/@codewithagents/api-errors.svg)](https://npmjs.com/package/@codewithagents/api-errors) | Map API error responses to form field errors |
-| [`openapi-gen`](./openapi-gen) | [![npm](https://img.shields.io/npm/v/@codewithagents/openapi-gen.svg)](https://npmjs.com/package/@codewithagents/openapi-gen) | Generate TypeScript models + fetch client from OpenAPI 3.1 |
-| [`openapi-react-query`](./openapi-react-query) | [![npm](https://img.shields.io/npm/v/@codewithagents/openapi-react-query.svg)](https://npmjs.com/package/@codewithagents/openapi-react-query) | Generate React Query v5 hooks from OpenAPI 3.1 |
-| [`openapi-server`](./openapi-server) | [![npm](https://img.shields.io/npm/v/@codewithagents/openapi-server.svg)](https://npmjs.com/package/@codewithagents/openapi-server) | Generate typed server interfaces + Hono routers from OpenAPI 3.1 |
+| [`openapi-gen`](./openapi-gen) | [![npm](https://img.shields.io/npm/v/@codewithagents/openapi-gen.svg)](https://npmjs.com/package/@codewithagents/openapi-gen) | Generate TypeScript models + fetch client from OpenAPI 3.x |
+| [`openapi-react-query`](./openapi-react-query) | [![npm](https://img.shields.io/npm/v/@codewithagents/openapi-react-query.svg)](https://npmjs.com/package/@codewithagents/openapi-react-query) | Generate React Query v5 hooks from OpenAPI 3.x |
+| [`openapi-server`](./openapi-server) | [![npm](https://img.shields.io/npm/v/@codewithagents/openapi-server.svg)](https://npmjs.com/package/@codewithagents/openapi-server) | Generate typed server interfaces + Hono routers from OpenAPI 3.x |
 
 ## Private packages
 
