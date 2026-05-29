@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.0](https://github.com/codewithagents/glue/compare/openapi-server-v1.1.0...openapi-server-v1.2.0) (2026-05-29)
+
+
+### Features
+
+* **smoke:** expand to 9 real API requests, run on every push to main ([#144](https://github.com/codewithagents/glue/issues/144)) ([ba0c7c3](https://github.com/codewithagents/glue/commit/ba0c7c39c97f4f0a152fed67676346c035de90fd))
+
 ## [1.1.0](https://github.com/codewithagents/glue/compare/openapi-server-v1.0.0...openapi-server-v1.1.0) (2026-05-29)
 
 

@@ -1,6 +1,6 @@
 {
   "name": "@codewithagents/openapi-server",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Generate typed server-side service interfaces and framework routers from OpenAPI 3.1",
   "type": "module",
   "bin": {
