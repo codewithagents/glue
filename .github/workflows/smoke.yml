@@ -1,6 +1,8 @@
 name: Smoke Tests
 
 on:
+  push:
+    branches: [main]
   schedule:
     - cron: '0 4 * * 0'  # Weekly Sunday 4am UTC — low-traffic time for free APIs
   workflow_dispatch:       # Manual trigger from GitHub UI
@@ -26,14 +28,5 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
       - run: pnpm build
-
-      - name: Generate clients for smoke-tested APIs
-        run: |
-          cd examples
-          for spec in open-meteo canada_holidays exchangerate; do
-            echo "Generating $spec..."
-            pnpm exec openapi-gen --config configs/${spec}.json
-          done
-
       - name: Run smoke tests
         run: pnpm smoke

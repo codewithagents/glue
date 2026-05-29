@@ -5,6 +5,12 @@
     "packages/*/dist/**",
     "packages/openapi-gen/src/__fixtures__/**"
   ],
+  "ignoreUnresolvedImports": [
+    "**/generated/dnd5e/**"
+  ],
+  "ignoreDependencies": [
+    "zod"
+  ],
   "rules": {
     "unused-files": "warn",
     "unused-exports": "warn",

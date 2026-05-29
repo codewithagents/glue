@@ -2,7 +2,7 @@
 
 ## Stack
 - **pnpm** workspace (`packageManager: pnpm@10.30.3`) — never use npm/yarn at root
-- **TypeScript 6**, `"type": "module"` everywhere, `NodeNext` module resolution
+- **TypeScript 6** (actively supported), `"type": "module"` everywhere, `NodeNext` module resolution
 - **vitest** for all tests
 
 ## Packages
@@ -14,8 +14,11 @@
 | `packages/integration` | Private cross-package test harness, committed sample output |
 | `examples` | 128 real-world OpenAPI specs — compatibility matrix + 11 showcase specs with committed output |
 
+## Before pushing
+Run `pnpm fallow:audit` — catches dead code, duplication, and unresolved imports against the current diff before CI does.
+
 ## Key rules
-- **OpenAPI 3.1 only** — no 3.0.x support
+- **OpenAPI 3.x** — 3.1.x (including 3.1.1) is the primary target; 3.0.x is best-effort
 - **Never commit real/internal API specs** — all fixtures must be fictional
 - Build order matters: `openapi-gen` must be built before `openapi-react-query`
 - `pnpm -r run build` / `pnpm -r run test` / `pnpm -r run lint` at root
