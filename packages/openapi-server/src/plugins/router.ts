@@ -25,7 +25,7 @@ function refToName(ref: string): string {
 function extractPathParamsFromPath(path: string): string[] {
   const matches = path.match(/\{([^}]+)\}/g)
   if (matches === null) return []
-  // Keep raw param names — they are used in c.req.param() which must match
+  // Keep raw param names: they are used in c.req.param() which must match
   // the actual Hono route pattern (e.g. :job-id requires c.req.param('job-id'))
   return matches.map((m) => m.slice(1, -1))
 }
@@ -107,7 +107,7 @@ function deriveOperationName(method: string, path: string): string {
 
   const segments = path.replace(/^\/api\/v\d+\//, '').replace(/^\//, '')
   const parts = segments.split('/').map((seg) => {
-    // Handle mixed segments like "{maxLat}.{format}" — extract each {param} inside
+    // Handle mixed segments like "{maxLat}.{format}": extract each {param} inside
     const paramMatches = seg.match(/\{([^}]+)\}/g)
     if (paramMatches !== null && !(seg.startsWith('{') && seg.endsWith('}'))) {
       return paramMatches
@@ -306,7 +306,7 @@ function buildRouteHandler(
       op.bodyInfo.typeName !== undefined ? `${op.bodyInfo.typeName}Schema` : undefined
     if (schemaName !== undefined && schemaNames !== undefined && schemaNames.has(schemaName)) {
       lines.push(
-        `${indent}  // Validate request body — returns 422 with Zod issues on failure`,
+        `${indent}  // Validate request body: returns 422 with Zod issues on failure`,
       )
       lines.push(`${indent}  const parseResult = ${schemaName}.safeParse(body)`)
       lines.push(`${indent}  if (!parseResult.success) {`)

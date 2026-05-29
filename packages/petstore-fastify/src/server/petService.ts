@@ -27,7 +27,7 @@ export const petService: PetstoreService = {
   },
 }
 
-/** Reset all pets — only used in dev/test environments */
+/** Reset all pets. Only used in dev/test environments. */
 export function resetPets(): void {
   pets.clear()
 }
