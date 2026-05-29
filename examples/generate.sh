@@ -11,7 +11,7 @@ for config in "$SCRIPT_DIR/configs/"*.json; do
   # Only regenerate specs whose output directory is committed to git
   if git -C "$REPO_ROOT" ls-files --error-unmatch "$output_dir" > /dev/null 2>&1; then
     echo "Generating $name..."
-    pnpm exec openapi-gen --config "$config"
+    node "$REPO_ROOT/packages/openapi-gen/dist/cli.cjs" --config "$config"
   fi
 done
 echo "Done."
