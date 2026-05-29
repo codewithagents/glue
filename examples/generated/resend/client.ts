@@ -107,6 +107,112 @@ import type {
   VerifyDomainResponse,
 } from "./models.js";
 import { getConfig, type ClientConfig } from "./client-config.js";
+import {
+  AddContactToSegmentResponseSuccessSchema,
+  AutomationRunSchema,
+  AutomationSchema,
+  CreateApiKeyRequestSchema,
+  CreateApiKeyResponseSchema,
+  CreateAudienceOptionsSchema,
+  CreateAudienceResponseSuccessSchema,
+  CreateAutomationRequestSchema,
+  CreateAutomationResponseSchema,
+  CreateBatchEmailsResponseSchema,
+  CreateBroadcastOptionsSchema,
+  CreateBroadcastResponseSuccessSchema,
+  CreateContactOptionsSchema,
+  CreateContactPropertyOptionsSchema,
+  CreateContactPropertyResponseSuccessSchema,
+  CreateContactResponseSuccessSchema,
+  CreateDomainRequestSchema,
+  CreateDomainResponseSchema,
+  CreateEventRequestSchema,
+  CreateEventResponseSchema,
+  CreateSegmentOptionsSchema,
+  CreateSegmentResponseSuccessSchema,
+  CreateTemplateRequestSchema,
+  CreateTemplateResponseSuccessSchema,
+  CreateTopicOptionsSchema,
+  CreateTopicResponseSuccessSchema,
+  CreateWebhookRequestSchema,
+  CreateWebhookResponseSchema,
+  DeleteApiKeyResponseSchema,
+  DeleteAutomationResponseSchema,
+  DeleteDomainResponseSchema,
+  DeleteWebhookResponseSchema,
+  DomainSchema,
+  DuplicateTemplateResponseSuccessSchema,
+  EmailSchema,
+  EventSchema,
+  GetAudienceResponseSuccessSchema,
+  GetBroadcastResponseSuccessSchema,
+  GetContactPropertyResponseSuccessSchema,
+  GetContactResponseSuccessSchema,
+  GetContactTopicsResponseSuccessSchema,
+  GetReceivedEmailResponseSchema,
+  GetSegmentResponseSuccessSchema,
+  GetTopicResponseSuccessSchema,
+  GetWebhookResponseSchema,
+  ListApiKeysResponseSchema,
+  ListAttachmentsResponseSchema,
+  ListAudiencesResponseSuccessSchema,
+  ListAutomationRunsResponseSchema,
+  ListAutomationsResponseSchema,
+  ListBroadcastsResponseSuccessSchema,
+  ListContactPropertiesResponseSuccessSchema,
+  ListContactSegmentsResponseSuccessSchema,
+  ListContactsResponseSuccessSchema,
+  ListDomainsResponseSchema,
+  ListEmailsResponseSchema,
+  ListEventsResponseSchema,
+  ListLogsResponseSchema,
+  ListReceivedEmailsResponseSchema,
+  ListSegmentsResponseSuccessSchema,
+  ListTemplatesResponseSuccessSchema,
+  ListTopicsResponseSuccessSchema,
+  ListWebhooksResponseSchema,
+  LogSchema,
+  PatchAutomationRequestSchema,
+  PatchAutomationResponseSchema,
+  PublishTemplateResponseSuccessSchema,
+  RemoveAudienceResponseSuccessSchema,
+  RemoveBroadcastResponseSuccessSchema,
+  RemoveContactFromSegmentResponseSuccessSchema,
+  RemoveContactPropertyResponseSuccessSchema,
+  RemoveContactResponseSuccessSchema,
+  RemoveEventResponseSchema,
+  RemoveSegmentResponseSuccessSchema,
+  RemoveTemplateResponseSuccessSchema,
+  RemoveTopicResponseSuccessSchema,
+  RetrievedAttachmentSchema,
+  SendBroadcastOptionsSchema,
+  SendBroadcastResponseSuccessSchema,
+  SendEmailRequestSchema,
+  SendEmailResponseSchema,
+  SendEventRequestSchema,
+  StopAutomationResponseSchema,
+  TemplateSchema,
+  UpdateBroadcastOptionsSchema,
+  UpdateBroadcastResponseSuccessSchema,
+  UpdateContactOptionsSchema,
+  UpdateContactPropertyOptionsSchema,
+  UpdateContactPropertyResponseSuccessSchema,
+  UpdateContactResponseSuccessSchema,
+  UpdateContactTopicsOptionsSchema,
+  UpdateContactTopicsResponseSuccessSchema,
+  UpdateDomainOptionsSchema,
+  UpdateDomainResponseSuccessSchema,
+  UpdateEmailOptionsSchema,
+  UpdateEventRequestSchema,
+  UpdateEventResponseSchema,
+  UpdateTemplateOptionsSchema,
+  UpdateTemplateResponseSuccessSchema,
+  UpdateTopicOptionsSchema,
+  UpdateTopicResponseSuccessSchema,
+  UpdateWebhookRequestSchema,
+  UpdateWebhookResponseSchema,
+  VerifyDomainResponseSchema,
+} from "./schemas.js";
 
 export class ApiError extends Error {
   constructor(
@@ -168,7 +274,7 @@ export async function getEmails(
   if (params?.after != null) searchParams.set("after", String(params.after));
   if (params?.before != null) searchParams.set("before", String(params.before));
   const res = await _request("GET", "/emails", { searchParams }, config);
-  return res.json();
+  return ListEmailsResponseSchema.parse(await res.json());
 }
 
 export async function createEmails(
@@ -183,8 +289,9 @@ export async function createEmails(
       ? { "Idempotency-Key": params.idempotencyKey }
       : {}),
   };
+  SendEmailRequestSchema.parse(body);
   const res = await _request("POST", "/emails", { body, extraHeaders }, config);
-  return res.json();
+  return SendEmailResponseSchema.parse(await res.json());
 }
 
 export async function getEmailsByEmailId(
@@ -197,7 +304,7 @@ export async function getEmailsByEmailId(
     {},
     config,
   );
-  return res.json();
+  return EmailSchema.parse(await res.json());
 }
 
 export async function patchEmailsByEmailId(
@@ -210,7 +317,7 @@ export async function patchEmailsByEmailId(
     {},
     config,
   );
-  return res.json();
+  return UpdateEmailOptionsSchema.parse(await res.json());
 }
 
 export async function createEmailsByEmailIdCancel(
@@ -223,7 +330,7 @@ export async function createEmailsByEmailIdCancel(
     {},
     config,
   );
-  return res.json();
+  return EmailSchema.parse(await res.json());
 }
 
 export async function createEmailsBatch(
@@ -244,7 +351,7 @@ export async function createEmailsBatch(
     { body, extraHeaders },
     config,
   );
-  return res.json();
+  return CreateBatchEmailsResponseSchema.parse(await res.json());
 }
 
 export async function getEmailsByEmailIdAttachments(
@@ -266,7 +373,7 @@ export async function getEmailsByEmailIdAttachments(
     { searchParams },
     config,
   );
-  return res.json();
+  return ListAttachmentsResponseSchema.parse(await res.json());
 }
 
 export async function getEmailsByEmailIdAttachmentsByAttachmentId(
@@ -280,7 +387,7 @@ export async function getEmailsByEmailIdAttachmentsByAttachmentId(
     {},
     config,
   );
-  return res.json();
+  return RetrievedAttachmentSchema.parse(await res.json());
 }
 
 export async function getEmailsReceiving(
@@ -301,7 +408,7 @@ export async function getEmailsReceiving(
     { searchParams },
     config,
   );
-  return res.json();
+  return ListReceivedEmailsResponseSchema.parse(await res.json());
 }
 
 export async function getEmailsReceivingByEmailId(
@@ -314,7 +421,7 @@ export async function getEmailsReceivingByEmailId(
     {},
     config,
   );
-  return res.json();
+  return GetReceivedEmailResponseSchema.parse(await res.json());
 }
 
 export async function getEmailsReceivingByEmailIdAttachments(
@@ -336,7 +443,7 @@ export async function getEmailsReceivingByEmailIdAttachments(
     { searchParams },
     config,
   );
-  return res.json();
+  return ListAttachmentsResponseSchema.parse(await res.json());
 }
 
 export async function getEmailsReceivingByEmailIdAttachmentsByAttachmentId(
@@ -350,7 +457,7 @@ export async function getEmailsReceivingByEmailIdAttachmentsByAttachmentId(
     {},
     config,
   );
-  return res.json();
+  return RetrievedAttachmentSchema.parse(await res.json());
 }
 
 export async function getDomains(
@@ -366,15 +473,16 @@ export async function getDomains(
   if (params?.after != null) searchParams.set("after", String(params.after));
   if (params?.before != null) searchParams.set("before", String(params.before));
   const res = await _request("GET", "/domains", { searchParams }, config);
-  return res.json();
+  return ListDomainsResponseSchema.parse(await res.json());
 }
 
 export async function createDomains(
   body: CreateDomainRequest,
   config?: Partial<ClientConfig>,
 ): Promise<CreateDomainResponse> {
+  CreateDomainRequestSchema.parse(body);
   const res = await _request("POST", "/domains", { body }, config);
-  return res.json();
+  return CreateDomainResponseSchema.parse(await res.json());
 }
 
 export async function getDomainsByDomainId(
@@ -387,7 +495,7 @@ export async function getDomainsByDomainId(
     {},
     config,
   );
-  return res.json();
+  return DomainSchema.parse(await res.json());
 }
 
 export async function patchDomainsByDomainId(
@@ -395,13 +503,14 @@ export async function patchDomainsByDomainId(
   body: UpdateDomainOptions,
   config?: Partial<ClientConfig>,
 ): Promise<UpdateDomainResponseSuccess> {
+  UpdateDomainOptionsSchema.parse(body);
   const res = await _request(
     "PATCH",
     `/domains/${encodeURIComponent(domainId)}`,
     { body },
     config,
   );
-  return res.json();
+  return UpdateDomainResponseSuccessSchema.parse(await res.json());
 }
 
 export async function deleteDomainsByDomainId(
@@ -414,7 +523,7 @@ export async function deleteDomainsByDomainId(
     {},
     config,
   );
-  return res.json();
+  return DeleteDomainResponseSchema.parse(await res.json());
 }
 
 export async function createDomainsByDomainIdVerify(
@@ -427,7 +536,7 @@ export async function createDomainsByDomainIdVerify(
     {},
     config,
   );
-  return res.json();
+  return VerifyDomainResponseSchema.parse(await res.json());
 }
 
 export async function getApiKeys(
@@ -443,15 +552,16 @@ export async function getApiKeys(
   if (params?.after != null) searchParams.set("after", String(params.after));
   if (params?.before != null) searchParams.set("before", String(params.before));
   const res = await _request("GET", "/api-keys", { searchParams }, config);
-  return res.json();
+  return ListApiKeysResponseSchema.parse(await res.json());
 }
 
 export async function createApiKeys(
   body: CreateApiKeyRequest,
   config?: Partial<ClientConfig>,
 ): Promise<CreateApiKeyResponse> {
+  CreateApiKeyRequestSchema.parse(body);
   const res = await _request("POST", "/api-keys", { body }, config);
-  return res.json();
+  return CreateApiKeyResponseSchema.parse(await res.json());
 }
 
 export async function deleteApiKeysByApiKeyId(
@@ -464,7 +574,7 @@ export async function deleteApiKeysByApiKeyId(
     {},
     config,
   );
-  return res.json();
+  return DeleteApiKeyResponseSchema.parse(await res.json());
 }
 
 export async function getTemplates(
@@ -480,15 +590,16 @@ export async function getTemplates(
   if (params?.after != null) searchParams.set("after", String(params.after));
   if (params?.before != null) searchParams.set("before", String(params.before));
   const res = await _request("GET", "/templates", { searchParams }, config);
-  return res.json();
+  return ListTemplatesResponseSuccessSchema.parse(await res.json());
 }
 
 export async function createTemplates(
   body: CreateTemplateRequest,
   config?: Partial<ClientConfig>,
 ): Promise<CreateTemplateResponseSuccess> {
+  CreateTemplateRequestSchema.parse(body);
   const res = await _request("POST", "/templates", { body }, config);
-  return res.json();
+  return CreateTemplateResponseSuccessSchema.parse(await res.json());
 }
 
 export async function getTemplatesById(
@@ -501,7 +612,7 @@ export async function getTemplatesById(
     {},
     config,
   );
-  return res.json();
+  return TemplateSchema.parse(await res.json());
 }
 
 export async function patchTemplatesById(
@@ -509,13 +620,14 @@ export async function patchTemplatesById(
   body: UpdateTemplateOptions,
   config?: Partial<ClientConfig>,
 ): Promise<UpdateTemplateResponseSuccess> {
+  UpdateTemplateOptionsSchema.parse(body);
   const res = await _request(
     "PATCH",
     `/templates/${encodeURIComponent(id)}`,
     { body },
     config,
   );
-  return res.json();
+  return UpdateTemplateResponseSuccessSchema.parse(await res.json());
 }
 
 export async function deleteTemplatesById(
@@ -528,7 +640,7 @@ export async function deleteTemplatesById(
     {},
     config,
   );
-  return res.json();
+  return RemoveTemplateResponseSuccessSchema.parse(await res.json());
 }
 
 export async function createTemplatesByIdPublish(
@@ -541,7 +653,7 @@ export async function createTemplatesByIdPublish(
     {},
     config,
   );
-  return res.json();
+  return PublishTemplateResponseSuccessSchema.parse(await res.json());
 }
 
 export async function createTemplatesByIdDuplicate(
@@ -554,7 +666,7 @@ export async function createTemplatesByIdDuplicate(
     {},
     config,
   );
-  return res.json();
+  return DuplicateTemplateResponseSuccessSchema.parse(await res.json());
 }
 
 /**
@@ -564,7 +676,7 @@ export async function getAudiences(
   config?: Partial<ClientConfig>,
 ): Promise<ListAudiencesResponseSuccess> {
   const res = await _request("GET", "/audiences", {}, config);
-  return res.json();
+  return ListAudiencesResponseSuccessSchema.parse(await res.json());
 }
 
 /**
@@ -574,8 +686,9 @@ export async function createAudiences(
   body: CreateAudienceOptions,
   config?: Partial<ClientConfig>,
 ): Promise<CreateAudienceResponseSuccess> {
+  CreateAudienceOptionsSchema.parse(body);
   const res = await _request("POST", "/audiences", { body }, config);
-  return res.json();
+  return CreateAudienceResponseSuccessSchema.parse(await res.json());
 }
 
 /**
@@ -591,7 +704,7 @@ export async function getAudiencesById(
     {},
     config,
   );
-  return res.json();
+  return GetAudienceResponseSuccessSchema.parse(await res.json());
 }
 
 /**
@@ -607,7 +720,7 @@ export async function deleteAudiencesById(
     {},
     config,
   );
-  return res.json();
+  return RemoveAudienceResponseSuccessSchema.parse(await res.json());
 }
 
 export async function getContacts(
@@ -626,15 +739,16 @@ export async function getContacts(
   if (params?.after != null) searchParams.set("after", String(params.after));
   if (params?.before != null) searchParams.set("before", String(params.before));
   const res = await _request("GET", "/contacts", { searchParams }, config);
-  return res.json();
+  return ListContactsResponseSuccessSchema.parse(await res.json());
 }
 
 export async function createContacts(
   body: CreateContactOptions,
   config?: Partial<ClientConfig>,
 ): Promise<CreateContactResponseSuccess> {
+  CreateContactOptionsSchema.parse(body);
   const res = await _request("POST", "/contacts", { body }, config);
-  return res.json();
+  return CreateContactResponseSuccessSchema.parse(await res.json());
 }
 
 export async function getContactsById(
@@ -647,7 +761,7 @@ export async function getContactsById(
     {},
     config,
   );
-  return res.json();
+  return GetContactResponseSuccessSchema.parse(await res.json());
 }
 
 export async function patchContactsById(
@@ -655,13 +769,14 @@ export async function patchContactsById(
   body: UpdateContactOptions,
   config?: Partial<ClientConfig>,
 ): Promise<UpdateContactResponseSuccess> {
+  UpdateContactOptionsSchema.parse(body);
   const res = await _request(
     "PATCH",
     `/contacts/${encodeURIComponent(id)}`,
     { body },
     config,
   );
-  return res.json();
+  return UpdateContactResponseSuccessSchema.parse(await res.json());
 }
 
 export async function deleteContactsById(
@@ -674,7 +789,7 @@ export async function deleteContactsById(
     {},
     config,
   );
-  return res.json();
+  return RemoveContactResponseSuccessSchema.parse(await res.json());
 }
 
 export async function getBroadcasts(
@@ -690,15 +805,16 @@ export async function getBroadcasts(
   if (params?.after != null) searchParams.set("after", String(params.after));
   if (params?.before != null) searchParams.set("before", String(params.before));
   const res = await _request("GET", "/broadcasts", { searchParams }, config);
-  return res.json();
+  return ListBroadcastsResponseSuccessSchema.parse(await res.json());
 }
 
 export async function createBroadcasts(
   body: CreateBroadcastOptions,
   config?: Partial<ClientConfig>,
 ): Promise<CreateBroadcastResponseSuccess> {
+  CreateBroadcastOptionsSchema.parse(body);
   const res = await _request("POST", "/broadcasts", { body }, config);
-  return res.json();
+  return CreateBroadcastResponseSuccessSchema.parse(await res.json());
 }
 
 export async function getBroadcastsById(
@@ -711,7 +827,7 @@ export async function getBroadcastsById(
     {},
     config,
   );
-  return res.json();
+  return GetBroadcastResponseSuccessSchema.parse(await res.json());
 }
 
 export async function patchBroadcastsById(
@@ -719,13 +835,14 @@ export async function patchBroadcastsById(
   body: UpdateBroadcastOptions,
   config?: Partial<ClientConfig>,
 ): Promise<UpdateBroadcastResponseSuccess> {
+  UpdateBroadcastOptionsSchema.parse(body);
   const res = await _request(
     "PATCH",
     `/broadcasts/${encodeURIComponent(id)}`,
     { body },
     config,
   );
-  return res.json();
+  return UpdateBroadcastResponseSuccessSchema.parse(await res.json());
 }
 
 export async function deleteBroadcastsById(
@@ -738,7 +855,7 @@ export async function deleteBroadcastsById(
     {},
     config,
   );
-  return res.json();
+  return RemoveBroadcastResponseSuccessSchema.parse(await res.json());
 }
 
 export async function createBroadcastsByIdSend(
@@ -746,13 +863,14 @@ export async function createBroadcastsByIdSend(
   body: SendBroadcastOptions,
   config?: Partial<ClientConfig>,
 ): Promise<SendBroadcastResponseSuccess> {
+  SendBroadcastOptionsSchema.parse(body);
   const res = await _request(
     "POST",
     `/broadcasts/${encodeURIComponent(id)}/send`,
     { body },
     config,
   );
-  return res.json();
+  return SendBroadcastResponseSuccessSchema.parse(await res.json());
 }
 
 export async function getWebhooks(
@@ -768,15 +886,16 @@ export async function getWebhooks(
   if (params?.after != null) searchParams.set("after", String(params.after));
   if (params?.before != null) searchParams.set("before", String(params.before));
   const res = await _request("GET", "/webhooks", { searchParams }, config);
-  return res.json();
+  return ListWebhooksResponseSchema.parse(await res.json());
 }
 
 export async function createWebhooks(
   body: CreateWebhookRequest,
   config?: Partial<ClientConfig>,
 ): Promise<CreateWebhookResponse> {
+  CreateWebhookRequestSchema.parse(body);
   const res = await _request("POST", "/webhooks", { body }, config);
-  return res.json();
+  return CreateWebhookResponseSchema.parse(await res.json());
 }
 
 export async function getWebhooksByWebhookId(
@@ -789,7 +908,7 @@ export async function getWebhooksByWebhookId(
     {},
     config,
   );
-  return res.json();
+  return GetWebhookResponseSchema.parse(await res.json());
 }
 
 export async function patchWebhooksByWebhookId(
@@ -797,13 +916,14 @@ export async function patchWebhooksByWebhookId(
   body: UpdateWebhookRequest,
   config?: Partial<ClientConfig>,
 ): Promise<UpdateWebhookResponse> {
+  UpdateWebhookRequestSchema.parse(body);
   const res = await _request(
     "PATCH",
     `/webhooks/${encodeURIComponent(webhookId)}`,
     { body },
     config,
   );
-  return res.json();
+  return UpdateWebhookResponseSchema.parse(await res.json());
 }
 
 export async function deleteWebhooksByWebhookId(
@@ -816,7 +936,7 @@ export async function deleteWebhooksByWebhookId(
     {},
     config,
   );
-  return res.json();
+  return DeleteWebhookResponseSchema.parse(await res.json());
 }
 
 export async function getSegments(
@@ -832,15 +952,16 @@ export async function getSegments(
   if (params?.after != null) searchParams.set("after", String(params.after));
   if (params?.before != null) searchParams.set("before", String(params.before));
   const res = await _request("GET", "/segments", { searchParams }, config);
-  return res.json();
+  return ListSegmentsResponseSuccessSchema.parse(await res.json());
 }
 
 export async function createSegments(
   body: CreateSegmentOptions,
   config?: Partial<ClientConfig>,
 ): Promise<CreateSegmentResponseSuccess> {
+  CreateSegmentOptionsSchema.parse(body);
   const res = await _request("POST", "/segments", { body }, config);
-  return res.json();
+  return CreateSegmentResponseSuccessSchema.parse(await res.json());
 }
 
 export async function getSegmentsById(
@@ -853,7 +974,7 @@ export async function getSegmentsById(
     {},
     config,
   );
-  return res.json();
+  return GetSegmentResponseSuccessSchema.parse(await res.json());
 }
 
 export async function deleteSegmentsById(
@@ -866,7 +987,7 @@ export async function deleteSegmentsById(
     {},
     config,
   );
-  return res.json();
+  return RemoveSegmentResponseSuccessSchema.parse(await res.json());
 }
 
 export async function getTopics(
@@ -882,15 +1003,16 @@ export async function getTopics(
   if (params?.after != null) searchParams.set("after", String(params.after));
   if (params?.before != null) searchParams.set("before", String(params.before));
   const res = await _request("GET", "/topics", { searchParams }, config);
-  return res.json();
+  return ListTopicsResponseSuccessSchema.parse(await res.json());
 }
 
 export async function createTopics(
   body: CreateTopicOptions,
   config?: Partial<ClientConfig>,
 ): Promise<CreateTopicResponseSuccess> {
+  CreateTopicOptionsSchema.parse(body);
   const res = await _request("POST", "/topics", { body }, config);
-  return res.json();
+  return CreateTopicResponseSuccessSchema.parse(await res.json());
 }
 
 export async function getTopicsById(
@@ -903,7 +1025,7 @@ export async function getTopicsById(
     {},
     config,
   );
-  return res.json();
+  return GetTopicResponseSuccessSchema.parse(await res.json());
 }
 
 export async function patchTopicsById(
@@ -911,13 +1033,14 @@ export async function patchTopicsById(
   body: UpdateTopicOptions,
   config?: Partial<ClientConfig>,
 ): Promise<UpdateTopicResponseSuccess> {
+  UpdateTopicOptionsSchema.parse(body);
   const res = await _request(
     "PATCH",
     `/topics/${encodeURIComponent(id)}`,
     { body },
     config,
   );
-  return res.json();
+  return UpdateTopicResponseSuccessSchema.parse(await res.json());
 }
 
 export async function deleteTopicsById(
@@ -930,7 +1053,7 @@ export async function deleteTopicsById(
     {},
     config,
   );
-  return res.json();
+  return RemoveTopicResponseSuccessSchema.parse(await res.json());
 }
 
 export async function getContactProperties(
@@ -951,15 +1074,16 @@ export async function getContactProperties(
     { searchParams },
     config,
   );
-  return res.json();
+  return ListContactPropertiesResponseSuccessSchema.parse(await res.json());
 }
 
 export async function createContactProperties(
   body: CreateContactPropertyOptions,
   config?: Partial<ClientConfig>,
 ): Promise<CreateContactPropertyResponseSuccess> {
+  CreateContactPropertyOptionsSchema.parse(body);
   const res = await _request("POST", "/contact-properties", { body }, config);
-  return res.json();
+  return CreateContactPropertyResponseSuccessSchema.parse(await res.json());
 }
 
 export async function getContactPropertiesById(
@@ -972,7 +1096,7 @@ export async function getContactPropertiesById(
     {},
     config,
   );
-  return res.json();
+  return GetContactPropertyResponseSuccessSchema.parse(await res.json());
 }
 
 export async function patchContactPropertiesById(
@@ -980,13 +1104,14 @@ export async function patchContactPropertiesById(
   body: UpdateContactPropertyOptions,
   config?: Partial<ClientConfig>,
 ): Promise<UpdateContactPropertyResponseSuccess> {
+  UpdateContactPropertyOptionsSchema.parse(body);
   const res = await _request(
     "PATCH",
     `/contact-properties/${encodeURIComponent(id)}`,
     { body },
     config,
   );
-  return res.json();
+  return UpdateContactPropertyResponseSuccessSchema.parse(await res.json());
 }
 
 export async function deleteContactPropertiesById(
@@ -999,7 +1124,7 @@ export async function deleteContactPropertiesById(
     {},
     config,
   );
-  return res.json();
+  return RemoveContactPropertyResponseSuccessSchema.parse(await res.json());
 }
 
 export async function getContactsByContactIdSegments(
@@ -1021,7 +1146,7 @@ export async function getContactsByContactIdSegments(
     { searchParams },
     config,
   );
-  return res.json();
+  return ListContactSegmentsResponseSuccessSchema.parse(await res.json());
 }
 
 export async function createContactsByContactIdSegmentsBySegmentId(
@@ -1035,7 +1160,7 @@ export async function createContactsByContactIdSegmentsBySegmentId(
     {},
     config,
   );
-  return res.json();
+  return AddContactToSegmentResponseSuccessSchema.parse(await res.json());
 }
 
 export async function deleteContactsByContactIdSegmentsBySegmentId(
@@ -1049,7 +1174,7 @@ export async function deleteContactsByContactIdSegmentsBySegmentId(
     {},
     config,
   );
-  return res.json();
+  return RemoveContactFromSegmentResponseSuccessSchema.parse(await res.json());
 }
 
 export async function getContactsByContactIdTopics(
@@ -1071,7 +1196,7 @@ export async function getContactsByContactIdTopics(
     { searchParams },
     config,
   );
-  return res.json();
+  return GetContactTopicsResponseSuccessSchema.parse(await res.json());
 }
 
 export async function patchContactsByContactIdTopics(
@@ -1079,13 +1204,14 @@ export async function patchContactsByContactIdTopics(
   body: UpdateContactTopicsOptions,
   config?: Partial<ClientConfig>,
 ): Promise<UpdateContactTopicsResponseSuccess> {
+  UpdateContactTopicsOptionsSchema.parse(body);
   const res = await _request(
     "PATCH",
     `/contacts/${encodeURIComponent(contactId)}/topics`,
     { body },
     config,
   );
-  return res.json();
+  return UpdateContactTopicsResponseSuccessSchema.parse(await res.json());
 }
 
 export async function getLogs(
@@ -1101,7 +1227,7 @@ export async function getLogs(
   if (params?.after != null) searchParams.set("after", String(params.after));
   if (params?.before != null) searchParams.set("before", String(params.before));
   const res = await _request("GET", "/logs", { searchParams }, config);
-  return res.json();
+  return ListLogsResponseSchema.parse(await res.json());
 }
 
 export async function getLogsByLogId(
@@ -1114,7 +1240,7 @@ export async function getLogsByLogId(
     {},
     config,
   );
-  return res.json();
+  return LogSchema.parse(await res.json());
 }
 
 export async function getAutomations(
@@ -1132,15 +1258,16 @@ export async function getAutomations(
   if (params?.after != null) searchParams.set("after", String(params.after));
   if (params?.before != null) searchParams.set("before", String(params.before));
   const res = await _request("GET", "/automations", { searchParams }, config);
-  return res.json();
+  return ListAutomationsResponseSchema.parse(await res.json());
 }
 
 export async function createAutomations(
   body: CreateAutomationRequest,
   config?: Partial<ClientConfig>,
 ): Promise<CreateAutomationResponse> {
+  CreateAutomationRequestSchema.parse(body);
   const res = await _request("POST", "/automations", { body }, config);
-  return res.json();
+  return CreateAutomationResponseSchema.parse(await res.json());
 }
 
 export async function getAutomationsByAutomationId(
@@ -1153,7 +1280,7 @@ export async function getAutomationsByAutomationId(
     {},
     config,
   );
-  return res.json();
+  return AutomationSchema.parse(await res.json());
 }
 
 export async function patchAutomationsByAutomationId(
@@ -1161,13 +1288,14 @@ export async function patchAutomationsByAutomationId(
   body: PatchAutomationRequest,
   config?: Partial<ClientConfig>,
 ): Promise<PatchAutomationResponse> {
+  PatchAutomationRequestSchema.parse(body);
   const res = await _request(
     "PATCH",
     `/automations/${encodeURIComponent(automationId)}`,
     { body },
     config,
   );
-  return res.json();
+  return PatchAutomationResponseSchema.parse(await res.json());
 }
 
 export async function deleteAutomationsByAutomationId(
@@ -1180,7 +1308,7 @@ export async function deleteAutomationsByAutomationId(
     {},
     config,
   );
-  return res.json();
+  return DeleteAutomationResponseSchema.parse(await res.json());
 }
 
 export async function createAutomationsByAutomationIdStop(
@@ -1193,7 +1321,7 @@ export async function createAutomationsByAutomationIdStop(
     {},
     config,
   );
-  return res.json();
+  return StopAutomationResponseSchema.parse(await res.json());
 }
 
 export async function getAutomationsByAutomationIdRuns(
@@ -1217,7 +1345,7 @@ export async function getAutomationsByAutomationIdRuns(
     { searchParams },
     config,
   );
-  return res.json();
+  return ListAutomationRunsResponseSchema.parse(await res.json());
 }
 
 export async function getAutomationsByAutomationIdRunsByRunId(
@@ -1231,7 +1359,7 @@ export async function getAutomationsByAutomationIdRunsByRunId(
     {},
     config,
   );
-  return res.json();
+  return AutomationRunSchema.parse(await res.json());
 }
 
 export async function getEvents(
@@ -1247,21 +1375,23 @@ export async function getEvents(
   if (params?.after != null) searchParams.set("after", String(params.after));
   if (params?.before != null) searchParams.set("before", String(params.before));
   const res = await _request("GET", "/events", { searchParams }, config);
-  return res.json();
+  return ListEventsResponseSchema.parse(await res.json());
 }
 
 export async function createEvents(
   body: CreateEventRequest,
   config?: Partial<ClientConfig>,
 ): Promise<CreateEventResponse> {
+  CreateEventRequestSchema.parse(body);
   const res = await _request("POST", "/events", { body }, config);
-  return res.json();
+  return CreateEventResponseSchema.parse(await res.json());
 }
 
 export async function createEventsSend(
   body: SendEventRequest,
   config?: Partial<ClientConfig>,
 ): Promise<void> {
+  SendEventRequestSchema.parse(body);
   await _request("POST", "/events/send", { body }, config);
 }
 
@@ -1275,7 +1405,7 @@ export async function getEventsByIdentifier(
     {},
     config,
   );
-  return res.json();
+  return EventSchema.parse(await res.json());
 }
 
 export async function patchEventsByIdentifier(
@@ -1283,13 +1413,14 @@ export async function patchEventsByIdentifier(
   body: UpdateEventRequest,
   config?: Partial<ClientConfig>,
 ): Promise<UpdateEventResponse> {
+  UpdateEventRequestSchema.parse(body);
   const res = await _request(
     "PATCH",
     `/events/${encodeURIComponent(identifier)}`,
     { body },
     config,
   );
-  return res.json();
+  return UpdateEventResponseSchema.parse(await res.json());
 }
 
 export async function deleteEventsByIdentifier(
@@ -1302,5 +1433,5 @@ export async function deleteEventsByIdentifier(
     {},
     config,
   );
-  return res.json();
+  return RemoveEventResponseSchema.parse(await res.json());
 }
