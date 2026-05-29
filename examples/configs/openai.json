@@ -1,5 +1,4 @@
 {
   "input_openapi": "../specs/openai.yaml",
-  "output": "../generated/openai",
-  "input_schema": "../generated/openai/schemas.ts"
+  "output": "../generated/openai"
 }

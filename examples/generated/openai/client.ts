@@ -213,218 +213,6 @@ import type {
   VoiceResource,
 } from "./models.js";
 import { getConfig, type ClientConfig } from "./client-config.js";
-import {
-  AdminApiKeyCreateResponseSchema,
-  AdminApiKeySchema,
-  ApiKeyListSchema,
-  AssistantObjectSchema,
-  BatchSchema,
-  CertificateSchema,
-  ChatCompletionDeletedSchema,
-  ChatCompletionListSchema,
-  ChatCompletionMessageListSchema,
-  ChatSessionResourceSchema,
-  CompactResourceSchema,
-  CompactResponseMethodPublicBodySchema,
-  CompleteUploadRequestSchema,
-  ContainerFileListResourceSchema,
-  ContainerFileResourceSchema,
-  ContainerListResourceSchema,
-  ContainerResourceSchema,
-  ConversationItemListSchema,
-  ConversationItemSchema,
-  ConversationResourceSchema,
-  CreateAssistantRequestSchema,
-  CreateChatCompletionRequestSchema,
-  CreateChatCompletionResponseSchema,
-  CreateChatSessionBodySchema,
-  CreateCompletionRequestSchema,
-  CreateCompletionResponseSchema,
-  CreateContainerBodySchema,
-  CreateContainerFileBodySchema,
-  CreateConversationBodySchema,
-  CreateEmbeddingRequestSchema,
-  CreateEmbeddingResponseSchema,
-  CreateEvalRequestSchema,
-  CreateEvalRunRequestSchema,
-  CreateFineTuningCheckpointPermissionRequestSchema,
-  CreateFineTuningJobRequestSchema,
-  CreateGroupBodySchema,
-  CreateGroupUserBodySchema,
-  CreateImageRequestSchema,
-  CreateMessageRequestSchema,
-  CreateModerationRequestSchema,
-  CreateModerationResponseSchema,
-  CreateResponseSchema,
-  CreateRunRequestSchema,
-  CreateSkillBodySchema,
-  CreateSkillVersionBodySchema,
-  CreateSpeechRequestSchema,
-  CreateThreadAndRunRequestSchema,
-  CreateThreadRequestSchema,
-  CreateUploadRequestSchema,
-  CreateVectorStoreFileBatchRequestSchema,
-  CreateVectorStoreFileRequestSchema,
-  CreateVectorStoreRequestSchema,
-  CreateVideoEditJsonBodySchema,
-  CreateVideoExtendJsonBodySchema,
-  CreateVideoJsonBodySchema,
-  CreateVideoRemixBodySchema,
-  DeleteAssistantResponseSchema,
-  DeleteCertificateResponseSchema,
-  DeleteFileResponseSchema,
-  DeleteFineTuningCheckpointPermissionResponseSchema,
-  DeleteMessageResponseSchema,
-  DeleteModelResponseSchema,
-  DeleteThreadResponseSchema,
-  DeleteVectorStoreFileResponseSchema,
-  DeleteVectorStoreResponseSchema,
-  DeletedConversationResourceSchema,
-  DeletedRoleAssignmentResourceSchema,
-  DeletedSkillResourceSchema,
-  DeletedSkillVersionResourceSchema,
-  DeletedThreadResourceSchema,
-  DeletedVideoResourceSchema,
-  EditImageBodyJsonParamSchema,
-  EvalListSchema,
-  EvalRunListSchema,
-  EvalRunOutputItemListSchema,
-  EvalRunOutputItemSchema,
-  EvalRunSchema,
-  EvalSchema,
-  FineTuningJobSchema,
-  GroupDeletedResourceSchema,
-  GroupListResourceSchema,
-  GroupResourceWithSuccessSchema,
-  GroupResponseSchema,
-  GroupRoleAssignmentSchema,
-  GroupUserAssignmentSchema,
-  GroupUserDeletedResourceSchema,
-  ImagesResponseSchema,
-  InviteDeleteResponseSchema,
-  InviteListResponseSchema,
-  InviteProjectGroupBodySchema,
-  InviteRequestSchema,
-  InviteSchema,
-  ListAssistantsResponseSchema,
-  ListAuditLogsResponseSchema,
-  ListBatchesResponseSchema,
-  ListCertificatesResponseSchema,
-  ListFilesResponseSchema,
-  ListFineTuningCheckpointPermissionResponseSchema,
-  ListFineTuningJobCheckpointsResponseSchema,
-  ListFineTuningJobEventsResponseSchema,
-  ListMessagesResponseSchema,
-  ListModelsResponseSchema,
-  ListPaginatedFineTuningJobsResponseSchema,
-  ListProjectCertificatesResponseSchema,
-  ListRunStepsResponseSchema,
-  ListRunsResponseSchema,
-  ListVectorStoreFilesResponseSchema,
-  ListVectorStoresResponseSchema,
-  MessageObjectSchema,
-  ModelSchema,
-  ModifyAssistantRequestSchema,
-  ModifyCertificateRequestSchema,
-  ModifyMessageRequestSchema,
-  ModifyRunRequestSchema,
-  ModifyThreadRequestSchema,
-  OpenAIFileSchema,
-  OrganizationCertificateActivationResponseSchema,
-  OrganizationCertificateDeactivationResponseSchema,
-  OrganizationProjectCertificateActivationResponseSchema,
-  OrganizationProjectCertificateDeactivationResponseSchema,
-  ProjectApiKeyDeleteResponseSchema,
-  ProjectApiKeyListResponseSchema,
-  ProjectApiKeySchema,
-  ProjectCreateRequestSchema,
-  ProjectGroupDeletedResourceSchema,
-  ProjectGroupListResourceSchema,
-  ProjectGroupSchema,
-  ProjectListResponseSchema,
-  ProjectRateLimitListResponseSchema,
-  ProjectRateLimitSchema,
-  ProjectRateLimitUpdateRequestSchema,
-  ProjectSchema,
-  ProjectServiceAccountCreateRequestSchema,
-  ProjectServiceAccountCreateResponseSchema,
-  ProjectServiceAccountDeleteResponseSchema,
-  ProjectServiceAccountListResponseSchema,
-  ProjectServiceAccountSchema,
-  ProjectUpdateRequestSchema,
-  ProjectUserCreateRequestSchema,
-  ProjectUserDeleteResponseSchema,
-  ProjectUserListResponseSchema,
-  ProjectUserSchema,
-  ProjectUserUpdateRequestSchema,
-  PublicAssignOrganizationGroupRoleBodySchema,
-  PublicCreateOrganizationRoleBodySchema,
-  PublicRoleListResourceSchema,
-  PublicUpdateOrganizationRoleBodySchema,
-  RealtimeCallReferRequestSchema,
-  RealtimeCallRejectRequestSchema,
-  RealtimeCreateClientSecretRequestSchema,
-  RealtimeCreateClientSecretResponseSchema,
-  RealtimeSessionCreateRequestGASchema,
-  RealtimeSessionCreateRequestSchema,
-  RealtimeSessionCreateResponseSchema,
-  RealtimeTranscriptionSessionCreateRequestSchema,
-  RealtimeTranscriptionSessionCreateResponseSchema,
-  RealtimeTranslationClientSecretCreateRequestSchema,
-  RealtimeTranslationClientSecretCreateResponseSchema,
-  ResponseItemListSchema,
-  ResponseSchema,
-  RoleDeletedResourceSchema,
-  RoleListResourceSchema,
-  RoleSchema,
-  RunGraderRequestSchema,
-  RunGraderResponseSchema,
-  RunObjectSchema,
-  RunStepObjectSchema,
-  SetDefaultSkillVersionBodySchema,
-  SkillListResourceSchema,
-  SkillResourceSchema,
-  SkillVersionListResourceSchema,
-  SkillVersionResourceSchema,
-  SubmitToolOutputsRunRequestSchema,
-  ThreadItemListResourceSchema,
-  ThreadListResourceSchema,
-  ThreadObjectSchema,
-  ThreadResourceSchema,
-  ToggleCertificatesRequestSchema,
-  TokenCountsBodySchema,
-  TokenCountsResourceSchema,
-  UpdateConversationBodySchema,
-  UpdateGroupBodySchema,
-  UpdateVectorStoreFileAttributesRequestSchema,
-  UpdateVectorStoreRequestSchema,
-  UpdateVoiceConsentRequestSchema,
-  UploadCertificateRequestSchema,
-  UploadPartSchema,
-  UploadSchema,
-  UsageResponseSchema,
-  UserDeleteResponseSchema,
-  UserListResourceSchema,
-  UserListResponseSchema,
-  UserRoleAssignmentSchema,
-  UserRoleUpdateRequestSchema,
-  UserSchema,
-  ValidateGraderRequestSchema,
-  ValidateGraderResponseSchema,
-  VectorStoreFileBatchObjectSchema,
-  VectorStoreFileContentResponseSchema,
-  VectorStoreFileObjectSchema,
-  VectorStoreObjectSchema,
-  VectorStoreSearchRequestSchema,
-  VectorStoreSearchResultsPageSchema,
-  VideoCharacterResourceSchema,
-  VideoListResourceSchema,
-  VideoResourceSchema,
-  VoiceConsentDeletedResourceSchema,
-  VoiceConsentListResourceSchema,
-  VoiceConsentResourceSchema,
-  VoiceResourceSchema,
-} from "./schemas.js";
 
 export class ApiError extends Error {
   constructor(
@@ -489,7 +277,7 @@ export async function listAssistants(
   if (params?.after != null) searchParams.set("after", String(params.after));
   if (params?.before != null) searchParams.set("before", String(params.before));
   const res = await _request("GET", "/assistants", { searchParams }, config);
-  return ListAssistantsResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 /**
@@ -499,9 +287,8 @@ export async function createAssistant(
   body: CreateAssistantRequest,
   config?: Partial<ClientConfig>,
 ): Promise<AssistantObject> {
-  CreateAssistantRequestSchema.parse(body);
   const res = await _request("POST", "/assistants", { body }, config);
-  return AssistantObjectSchema.parse(await res.json());
+  return res.json();
 }
 
 /**
@@ -517,7 +304,7 @@ export async function getAssistant(
     {},
     config,
   );
-  return AssistantObjectSchema.parse(await res.json());
+  return res.json();
 }
 
 /**
@@ -528,14 +315,13 @@ export async function modifyAssistant(
   body: ModifyAssistantRequest,
   config?: Partial<ClientConfig>,
 ): Promise<AssistantObject> {
-  ModifyAssistantRequestSchema.parse(body);
   const res = await _request(
     "POST",
     `/assistants/${encodeURIComponent(assistantId)}`,
     { body },
     config,
   );
-  return AssistantObjectSchema.parse(await res.json());
+  return res.json();
 }
 
 /**
@@ -551,14 +337,13 @@ export async function deleteAssistant(
     {},
     config,
   );
-  return DeleteAssistantResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function createSpeech(
   body: CreateSpeechRequest,
   config?: Partial<ClientConfig>,
 ): Promise<void> {
-  CreateSpeechRequestSchema.parse(body);
   await _request("POST", "/audio/speech", { body }, config);
 }
 
@@ -592,14 +377,14 @@ export async function listVoiceConsents(
     { searchParams },
     config,
   );
-  return VoiceConsentListResourceSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function createVoiceConsent(
   config?: Partial<ClientConfig>,
 ): Promise<VoiceConsentResource> {
   const res = await _request("POST", "/audio/voice_consents", {}, config);
-  return VoiceConsentResourceSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function getVoiceConsent(
@@ -612,7 +397,7 @@ export async function getVoiceConsent(
     {},
     config,
   );
-  return VoiceConsentResourceSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function updateVoiceConsent(
@@ -620,14 +405,13 @@ export async function updateVoiceConsent(
   body: UpdateVoiceConsentRequest,
   config?: Partial<ClientConfig>,
 ): Promise<VoiceConsentResource> {
-  UpdateVoiceConsentRequestSchema.parse(body);
   const res = await _request(
     "POST",
     `/audio/voice_consents/${encodeURIComponent(consentId)}`,
     { body },
     config,
   );
-  return VoiceConsentResourceSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function deleteVoiceConsent(
@@ -640,14 +424,14 @@ export async function deleteVoiceConsent(
     {},
     config,
   );
-  return VoiceConsentDeletedResourceSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function createVoice(
   config?: Partial<ClientConfig>,
 ): Promise<VoiceResource> {
   const res = await _request("POST", "/audio/voices", {}, config);
-  return VoiceResourceSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function listBatches(
@@ -661,7 +445,7 @@ export async function listBatches(
   if (params?.after != null) searchParams.set("after", String(params.after));
   if (params?.limit != null) searchParams.set("limit", String(params.limit));
   const res = await _request("GET", "/batches", { searchParams }, config);
-  return ListBatchesResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function createBatch(
@@ -669,7 +453,7 @@ export async function createBatch(
   config?: Partial<ClientConfig>,
 ): Promise<Batch> {
   const res = await _request("POST", "/batches", { body }, config);
-  return BatchSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function retrieveBatch(
@@ -682,7 +466,7 @@ export async function retrieveBatch(
     {},
     config,
   );
-  return BatchSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function cancelBatch(
@@ -695,7 +479,7 @@ export async function cancelBatch(
     {},
     config,
   );
-  return BatchSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function listChatCompletions(
@@ -721,16 +505,15 @@ export async function listChatCompletions(
     { searchParams },
     config,
   );
-  return ChatCompletionListSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function createChatCompletion(
   body: CreateChatCompletionRequest,
   config?: Partial<ClientConfig>,
 ): Promise<CreateChatCompletionResponse> {
-  CreateChatCompletionRequestSchema.parse(body);
   const res = await _request("POST", "/chat/completions", { body }, config);
-  return CreateChatCompletionResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function getChatCompletion(
@@ -743,7 +526,7 @@ export async function getChatCompletion(
     {},
     config,
   );
-  return CreateChatCompletionResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function updateChatCompletion(
@@ -757,7 +540,7 @@ export async function updateChatCompletion(
     { body },
     config,
   );
-  return CreateChatCompletionResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function deleteChatCompletion(
@@ -770,7 +553,7 @@ export async function deleteChatCompletion(
     {},
     config,
   );
-  return ChatCompletionDeletedSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function getChatCompletionMessages(
@@ -792,16 +575,15 @@ export async function getChatCompletionMessages(
     { searchParams },
     config,
   );
-  return ChatCompletionMessageListSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function createCompletion(
   body: CreateCompletionRequest,
   config?: Partial<ClientConfig>,
 ): Promise<CreateCompletionResponse> {
-  CreateCompletionRequestSchema.parse(body);
   const res = await _request("POST", "/completions", { body }, config);
-  return CreateCompletionResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function listContainers(
@@ -819,16 +601,15 @@ export async function listContainers(
   if (params?.after != null) searchParams.set("after", String(params.after));
   if (params?.name != null) searchParams.set("name", String(params.name));
   const res = await _request("GET", "/containers", { searchParams }, config);
-  return ContainerListResourceSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function createContainer(
   body: CreateContainerBody,
   config?: Partial<ClientConfig>,
 ): Promise<ContainerResource> {
-  CreateContainerBodySchema.parse(body);
   const res = await _request("POST", "/containers", { body }, config);
-  return ContainerResourceSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function retrieveContainer(
@@ -841,7 +622,7 @@ export async function retrieveContainer(
     {},
     config,
   );
-  return ContainerResourceSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function deleteContainer(
@@ -875,7 +656,7 @@ export async function listContainerFiles(
     { searchParams },
     config,
   );
-  return ContainerFileListResourceSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function createContainerFile(
@@ -883,14 +664,13 @@ export async function createContainerFile(
   body: CreateContainerFileBody,
   config?: Partial<ClientConfig>,
 ): Promise<ContainerFileResource> {
-  CreateContainerFileBodySchema.parse(body);
   const res = await _request(
     "POST",
     `/containers/${encodeURIComponent(containerId)}/files`,
     { body },
     config,
   );
-  return ContainerFileResourceSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function retrieveContainerFile(
@@ -904,7 +684,7 @@ export async function retrieveContainerFile(
     {},
     config,
   );
-  return ContainerFileResourceSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function deleteContainerFile(
@@ -956,7 +736,7 @@ export async function listConversationItems(
     { searchParams },
     config,
   );
-  return ConversationItemListSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function createConversationItems(
@@ -977,7 +757,7 @@ export async function createConversationItems(
     { searchParams, body },
     config,
   );
-  return ConversationItemListSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function getConversationItem(
@@ -998,7 +778,7 @@ export async function getConversationItem(
     { searchParams },
     config,
   );
-  return ConversationItemSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function deleteConversationItem(
@@ -1012,16 +792,15 @@ export async function deleteConversationItem(
     {},
     config,
   );
-  return ConversationResourceSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function createEmbedding(
   body: CreateEmbeddingRequest,
   config?: Partial<ClientConfig>,
 ): Promise<CreateEmbeddingResponse> {
-  CreateEmbeddingRequestSchema.parse(body);
   const res = await _request("POST", "/embeddings", { body }, config);
-  return CreateEmbeddingResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function listEvals(
@@ -1040,16 +819,15 @@ export async function listEvals(
   if (params?.orderBy != null)
     searchParams.set("order_by", String(params.orderBy));
   const res = await _request("GET", "/evals", { searchParams }, config);
-  return EvalListSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function createEval(
   body: CreateEvalRequest,
   config?: Partial<ClientConfig>,
 ): Promise<Eval> {
-  CreateEvalRequestSchema.parse(body);
   const res = await _request("POST", "/evals", { body }, config);
-  return EvalSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function getEval(
@@ -1062,7 +840,7 @@ export async function getEval(
     {},
     config,
   );
-  return EvalSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function updateEval(
@@ -1076,7 +854,7 @@ export async function updateEval(
     { body },
     config,
   );
-  return EvalSchema.parse(await res.json());
+  return res.json();
 }
 
 /**
@@ -1116,7 +894,7 @@ export async function getEvalRuns(
     { searchParams },
     config,
   );
-  return EvalRunListSchema.parse(await res.json());
+  return res.json();
 }
 
 /**
@@ -1127,14 +905,13 @@ export async function createEvalRun(
   body: CreateEvalRunRequest,
   config?: Partial<ClientConfig>,
 ): Promise<EvalRun> {
-  CreateEvalRunRequestSchema.parse(body);
   const res = await _request(
     "POST",
     `/evals/${encodeURIComponent(evalId)}/runs`,
     { body },
     config,
   );
-  return EvalRunSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function getEvalRun(
@@ -1148,7 +925,7 @@ export async function getEvalRun(
     {},
     config,
   );
-  return EvalRunSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function cancelEvalRun(
@@ -1162,7 +939,7 @@ export async function cancelEvalRun(
     {},
     config,
   );
-  return EvalRunSchema.parse(await res.json());
+  return res.json();
 }
 
 /**
@@ -1204,7 +981,7 @@ export async function getEvalRunOutputItems(
     { searchParams },
     config,
   );
-  return EvalRunOutputItemListSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function getEvalRunOutputItem(
@@ -1219,7 +996,7 @@ export async function getEvalRunOutputItem(
     {},
     config,
   );
-  return EvalRunOutputItemSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function listFiles(
@@ -1238,14 +1015,14 @@ export async function listFiles(
   if (params?.order != null) searchParams.set("order", String(params.order));
   if (params?.after != null) searchParams.set("after", String(params.after));
   const res = await _request("GET", "/files", { searchParams }, config);
-  return ListFilesResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function createFile(
   config?: Partial<ClientConfig>,
 ): Promise<OpenAIFile> {
   const res = await _request("POST", "/files", {}, config);
-  return OpenAIFileSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function retrieveFile(
@@ -1258,7 +1035,7 @@ export async function retrieveFile(
     {},
     config,
   );
-  return OpenAIFileSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function deleteFile(
@@ -1271,7 +1048,7 @@ export async function deleteFile(
     {},
     config,
   );
-  return DeleteFileResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function downloadFile(
@@ -1291,28 +1068,26 @@ export async function runGrader(
   body: RunGraderRequest,
   config?: Partial<ClientConfig>,
 ): Promise<RunGraderResponse> {
-  RunGraderRequestSchema.parse(body);
   const res = await _request(
     "POST",
     "/fine_tuning/alpha/graders/run",
     { body },
     config,
   );
-  return RunGraderResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function validateGrader(
   body: ValidateGraderRequest,
   config?: Partial<ClientConfig>,
 ): Promise<ValidateGraderResponse> {
-  ValidateGraderRequestSchema.parse(body);
   const res = await _request(
     "POST",
     "/fine_tuning/alpha/graders/validate",
     { body },
     config,
   );
-  return ValidateGraderResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function listFineTuningCheckpointPermissions(
@@ -1337,9 +1112,7 @@ export async function listFineTuningCheckpointPermissions(
     { searchParams },
     config,
   );
-  return ListFineTuningCheckpointPermissionResponseSchema.parse(
-    await res.json(),
-  );
+  return res.json();
 }
 
 export async function createFineTuningCheckpointPermission(
@@ -1347,16 +1120,13 @@ export async function createFineTuningCheckpointPermission(
   body: CreateFineTuningCheckpointPermissionRequest,
   config?: Partial<ClientConfig>,
 ): Promise<ListFineTuningCheckpointPermissionResponse> {
-  CreateFineTuningCheckpointPermissionRequestSchema.parse(body);
   const res = await _request(
     "POST",
     `/fine_tuning/checkpoints/${encodeURIComponent(fineTunedModelCheckpoint)}/permissions`,
     { body },
     config,
   );
-  return ListFineTuningCheckpointPermissionResponseSchema.parse(
-    await res.json(),
-  );
+  return res.json();
 }
 
 export async function deleteFineTuningCheckpointPermission(
@@ -1370,9 +1140,7 @@ export async function deleteFineTuningCheckpointPermission(
     {},
     config,
   );
-  return DeleteFineTuningCheckpointPermissionResponseSchema.parse(
-    await res.json(),
-  );
+  return res.json();
 }
 
 export async function listPaginatedFineTuningJobs(
@@ -1394,16 +1162,15 @@ export async function listPaginatedFineTuningJobs(
     { searchParams },
     config,
   );
-  return ListPaginatedFineTuningJobsResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function createFineTuningJob(
   body: CreateFineTuningJobRequest,
   config?: Partial<ClientConfig>,
 ): Promise<FineTuningJob> {
-  CreateFineTuningJobRequestSchema.parse(body);
   const res = await _request("POST", "/fine_tuning/jobs", { body }, config);
-  return FineTuningJobSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function retrieveFineTuningJob(
@@ -1416,7 +1183,7 @@ export async function retrieveFineTuningJob(
     {},
     config,
   );
-  return FineTuningJobSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function cancelFineTuningJob(
@@ -1429,7 +1196,7 @@ export async function cancelFineTuningJob(
     {},
     config,
   );
-  return FineTuningJobSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function listFineTuningJobCheckpoints(
@@ -1449,7 +1216,7 @@ export async function listFineTuningJobCheckpoints(
     { searchParams },
     config,
   );
-  return ListFineTuningJobCheckpointsResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function listFineTuningEvents(
@@ -1469,7 +1236,7 @@ export async function listFineTuningEvents(
     { searchParams },
     config,
   );
-  return ListFineTuningJobEventsResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function pauseFineTuningJob(
@@ -1482,7 +1249,7 @@ export async function pauseFineTuningJob(
     {},
     config,
   );
-  return FineTuningJobSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function resumeFineTuningJob(
@@ -1495,39 +1262,37 @@ export async function resumeFineTuningJob(
     {},
     config,
   );
-  return FineTuningJobSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function createImageEdit(
   body: EditImageBodyJsonParam,
   config?: Partial<ClientConfig>,
 ): Promise<ImagesResponse> {
-  EditImageBodyJsonParamSchema.parse(body);
   const res = await _request("POST", "/images/edits", { body }, config);
-  return ImagesResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function createImage(
   body: CreateImageRequest,
   config?: Partial<ClientConfig>,
 ): Promise<ImagesResponse> {
-  CreateImageRequestSchema.parse(body);
   const res = await _request("POST", "/images/generations", { body }, config);
-  return ImagesResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function createImageVariation(
   config?: Partial<ClientConfig>,
 ): Promise<ImagesResponse> {
   const res = await _request("POST", "/images/variations", {}, config);
-  return ImagesResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function listModels(
   config?: Partial<ClientConfig>,
 ): Promise<ListModelsResponse> {
   const res = await _request("GET", "/models", {}, config);
-  return ListModelsResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function retrieveModel(
@@ -1540,7 +1305,7 @@ export async function retrieveModel(
     {},
     config,
   );
-  return ModelSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function deleteModel(
@@ -1553,16 +1318,15 @@ export async function deleteModel(
     {},
     config,
   );
-  return DeleteModelResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function createModeration(
   body: CreateModerationRequest,
   config?: Partial<ClientConfig>,
 ): Promise<CreateModerationResponse> {
-  CreateModerationRequestSchema.parse(body);
   const res = await _request("POST", "/moderations", { body }, config);
-  return CreateModerationResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function adminApiKeysList(
@@ -1583,7 +1347,7 @@ export async function adminApiKeysList(
     { searchParams },
     config,
   );
-  return ApiKeyListSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function adminApiKeysCreate(
@@ -1596,7 +1360,7 @@ export async function adminApiKeysCreate(
     { body },
     config,
   );
-  return AdminApiKeyCreateResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function adminApiKeysGet(
@@ -1609,7 +1373,7 @@ export async function adminApiKeysGet(
     {},
     config,
   );
-  return AdminApiKeySchema.parse(await res.json());
+  return res.json();
 }
 
 export async function adminApiKeysDelete(
@@ -1671,7 +1435,7 @@ export async function listAuditLogs(
     { searchParams },
     config,
   );
-  return ListAuditLogsResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function listOrganizationCertificates(
@@ -1692,53 +1456,46 @@ export async function listOrganizationCertificates(
     { searchParams },
     config,
   );
-  return ListCertificatesResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function uploadCertificate(
   body: UploadCertificateRequest,
   config?: Partial<ClientConfig>,
 ): Promise<Certificate> {
-  UploadCertificateRequestSchema.parse(body);
   const res = await _request(
     "POST",
     "/organization/certificates",
     { body },
     config,
   );
-  return CertificateSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function activateOrganizationCertificates(
   body: ToggleCertificatesRequest,
   config?: Partial<ClientConfig>,
 ): Promise<OrganizationCertificateActivationResponse> {
-  ToggleCertificatesRequestSchema.parse(body);
   const res = await _request(
     "POST",
     "/organization/certificates/activate",
     { body },
     config,
   );
-  return OrganizationCertificateActivationResponseSchema.parse(
-    await res.json(),
-  );
+  return res.json();
 }
 
 export async function deactivateOrganizationCertificates(
   body: ToggleCertificatesRequest,
   config?: Partial<ClientConfig>,
 ): Promise<OrganizationCertificateDeactivationResponse> {
-  ToggleCertificatesRequestSchema.parse(body);
   const res = await _request(
     "POST",
     "/organization/certificates/deactivate",
     { body },
     config,
   );
-  return OrganizationCertificateDeactivationResponseSchema.parse(
-    await res.json(),
-  );
+  return res.json();
 }
 
 export async function getCertificate(
@@ -1758,7 +1515,7 @@ export async function getCertificate(
     { searchParams },
     config,
   );
-  return CertificateSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function modifyCertificate(
@@ -1766,14 +1523,13 @@ export async function modifyCertificate(
   body: ModifyCertificateRequest,
   config?: Partial<ClientConfig>,
 ): Promise<Certificate> {
-  ModifyCertificateRequestSchema.parse(body);
   const res = await _request(
     "POST",
     `/organization/certificates/${encodeURIComponent(certificateId)}`,
     { body },
     config,
   );
-  return CertificateSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function deleteCertificate(
@@ -1786,7 +1542,7 @@ export async function deleteCertificate(
     {},
     config,
   );
-  return DeleteCertificateResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function usageCosts(
@@ -1828,7 +1584,7 @@ export async function usageCosts(
     { searchParams },
     config,
   );
-  return UsageResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function listGroups(
@@ -1849,16 +1605,15 @@ export async function listGroups(
     { searchParams },
     config,
   );
-  return GroupListResourceSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function createGroup(
   body: CreateGroupBody,
   config?: Partial<ClientConfig>,
 ): Promise<GroupResponse> {
-  CreateGroupBodySchema.parse(body);
   const res = await _request("POST", "/organization/groups", { body }, config);
-  return GroupResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function updateGroup(
@@ -1866,14 +1621,13 @@ export async function updateGroup(
   body: UpdateGroupBody,
   config?: Partial<ClientConfig>,
 ): Promise<GroupResourceWithSuccess> {
-  UpdateGroupBodySchema.parse(body);
   const res = await _request(
     "POST",
     `/organization/groups/${encodeURIComponent(groupId)}`,
     { body },
     config,
   );
-  return GroupResourceWithSuccessSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function deleteGroup(
@@ -1886,7 +1640,7 @@ export async function deleteGroup(
     {},
     config,
   );
-  return GroupDeletedResourceSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function listGroupRoleAssignments(
@@ -1908,7 +1662,7 @@ export async function listGroupRoleAssignments(
     { searchParams },
     config,
   );
-  return RoleListResourceSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function assignGroupRole(
@@ -1916,14 +1670,13 @@ export async function assignGroupRole(
   body: PublicAssignOrganizationGroupRoleBody,
   config?: Partial<ClientConfig>,
 ): Promise<GroupRoleAssignment> {
-  PublicAssignOrganizationGroupRoleBodySchema.parse(body);
   const res = await _request(
     "POST",
     `/organization/groups/${encodeURIComponent(groupId)}/roles`,
     { body },
     config,
   );
-  return GroupRoleAssignmentSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function unassignGroupRole(
@@ -1937,7 +1690,7 @@ export async function unassignGroupRole(
     {},
     config,
   );
-  return DeletedRoleAssignmentResourceSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function listGroupUsers(
@@ -1959,7 +1712,7 @@ export async function listGroupUsers(
     { searchParams },
     config,
   );
-  return UserListResourceSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function addGroupUser(
@@ -1967,14 +1720,13 @@ export async function addGroupUser(
   body: CreateGroupUserBody,
   config?: Partial<ClientConfig>,
 ): Promise<GroupUserAssignment> {
-  CreateGroupUserBodySchema.parse(body);
   const res = await _request(
     "POST",
     `/organization/groups/${encodeURIComponent(groupId)}/users`,
     { body },
     config,
   );
-  return GroupUserAssignmentSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function removeGroupUser(
@@ -1988,7 +1740,7 @@ export async function removeGroupUser(
     {},
     config,
   );
-  return GroupUserDeletedResourceSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function listInvites(
@@ -2007,16 +1759,15 @@ export async function listInvites(
     { searchParams },
     config,
   );
-  return InviteListResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function inviteUser(
   body: InviteRequest,
   config?: Partial<ClientConfig>,
 ): Promise<Invite> {
-  InviteRequestSchema.parse(body);
   const res = await _request("POST", "/organization/invites", { body }, config);
-  return InviteSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function retrieveInvite(
@@ -2029,7 +1780,7 @@ export async function retrieveInvite(
     {},
     config,
   );
-  return InviteSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function deleteInvite(
@@ -2042,7 +1793,7 @@ export async function deleteInvite(
     {},
     config,
   );
-  return InviteDeleteResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function listProjects(
@@ -2064,21 +1815,20 @@ export async function listProjects(
     { searchParams },
     config,
   );
-  return ProjectListResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function createProject(
   body: ProjectCreateRequest,
   config?: Partial<ClientConfig>,
 ): Promise<Project> {
-  ProjectCreateRequestSchema.parse(body);
   const res = await _request(
     "POST",
     "/organization/projects",
     { body },
     config,
   );
-  return ProjectSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function retrieveProject(
@@ -2091,7 +1841,7 @@ export async function retrieveProject(
     {},
     config,
   );
-  return ProjectSchema.parse(await res.json());
+  return res.json();
 }
 
 /**
@@ -2102,14 +1852,13 @@ export async function modifyProject(
   body: ProjectUpdateRequest,
   config?: Partial<ClientConfig>,
 ): Promise<Project> {
-  ProjectUpdateRequestSchema.parse(body);
   const res = await _request(
     "POST",
     `/organization/projects/${encodeURIComponent(projectId)}`,
     { body },
     config,
   );
-  return ProjectSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function listProjectApiKeys(
@@ -2129,7 +1878,7 @@ export async function listProjectApiKeys(
     { searchParams },
     config,
   );
-  return ProjectApiKeyListResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function retrieveProjectApiKey(
@@ -2143,7 +1892,7 @@ export async function retrieveProjectApiKey(
     {},
     config,
   );
-  return ProjectApiKeySchema.parse(await res.json());
+  return res.json();
 }
 
 /**
@@ -2160,7 +1909,7 @@ export async function deleteProjectApiKey(
     {},
     config,
   );
-  return ProjectApiKeyDeleteResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function archiveProject(
@@ -2173,7 +1922,7 @@ export async function archiveProject(
     {},
     config,
   );
-  return ProjectSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function listProjectCertificates(
@@ -2195,7 +1944,7 @@ export async function listProjectCertificates(
     { searchParams },
     config,
   );
-  return ListProjectCertificatesResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function activateProjectCertificates(
@@ -2203,16 +1952,13 @@ export async function activateProjectCertificates(
   body: ToggleCertificatesRequest,
   config?: Partial<ClientConfig>,
 ): Promise<OrganizationProjectCertificateActivationResponse> {
-  ToggleCertificatesRequestSchema.parse(body);
   const res = await _request(
     "POST",
     `/organization/projects/${encodeURIComponent(projectId)}/certificates/activate`,
     { body },
     config,
   );
-  return OrganizationProjectCertificateActivationResponseSchema.parse(
-    await res.json(),
-  );
+  return res.json();
 }
 
 export async function deactivateProjectCertificates(
@@ -2220,16 +1966,13 @@ export async function deactivateProjectCertificates(
   body: ToggleCertificatesRequest,
   config?: Partial<ClientConfig>,
 ): Promise<OrganizationProjectCertificateDeactivationResponse> {
-  ToggleCertificatesRequestSchema.parse(body);
   const res = await _request(
     "POST",
     `/organization/projects/${encodeURIComponent(projectId)}/certificates/deactivate`,
     { body },
     config,
   );
-  return OrganizationProjectCertificateDeactivationResponseSchema.parse(
-    await res.json(),
-  );
+  return res.json();
 }
 
 export async function listProjectGroups(
@@ -2251,7 +1994,7 @@ export async function listProjectGroups(
     { searchParams },
     config,
   );
-  return ProjectGroupListResourceSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function addProjectGroup(
@@ -2259,14 +2002,13 @@ export async function addProjectGroup(
   body: InviteProjectGroupBody,
   config?: Partial<ClientConfig>,
 ): Promise<ProjectGroup> {
-  InviteProjectGroupBodySchema.parse(body);
   const res = await _request(
     "POST",
     `/organization/projects/${encodeURIComponent(projectId)}/groups`,
     { body },
     config,
   );
-  return ProjectGroupSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function removeProjectGroup(
@@ -2280,7 +2022,7 @@ export async function removeProjectGroup(
     {},
     config,
   );
-  return ProjectGroupDeletedResourceSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function listProjectRateLimits(
@@ -2302,7 +2044,7 @@ export async function listProjectRateLimits(
     { searchParams },
     config,
   );
-  return ProjectRateLimitListResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 /**
@@ -2314,14 +2056,13 @@ export async function updateProjectRateLimits(
   body: ProjectRateLimitUpdateRequest,
   config?: Partial<ClientConfig>,
 ): Promise<ProjectRateLimit> {
-  ProjectRateLimitUpdateRequestSchema.parse(body);
   const res = await _request(
     "POST",
     `/organization/projects/${encodeURIComponent(projectId)}/rate_limits/${encodeURIComponent(rateLimitId)}`,
     { body },
     config,
   );
-  return ProjectRateLimitSchema.parse(await res.json());
+  return res.json();
 }
 
 /**
@@ -2344,7 +2085,7 @@ export async function listProjectServiceAccounts(
     { searchParams },
     config,
   );
-  return ProjectServiceAccountListResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 /**
@@ -2355,14 +2096,13 @@ export async function createProjectServiceAccount(
   body: ProjectServiceAccountCreateRequest,
   config?: Partial<ClientConfig>,
 ): Promise<ProjectServiceAccountCreateResponse> {
-  ProjectServiceAccountCreateRequestSchema.parse(body);
   const res = await _request(
     "POST",
     `/organization/projects/${encodeURIComponent(projectId)}/service_accounts`,
     { body },
     config,
   );
-  return ProjectServiceAccountCreateResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function retrieveProjectServiceAccount(
@@ -2376,7 +2116,7 @@ export async function retrieveProjectServiceAccount(
     {},
     config,
   );
-  return ProjectServiceAccountSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function deleteProjectServiceAccount(
@@ -2390,7 +2130,7 @@ export async function deleteProjectServiceAccount(
     {},
     config,
   );
-  return ProjectServiceAccountDeleteResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 /**
@@ -2413,7 +2153,7 @@ export async function listProjectUsers(
     { searchParams },
     config,
   );
-  return ProjectUserListResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 /**
@@ -2424,14 +2164,13 @@ export async function createProjectUser(
   body: ProjectUserCreateRequest,
   config?: Partial<ClientConfig>,
 ): Promise<ProjectUser> {
-  ProjectUserCreateRequestSchema.parse(body);
   const res = await _request(
     "POST",
     `/organization/projects/${encodeURIComponent(projectId)}/users`,
     { body },
     config,
   );
-  return ProjectUserSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function retrieveProjectUser(
@@ -2445,7 +2184,7 @@ export async function retrieveProjectUser(
     {},
     config,
   );
-  return ProjectUserSchema.parse(await res.json());
+  return res.json();
 }
 
 /**
@@ -2457,14 +2196,13 @@ export async function modifyProjectUser(
   body: ProjectUserUpdateRequest,
   config?: Partial<ClientConfig>,
 ): Promise<ProjectUser> {
-  ProjectUserUpdateRequestSchema.parse(body);
   const res = await _request(
     "POST",
     `/organization/projects/${encodeURIComponent(projectId)}/users/${encodeURIComponent(userId)}`,
     { body },
     config,
   );
-  return ProjectUserSchema.parse(await res.json());
+  return res.json();
 }
 
 /**
@@ -2481,7 +2219,7 @@ export async function deleteProjectUser(
     {},
     config,
   );
-  return ProjectUserDeleteResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function listRoles(
@@ -2502,16 +2240,15 @@ export async function listRoles(
     { searchParams },
     config,
   );
-  return PublicRoleListResourceSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function createRole(
   body: PublicCreateOrganizationRoleBody,
   config?: Partial<ClientConfig>,
 ): Promise<Role> {
-  PublicCreateOrganizationRoleBodySchema.parse(body);
   const res = await _request("POST", "/organization/roles", { body }, config);
-  return RoleSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function updateRole(
@@ -2519,14 +2256,13 @@ export async function updateRole(
   body: PublicUpdateOrganizationRoleBody,
   config?: Partial<ClientConfig>,
 ): Promise<Role> {
-  PublicUpdateOrganizationRoleBodySchema.parse(body);
   const res = await _request(
     "POST",
     `/organization/roles/${encodeURIComponent(roleId)}`,
     { body },
     config,
   );
-  return RoleSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function deleteRole(
@@ -2539,7 +2275,7 @@ export async function deleteRole(
     {},
     config,
   );
-  return RoleDeletedResourceSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function usageAudioSpeeches(
@@ -2589,7 +2325,7 @@ export async function usageAudioSpeeches(
     { searchParams },
     config,
   );
-  return UsageResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function usageAudioTranscriptions(
@@ -2639,7 +2375,7 @@ export async function usageAudioTranscriptions(
     { searchParams },
     config,
   );
-  return UsageResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function usageCodeInterpreterSessions(
@@ -2676,7 +2412,7 @@ export async function usageCodeInterpreterSessions(
     { searchParams },
     config,
   );
-  return UsageResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function usageCompletions(
@@ -2728,7 +2464,7 @@ export async function usageCompletions(
     { searchParams },
     config,
   );
-  return UsageResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function usageEmbeddings(
@@ -2778,7 +2514,7 @@ export async function usageEmbeddings(
     { searchParams },
     config,
   );
-  return UsageResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function usageImages(
@@ -2836,7 +2572,7 @@ export async function usageImages(
     { searchParams },
     config,
   );
-  return UsageResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function usageModerations(
@@ -2886,7 +2622,7 @@ export async function usageModerations(
     { searchParams },
     config,
   );
-  return UsageResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function usageVectorStores(
@@ -2923,7 +2659,7 @@ export async function usageVectorStores(
     { searchParams },
     config,
   );
-  return UsageResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function listUsers(
@@ -2946,7 +2682,7 @@ export async function listUsers(
     { searchParams },
     config,
   );
-  return UserListResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function retrieveUser(
@@ -2959,7 +2695,7 @@ export async function retrieveUser(
     {},
     config,
   );
-  return UserSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function modifyUser(
@@ -2967,14 +2703,13 @@ export async function modifyUser(
   body: UserRoleUpdateRequest,
   config?: Partial<ClientConfig>,
 ): Promise<User> {
-  UserRoleUpdateRequestSchema.parse(body);
   const res = await _request(
     "POST",
     `/organization/users/${encodeURIComponent(userId)}`,
     { body },
     config,
   );
-  return UserSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function deleteUser(
@@ -2987,7 +2722,7 @@ export async function deleteUser(
     {},
     config,
   );
-  return UserDeleteResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function listUserRoleAssignments(
@@ -3009,7 +2744,7 @@ export async function listUserRoleAssignments(
     { searchParams },
     config,
   );
-  return RoleListResourceSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function assignUserRole(
@@ -3017,14 +2752,13 @@ export async function assignUserRole(
   body: PublicAssignOrganizationGroupRoleBody,
   config?: Partial<ClientConfig>,
 ): Promise<UserRoleAssignment> {
-  PublicAssignOrganizationGroupRoleBodySchema.parse(body);
   const res = await _request(
     "POST",
     `/organization/users/${encodeURIComponent(userId)}/roles`,
     { body },
     config,
   );
-  return UserRoleAssignmentSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function unassignUserRole(
@@ -3038,7 +2772,7 @@ export async function unassignUserRole(
     {},
     config,
   );
-  return DeletedRoleAssignmentResourceSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function listProjectGroupRoleAssignments(
@@ -3061,7 +2795,7 @@ export async function listProjectGroupRoleAssignments(
     { searchParams },
     config,
   );
-  return RoleListResourceSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function assignProjectGroupRole(
@@ -3070,14 +2804,13 @@ export async function assignProjectGroupRole(
   body: PublicAssignOrganizationGroupRoleBody,
   config?: Partial<ClientConfig>,
 ): Promise<GroupRoleAssignment> {
-  PublicAssignOrganizationGroupRoleBodySchema.parse(body);
   const res = await _request(
     "POST",
     `/projects/${encodeURIComponent(projectId)}/groups/${encodeURIComponent(groupId)}/roles`,
     { body },
     config,
   );
-  return GroupRoleAssignmentSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function unassignProjectGroupRole(
@@ -3092,7 +2825,7 @@ export async function unassignProjectGroupRole(
     {},
     config,
   );
-  return DeletedRoleAssignmentResourceSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function listProjectRoles(
@@ -3114,7 +2847,7 @@ export async function listProjectRoles(
     { searchParams },
     config,
   );
-  return PublicRoleListResourceSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function createProjectRole(
@@ -3122,14 +2855,13 @@ export async function createProjectRole(
   body: PublicCreateOrganizationRoleBody,
   config?: Partial<ClientConfig>,
 ): Promise<Role> {
-  PublicCreateOrganizationRoleBodySchema.parse(body);
   const res = await _request(
     "POST",
     `/projects/${encodeURIComponent(projectId)}/roles`,
     { body },
     config,
   );
-  return RoleSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function updateProjectRole(
@@ -3138,14 +2870,13 @@ export async function updateProjectRole(
   body: PublicUpdateOrganizationRoleBody,
   config?: Partial<ClientConfig>,
 ): Promise<Role> {
-  PublicUpdateOrganizationRoleBodySchema.parse(body);
   const res = await _request(
     "POST",
     `/projects/${encodeURIComponent(projectId)}/roles/${encodeURIComponent(roleId)}`,
     { body },
     config,
   );
-  return RoleSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function deleteProjectRole(
@@ -3159,7 +2890,7 @@ export async function deleteProjectRole(
     {},
     config,
   );
-  return RoleDeletedResourceSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function listProjectUserRoleAssignments(
@@ -3182,7 +2913,7 @@ export async function listProjectUserRoleAssignments(
     { searchParams },
     config,
   );
-  return RoleListResourceSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function assignProjectUserRole(
@@ -3191,14 +2922,13 @@ export async function assignProjectUserRole(
   body: PublicAssignOrganizationGroupRoleBody,
   config?: Partial<ClientConfig>,
 ): Promise<UserRoleAssignment> {
-  PublicAssignOrganizationGroupRoleBodySchema.parse(body);
   const res = await _request(
     "POST",
     `/projects/${encodeURIComponent(projectId)}/users/${encodeURIComponent(userId)}/roles`,
     { body },
     config,
   );
-  return UserRoleAssignmentSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function unassignProjectUserRole(
@@ -3213,7 +2943,7 @@ export async function unassignProjectUserRole(
     {},
     config,
   );
-  return DeletedRoleAssignmentResourceSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function createRealtimeCall(
@@ -3227,7 +2957,6 @@ export async function acceptRealtimeCall(
   body: RealtimeSessionCreateRequestGA,
   config?: Partial<ClientConfig>,
 ): Promise<void> {
-  RealtimeSessionCreateRequestGASchema.parse(body);
   await _request(
     "POST",
     `/realtime/calls/${encodeURIComponent(callId)}/accept`,
@@ -3253,7 +2982,6 @@ export async function referRealtimeCall(
   body: RealtimeCallReferRequest,
   config?: Partial<ClientConfig>,
 ): Promise<void> {
-  RealtimeCallReferRequestSchema.parse(body);
   await _request(
     "POST",
     `/realtime/calls/${encodeURIComponent(callId)}/refer`,
@@ -3267,7 +2995,6 @@ export async function rejectRealtimeCall(
   body: RealtimeCallRejectRequest,
   config?: Partial<ClientConfig>,
 ): Promise<void> {
-  RealtimeCallRejectRequestSchema.parse(body);
   await _request(
     "POST",
     `/realtime/calls/${encodeURIComponent(callId)}/reject`,
@@ -3280,64 +3007,55 @@ export async function createRealtimeClientSecret(
   body: RealtimeCreateClientSecretRequest,
   config?: Partial<ClientConfig>,
 ): Promise<RealtimeCreateClientSecretResponse> {
-  RealtimeCreateClientSecretRequestSchema.parse(body);
   const res = await _request(
     "POST",
     "/realtime/client_secrets",
     { body },
     config,
   );
-  return RealtimeCreateClientSecretResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function createRealtimeSession(
   body: RealtimeSessionCreateRequest,
   config?: Partial<ClientConfig>,
 ): Promise<RealtimeSessionCreateResponse> {
-  RealtimeSessionCreateRequestSchema.parse(body);
   const res = await _request("POST", "/realtime/sessions", { body }, config);
-  return RealtimeSessionCreateResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function createRealtimeTranscriptionSession(
   body: RealtimeTranscriptionSessionCreateRequest,
   config?: Partial<ClientConfig>,
 ): Promise<RealtimeTranscriptionSessionCreateResponse> {
-  RealtimeTranscriptionSessionCreateRequestSchema.parse(body);
   const res = await _request(
     "POST",
     "/realtime/transcription_sessions",
     { body },
     config,
   );
-  return RealtimeTranscriptionSessionCreateResponseSchema.parse(
-    await res.json(),
-  );
+  return res.json();
 }
 
 export async function createRealtimeTranslationClientSecret(
   body: RealtimeTranslationClientSecretCreateRequest,
   config?: Partial<ClientConfig>,
 ): Promise<RealtimeTranslationClientSecretCreateResponse> {
-  RealtimeTranslationClientSecretCreateRequestSchema.parse(body);
   const res = await _request(
     "POST",
     "/realtime/translations/client_secrets",
     { body },
     config,
   );
-  return RealtimeTranslationClientSecretCreateResponseSchema.parse(
-    await res.json(),
-  );
+  return res.json();
 }
 
 export async function createResponse(
   body: CreateResponse,
   config?: Partial<ClientConfig>,
 ): Promise<Response> {
-  CreateResponseSchema.parse(body);
   const res = await _request("POST", "/responses", { body }, config);
-  return ResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function getResponse(
@@ -3365,7 +3083,7 @@ export async function getResponse(
     { searchParams },
     config,
   );
-  return ResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 /**
@@ -3396,7 +3114,7 @@ export async function cancelResponse(
     {},
     config,
   );
-  return ResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function listInputItems(
@@ -3422,25 +3140,23 @@ export async function listInputItems(
     { searchParams },
     config,
   );
-  return ResponseItemListSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function createThread(
   body: CreateThreadRequest,
   config?: Partial<ClientConfig>,
 ): Promise<ThreadObject> {
-  CreateThreadRequestSchema.parse(body);
   const res = await _request("POST", "/threads", { body }, config);
-  return ThreadObjectSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function createThreadAndRun(
   body: CreateThreadAndRunRequest,
   config?: Partial<ClientConfig>,
 ): Promise<RunObject> {
-  CreateThreadAndRunRequestSchema.parse(body);
   const res = await _request("POST", "/threads/runs", { body }, config);
-  return RunObjectSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function getThread(
@@ -3453,7 +3169,7 @@ export async function getThread(
     {},
     config,
   );
-  return ThreadObjectSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function modifyThread(
@@ -3461,14 +3177,13 @@ export async function modifyThread(
   body: ModifyThreadRequest,
   config?: Partial<ClientConfig>,
 ): Promise<ThreadObject> {
-  ModifyThreadRequestSchema.parse(body);
   const res = await _request(
     "POST",
     `/threads/${encodeURIComponent(threadId)}`,
     { body },
     config,
   );
-  return ThreadObjectSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function deleteThread(
@@ -3481,7 +3196,7 @@ export async function deleteThread(
     {},
     config,
   );
-  return DeleteThreadResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function listMessages(
@@ -3507,7 +3222,7 @@ export async function listMessages(
     { searchParams },
     config,
   );
-  return ListMessagesResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function createMessage(
@@ -3515,14 +3230,13 @@ export async function createMessage(
   body: CreateMessageRequest,
   config?: Partial<ClientConfig>,
 ): Promise<MessageObject> {
-  CreateMessageRequestSchema.parse(body);
   const res = await _request(
     "POST",
     `/threads/${encodeURIComponent(threadId)}/messages`,
     { body },
     config,
   );
-  return MessageObjectSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function getMessage(
@@ -3536,7 +3250,7 @@ export async function getMessage(
     {},
     config,
   );
-  return MessageObjectSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function modifyMessage(
@@ -3545,14 +3259,13 @@ export async function modifyMessage(
   body: ModifyMessageRequest,
   config?: Partial<ClientConfig>,
 ): Promise<MessageObject> {
-  ModifyMessageRequestSchema.parse(body);
   const res = await _request(
     "POST",
     `/threads/${encodeURIComponent(threadId)}/messages/${encodeURIComponent(messageId)}`,
     { body },
     config,
   );
-  return MessageObjectSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function deleteMessage(
@@ -3566,7 +3279,7 @@ export async function deleteMessage(
     {},
     config,
   );
-  return DeleteMessageResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function listRuns(
@@ -3590,7 +3303,7 @@ export async function listRuns(
     { searchParams },
     config,
   );
-  return ListRunsResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function createRun(
@@ -3605,14 +3318,13 @@ export async function createRun(
   if (params?.include != null) {
     for (const v of params.include) searchParams.append("include[]", String(v));
   }
-  CreateRunRequestSchema.parse(body);
   const res = await _request(
     "POST",
     `/threads/${encodeURIComponent(threadId)}/runs`,
     { searchParams, body },
     config,
   );
-  return RunObjectSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function getRun(
@@ -3626,7 +3338,7 @@ export async function getRun(
     {},
     config,
   );
-  return RunObjectSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function modifyRun(
@@ -3635,14 +3347,13 @@ export async function modifyRun(
   body: ModifyRunRequest,
   config?: Partial<ClientConfig>,
 ): Promise<RunObject> {
-  ModifyRunRequestSchema.parse(body);
   const res = await _request(
     "POST",
     `/threads/${encodeURIComponent(threadId)}/runs/${encodeURIComponent(runId)}`,
     { body },
     config,
   );
-  return RunObjectSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function cancelRun(
@@ -3656,7 +3367,7 @@ export async function cancelRun(
     {},
     config,
   );
-  return RunObjectSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function listRunSteps(
@@ -3685,7 +3396,7 @@ export async function listRunSteps(
     { searchParams },
     config,
   );
-  return ListRunStepsResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function getRunStep(
@@ -3707,7 +3418,7 @@ export async function getRunStep(
     { searchParams },
     config,
   );
-  return RunStepObjectSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function submitToolOuputsToRun(
@@ -3716,23 +3427,21 @@ export async function submitToolOuputsToRun(
   body: SubmitToolOutputsRunRequest,
   config?: Partial<ClientConfig>,
 ): Promise<RunObject> {
-  SubmitToolOutputsRunRequestSchema.parse(body);
   const res = await _request(
     "POST",
     `/threads/${encodeURIComponent(threadId)}/runs/${encodeURIComponent(runId)}/submit_tool_outputs`,
     { body },
     config,
   );
-  return RunObjectSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function createUpload(
   body: CreateUploadRequest,
   config?: Partial<ClientConfig>,
 ): Promise<Upload> {
-  CreateUploadRequestSchema.parse(body);
   const res = await _request("POST", "/uploads", { body }, config);
-  return UploadSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function cancelUpload(
@@ -3745,7 +3454,7 @@ export async function cancelUpload(
     {},
     config,
   );
-  return UploadSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function completeUpload(
@@ -3753,14 +3462,13 @@ export async function completeUpload(
   body: CompleteUploadRequest,
   config?: Partial<ClientConfig>,
 ): Promise<Upload> {
-  CompleteUploadRequestSchema.parse(body);
   const res = await _request(
     "POST",
     `/uploads/${encodeURIComponent(uploadId)}/complete`,
     { body },
     config,
   );
-  return UploadSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function addUploadPart(
@@ -3773,7 +3481,7 @@ export async function addUploadPart(
     {},
     config,
   );
-  return UploadPartSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function listVectorStores(
@@ -3791,16 +3499,15 @@ export async function listVectorStores(
   if (params?.after != null) searchParams.set("after", String(params.after));
   if (params?.before != null) searchParams.set("before", String(params.before));
   const res = await _request("GET", "/vector_stores", { searchParams }, config);
-  return ListVectorStoresResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function createVectorStore(
   body: CreateVectorStoreRequest,
   config?: Partial<ClientConfig>,
 ): Promise<VectorStoreObject> {
-  CreateVectorStoreRequestSchema.parse(body);
   const res = await _request("POST", "/vector_stores", { body }, config);
-  return VectorStoreObjectSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function getVectorStore(
@@ -3813,7 +3520,7 @@ export async function getVectorStore(
     {},
     config,
   );
-  return VectorStoreObjectSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function modifyVectorStore(
@@ -3821,14 +3528,13 @@ export async function modifyVectorStore(
   body: UpdateVectorStoreRequest,
   config?: Partial<ClientConfig>,
 ): Promise<VectorStoreObject> {
-  UpdateVectorStoreRequestSchema.parse(body);
   const res = await _request(
     "POST",
     `/vector_stores/${encodeURIComponent(vectorStoreId)}`,
     { body },
     config,
   );
-  return VectorStoreObjectSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function deleteVectorStore(
@@ -3841,7 +3547,7 @@ export async function deleteVectorStore(
     {},
     config,
   );
-  return DeleteVectorStoreResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function createVectorStoreFileBatch(
@@ -3849,14 +3555,13 @@ export async function createVectorStoreFileBatch(
   body: CreateVectorStoreFileBatchRequest,
   config?: Partial<ClientConfig>,
 ): Promise<VectorStoreFileBatchObject> {
-  CreateVectorStoreFileBatchRequestSchema.parse(body);
   const res = await _request(
     "POST",
     `/vector_stores/${encodeURIComponent(vectorStoreId)}/file_batches`,
     { body },
     config,
   );
-  return VectorStoreFileBatchObjectSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function getVectorStoreFileBatch(
@@ -3870,7 +3575,7 @@ export async function getVectorStoreFileBatch(
     {},
     config,
   );
-  return VectorStoreFileBatchObjectSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function cancelVectorStoreFileBatch(
@@ -3884,7 +3589,7 @@ export async function cancelVectorStoreFileBatch(
     {},
     config,
   );
-  return VectorStoreFileBatchObjectSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function listFilesInVectorStoreBatch(
@@ -3911,7 +3616,7 @@ export async function listFilesInVectorStoreBatch(
     { searchParams },
     config,
   );
-  return ListVectorStoreFilesResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function listVectorStoreFiles(
@@ -3937,7 +3642,7 @@ export async function listVectorStoreFiles(
     { searchParams },
     config,
   );
-  return ListVectorStoreFilesResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function createVectorStoreFile(
@@ -3945,14 +3650,13 @@ export async function createVectorStoreFile(
   body: CreateVectorStoreFileRequest,
   config?: Partial<ClientConfig>,
 ): Promise<VectorStoreFileObject> {
-  CreateVectorStoreFileRequestSchema.parse(body);
   const res = await _request(
     "POST",
     `/vector_stores/${encodeURIComponent(vectorStoreId)}/files`,
     { body },
     config,
   );
-  return VectorStoreFileObjectSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function getVectorStoreFile(
@@ -3966,7 +3670,7 @@ export async function getVectorStoreFile(
     {},
     config,
   );
-  return VectorStoreFileObjectSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function updateVectorStoreFileAttributes(
@@ -3975,14 +3679,13 @@ export async function updateVectorStoreFileAttributes(
   body: UpdateVectorStoreFileAttributesRequest,
   config?: Partial<ClientConfig>,
 ): Promise<VectorStoreFileObject> {
-  UpdateVectorStoreFileAttributesRequestSchema.parse(body);
   const res = await _request(
     "POST",
     `/vector_stores/${encodeURIComponent(vectorStoreId)}/files/${encodeURIComponent(fileId)}`,
     { body },
     config,
   );
-  return VectorStoreFileObjectSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function deleteVectorStoreFile(
@@ -3996,7 +3699,7 @@ export async function deleteVectorStoreFile(
     {},
     config,
   );
-  return DeleteVectorStoreFileResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function retrieveVectorStoreFileContent(
@@ -4010,7 +3713,7 @@ export async function retrieveVectorStoreFileContent(
     {},
     config,
   );
-  return VectorStoreFileContentResponseSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function searchVectorStore(
@@ -4018,23 +3721,21 @@ export async function searchVectorStore(
   body: VectorStoreSearchRequest,
   config?: Partial<ClientConfig>,
 ): Promise<VectorStoreSearchResultsPage> {
-  VectorStoreSearchRequestSchema.parse(body);
   const res = await _request(
     "POST",
     `/vector_stores/${encodeURIComponent(vectorStoreId)}/search`,
     { body },
     config,
   );
-  return VectorStoreSearchResultsPageSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function createConversation(
   body: CreateConversationBody,
   config?: Partial<ClientConfig>,
 ): Promise<ConversationResource> {
-  CreateConversationBodySchema.parse(body);
   const res = await _request("POST", "/conversations", { body }, config);
-  return ConversationResourceSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function getConversation(
@@ -4047,7 +3748,7 @@ export async function getConversation(
     {},
     config,
   );
-  return ConversationResourceSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function updateConversation(
@@ -4055,14 +3756,13 @@ export async function updateConversation(
   body: UpdateConversationBody,
   config?: Partial<ClientConfig>,
 ): Promise<ConversationResource> {
-  UpdateConversationBodySchema.parse(body);
   const res = await _request(
     "POST",
     `/conversations/${encodeURIComponent(conversationId)}`,
     { body },
     config,
   );
-  return ConversationResourceSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function deleteConversation(
@@ -4075,7 +3775,7 @@ export async function deleteConversation(
     {},
     config,
   );
-  return DeletedConversationResourceSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function listVideos(
@@ -4091,23 +3791,22 @@ export async function listVideos(
   if (params?.order != null) searchParams.set("order", String(params.order));
   if (params?.after != null) searchParams.set("after", String(params.after));
   const res = await _request("GET", "/videos", { searchParams }, config);
-  return VideoListResourceSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function createVideo(
   body: CreateVideoJsonBody,
   config?: Partial<ClientConfig>,
 ): Promise<VideoResource> {
-  CreateVideoJsonBodySchema.parse(body);
   const res = await _request("POST", "/videos", { body }, config);
-  return VideoResourceSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function createVideoCharacter(
   config?: Partial<ClientConfig>,
 ): Promise<VideoCharacterResource> {
   const res = await _request("POST", "/videos/characters", {}, config);
-  return VideoCharacterResourceSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function getVideoCharacter(
@@ -4120,25 +3819,23 @@ export async function getVideoCharacter(
     {},
     config,
   );
-  return VideoCharacterResourceSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function createVideoEdit(
   body: CreateVideoEditJsonBody,
   config?: Partial<ClientConfig>,
 ): Promise<VideoResource> {
-  CreateVideoEditJsonBodySchema.parse(body);
   const res = await _request("POST", "/videos/edits", { body }, config);
-  return VideoResourceSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function createVideoExtend(
   body: CreateVideoExtendJsonBody,
   config?: Partial<ClientConfig>,
 ): Promise<VideoResource> {
-  CreateVideoExtendJsonBodySchema.parse(body);
   const res = await _request("POST", "/videos/extensions", { body }, config);
-  return VideoResourceSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function getVideo(
@@ -4151,7 +3848,7 @@ export async function getVideo(
     {},
     config,
   );
-  return VideoResourceSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function deleteVideo(
@@ -4164,7 +3861,7 @@ export async function deleteVideo(
     {},
     config,
   );
-  return DeletedVideoResourceSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function retrieveVideoContent(
@@ -4191,37 +3888,34 @@ export async function createVideoRemix(
   body: CreateVideoRemixBody,
   config?: Partial<ClientConfig>,
 ): Promise<VideoResource> {
-  CreateVideoRemixBodySchema.parse(body);
   const res = await _request(
     "POST",
     `/videos/${encodeURIComponent(videoId)}/remix`,
     { body },
     config,
   );
-  return VideoResourceSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function getinputtokencounts(
   body: TokenCountsBody,
   config?: Partial<ClientConfig>,
 ): Promise<TokenCountsResource> {
-  TokenCountsBodySchema.parse(body);
   const res = await _request(
     "POST",
     "/responses/input_tokens",
     { body },
     config,
   );
-  return TokenCountsResourceSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function compactconversation(
   body: CompactResponseMethodPublicBody,
   config?: Partial<ClientConfig>,
 ): Promise<CompactResource> {
-  CompactResponseMethodPublicBodySchema.parse(body);
   const res = await _request("POST", "/responses/compact", { body }, config);
-  return CompactResourceSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function listSkills(
@@ -4237,16 +3931,15 @@ export async function listSkills(
   if (params?.order != null) searchParams.set("order", String(params.order));
   if (params?.after != null) searchParams.set("after", String(params.after));
   const res = await _request("GET", "/skills", { searchParams }, config);
-  return SkillListResourceSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function createSkill(
   body: CreateSkillBody,
   config?: Partial<ClientConfig>,
 ): Promise<SkillResource> {
-  CreateSkillBodySchema.parse(body);
   const res = await _request("POST", "/skills", { body }, config);
-  return SkillResourceSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function getSkill(
@@ -4259,7 +3952,7 @@ export async function getSkill(
     {},
     config,
   );
-  return SkillResourceSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function updateSkillDefaultVersion(
@@ -4267,14 +3960,13 @@ export async function updateSkillDefaultVersion(
   body: SetDefaultSkillVersionBody,
   config?: Partial<ClientConfig>,
 ): Promise<SkillResource> {
-  SetDefaultSkillVersionBodySchema.parse(body);
   const res = await _request(
     "POST",
     `/skills/${encodeURIComponent(skillId)}`,
     { body },
     config,
   );
-  return SkillResourceSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function deleteSkill(
@@ -4287,7 +3979,7 @@ export async function deleteSkill(
     {},
     config,
   );
-  return DeletedSkillResourceSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function getSkillContent(
@@ -4322,7 +4014,7 @@ export async function listSkillVersions(
     { searchParams },
     config,
   );
-  return SkillVersionListResourceSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function createSkillVersion(
@@ -4330,14 +4022,13 @@ export async function createSkillVersion(
   body: CreateSkillVersionBody,
   config?: Partial<ClientConfig>,
 ): Promise<SkillVersionResource> {
-  CreateSkillVersionBodySchema.parse(body);
   const res = await _request(
     "POST",
     `/skills/${encodeURIComponent(skillId)}/versions`,
     { body },
     config,
   );
-  return SkillVersionResourceSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function getSkillVersion(
@@ -4351,7 +4042,7 @@ export async function getSkillVersion(
     {},
     config,
   );
-  return SkillVersionResourceSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function deleteSkillVersion(
@@ -4365,7 +4056,7 @@ export async function deleteSkillVersion(
     {},
     config,
   );
-  return DeletedSkillVersionResourceSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function getSkillVersionContent(
@@ -4392,16 +4083,15 @@ export async function cancelChatSessionMethod(
     {},
     config,
   );
-  return ChatSessionResourceSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function createChatSessionMethod(
   body: CreateChatSessionBody,
   config?: Partial<ClientConfig>,
 ): Promise<ChatSessionResource> {
-  CreateChatSessionBodySchema.parse(body);
   const res = await _request("POST", "/chatkit/sessions", { body }, config);
-  return ChatSessionResourceSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function listThreadItemsMethod(
@@ -4425,7 +4115,7 @@ export async function listThreadItemsMethod(
     { searchParams },
     config,
   );
-  return ThreadItemListResourceSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function getThreadMethod(
@@ -4438,7 +4128,7 @@ export async function getThreadMethod(
     {},
     config,
   );
-  return ThreadResourceSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function deleteThreadMethod(
@@ -4451,7 +4141,7 @@ export async function deleteThreadMethod(
     {},
     config,
   );
-  return DeletedThreadResourceSchema.parse(await res.json());
+  return res.json();
 }
 
 export async function listThreadsMethod(
@@ -4476,5 +4166,5 @@ export async function listThreadsMethod(
     { searchParams },
     config,
   );
-  return ThreadListResourceSchema.parse(await res.json());
+  return res.json();
 }
