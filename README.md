@@ -54,15 +54,23 @@ Everything else is generated and stays in sync when the spec changes.
 
 ---
 
-## Tested against 128 real-world OpenAPI specs
+## Why quality matters
 
-The generator runs against a [compatibility matrix](./examples/) of 128 publicly available OpenAPI specs — Stripe, GitHub, Google Calendar, Spotify, Twitter/X, OpenAI, Adyen, Slack, Vercel, Cloudflare, Twilio, Plaid, Notion, Jira, Okta, and more.
+Code generators have a wide blast radius. A subtle regression in the generator touches every project that runs it. These are the layers we use to catch problems before they reach you.
 
-**128/128 generate without errors.** All specs run as parameterized tests across all three generators on every PR — if any spec regresses, CI fails.
+**Near-100% test coverage.** All four packages run at 100% statements, functions, and lines. Branches sit at 99%+ across the board — the remaining gap is a handful of genuinely unreachable defensive guards (`?? fallback` patterns where the fallback can never trigger by construction). Coverage is tracked per-package via [Codecov](https://codecov.io/gh/codewithagents/glue) and blocks PRs when it drops.
 
-The 11 showcase specs (`1Password Connect`, `Adyen Checkout`, `Adyen Legal Entity`, `Dev.to`, `Open-Meteo`, `OpenAI`, `Petstore`, `Redocly Museum`, `Resend`, `Spotify`, `Twitter`) have their generated output committed and drift-checked on every relevant PR. The remaining 117 specs run as a compatibility signal.
+**128 real-world OpenAPI specs.** The generator runs against a [compatibility matrix](./examples/) of 128 publicly available specs — Stripe, GitHub, Google Calendar, Spotify, Twitter/X, OpenAI, Adyen, Slack, Vercel, Cloudflare, Twilio, Plaid, Notion, Jira, Okta, and more. **128/128 generate without errors** on every PR. The 11 showcase specs (`1Password Connect`, `Adyen Checkout`, `Adyen Legal Entity`, `Dev.to`, `Open-Meteo`, `OpenAI`, `Petstore`, `Redocly Museum`, `Resend`, `Spotify`, `Twitter`) have committed output and drift-checked on every relevant PR. If anything regresses, CI fails.
 
-See [`examples/README.md`](./examples/README.md) for the full breakdown.
+**Smoke tests against live public APIs.** The generated client code fires real HTTP requests against public no-auth APIs (Open-Meteo, Canada Holidays, Exchange Rate API, D&D 5e) on every push to main and weekly on a schedule. This is the generated code itself making network calls, not just checking that it compiles. If the generator produces a client that breaks at runtime, the smoke suite catches it.
+
+**Mutation testing with Stryker.** `openapi-gen` and `openapi-react-query` run [Stryker](https://stryker-mutator.io/) mutation tests locally. Mutation testing deliberately introduces bugs into the source code and verifies that the test suite catches them. High line coverage that doesn't actually catch regressions shows up here.
+
+**Full-stack E2E tests.** The [`petstore`](./packages/petstore) package is a complete runnable full-stack app: one spec drives generated types, fetch client, React Query hooks, a Hono server with Zod validation, and end-to-end [Playwright](https://playwright.dev/) tests. Every PR runs the full round-trip — spec change to browser assertion.
+
+**Static analysis on every PR.** [Fallow](https://github.com/fallow-rs/fallow) runs on every pull request and posts inline review comments flagging dead code, duplication, and unresolved imports introduced by the diff. [CodeQL](https://github.com/codewithagents/glue/actions/workflows/codeql.yml) handles security scanning.
+
+See [`examples/README.md`](./examples/README.md) for the full compatibility breakdown.
 
 ---
 
