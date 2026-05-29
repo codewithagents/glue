@@ -58,9 +58,9 @@ Everything else is generated and stays in sync when the spec changes.
 
 The generator runs against a [compatibility matrix](./examples/) of 128 publicly available OpenAPI specs — Stripe, GitHub, Google Calendar, Spotify, Twitter/X, OpenAI, Adyen, Slack, Vercel, Cloudflare, Twilio, Plaid, Notion, Jira, Okta, and more.
 
-**74/128 currently generate successfully.** The remaining 43 expose known generator limitations — primarily dots in operationIds (e.g. `calendar.calendars.insert` in Google APIs), spaces, and other special characters. These are tracked and being fixed.
+**128/128 generate without errors.** All specs run as parameterized tests across all three generators on every PR — if any spec regresses, CI fails.
 
-The 11 showcase specs (`1Password Connect`, `Adyen Checkout`, `Adyen Legal Entity`, `Dev.to`, `Open-Meteo`, `OpenAI`, `Petstore`, `Redocly Museum`, `Resend`, `Spotify`, `Twitter`) have their generated output committed and checked for drift on every relevant PR. The remaining 117 specs run at CI time as a compatibility signal.
+The 11 showcase specs (`1Password Connect`, `Adyen Checkout`, `Adyen Legal Entity`, `Dev.to`, `Open-Meteo`, `OpenAI`, `Petstore`, `Redocly Museum`, `Resend`, `Spotify`, `Twitter`) have their generated output committed and drift-checked on every relevant PR. The remaining 117 specs run as a compatibility signal.
 
 See [`examples/README.md`](./examples/README.md) for the full breakdown.
 

@@ -50,3 +50,10 @@ jobs:
 
       - name: Typecheck showcase output
         run: pnpm --filter @codewithagents/examples run typecheck
+
+      - name: Fallow — circular-dep check on generated output
+        run: |
+          pnpm exec fallow dead-code --circular-deps \
+            --format annotations \
+          || true
+        working-directory: examples/generated
