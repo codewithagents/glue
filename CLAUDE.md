@@ -14,6 +14,9 @@
 | `packages/integration` | Private cross-package test harness, committed sample output |
 | `examples` | 128 real-world OpenAPI specs — compatibility matrix + 11 showcase specs with committed output |
 
+## Before pushing
+Run `pnpm fallow:audit` — catches dead code, duplication, and unresolved imports against the current diff before CI does.
+
 ## Key rules
 - **OpenAPI 3.1 only** — no 3.0.x support
 - **Never commit real/internal API specs** — all fixtures must be fictional
