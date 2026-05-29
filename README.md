@@ -18,7 +18,7 @@ You consume a REST API. You need TypeScript types, a fetch client, form error ma
 | [`@codewithagents/api-errors`](./packages/api-errors) | [![npm](https://img.shields.io/npm/v/@codewithagents/api-errors.svg)](https://npmjs.com/package/@codewithagents/api-errors) | [![codecov](https://codecov.io/gh/codewithagents/glue/graph/badge.svg?flag=api-errors&branch=main)](https://codecov.io/gh/codewithagents/glue) | Map API error responses to form field errors — framework-agnostic core + React Hook Form adapter |
 | [`@codewithagents/openapi-gen`](./packages/openapi-gen) | [![npm](https://img.shields.io/npm/v/@codewithagents/openapi-gen.svg)](https://npmjs.com/package/@codewithagents/openapi-gen) | [![codecov](https://codecov.io/gh/codewithagents/glue/graph/badge.svg?flag=openapi-gen&branch=main)](https://codecov.io/gh/codewithagents/glue) | Generate TypeScript models + native `fetch` client + Zod schemas from an OpenAPI 3.x spec |
 | [`@codewithagents/openapi-react-query`](./packages/openapi-react-query) | [![npm](https://img.shields.io/npm/v/@codewithagents/openapi-react-query.svg)](https://npmjs.com/package/@codewithagents/openapi-react-query) | [![codecov](https://codecov.io/gh/codewithagents/glue/graph/badge.svg?flag=openapi-react-query&branch=main)](https://codecov.io/gh/codewithagents/glue) | Generate typed React Query v5 hooks — `useQuery`, `useMutation`, key factories |
-| [`@codewithagents/openapi-server`](./packages/openapi-server) | [![npm](https://img.shields.io/npm/v/@codewithagents/openapi-server.svg)](https://npmjs.com/package/@codewithagents/openapi-server) | [![codecov](https://codecov.io/gh/codewithagents/glue/graph/badge.svg?flag=openapi-server&branch=main)](https://codecov.io/gh/codewithagents/glue) | Generate typed server-side service interfaces and Hono routers from OpenAPI 3.x |
+| [`@codewithagents/openapi-server`](./packages/openapi-server) | [![npm](https://img.shields.io/npm/v/@codewithagents/openapi-server.svg)](https://npmjs.com/package/@codewithagents/openapi-server) | [![codecov](https://codecov.io/gh/codewithagents/glue/graph/badge.svg?flag=openapi-server&branch=main)](https://codecov.io/gh/codewithagents/glue) | Generate a framework-agnostic service interface from OpenAPI 3.x. Optional Hono router included — or skip it and wire to any framework you choose |
 
 Each package has its own README with full usage docs and configuration reference.
 
@@ -31,7 +31,8 @@ One spec, four generators:
 ```
 spec/api.json
   ├── openapi-gen          → models.ts, client.ts       (TypeScript types + fetch client)
-  ├── openapi-server       → service.ts, router.ts      (server interface + Hono router)
+  ├── openapi-server       → service.ts                 (framework-agnostic service interface)
+  │                          router.ts                  (optional — Hono, or wire to any framework)
   └── openapi-react-query  → hooks.ts                   (React Query v5 hooks)
 ```
 
