@@ -1,5 +1,13 @@
 # Changelog
 
+## [3.3.1](https://github.com/codewithagents/glue/compare/openapi-react-query-v3.3.0...openapi-react-query-v3.3.1) (2026-05-29)
+
+
+### Bug Fixes
+
+* **ci:** isolate codecov uploads + expand compat matrix to all 3 generators ([#140](https://github.com/codewithagents/glue/issues/140)) ([240b79a](https://github.com/codewithagents/glue/commit/240b79a0360d2f89cc08db56e8629c8c068c07a2))
+* **coverage:** use lcov projectRoot option to emit repo-relative SF paths ([8cefc4f](https://github.com/codewithagents/glue/commit/8cefc4fa39755c923b97c0938ccec72b3fe3768f))
+
 ## [3.3.0](https://github.com/codewithagents/glue/compare/openapi-react-query-v3.2.0...openapi-react-query-v3.3.0) (2026-05-27)
 
 

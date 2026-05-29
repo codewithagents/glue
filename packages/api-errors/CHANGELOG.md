@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.3](https://github.com/codewithagents/glue/compare/api-errors-v1.0.2...api-errors-v1.0.3) (2026-05-29)
+
+
+### Bug Fixes
+
+* **coverage:** use lcov projectRoot option to emit repo-relative SF paths ([8cefc4f](https://github.com/codewithagents/glue/commit/8cefc4fa39755c923b97c0938ccec72b3fe3768f))
+
 ## [1.0.2](https://github.com/codewithagents/glue/compare/api-errors-v1.0.1...api-errors-v1.0.2) (2026-05-26)
 
 

@@ -1,5 +1,18 @@
 # Changelog
 
+## [4.1.0](https://github.com/codewithagents/glue/compare/openapi-gen-v4.0.0...openapi-gen-v4.1.0) (2026-05-29)
+
+
+### Features
+
+* examples directory — 11 real-world specs, 7 generator bug fixes ([#137](https://github.com/codewithagents/glue/issues/137)) ([66edd3f](https://github.com/codewithagents/glue/commit/66edd3feacad868ed24058370c910628ccd7dc5a))
+
+
+### Bug Fixes
+
+* **coverage:** use lcov projectRoot option to emit repo-relative SF paths ([8cefc4f](https://github.com/codewithagents/glue/commit/8cefc4fa39755c923b97c0938ccec72b3fe3768f))
+* generator handles 127/128 real-world specs + docs update ([#139](https://github.com/codewithagents/glue/issues/139)) ([07fcd2a](https://github.com/codewithagents/glue/commit/07fcd2a4c7c9e92b91ea0b3754e9774cf7ff1439))
+
 ## [4.0.0](https://github.com/codewithagents/glue/compare/openapi-gen-v3.5.0...openapi-gen-v4.0.0) (2026-05-27)
 
 
