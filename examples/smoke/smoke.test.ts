@@ -29,6 +29,16 @@ import {
 /** Pause between API calls — be polite to free-tier services */
 const sleep = (ms = 500) => new Promise((r) => setTimeout(r, ms))
 
+/** Assert a paginated list response has a positive count and non-empty results array */
+function assertPaginatedList(result: unknown): void {
+  expect(result).toBeDefined()
+  const list = result as { count?: number; results?: unknown[] }
+  expect(typeof list.count).toBe('number')
+  expect(list.count as number).toBeGreaterThan(0)
+  expect(Array.isArray(list.results)).toBe(true)
+  expect((list.results as unknown[]).length).toBeGreaterThan(0)
+}
+
 // ─── Open-Meteo ──────────────────────────────────────────────────────────────
 
 describe('Open-Meteo (weather, no auth)', () => {
@@ -137,14 +147,7 @@ describe('D&D 5e API (game data, no auth)', () => {
     })
 
     const result = await getApiByEndpoint('ability-scores')
-
-    expect(result).toBeDefined()
-    const list = result as { count?: number; results?: unknown[] }
-    expect(typeof list.count).toBe('number')
-    expect((list.count as number)).toBeGreaterThan(0)
-    expect(Array.isArray(list.results)).toBe(true)
-    expect((list.results as unknown[]).length).toBeGreaterThan(0)
-
+    assertPaginatedList(result)
     await sleep()
   })
 
@@ -172,14 +175,7 @@ describe('D&D 5e API (game data, no auth)', () => {
     })
 
     const result = await getApiMonsters()
-
-    expect(result).toBeDefined()
-    const list = result as { count?: number; results?: unknown[] }
-    expect(typeof list.count).toBe('number')
-    expect((list.count as number)).toBeGreaterThan(0)
-    expect(Array.isArray(list.results)).toBe(true)
-    expect((list.results as unknown[]).length).toBeGreaterThan(0)
-
+    assertPaginatedList(result)
     await sleep()
   })
 

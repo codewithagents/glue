@@ -1,3 +1,4 @@
+// fallow-ignore-file code-duplication
 import { describe, it } from 'vitest'
 import { readdirSync, readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
