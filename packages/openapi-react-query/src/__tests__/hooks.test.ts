@@ -514,6 +514,130 @@ describe('generateHooks — Feature #60: suspense query variants', () => {
     const { content } = generateHooks(suspenseSpec, { staleTime: 0, gcTime: 0, suspense: false })
     expect(content).not.toContain('useSuspenseQuery')
   })
+
+  it('suspense hook with 1 path param + optional query param generates params? signature', () => {
+    // Covers the `pathParams.length === 1 && hasQueryParams` branch (hooks.ts line 309-310)
+    // and the `paramsRequired === false` (false) branch at line 296 → paramsToken = 'params?'
+    const spec: OpenAPIV3_1.Document = {
+      openapi: '3.1.0',
+      info: { title: 'Test', version: '1.0.0' },
+      paths: {
+        '/repos/{repoId}/commits': {
+          get: {
+            operationId: 'listRepoCommits',
+            parameters: [
+              { name: 'repoId', in: 'path', required: true, schema: { type: 'string' } },
+              { name: 'branch', in: 'query', required: false, schema: { type: 'string' } },
+            ],
+            responses: { '200': { description: 'ok' } },
+          },
+        },
+      },
+    }
+    const { content } = generateHooks(spec, { staleTime: 0, gcTime: 0, suspense: true })
+    expect(content).toContain('export function useSuspenseListRepoCommits')
+    expect(content).toContain('repoId: string')
+    expect(content).toContain('params?:')
+  })
+
+  it('suspense hook with 1 path param + required query param generates params (non-optional) signature', () => {
+    // Covers the `paramsRequired === true` (true) branch at line 296 → paramsToken = 'params'
+    const spec: OpenAPIV3_1.Document = {
+      openapi: '3.1.0',
+      info: { title: 'Test', version: '1.0.0' },
+      paths: {
+        '/search/{category}': {
+          get: {
+            operationId: 'searchCategory',
+            parameters: [
+              { name: 'category', in: 'path', required: true, schema: { type: 'string' } },
+              { name: 'q', in: 'query', required: true, schema: { type: 'string' } },
+            ],
+            responses: { '200': { description: 'ok' } },
+          },
+        },
+      },
+    }
+    const { content } = generateHooks(spec, { staleTime: 0, gcTime: 0, suspense: true })
+    expect(content).toContain('export function useSuspenseSearchCategory')
+    expect(content).toContain('category: string')
+    // Required query param → non-optional params token (no ?)
+    expect(content).toContain('params: Parameters')
+  })
+
+  it('suspense hook with 2 path params builds multi-param queryKey call', () => {
+    // Covers the multi-path-param (pathParams.length > 1) queryKey branch in suspense generation
+    const spec: OpenAPIV3_1.Document = {
+      openapi: '3.1.0',
+      info: { title: 'Test', version: '1.0.0' },
+      paths: {
+        '/orgs/{orgId}/repos/{repoId}': {
+          get: {
+            operationId: 'getOrgRepo',
+            parameters: [
+              { name: 'orgId', in: 'path', required: true, schema: { type: 'string' } },
+              { name: 'repoId', in: 'path', required: true, schema: { type: 'string' } },
+            ],
+            responses: { '200': { description: 'ok' } },
+          },
+        },
+      },
+    }
+    const { content } = generateHooks(spec, { staleTime: 0, gcTime: 0, suspense: true })
+    expect(content).toContain('export function useSuspenseGetOrgRepo')
+    // Both path params appear in the function signature
+    expect(content).toContain('orgId: string')
+    expect(content).toContain('repoId: string')
+  })
+
+  it('suspense hook with 2 path params + query params builds correct queryKey', () => {
+    // Covers the else branch: pathParams.length > 1 && hasQueryParams
+    const spec: OpenAPIV3_1.Document = {
+      openapi: '3.1.0',
+      info: { title: 'Test', version: '1.0.0' },
+      paths: {
+        '/orgs/{orgId}/repos/{repoId}/commits': {
+          get: {
+            operationId: 'listOrgRepoCommits',
+            parameters: [
+              { name: 'orgId', in: 'path', required: true, schema: { type: 'string' } },
+              { name: 'repoId', in: 'path', required: true, schema: { type: 'string' } },
+              { name: 'branch', in: 'query', required: false, schema: { type: 'string' } },
+            ],
+            responses: { '200': { description: 'ok' } },
+          },
+        },
+      },
+    }
+    const { content } = generateHooks(spec, { staleTime: 0, gcTime: 0, suspense: true })
+    expect(content).toContain('export function useSuspenseListOrgRepoCommits')
+    expect(content).toContain('orgId: string')
+    expect(content).toContain('repoId: string')
+    expect(content).toContain('params?:')
+  })
+
+  it('deprecated GET with suspense: true emits @deprecated JSDoc on the suspense hook', () => {
+    // Covers the `if (op.deprecated)` branch in suspense hook generation
+    const spec: OpenAPIV3_1.Document = {
+      openapi: '3.1.0',
+      info: { title: 'Test', version: '1.0.0' },
+      paths: {
+        '/legacy': {
+          get: {
+            operationId: 'listLegacy',
+            deprecated: true,
+            responses: { '200': { description: 'ok' } },
+          },
+        },
+      },
+    }
+    const { content } = generateHooks(spec, { staleTime: 0, gcTime: 0, suspense: true })
+    const suspenseIdx = content.indexOf('export function useSuspenseListLegacy')
+    expect(suspenseIdx).toBeGreaterThan(-1)
+    // @deprecated comment appears immediately before the function declaration
+    const before = content.slice(0, suspenseIdx)
+    expect(before.slice(before.lastIndexOf('/**'))).toContain('@deprecated')
+  })
 })
 
 // ── Feature #59: Per-resource staleTime and gcTime overrides ───────────────────
@@ -1496,5 +1620,42 @@ describe('Bug #106: ...options spread must not overwrite auto-invalidation onSuc
     const hookEnd = plain.indexOf('\n}', hookStart) + 2
     const hookContent = plain.slice(hookStart, hookEnd)
     expect(hookContent).not.toContain('onSuccess:')
+  })
+})
+
+describe('coverage: spec without paths property — generates empty output', () => {
+  it('spec with paths=undefined produces a valid but empty hooks file', () => {
+    // Covers the `if (paths !== undefined)` false branch in generateHooks (line 542)
+    const spec = {
+      openapi: '3.1.0',
+      info: { title: 'Empty', version: '1.0.0' },
+      // no paths property
+    } as OpenAPIV3_1.Document
+    const { content } = generateHooks(spec, { staleTime: 0, gcTime: 0 })
+    expect(content).toBeDefined()
+    // No hooks generated — just the header boilerplate
+    expect(content).not.toContain('export function use')
+  })
+})
+
+describe('coverage: requestBody with no content — hasBody but no bodyTypeName', () => {
+  it('POST with requestBody missing content property produces mutation without typed body', () => {
+    // Covers `if (content === undefined) return { hasBody: true, bodyTypeName: undefined }` (line 112)
+    const spec: OpenAPIV3_1.Document = {
+      openapi: '3.1.0',
+      info: { title: 'Test', version: '1.0.0' },
+      paths: {
+        '/items': {
+          post: {
+            operationId: 'createItem',
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            requestBody: { required: true } as any, // no content property
+            responses: { '201': { description: 'created' } },
+          },
+        },
+      },
+    }
+    const { content } = generateHooks(spec, { staleTime: 0, gcTime: 0 })
+    expect(content).toContain('export function useCreateItem')
   })
 })

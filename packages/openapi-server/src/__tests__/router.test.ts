@@ -439,3 +439,168 @@ describe('generateRouter with schemaNames (Zod validation)', () => {
     expect(result.content).not.toContain('CreateOwnerRequestSchema')
   })
 })
+
+describe('coverage: requestBody as $ref — body type falls back to untyped', () => {
+  it('requestBody $ref produces a route handler without a typed body extraction', () => {
+    // Covers the `if (isRef(requestBody)) return { typeName: undefined }` branch
+    const spec = makeSpec({
+      '/items': {
+        post: {
+          operationId: 'createItem',
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          requestBody: { $ref: '#/components/requestBodies/ItemBody' } as any,
+          responses: { '201': { description: 'created' } },
+        },
+      },
+    })
+    const { content } = generateRouter(spec)
+    // Route is still generated, body is just untyped
+    expect(content).toContain("app.post('/items'")
+    expect(content).toContain('service.createItem(')
+  })
+})
+
+describe('coverage: 200 response as $ref — falls through to default status 200', () => {
+  it('$ref 200 response is treated as a plain 200 with unknown return', () => {
+    // Covers the `if (!isRef(resp))` false branch in getResponseStatus
+    const spec = makeSpec({
+      '/items/{id}': {
+        get: {
+          operationId: 'getItem',
+          parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }],
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          responses: { '200': { $ref: '#/components/responses/ItemResponse' } as any },
+        },
+      },
+    })
+    const { content } = generateRouter(spec)
+    expect(content).toContain("app.get('/items/:id'")
+    expect(content).toContain('service.getItem(')
+  })
+})
+
+describe('coverage: requestBody with no content property — falls back to untyped body', () => {
+  it('requestBody with content: undefined produces untyped body route handler', () => {
+    // Covers the `if (content === undefined) return { typeName: undefined }` branch
+    const spec = makeSpec({
+      '/items': {
+        post: {
+          operationId: 'createItem',
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          requestBody: { required: true } as any, // no content property
+          responses: { '201': { description: 'created' } },
+        },
+      },
+    })
+    const { content } = generateRouter(spec)
+    expect(content).toContain("app.post('/items'")
+    expect(content).toContain('service.createItem(')
+  })
+})
+
+describe('coverage: operation with no responses — falls back to default status', () => {
+  it('operation without a responses property generates a handler with default c.json()', () => {
+    // Covers the `if (responses !== undefined)` false branch in getResponseStatus
+    const spec = makeSpec({
+      '/items': {
+        get: {
+          operationId: 'listItems',
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } as any, // no responses property
+      },
+    })
+    const { content } = generateRouter(spec)
+    expect(content).toContain("app.get('/items'")
+    expect(content).toContain('service.listItems(')
+  })
+})
+
+describe('coverage: spec with paths=undefined — collectOperations returns empty', () => {
+  it('spec without a paths property generates an empty router', () => {
+    // Covers the `if (paths === undefined) return []` branch in collectOperations
+    const spec = {
+      openapi: '3.1.0',
+      info: { title: 'Empty', version: '1.0.0' },
+      // no paths property
+    } as OpenAPIV3_1.Document
+    const { content } = generateRouter(spec)
+    expect(content).toContain('export function createRouter')
+    expect(content).not.toContain('app.get(')
+  })
+})
+
+describe('coverage: deriveServiceName — spec with no title generates ApiService import', () => {
+  it('spec without a title falls back to ApiService in the router service import', () => {
+    // Covers `spec.info?.title ?? ''` right side and `pascal.length === 0` true branch
+    const spec: OpenAPIV3_1.Document = {
+      openapi: '3.1.0',
+      info: { version: '1.0.0' } as OpenAPIV3_1.InfoObject,
+      paths: {
+        '/items': {
+          get: { operationId: 'listItems', responses: { '200': { description: 'ok' } } },
+        },
+      },
+    }
+    const { content } = generateRouter(spec)
+    expect(content).toContain("import type { ApiService }")
+  })
+})
+
+describe('coverage: sanitizeOperationId — all-punctuation operationId returns unknown', () => {
+  it('operationId consisting entirely of non-alphanumeric characters → unknown', () => {
+    // Covers `if (parts.length === 0) return 'unknown'` in sanitizeOperationId
+    const spec = makeSpec({
+      '/items': {
+        get: {
+          operationId: '---',
+          responses: { '200': { description: 'ok' } },
+        },
+      },
+    })
+    const { content } = generateRouter(spec)
+    expect(content).toContain('unknown(')
+  })
+
+  it('operationId starting with a digit is prefixed with underscore', () => {
+    // Covers `/^[0-9]/.test(camel) ? `_${camel}` : camel` true branch
+    const spec = makeSpec({
+      '/items': {
+        get: {
+          operationId: '2getItems',
+          responses: { '200': { description: 'ok' } },
+        },
+      },
+    })
+    const { content } = generateRouter(spec)
+    expect(content).toContain('_2getItems(')
+  })
+})
+
+describe('coverage: schemaNames provided but operation has no body — typeName is undefined branch', () => {
+  it('GET operation (no body) alongside a POST when schemaNames is provided covers the typeName=undefined path', () => {
+    // Covers the `if (typeName !== undefined)` false branch in schema name collection loop
+    const spec = makeSpec({
+      '/items': {
+        get: {
+          operationId: 'listItems',
+          responses: { '200': { description: 'ok' } },
+        },
+        post: {
+          operationId: 'createItem',
+          requestBody: {
+            required: true,
+            content: { 'application/json': { schema: { $ref: '#/components/schemas/CreateItemRequest' } } },
+          },
+          responses: { '201': { description: 'created' } },
+        },
+      },
+    })
+    const result = generateRouter(spec, {
+      schemaNames: new Set(['CreateItemRequestSchema']),
+      schemaImportPath: './schemas.js',
+    })
+    // GET has no body (typeName undefined) and POST has a schema match
+    expect(result.content).toContain('CreateItemRequestSchema')
+    expect(result.content).toContain("app.get('/items'")
+  })
+})

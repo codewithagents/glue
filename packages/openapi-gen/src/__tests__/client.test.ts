@@ -1427,3 +1427,434 @@ describe('sanitizeOperationId: real-world operationId formats', () => {
     expect(out).toContain('export async function apiV2UsersList(')
   })
 })
+
+describe('coverage: array response with no items → unknown[]', () => {
+  it('array schema without items property produces unknown[] return type', () => {
+    const spec: OpenAPIV3_1.Document = {
+      openapi: '3.1.0',
+      info: { title: 'T', version: '1' },
+      paths: {
+        '/items': {
+          get: {
+            operationId: 'listItems',
+            responses: {
+              '200': {
+                description: 'ok',
+                content: {
+                  'application/json': {
+                    schema: { type: 'array' }, // no items property
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    }
+    const { content } = generateClient(spec)
+    expect(content).toContain('Promise<unknown[]>')
+  })
+})
+
+describe('coverage: queryParamType with no schema (line 77)', () => {
+  it('query param without schema property produces string type', () => {
+    const spec: OpenAPIV3_1.Document = {
+      openapi: '3.1.0',
+      info: { title: 'T', version: '1' },
+      paths: {
+        '/items': {
+          get: {
+            operationId: 'listItems',
+            parameters: [
+              // No schema property - queryParamType(undefined) returns 'string'
+              { name: 'cursor', in: 'query' } as any,
+            ],
+            responses: { '200': { content: { 'application/json': { schema: { type: 'string' } } } } },
+          },
+        },
+      },
+    }
+    const out = generateClient(spec).content
+    expect(out).toContain('cursor?: string')
+  })
+})
+
+describe('coverage: sanitizeOperationId edge cases (lines 117, 124)', () => {
+  it('all-punctuation operationId produces unknown function name (line 117)', () => {
+    const out = generateClient(specWithOperationId('!!!')).content
+    expect(out).toContain('export async function unknown(')
+  })
+
+  it('digit-starting operationId gets underscore prefix (line 124)', () => {
+    const out = generateClient(specWithOperationId('1getItems')).content
+    expect(out).toContain('export async function _1getItems(')
+  })
+})
+
+describe('coverage: getReturnType + getThrowsTags with no responses (lines 163, 387)', () => {
+  it('operation without responses property produces Promise<unknown>', () => {
+    const spec: OpenAPIV3_1.Document = {
+      openapi: '3.1.0',
+      info: { title: 'T', version: '1' },
+      paths: {
+        '/items': {
+          get: {
+            operationId: 'listItems',
+            // no responses property at all
+          } as any,
+        },
+      },
+    }
+    const out = generateClient(spec).content
+    expect(out).toContain('Promise<unknown>')
+  })
+})
+
+describe('coverage: resolveParamRef edge cases (lines 202-204)', () => {
+  it('$ref param with no components.parameters returns null and is dropped (line 202)', () => {
+    const spec: OpenAPIV3_1.Document = {
+      openapi: '3.1.0',
+      info: { title: 'T', version: '1' },
+      paths: {
+        '/items': {
+          get: {
+            operationId: 'listItems',
+            parameters: [{ $ref: '#/components/parameters/PageParam' } as any],
+            responses: { '200': { content: { 'application/json': { schema: { type: 'string' } } } } },
+          },
+        },
+      },
+      components: { schemas: {} }, // has components but no parameters key
+    }
+    expect(() => generateClient(spec)).not.toThrow()
+    // Dropped param means no params arg in the function signature
+    expect(generateClient(spec).content).toContain('export async function listItems(')
+  })
+
+  it('$ref param where resolved value is itself a $ref (double-ref, line 204)', () => {
+    const spec: OpenAPIV3_1.Document = {
+      openapi: '3.1.0',
+      info: { title: 'T', version: '1' },
+      paths: {
+        '/items': {
+          get: {
+            operationId: 'listItems',
+            parameters: [{ $ref: '#/components/parameters/PageParam' } as any],
+            responses: { '200': { content: { 'application/json': { schema: { type: 'string' } } } } },
+          },
+        },
+      },
+      components: {
+        parameters: {
+          // PageParam is itself a $ref (double-ref) - resolveParamRef returns null
+          PageParam: { $ref: '#/components/parameters/ActualPageParam' } as any,
+        },
+      },
+    }
+    expect(() => generateClient(spec)).not.toThrow()
+  })
+})
+
+describe('coverage: getRequestBodyInfo with no content (line 334)', () => {
+  it('requestBody with no content property is treated as no body', () => {
+    const spec: OpenAPIV3_1.Document = {
+      openapi: '3.1.0',
+      info: { title: 'T', version: '1' },
+      paths: {
+        '/items': {
+          post: {
+            operationId: 'createItem',
+            requestBody: { required: true } as any, // no content
+            responses: { '201': { content: { 'application/json': { schema: { type: 'string' } } } } },
+          },
+        },
+      },
+    }
+    const out = generateClient(spec).content
+    // Extract just the createItem function block to verify no body param
+    const match = out.match(/export async function createItem[\s\S]*?^\}/m)
+    expect(match).toBeTruthy()
+    // When requestBody has no content, bodyInfo is undefined: function has no body parameter
+    expect(match![0]).not.toContain('body:')
+  })
+})
+
+describe('coverage: spec without paths property (line 815 FALSE)', () => {
+  it('spec with paths=undefined: generateClient does not throw and still emits ApiError', () => {
+    // When spec.paths is undefined (not even {}), the main generation loop is skipped entirely.
+    // This covers the FALSE branch of `if (paths !== undefined)` at line 815.
+    const spec = { openapi: '3.1.0', info: { title: 'T', version: '1' } } as OpenAPIV3_1.Document
+    expect(() => generateClient(spec)).not.toThrow()
+    expect(generateClient(spec).content).toContain('ApiError')
+    // No endpoints means no _request helper either
+    expect(generateClient(spec).content).not.toContain('async function _request(')
+  })
+})
+
+describe('coverage: detectBearerAuth with $ref security scheme (line 488)', () => {
+  it('security scheme that is a $ref returns false from isRef check', () => {
+    const spec: OpenAPIV3_1.Document = {
+      openapi: '3.1.0',
+      info: { title: 'T', version: '1' },
+      paths: {
+        '/items': {
+          get: {
+            operationId: 'listItems',
+            responses: { '200': { content: { 'application/json': { schema: { type: 'string' } } } } },
+          },
+        },
+      },
+      components: {
+        securitySchemes: {
+          // A $ref scheme - isRef(s) returns true, .some() returns false for it
+          externalAuth: { $ref: '#/components/securitySchemes/ActualAuth' } as any,
+        },
+      },
+    }
+    expect(() => generateClient(spec)).not.toThrow()
+    // $ref scheme does not trigger bearer auth
+    expect(generateClient(spec).content).not.toContain('resolvedToken')
+  })
+})
+
+describe('coverage: schema-enhanced mode edge cases (lines 421-431, 437-439, 446-448, 910)', () => {
+  it('requestBody with no content in schema-enhanced mode: no validation injected (line 421)', () => {
+    const spec: OpenAPIV3_1.Document = {
+      openapi: '3.1.0',
+      info: { title: 'T', version: '1' },
+      paths: {
+        '/items': {
+          post: {
+            operationId: 'createItem',
+            requestBody: { required: true } as any, // no content
+            responses: { '201': { description: 'created' } },
+          },
+        },
+      },
+    }
+    const out = generateClient(spec, {
+      schemaNames: new Set(['CreateItemSchema']),
+      schemaImportPath: './schemas.js',
+    }).content
+    expect(out).toContain('export async function createItem(')
+    expect(out).not.toContain('CreateItemSchema.parse(')
+  })
+
+  it('inline (non-$ref) request body in schema-enhanced mode: no schema name returned (line 424)', () => {
+    const spec: OpenAPIV3_1.Document = {
+      openapi: '3.1.0',
+      info: { title: 'T', version: '1' },
+      paths: {
+        '/items': {
+          post: {
+            operationId: 'createItem',
+            requestBody: {
+              content: {
+                'application/json': {
+                  schema: { type: 'object' }, // inline schema, not a $ref
+                },
+              },
+            },
+            responses: { '201': { description: 'created' } },
+          },
+        },
+      },
+    }
+    const out = generateClient(spec, {
+      schemaNames: new Set(['CreateItemSchema']),
+      schemaImportPath: './schemas.js',
+    }).content
+    // Non-$ref schema: getRequestBodySchemaName returns undefined, no validation
+    expect(out).not.toContain('CreateItemSchema.parse(')
+  })
+
+  it('getResponseSchemaName with no responses in schema-enhanced mode (line 431)', () => {
+    const spec: OpenAPIV3_1.Document = {
+      openapi: '3.1.0',
+      info: { title: 'T', version: '1' },
+      paths: {
+        '/items': {
+          get: {
+            operationId: 'listItems',
+            // no responses property
+          } as any,
+        },
+      },
+    }
+    const out = generateClient(spec, {
+      schemaNames: new Set(['ItemSchema']),
+      schemaImportPath: './schemas.js',
+    }).content
+    expect(out).not.toContain('ItemSchema.parse(')
+  })
+
+  it('200 response with no content in schema-enhanced mode: skips schema extraction (line 437)', () => {
+    const spec: OpenAPIV3_1.Document = {
+      openapi: '3.1.0',
+      info: { title: 'T', version: '1' },
+      paths: {
+        '/items': {
+          get: {
+            operationId: 'listItems',
+            responses: { '200': { description: 'ok' } }, // no content
+          },
+        },
+      },
+    }
+    const out = generateClient(spec, {
+      schemaNames: new Set(['ItemSchema']),
+      schemaImportPath: './schemas.js',
+    }).content
+    expect(out).not.toContain('ItemSchema.parse(')
+  })
+
+  it('array response with inline items in schema-enhanced mode: no z.array() (lines 446-448 FALSE)', () => {
+    const spec: OpenAPIV3_1.Document = {
+      openapi: '3.1.0',
+      info: { title: 'T', version: '1' },
+      paths: {
+        '/items': {
+          get: {
+            operationId: 'listItems',
+            responses: {
+              '200': {
+                content: {
+                  'application/json': {
+                    schema: { type: 'array', items: { type: 'string' } }, // inline items, not $ref
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    }
+    const out = generateClient(spec, {
+      schemaNames: new Set(['ItemSchema']),
+      schemaImportPath: './schemas.js',
+    }).content
+    // Inline array items: getResponseSchemaName returns undefined, no z.array() call
+    expect(out).not.toContain('z.array(')
+  })
+
+  it('schema-enhanced with only single-object responses: no z import needed (line 910 FALSE)', () => {
+    const spec: OpenAPIV3_1.Document = {
+      openapi: '3.1.0',
+      info: { title: 'T', version: '1' },
+      paths: {
+        '/pet': {
+          get: {
+            operationId: 'getPet',
+            responses: {
+              '200': {
+                content: {
+                  'application/json': {
+                    schema: { $ref: '#/components/schemas/Pet' }, // single $ref, not an array
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    }
+    const out = generateClient(spec, {
+      schemaNames: new Set(['PetSchema']),
+      schemaImportPath: './schemas.js',
+    }).content
+    // Single-object response: PetSchema.parse() used but no z.array(), so no z import
+    expect(out).toContain('PetSchema.parse(')
+    expect(out).not.toContain("import { z } from 'zod'")
+  })
+
+  it('requestBody with non-JSON content in schema-enhanced mode: no schema name (line 423)', () => {
+    // getRequestBodySchemaName: content is defined but no application/json key
+    // content['application/json'] === undefined -> return undefined at line 423
+    const spec: OpenAPIV3_1.Document = {
+      openapi: '3.1.0',
+      info: { title: 'T', version: '1' },
+      paths: {
+        '/upload': {
+          post: {
+            operationId: 'uploadFile',
+            requestBody: {
+              content: {
+                'multipart/form-data': {
+                  schema: { type: 'object', properties: { file: { type: 'string', format: 'binary' } } },
+                },
+                // no application/json key
+              },
+            },
+            responses: { '201': { description: 'created' } },
+          },
+        },
+      },
+    }
+    const out = generateClient(spec, {
+      schemaNames: new Set(['UploadFileSchema']),
+      schemaImportPath: './schemas.js',
+    }).content
+    // No application/json -> no schema name -> no validation injected
+    expect(out).not.toContain('UploadFileSchema.parse(')
+  })
+
+  it('200 response with non-JSON content in schema-enhanced mode: skips schema (line 439)', () => {
+    // getResponseSchemaName: content defined but no application/json key
+    // jsonContent === undefined -> continue at line 439
+    const spec: OpenAPIV3_1.Document = {
+      openapi: '3.1.0',
+      info: { title: 'T', version: '1' },
+      paths: {
+        '/report': {
+          get: {
+            operationId: 'getReport',
+            responses: {
+              '200': {
+                content: {
+                  'text/csv': { schema: { type: 'string' } },
+                  // no application/json key
+                },
+              },
+            },
+          },
+        },
+      },
+    }
+    const out = generateClient(spec, {
+      schemaNames: new Set(['ReportSchema']),
+      schemaImportPath: './schemas.js',
+    }).content
+    expect(out).not.toContain('ReportSchema.parse(')
+  })
+
+  it('200 response with inline object (not $ref, not array) in schema-enhanced mode (line 446 FALSE)', () => {
+    // getResponseSchemaName: schema is not a $ref and not array -> line 446 FALSE -> return undefined
+    const spec: OpenAPIV3_1.Document = {
+      openapi: '3.1.0',
+      info: { title: 'T', version: '1' },
+      paths: {
+        '/status': {
+          get: {
+            operationId: 'getStatus',
+            responses: {
+              '200': {
+                content: {
+                  'application/json': {
+                    schema: { type: 'object', properties: { ok: { type: 'boolean' } } },
+                    // inline object schema, not a $ref and not type:array
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    }
+    const out = generateClient(spec, {
+      schemaNames: new Set(['StatusSchema']),
+      schemaImportPath: './schemas.js',
+    }).content
+    // Inline object: getResponseSchemaName returns undefined -> no validation
+    expect(out).not.toContain('StatusSchema.parse(')
+  })
+})
