@@ -3,11 +3,12 @@
 [![npm](https://img.shields.io/npm/v/@codewithagents/openapi-server.svg)](https://npmjs.com/package/@codewithagents/openapi-server)
 [![codecov](https://codecov.io/gh/codewithagents/glue/graph/badge.svg?flag=openapi-server)](https://codecov.io/gh/codewithagents/glue)
 
-Generate a typed server-side service interface and a [Hono](https://hono.dev) router from an OpenAPI 3.x spec.
+Generate a typed service interface from your OpenAPI 3.x spec. Framework-agnostic by design — wire it to Hono, Express, Fastify, or any router you already use.
 
-- **Type-safe contract** — a TypeScript interface derived directly from your spec. The compiler tells you if your implementation drifts.
-- **Prettier-clean output** — every generated file passes `prettier --check` out of the box. Commit it, lint it, ship it.
-- **Zero boilerplate routing** — a ready-to-mount Hono router that extracts path params, query params, and request bodies, then delegates to your service.
+- **Framework-agnostic service interface** — `service.ts` is a plain TypeScript interface with no framework imports. Implement it however you want: Hono, Express, Fastify, Koa, plain `http`, Bun, Deno — anything.
+- **Optional router scaffolding** — set `"framework": "hono"` and get a ready-to-mount Hono router as a starting point. Set `"framework": "none"` and wire the interface yourself. The generated code only ever imports what you already have.
+- **Type-safe contract** — the compiler tells you if your implementation drifts from the spec. Add an endpoint in the spec and forget to implement it: TypeScript fails the build.
+- **Prettier-clean output** — every generated file passes `prettier --check` out of the box.
 - **OpenAPI 3.x** — 3.1.x primary target, 3.0.x best-effort. Full support for `$ref`, `allOf`, `anyOf`, `oneOf`, `nullable`.
 - **TypeScript strict mode** — all output passes `strict: true`.
 
@@ -33,7 +34,7 @@ Requires [`@codewithagents/openapi-gen`](../openapi-gen) — run both generators
 {
   "input_openapi": "./spec/api.json",
   "output": "./generated",
-  "framework": "hono"
+  "framework": "hono"   // or "none" to skip the router and use any framework
 }
 ```
 
@@ -275,12 +276,15 @@ Invalid requests get a structured `422` response instead of reaching your servic
 
 ---
 
-## Frameworks
+## Framework support
 
-| Framework | Status |
+`service.ts` has no framework imports at all. It is always generated, always framework-agnostic, and works with anything.
+
+`router.ts` is optional and currently supports:
+
+| Value | What you get |
 |---|---|
-| [Hono](https://hono.dev) | Supported |
-| Express | Planned |
-| Fastify | Planned |
+| `"none"` | Only `service.ts`. Wire the interface to Express, Fastify, Koa, plain Node `http`, Bun, Deno, or anything else yourself. |
+| `"hono"` | `service.ts` + a ready-to-mount `router.ts` using [Hono](https://hono.dev). Hono must be in your own `dependencies` — this package adds nothing. |
 
-Set `"framework": "none"` to generate only the service interface without a router — useful if you want to wire up your own routing layer.
+More router targets (Express, Fastify) are planned. The `"none"` path is always available and keeps the zero-footprint promise: the generated code has no runtime dependencies that you did not already choose.

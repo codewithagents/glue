@@ -1,8 +1,10 @@
 # Petstore — Full-Stack Demo
 
-A complete, runnable full-stack application that shows the entire `@codewithagents` OpenAPI toolchain working together. One spec file drives a typed fetch client, React Query hooks, a Hono API server with Zod request validation, and end-to-end Playwright tests — all from a single source of truth.
+A complete, runnable full-stack application that shows the entire `@codewithagents` OpenAPI toolchain working together. One spec file drives a typed fetch client, React Query hooks, a server interface with Zod request validation, and end-to-end Playwright tests — all from a single source of truth.
 
 > **Not published to npm.** This is a reference implementation. Clone the monorepo and run it locally.
+
+> **Hono is this demo's choice, not a requirement.** The core of `openapi-server` is `service.ts` — a plain TypeScript interface with no framework imports. This petstore wires it to Hono because Hono is lightweight and runs anywhere, but you can implement the same interface against Express, Fastify, or any other server framework.
 
 ---
 
@@ -13,8 +15,8 @@ A complete, runnable full-stack application that shows the entire `@codewithagen
 | TypeScript types | `models.ts` | ✅ `@codewithagents/openapi-gen` |
 | Fetch client | `client.ts` | ✅ `@codewithagents/openapi-gen` |
 | React Query hooks | `hooks.ts` | ✅ `@codewithagents/openapi-react-query` |
-| Server interface | `service.ts` | ✅ `@codewithagents/openapi-server` |
-| Hono router + Zod validation | `router.ts` | ✅ `@codewithagents/openapi-server` |
+| Server interface (framework-agnostic) | `service.ts` | ✅ `@codewithagents/openapi-server` |
+| Router + Zod validation (Hono — demo choice) | `router.ts` | ✅ `@codewithagents/openapi-server` |
 | Zod schemas | `schemas.ts` | ⚠️ Bootstrapped once, then **yours to own** |
 | Business logic | `src/server/petService.ts` | ❌ You write this |
 | React UI | `src/client/App.tsx` | ❌ You write this |
