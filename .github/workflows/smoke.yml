@@ -28,15 +28,5 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
       - run: pnpm build
-
-      - name: Generate clients for smoke-tested APIs
-        run: |
-          REPO_ROOT=$(pwd)
-          cd examples
-          for spec in open-meteo canada_holidays exchangerate _smoke-dnd5e; do
-            echo "Generating $spec..."
-            node "$REPO_ROOT/packages/openapi-gen/dist/cli.cjs" --config configs/${spec}.json
-          done
-
       - name: Run smoke tests
         run: pnpm smoke
