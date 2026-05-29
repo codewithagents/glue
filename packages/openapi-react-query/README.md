@@ -1,13 +1,20 @@
 # @codewithagents/openapi-react-query
 
 [![npm](https://img.shields.io/npm/v/@codewithagents/openapi-react-query.svg)](https://npmjs.com/package/@codewithagents/openapi-react-query)
+[![CI](https://github.com/codewithagents/glue/actions/workflows/ci.yml/badge.svg)](https://github.com/codewithagents/glue/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/codewithagents/glue/graph/badge.svg?flag=openapi-react-query)](https://codecov.io/gh/codewithagents/glue)
+[![CodeQL](https://github.com/codewithagents/glue/actions/workflows/codeql.yml/badge.svg)](https://github.com/codewithagents/glue/actions/workflows/codeql.yml)
 
-Generate typed [React Query v5](https://tanstack.com/query/v5) hooks from an OpenAPI 3.x spec. Run once, get a fully typed `useQuery` hook per GET endpoint and a `useMutation` hook per write operation — no hand-written boilerplate.
+Generate typed [React Query v5](https://tanstack.com/query/v5) hooks from an OpenAPI 3.x spec. Run once, get a fully typed `useQuery` hook per GET endpoint and a `useMutation` hook per write operation. No hand-written boilerplate.
 
-Works alongside [`@codewithagents/openapi-gen`](https://www.npmjs.com/package/@codewithagents/openapi-gen) which generates the underlying typed fetch client. All generated files are **Prettier-clean** out of the box — commit them without running a formatter.
+- **One hook per operation**: a `useQuery` variant for every GET and a `useMutation` for every write. Types are derived directly from the generated client, no duplication.
+- **Smart detail hooks**: path-param hooks disable automatically when the param is `null` or `undefined`. No `enabled: !!id` at every call site.
+- **Key factories included**: structured cache keys per resource (`all()`, `list(params)`, `detail(id)`) for consistent invalidation.
+- **Auto-invalidate on mutation**: set `auto_invalidate: true` and mutation hooks invalidate related queries on success, with no `useQueryClient` boilerplate required.
+- **Suspense variants**: set `suspense: true` to generate `useSuspense*` hooks alongside every query hook.
+- **Prettier-clean output**: every generated file passes `prettier --check` out of the box.
 
-See the [petstore demo](https://github.com/codewithagents/glue/tree/main/packages/petstore) for a full-stack example combining all four packages.
+Works alongside [`@codewithagents/openapi-gen`](https://www.npmjs.com/package/@codewithagents/openapi-gen) which generates the underlying typed fetch client. All generated files are committed without running a formatter. See the [petstore demo](https://github.com/codewithagents/glue/tree/main/packages/petstore) for a full-stack example combining all four packages.
 
 ## Install
 
@@ -33,17 +40,17 @@ Create `openapi-react-query.config.json` in your project root:
 
 | Field | Required | Default | Description |
 |---|---|---|---|
-| `input_openapi` | ✅ | — | OpenAPI 3.x spec (JSON or YAML) |
-| `output` | ✅ | — | Directory to write generated files (same as openapi-gen output) |
-| `stale_time` | — | `0` | `staleTime` in ms applied to all `useQuery` hooks |
-| `gc_time` | — | `300000` | `gcTime` in ms applied to all `useQuery` hooks |
-| `suspense` | — | `false` | When `true`, generates a `useSuspense*` variant alongside every query hook |
-| `auto_invalidate` | — | `false` | When `true`, mutation hooks auto-invalidate related queries on success |
-| `overrides` | — | — | Per-resource cache timing (see [Per-resource cache timing](#per-resource-cache-timing)) |
+| `input_openapi` | Yes | n/a | OpenAPI 3.x spec (JSON or YAML) |
+| `output` | Yes | n/a | Directory to write generated files (same as openapi-gen output) |
+| `stale_time` | No | `0` | `staleTime` in ms applied to all `useQuery` hooks |
+| `gc_time` | No | `300000` | `gcTime` in ms applied to all `useQuery` hooks |
+| `suspense` | No | `false` | When `true`, generates a `useSuspense*` variant alongside every query hook |
+| `auto_invalidate` | No | `false` | When `true`, mutation hooks auto-invalidate related queries on success |
+| `overrides` | No | none | Per-resource cache timing (see [Per-resource cache timing](#per-resource-cache-timing)) |
 
 ## Generate
 
-Run both generators — order matters, openapi-gen first:
+Run both generators, openapi-gen first:
 
 ```bash
 npx openapi-gen
@@ -64,10 +71,10 @@ Or add to `package.json`:
 
 Given a spec with a `/tasks` resource, `hooks.ts` contains:
 
-**Key factory** — one per resource, used for cache invalidation:
+**Key factory**: one per resource, used for cache invalidation:
 
 ```ts
-// Key factory (id stays string here — only the hook widens it)
+// Key factory (id stays string here; the hook widens it to allow undefined/null)
 export const taskKeys = {
   all: () => ['tasks'] as const,
   list: (params?) => ['tasks', 'list', params] as const,
@@ -75,7 +82,7 @@ export const taskKeys = {
 }
 ```
 
-**Query hooks** — one per GET operation:
+**Query hooks**: one per GET operation:
 
 ```ts
 export function useListTasks(params?, options?) {
@@ -88,7 +95,7 @@ export function useListTasks(params?, options?) {
   })
 }
 
-// Detail hook — id widened to allow undefined/null; auto-disabled until id is set
+// Detail hook: id widened to allow undefined/null, auto-disabled until id is set
 export function useGetTask(
   id: string | undefined | null,
   options?,
@@ -102,9 +109,9 @@ export function useGetTask(
 }
 ```
 
-Detail hooks (those with a path parameter) automatically disable when the parameter is `null` or `undefined` — no more `enabled: !!id` at every call site.
+Detail hooks (those with a path parameter) automatically disable when the parameter is `null` or `undefined`. No more `enabled: !!id` at every call site.
 
-**Mutation hooks** — one per POST/PUT/PATCH/DELETE:
+**Mutation hooks**: one per POST/PUT/PATCH/DELETE:
 
 ```ts
 export function useCreateTask(options?) {
@@ -116,7 +123,7 @@ export function useUpdateTask(options?) {
 }
 ```
 
-All types are derived from the generated client — no duplication:
+All types are derived from the generated client, no duplication:
 - Data type: `Awaited<ReturnType<typeof listTasks>>`
 - Variables type: `Parameters<typeof createTask>[0]`
 
@@ -129,7 +136,7 @@ When `suspense: true` in config, a `useSuspense*` hook is generated alongside ev
 const { data, isLoading } = useGetTask(id)
 
 // Suspense variant (generated when suspense: true)
-// data is never undefined — wrap parent in <Suspense fallback={...}>
+// data is never undefined: wrap parent in <Suspense fallback={...}>
 const { data } = useSuspenseGetTask(id)
 ```
 
@@ -140,7 +147,7 @@ Works with React 18 `<Suspense>` boundaries and Next.js App Router loading state
 When `auto_invalidate: true` in config, mutation hooks automatically invalidate related cache entries on success. No `useQueryClient` boilerplate at the call site:
 
 ```ts
-// With auto_invalidate: true — invalidation is generated inside the hook
+// With auto_invalidate: true, invalidation is generated inside the hook
 const create = useCreateTask()
 create.mutate({ title: 'New task' })
 // taskKeys.all() is automatically invalidated on success

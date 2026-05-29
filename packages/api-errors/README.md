@@ -1,9 +1,17 @@
 # @codewithagents/api-errors
 
 [![npm](https://img.shields.io/npm/v/@codewithagents/api-errors.svg)](https://npmjs.com/package/@codewithagents/api-errors)
+[![CI](https://github.com/codewithagents/glue/actions/workflows/ci.yml/badge.svg)](https://github.com/codewithagents/glue/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/codewithagents/glue/graph/badge.svg?flag=api-errors)](https://codecov.io/gh/codewithagents/glue)
+[![CodeQL](https://github.com/codewithagents/glue/actions/workflows/codeql.yml/badge.svg)](https://github.com/codewithagents/glue/actions/workflows/codeql.yml)
 
-Backend API errors don't automatically map to form field errors. Every project writes the same glue code from scratch: catch the error, inspect its shape, figure out which field each message belongs to, then call your form library's error setter. This package does that for you — framework-agnostic core with a first-class React Hook Form adapter.
+Backend API errors don't automatically map to form field errors. Every project writes the same glue code from scratch: catch the error, inspect its shape, figure out which field each message belongs to, then call your form library's error setter. This package does that for you: a framework-agnostic core with a first-class React Hook Form adapter.
+
+- **Framework-agnostic core**: `extractFieldErrors(error)` returns normalized `{ field, message }` pairs from any error shape. Works with any form library or plain JavaScript.
+- **React Hook Form adapter**: `mapApiErrors(error, setError)` wires directly to RHF's `setError`. One call at the catch site, no mapping loop.
+- **Multiple error formats**: RFC 7807 Problem Details, Spring Boot validation format, flat `{ field, message }` arrays, and more.
+- **Response unwrapping**: detects `error.response.data` (Axios), `{ status, body }` (generated client's `ApiError`), and nested `{ data }` wrappers automatically.
+- **Zero runtime dependencies**: pure TypeScript, nothing added to your bundle.
 
 ## Installation
 
@@ -50,7 +58,7 @@ type FormValues = { email: string; name: string }
 
 const { setError } = useForm<FormValues>()
 
-// ✅ works — setError is assignable to the expected signature
+// works: setError is assignable to the expected signature
 mapApiErrors(error, setError)
 ```
 
@@ -98,7 +106,7 @@ const fieldErrors = extractFieldErrors(error, {
   // Field name used when no field can be determined (default: 'root')
   fallbackField: 'serverError',
 
-  // Transform field names — e.g. camelCase backend → dot.path for nested RHF fields
+  // Transform field names, e.g. camelCase backend → dot.path for nested RHF fields
   transformField: (f) => f.replace(/([A-Z])/g, '.$1').toLowerCase(),
 })
 
@@ -143,11 +151,11 @@ mapApiErrors(error, setError, { fallbackField: 'root' })
 [{ "field": "email", "message": "Invalid email" }]
 ```
 
-Response wrappers are automatically unwrapped — both Axios-style `error.response.data` and generic `{ data: { ... } }` shapes.
+Response wrappers are automatically unwrapped: Axios-style `error.response.data` and generic `{ data: { ... } }` shapes are both handled.
 
 ## Known behaviour: multiple errors for the same field
 
-When a backend returns multiple errors for the same field (e.g. in the flat array format), `extractFieldErrors` returns all of them. If you pass them all to React Hook Form's `setError`, the **last call wins** — only the last message is displayed. If you need to show all messages, collect them before calling `setError`:
+When a backend returns multiple errors for the same field (e.g. in the flat array format), `extractFieldErrors` returns all of them. If you pass them all to React Hook Form's `setError`, the **last call wins**; only the last message is displayed. If you need to show all messages, collect them before calling `setError`:
 
 ```ts
 const fieldErrors = extractFieldErrors(error)
