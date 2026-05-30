@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" fill="none">
+  <!-- Cairn Logo — Two-tone ink style v4 -->
+
+  <path d="M18 170 L28 152 L50 147 L155 144 L176 150 L184 164 L180 180 L162 188 L38 190 L22 182 Z" fill="#059669" stroke="#064e3b" stroke-width="5" stroke-linejoin="round"/>
+  <path d="M134 150 L140 134 L154 128 L176 130 L182 140 L178 152 L165 156 L140 154 Z" fill="#059669" stroke="#064e3b" stroke-width="5" stroke-linejoin="round"/>
+  <path d="M25 148 L34 125 L52 118 L122 114 L138 120 L142 136 L135 148 L48 150 Z" fill="#059669" stroke="#064e3b" stroke-width="5" stroke-linejoin="round"/>
+  <path d="M148 130 L154 100 L160 85 L172 80 L182 88 L180 115 L176 132 L158 136 Z" fill="#059669" stroke="#064e3b" stroke-width="5" stroke-linejoin="round"/>
+  <path d="M56 122 L66 96 L86 82 L133 72 L158 76 L166 92 L158 106 L123 114 L70 124 Z" fill="#059669" stroke="#064e3b" stroke-width="5" stroke-linejoin="round"/>
+
+  <path d="M20 168 L28 154 L48 149 L58 149 L48 154 L24 165 Z" fill="#6ee7b7"/>
+  <path d="M28 144 L34 128 L50 121 L56 121 L46 130 L30 140 Z" fill="#6ee7b7"/>
+  <path d="M60 116 L66 98 L84 86 L100 80 L92 88 L72 100 L62 112 Z" fill="#6ee7b7"/>
+
+  <line x1="62" y1="152" x2="130" y2="149" stroke="#064e3b" stroke-width="1.2" stroke-linecap="round"/>
+  <line x1="45" y1="176" x2="130" y2="172" stroke="#064e3b" stroke-width="0.8" stroke-linecap="round"/>
+  <line x1="60" y1="168" x2="160" y2="162" stroke="#064e3b" stroke-width="0.8" stroke-linecap="round"/>
+  <line x1="140" y1="176" x2="170" y2="174" stroke="#064e3b" stroke-width="0.7" stroke-linecap="round"/>
+  <line x1="142" y1="136" x2="168" y2="135" stroke="#064e3b" stroke-width="0.8" stroke-linecap="round"/>
+  <line x1="142" y1="148" x2="172" y2="146" stroke="#064e3b" stroke-width="0.8" stroke-linecap="round"/>
+  <line x1="148" y1="141" x2="165" y2="140" stroke="#064e3b" stroke-width="0.7" stroke-linecap="round"/>
+  <line x1="58" y1="124" x2="138" y2="120" stroke="#064e3b" stroke-width="1.2" stroke-linecap="round"/>
+  <line x1="55" y1="138" x2="125" y2="134" stroke="#064e3b" stroke-width="0.8" stroke-linecap="round"/>
+  <line x1="60" y1="144" x2="115" y2="141" stroke="#064e3b" stroke-width="0.7" stroke-linecap="round"/>
+  <line x1="90" y1="127" x2="130" y2="124" stroke="#064e3b" stroke-width="0.7" stroke-linecap="round"/>
+  <line x1="164" y1="86" x2="168" y2="125" stroke="#064e3b" stroke-width="1" stroke-linecap="round"/>
+  <line x1="172" y1="84" x2="175" y2="118" stroke="#064e3b" stroke-width="0.7" stroke-linecap="round"/>
+  <line x1="160" y1="90" x2="162" y2="100" stroke="#064e3b" stroke-width="0.7" stroke-linecap="round"/>
+  <line x1="105" y1="78" x2="155" y2="76" stroke="#064e3b" stroke-width="1.2" stroke-linecap="round"/>
+  <line x1="78" y1="114" x2="130" y2="106" stroke="#064e3b" stroke-width="0.8" stroke-linecap="round"/>
+  <line x1="85" y1="120" x2="120" y2="112" stroke="#064e3b" stroke-width="0.7" stroke-linecap="round"/>
+  <line x1="115" y1="82" x2="145" y2="80" stroke="#064e3b" stroke-width="0.8" stroke-linecap="round"/>
+  <line x1="130" y1="88" x2="152" y2="84" stroke="#064e3b" stroke-width="0.7" stroke-linecap="round"/>
+
+</svg>
