@@ -28,9 +28,9 @@ These are the "golden examples" — they prove the generator handles real edge c
 
 ### Compatibility matrix specs (115)
 
-Spec files are committed to `examples/specs/` and configs to `examples/configs/`. Generated output is **not** committed — CI generates all 115 at runtime as part of `pnpm test` in each package.
+Spec files are committed to `examples/specs/` and configs to `examples/configs/`. Generated output is **not** committed. CI generates all 115 at runtime as part of `pnpm test` in each package.
 
-**All 115 generate without errors** — together with the 13 showcase specs, that's 128/128 total.
+**All 115 generate without errors.** Together with the 13 showcase specs, that's 128/128 total.
 
 A sample of the APIs covered: Stripe, GitHub, Google Calendar, Google Drive, Google Sheets, Spotify, Slack, Vercel, Cloudflare, Twilio, Plaid, Notion, Jira, Okta, Asana, Bitbucket, Box, Brex, CircleCI, Figma (via Notion), Klarna, Linode, NASA, Pinecone, SendGrid, Square, Webflow, Xero, YouTube, Zoom, Zuora, and many more.
 
@@ -76,7 +76,7 @@ The `Examples` workflow (`.github/workflows/examples.yml`) runs on every relevan
 - **Triggers**: path-filtered (`packages/openapi-gen/**`, `examples/**`) on PRs and pushes to main, plus weekly on Monday 6am UTC
 - **Steps**:
   1. Build the generator packages
-  2. Run all 128 configs — all 115 compat matrix specs must generate without errors (parameterized tests via `pnpm test`)
+  2. Run all 128 configs: all 115 compat matrix specs must generate without errors (parameterized tests via `pnpm test`)
   3. `git diff --exit-code examples/generated/` — fails if showcase output has drifted
   4. `tsc --noEmit` on all generated output in `examples/generated/`
 
