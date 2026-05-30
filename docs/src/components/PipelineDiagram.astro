@@ -1,222 +1,159 @@
 ---
-// PipelineDiagram — visual representation of the Glue package pipeline.
-// Uses Starlight CSS variables throughout so it renders correctly in both
-// light and dark themes. Layout is responsive: horizontal on wide screens,
-// stacked vertically on narrow screens.
+// PipelineDiagram - inline SVG of the Glue package pipeline.
+// Inline SVG (not an <img>) so it can use Starlight CSS variables and render
+// correctly in both light and dark themes. viewBox + width:100% keeps it crisp
+// and scalable at any size.
 ---
 
-<div class="pipeline-root" role="img" aria-label="Glue pipeline: OpenAPI spec feeds openapi-gen, which produces TypeScript types, Zod schemas, and a fetch client. The fetch client feeds openapi-react-query for React Query hooks and openapi-server for a typed service interface and router. api-errors maps any API error shape to form fields independently.">
+<svg
+  class="pipeline-svg"
+  viewBox="0 0 600 470"
+  role="img"
+  aria-labelledby="pipeline-title pipeline-desc"
+  xmlns="http://www.w3.org/2000/svg"
+>
+  <title id="pipeline-title">The Glue package pipeline</title>
+  <desc id="pipeline-desc">
+    An OpenAPI spec feeds openapi-gen, which produces TypeScript types, Zod schemas, and a fetch
+    client. The fetch client feeds openapi-react-query for React Query hooks and openapi-server for a
+    typed service interface and router. api-errors is a runtime package that maps any API error shape
+    to form field errors.
+  </desc>
 
-  <!-- Row 1: Source -->
-  <div class="pipeline-row">
-    <div class="pipeline-box pipeline-box--source">
-      <span class="pipeline-label-small">your</span>
-      <span class="pipeline-label">OpenAPI spec</span>
-    </div>
-  </div>
+  <defs>
+    <marker
+      id="pipeline-arrow"
+      viewBox="0 0 10 10"
+      refX="8"
+      refY="5"
+      markerWidth="6"
+      markerHeight="6"
+      orient="auto-start-reverse"
+    >
+      <path d="M0,0 L10,5 L0,10 z" class="arrowhead" />
+    </marker>
+  </defs>
 
-  <!-- Arrow down -->
-  <div class="pipeline-row pipeline-row--arrow">
-    <div class="pipeline-arrow pipeline-arrow--down">↓</div>
-  </div>
+  {/* Connectors */}
+  <g class="conn" fill="none">
+    <path d="M300,60 V82" marker-end="url(#pipeline-arrow)" />
+    <path d="M300,128 V150" />
+    <path d="M90,150 H510" />
+    <path d="M110,150 V166" marker-end="url(#pipeline-arrow)" />
+    <path d="M300,150 V166" marker-end="url(#pipeline-arrow)" />
+    <path d="M490,150 V166" marker-end="url(#pipeline-arrow)" />
+    <path d="M490,226 V250" />
+    <path d="M300,250 H490" />
+    <path d="M300,250 V266" marker-end="url(#pipeline-arrow)" />
+    <path d="M490,250 V266" marker-end="url(#pipeline-arrow)" />
+  </g>
 
-  <!-- Row 2: openapi-gen -->
-  <div class="pipeline-row">
-    <div class="pipeline-box pipeline-box--generator">
-      <span class="pipeline-pkg">@codewithagents/openapi-gen</span>
-    </div>
-  </div>
+  {/* Row 1: source */}
+  <g>
+    <rect class="node node--accent" x="210" y="16" width="180" height="44" rx="8" />
+    <text class="title" x="300" y="43">OpenAPI spec</text>
+  </g>
 
-  <!-- Arrow down + fan out -->
-  <div class="pipeline-row pipeline-row--arrow">
-    <div class="pipeline-arrow pipeline-arrow--down">↓</div>
-  </div>
+  {/* Row 2: generator */}
+  <g>
+    <rect class="node node--accent" x="185" y="84" width="230" height="44" rx="8" />
+    <text class="pkg" x="300" y="111">openapi-gen</text>
+  </g>
 
-  <!-- Row 3: three outputs of openapi-gen -->
-  <div class="pipeline-row pipeline-row--outputs">
-    <div class="pipeline-box pipeline-box--output">
-      <span class="pipeline-label">TypeScript types</span>
-      <span class="pipeline-label-small">models.ts</span>
-    </div>
-    <div class="pipeline-box pipeline-box--output">
-      <span class="pipeline-label">Zod schemas</span>
-      <span class="pipeline-label-small">schemas.ts (yours to extend)</span>
-    </div>
-    <div class="pipeline-box pipeline-box--output pipeline-box--output-key">
-      <span class="pipeline-label">Fetch client</span>
-      <span class="pipeline-label-small">client.ts</span>
-    </div>
-  </div>
+  {/* Row 3: three outputs */}
+  <g>
+    <rect class="node" x="30" y="170" width="160" height="56" rx="8" />
+    <text class="title" x="110" y="195">TypeScript types</text>
+    <text class="sub" x="110" y="213">models.ts</text>
+  </g>
+  <g>
+    <rect class="node" x="220" y="170" width="160" height="56" rx="8" />
+    <text class="title" x="300" y="195">Zod schemas</text>
+    <text class="sub" x="300" y="213">yours to extend</text>
+  </g>
+  <g>
+    <rect class="node node--accent" x="410" y="170" width="160" height="56" rx="8" />
+    <text class="title" x="490" y="195">Fetch client</text>
+    <text class="sub" x="490" y="213">client.ts</text>
+  </g>
 
-  <!-- Arrow down from fetch client -->
-  <div class="pipeline-row pipeline-row--arrow">
-    <div class="pipeline-arrow pipeline-arrow--down">↓</div>
-  </div>
+  {/* Row 4: two consumers of the fetch client */}
+  <g>
+    <rect class="node" x="215" y="270" width="170" height="56" rx="8" />
+    <text class="pkg" x="300" y="295">openapi-react-query</text>
+    <text class="sub" x="300" y="313">React Query v5 hooks</text>
+  </g>
+  <g>
+    <rect class="node" x="405" y="270" width="170" height="56" rx="8" />
+    <text class="pkg" x="490" y="295">openapi-server</text>
+    <text class="sub" x="490" y="313">service interface + router</text>
+  </g>
 
-  <!-- Row 4: consumers of the fetch client -->
-  <div class="pipeline-row pipeline-row--consumers">
-    <div class="pipeline-box pipeline-box--consumer">
-      <span class="pipeline-pkg">@codewithagents/openapi-react-query</span>
-      <span class="pipeline-label-small">React Query v5 hooks</span>
-    </div>
-    <div class="pipeline-box pipeline-box--consumer">
-      <span class="pipeline-pkg">@codewithagents/openapi-server</span>
-      <span class="pipeline-label-small">Typed service interface + router</span>
-    </div>
-  </div>
+  {/* Divider */}
+  <line class="divider" x1="60" y1="362" x2="540" y2="362" />
 
-  <!-- Standalone section: api-errors -->
-  <div class="pipeline-row pipeline-row--standalone">
-    <div class="pipeline-standalone-divider" aria-hidden="true"></div>
-    <div class="pipeline-box pipeline-box--standalone">
-      <span class="pipeline-pkg">@codewithagents/api-errors</span>
-      <span class="pipeline-label-small">Runtime only, no codegen. Maps any API error shape to form field errors.</span>
-    </div>
-  </div>
-
-</div>
+  {/* Standalone: api-errors */}
+  <g>
+    <rect class="node node--dashed" x="90" y="380" width="420" height="60" rx="8" />
+    <text class="pkg" x="300" y="406">api-errors</text>
+    <text class="sub" x="300" y="424">Runtime, no codegen. Maps any API error shape to form fields.</text>
+  </g>
+</svg>
 
 <style>
-  .pipeline-root {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0;
-    padding: 1.5rem 1rem;
+  .pipeline-svg {
+    display: block;
+    width: 100%;
+    max-width: 600px;
+    height: auto;
+    margin: 1.5rem auto;
+  }
+
+  .node {
+    fill: var(--sl-color-gray-7);
+    stroke: var(--sl-color-gray-5);
+    stroke-width: 1.5;
+  }
+  .node--accent {
+    fill: var(--sl-color-accent-low);
+    stroke: var(--sl-color-accent);
+  }
+  .node--dashed {
+    fill: none;
+    stroke-dasharray: 5 4;
+  }
+
+  .title {
+    fill: var(--sl-color-white);
+    font-size: 13px;
+    font-weight: 600;
+    text-anchor: middle;
     font-family: var(--sl-font);
   }
-
-  /* ---- Rows ---- */
-  .pipeline-row {
-    display: flex;
-    justify-content: center;
-    width: 100%;
-    max-width: 720px;
+  .sub {
+    fill: var(--sl-color-gray-2);
+    font-size: 11px;
+    text-anchor: middle;
+    font-family: var(--sl-font);
   }
-
-  .pipeline-row--arrow {
-    height: 2rem;
-    align-items: center;
-  }
-
-  .pipeline-row--outputs {
-    gap: 0.75rem;
-    flex-wrap: wrap;
-  }
-
-  .pipeline-row--consumers {
-    gap: 0.75rem;
-    flex-wrap: wrap;
-  }
-
-  .pipeline-row--standalone {
-    flex-direction: column;
-    align-items: center;
-    margin-top: 1.5rem;
-    width: 100%;
-    max-width: 720px;
-  }
-
-  /* ---- Arrows ---- */
-  .pipeline-arrow {
-    font-size: 1.5rem;
-    color: var(--sl-color-accent);
-    line-height: 1;
-  }
-
-  /* ---- Boxes ---- */
-  .pipeline-box {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 0.2rem;
-    padding: 0.6rem 1rem;
-    border-radius: 6px;
-    border: 1.5px solid var(--sl-color-gray-5);
-    background-color: var(--sl-color-gray-7);
-    text-align: center;
-  }
-
-  .pipeline-box--source {
-    min-width: 160px;
-    border-color: var(--sl-color-accent);
-    background-color: var(--sl-color-accent-low);
-  }
-
-  .pipeline-box--generator {
-    min-width: 260px;
-    border-color: var(--sl-color-accent);
-    background-color: var(--sl-color-accent-low);
-  }
-
-  .pipeline-box--output {
-    flex: 1 1 160px;
-    max-width: 220px;
-    border-color: var(--sl-color-gray-4);
-  }
-
-  /* The "fetch client" box is the one that feeds downstream packages. */
-  .pipeline-box--output-key {
-    border-color: var(--sl-color-accent);
-  }
-
-  .pipeline-box--consumer {
-    flex: 1 1 200px;
-    max-width: 300px;
-    border-color: var(--sl-color-gray-4);
-  }
-
-  .pipeline-box--standalone {
-    max-width: 460px;
-    width: 100%;
-    border-color: var(--sl-color-gray-4);
-    border-style: dashed;
-  }
-
-  /* ---- Typography ---- */
-  .pipeline-label {
-    font-size: var(--sl-text-sm);
+  .pkg {
+    fill: var(--sl-color-accent-high);
+    font-size: 12.5px;
     font-weight: 600;
-    color: var(--sl-color-white);
-    line-height: 1.3;
-  }
-
-  .pipeline-label-small {
-    font-size: var(--sl-text-xs);
-    color: var(--sl-color-gray-2);
-    line-height: 1.3;
-  }
-
-  .pipeline-pkg {
-    font-size: var(--sl-text-xs);
+    text-anchor: middle;
     font-family: var(--sl-font-mono);
-    font-weight: 600;
-    color: var(--sl-color-accent-high);
-    line-height: 1.4;
   }
 
-  /* ---- Standalone divider ---- */
-  .pipeline-standalone-divider {
-    width: 100%;
-    max-width: 460px;
-    height: 1px;
-    background-color: var(--sl-color-gray-5);
-    margin-bottom: 1rem;
+  .conn {
+    stroke: var(--sl-color-accent);
+    stroke-width: 1.5;
   }
-
-  /* ---- Responsive: stack outputs/consumers vertically on narrow screens ---- */
-  @media (max-width: 480px) {
-    .pipeline-row--outputs,
-    .pipeline-row--consumers {
-      flex-direction: column;
-      align-items: center;
-    }
-
-    .pipeline-box--output,
-    .pipeline-box--consumer {
-      max-width: 100%;
-      width: 100%;
-    }
+  .arrowhead {
+    fill: var(--sl-color-accent);
+  }
+  .divider {
+    stroke: var(--sl-color-gray-5);
+    stroke-width: 1;
+    stroke-dasharray: 4 4;
   }
 </style>
