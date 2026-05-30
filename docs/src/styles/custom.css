@@ -8,10 +8,11 @@
   --sl-color-accent: #10b981;
   --sl-color-accent-high: #065f46;
 
-  /* Text on accent backgrounds */
-  --sl-color-white: #ffffff;
+  /* NOTE: do not override --sl-color-white. In Starlight it is the
+     highest-contrast text color (near-black in light mode), not literal white.
+     Forcing it to #ffffff makes the page H1 and sidebar group labels invisible. */
 
-  /* Subtle pink highlight for badges and secondary emphasis */
+  /* Link / accent text color */
   --sl-color-text-accent: #10b981;
 }
 
@@ -22,6 +23,17 @@
   --sl-color-accent-high: #a7f3d0;
 
   --sl-color-text-accent: #34d399;
+}
+
+/* Prose links: emerald by default, DARKEN (not whiten) on hover.
+   Starlight's default hover color is --sl-color-white, which is fragile across
+   themes; set it explicitly so links are never invisible. accent-high is a dark
+   emerald in light mode and a light emerald in dark mode, so this reads in both. */
+.sl-markdown-content a {
+  color: var(--sl-color-text-accent);
+}
+.sl-markdown-content a:hover {
+  color: var(--sl-color-accent-high);
 }
 
 /* Use the pink accent sparingly on "badge" style elements */
