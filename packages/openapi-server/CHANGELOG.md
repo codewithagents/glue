@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.3.0](https://github.com/codewithagents/openapi-ts/compare/openapi-server-v1.2.0...openapi-server-v1.3.0) (2026-05-30)
+
+
+### Features
+
+* **openapi-server:** add Express and Fastify router generation with Zod validation ([a1a9d53](https://github.com/codewithagents/openapi-ts/commit/a1a9d5390ae8584afee183835d0976bae4239d28))
+
+
+### Bug Fixes
+
+* resolve CodeQL security findings ([1775358](https://github.com/codewithagents/openapi-ts/commit/17753583a2ae32fdd16e45cd476de74119c6a6ba))
+
 ## [1.2.0](https://github.com/codewithagents/glue/compare/openapi-server-v1.1.0...openapi-server-v1.2.0) (2026-05-29)
 
 
