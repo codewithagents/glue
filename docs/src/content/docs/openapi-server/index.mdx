@@ -166,7 +166,7 @@ import type { CreatePetRequest, Pet } from './models.js'
 
 export interface PetstoreService {
   /** GET /pets */
-  listPets(params?: { species?: string }): Promise<Pet[]>
+  listPets(params?: { species?: string; limit?: number }): Promise<Pet[]>
   /** POST /pets */
   createPet(body: CreatePetRequest): Promise<Pet>
   /** GET /pets/{id} */
@@ -178,7 +178,7 @@ export interface PetstoreService {
 
 The interface is regenerated every time the spec changes. If you add an endpoint in the spec and forget to implement it, TypeScript will fail the build.
 
-**Method name derivation:** method names come from `operationId` in your spec (sanitized to camelCase). When `operationId` is absent, the generator falls back to a `verb + path` heuristic: `GET /pets/{id}` becomes `getPetsById`, `POST /users` becomes `createUsers`.
+**Method name derivation:** method names come from `operationId` in your spec (sanitized to camelCase). When `operationId` is absent, the generator falls back to a `verb + path` heuristic: `GET /pets/{id}` becomes `getPetsById`, `POST /users` becomes `createUsers`. Any leading `/api/v{n}/` prefix (for example `/api/v1/`) is stripped before this heuristic runs, so `/api/v1/pets/{id}` and `/pets/{id}` both produce `getPetsById`.
 
 ### `router.ts`
 
@@ -200,6 +200,7 @@ export function createRouter(service: PetstoreService): Hono {
   app.get('/pets', async (c) => {
     const params = {
       species: c.req.query('species') ?? undefined,
+      limit: c.req.query('limit') !== undefined ? Number(c.req.query('limit')) : undefined,
     }
     return c.json(await service.listPets(params))
   })
@@ -241,6 +242,7 @@ export function createRouter(service: PetstoreService): Router {
   router.get('/pets', async (req: Request, res: Response) => {
     const params = {
       species: req.query['species'] as string | undefined,
+      limit: Number(req.query['limit'] as string),
     }
     res.json(await service.listPets(params))
   })
@@ -276,9 +278,10 @@ import type { CreatePetRequest } from './models.js'
 import type { PetstoreService } from './service.js'
 
 export function createRouter(app: FastifyInstance, service: PetstoreService): void {
-  app.get<{ Querystring: { species?: string } }>('/pets', async (req, reply) => {
+  app.get<{ Querystring: { species?: string; limit?: number } }>('/pets', async (req, reply) => {
     const params = {
       species: req.query.species,
+      limit: req.query.limit,
     }
     return service.listPets(params)
   })
@@ -596,12 +599,13 @@ app.register(
 
 The generator intentionally omits several OpenAPI features. These are not validated or generated:
 
-| Feature                      | Status                                                   |
-| ---------------------------- | -------------------------------------------------------- |
-| Response-body validation     | Not generated. Validate in your service if needed.       |
-| Request headers and cookies  | Not extracted or validated.                              |
-| Security scheme enforcement  | Not generated. Add auth middleware manually (see above). |
-| `multipart/form-data` bodies | Not generated. Wire file upload routes manually.         |
+| Feature                      | Status                                                                                                              |
+| ---------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| Response-body validation     | Not generated. Validate in your service if needed.                                                                  |
+| Request headers and cookies  | Not extracted or validated.                                                                                         |
+| Security scheme enforcement  | Not generated. Add auth middleware manually (see above).                                                            |
+| `multipart/form-data` bodies | Not generated. Wire file upload routes manually.                                                                    |
+| Path parameter validation    | Not generated. Path params are passed to your service as raw strings. Validate them in your service implementation. |
 
 ## Troubleshooting
 
