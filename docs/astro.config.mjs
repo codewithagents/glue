@@ -95,6 +95,7 @@ export default defineConfig({
           items: [
             { label: 'Introduction', slug: 'getting-started' },
             { label: 'Quickstart', slug: 'getting-started/quickstart' },
+            { label: 'Migrating from hey-api or orval', slug: 'migrating' },
           ],
         },
         {
@@ -113,6 +114,10 @@ export default defineConfig({
         {
           label: 'Compatibility',
           slug: 'compatibility',
+        },
+        {
+          label: 'Roadmap',
+          slug: 'roadmap',
         },
       ],
     }),

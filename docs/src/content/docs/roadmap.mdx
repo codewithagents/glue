@@ -1,0 +1,66 @@
+---
+title: Roadmap
+description: What is shipped, what is in progress, and what is planned for the CodeWithAgents OpenAPI toolchain.
+---
+
+import { Aside } from '@astrojs/starlight/components'
+
+The mission of this toolchain is zero-footprint glue between OpenAPI and Zod for both sides of the wire. Every package is a `devDependency` or a peer-dep-only tool. Nothing published here adds bytes to a production bundle that are not already there.
+
+## Now: shipped
+
+### `@codewithagents/api-errors` — v0.2.0
+
+Maps backend API error responses to form field errors. Framework-agnostic core with a React Hook Form adapter.
+
+Supported formats: RFC 7807 Problem Details, Spring Boot validation, flat field/message objects, and Axios response wrappers.
+
+### `@codewithagents/openapi-gen` — in progress
+
+A CLI `devDependency` that reads an OpenAPI 3.1 spec and an optional user-owned Zod schema, then generates self-contained TypeScript. No runtime package required. The generated client uses only native `fetch`.
+
+Core features shipped:
+
+- `models.ts`: TypeScript interfaces for every schema in `components.schemas`
+- `client.ts`: one typed `async function` per API operation
+- `client-config.ts`: `configureClient()` and `getConfig()` for base URL and auth
+- `index.ts`: barrel re-export of all three files
+- Optional Zod integration via `input_schema`: bootstraps `schemas.ts` on first run, then validates requests and responses on every call
+- Optional `server.ts` via `server_client: true`: `createServerClient()` factory for SSR
+
+## Next: near-term
+
+### `@codewithagents/openapi-react-query`
+
+A separate package layered on top of `openapi-gen`. Reads the same `openapi.json` and the output of the generator, then produces React Query v5 hooks.
+
+- `queryOptions` factories for GET endpoints
+- `useMutation` hooks for write operations
+- Imports from `openapi-gen`'s `client.ts` output
+- Peer dependency: `@tanstack/react-query`
+
+### Full OpenAPI 3.0 normalization
+
+OpenAPI 3.0.x is currently supported on a best-effort basis. One known gap: `nullable: true` (a 3.0 construct) is not yet normalized to its 3.1 equivalent (`type: [..., "null"]` semantics). Full normalization of the 3.0 nullable pattern is planned for a future release so that 3.0 specs are handled with the same fidelity as 3.1.
+
+## Later: planned
+
+### `@codewithagents/openapi-server`
+
+Server-side counterpart to `openapi-gen`. Reads the same `openapi.json` and generates typed Fastify route definitions using the same Zod schemas.
+
+The full-stack story this enables:
+
+```
+openapi.json + schemas.ts
+    ├── openapi-gen        → client validates responses with user's Zod schemas
+    └── openapi-gen-server → server validates requests with the same Zod schemas
+```
+
+Peer dependencies: `fastify` and `fastify-type-provider-zod`.
+
+<Aside type="note">
+  This roadmap reflects the current state of the project. Priorities shift as feedback comes in.
+  Open an issue on [GitHub](https://github.com/codewithagents/glue) if something here matters to
+  your project.
+</Aside>
