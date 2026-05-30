@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.5.0](https://github.com/codewithagents/openapi-ts/compare/openapi-react-query-v3.4.0...openapi-react-query-v3.5.0) (2026-05-30)
+
+
+### Features
+
+* **openapi-server:** add Express and Fastify router generation with Zod validation ([a1a9d53](https://github.com/codewithagents/openapi-ts/commit/a1a9d5390ae8584afee183835d0976bae4239d28))
+
 ## [3.4.0](https://github.com/codewithagents/glue/compare/openapi-react-query-v3.3.1...openapi-react-query-v3.4.0) (2026-05-29)
 
 
