@@ -347,9 +347,20 @@ function buildRouteHandler(
   return lines.join('\n')
 }
 
+// ── Shared options interface ──────────────────────────────────────────────────
+
+interface RouterOptions {
+  schemaNames?: Set<string>
+  schemaImportPath?: string
+}
+
 // ── Express router generator ───────────────────────────────────────────────────
 
-function buildExpressRouteHandler(op: RouteOperation, indent: string): string {
+function buildExpressRouteHandler(
+  op: RouteOperation,
+  indent: string,
+  schemaNames?: Set<string>,
+): string {
   const lines: string[] = []
   lines.push(`${indent}router.${op.httpMethod}('${op.honoPath}', async (req: Request, res: Response) => {`)
 
@@ -371,10 +382,27 @@ function buildExpressRouteHandler(op: RouteOperation, indent: string): string {
     lines.push(`${indent}  }`)
   }
 
-  // Body extraction
+  // Body extraction, with optional Zod validation
+  let bodyVarName = 'body'
   if (op.bodyInfo !== undefined) {
-    const typeAnnotation = op.bodyInfo.typeName !== undefined ? ` as ${op.bodyInfo.typeName}` : ''
-    lines.push(`${indent}  const body = req.body${typeAnnotation}`)
+    const schemaName =
+      op.bodyInfo.typeName !== undefined ? `${op.bodyInfo.typeName}Schema` : undefined
+    const useZod = schemaName !== undefined && schemaNames !== undefined && schemaNames.has(schemaName)
+
+    if (useZod) {
+      lines.push(`${indent}  // Validate request body: returns 422 with Zod issues on failure`)
+      lines.push(`${indent}  const parseResult = ${schemaName}.safeParse(req.body)`)
+      lines.push(`${indent}  if (!parseResult.success) {`)
+      lines.push(
+        `${indent}    return void res.status(422).json({ error: 'Invalid request body', issues: parseResult.error.issues })`,
+      )
+      lines.push(`${indent}  }`)
+      lines.push(`${indent}  const validatedBody = parseResult.data`)
+      bodyVarName = 'validatedBody'
+    } else {
+      const typeAnnotation = op.bodyInfo.typeName !== undefined ? ` as ${op.bodyInfo.typeName}` : ''
+      lines.push(`${indent}  const body = req.body${typeAnnotation}`)
+    }
   }
 
   // Build service call args
@@ -383,7 +411,7 @@ function buildExpressRouteHandler(op: RouteOperation, indent: string): string {
     serviceArgs.push(`req.params['${p}']!`)
   }
   if (op.bodyInfo !== undefined) {
-    serviceArgs.push('body')
+    serviceArgs.push(bodyVarName)
   }
   if (op.queryParams.length > 0) {
     serviceArgs.push('params')
@@ -405,7 +433,10 @@ function buildExpressRouteHandler(op: RouteOperation, indent: string): string {
   return lines.join('\n')
 }
 
-export function generateExpressRouter(spec: OpenAPIV3_1.Document): GeneratedFile {
+export function generateExpressRouter(
+  spec: OpenAPIV3_1.Document,
+  options?: RouterOptions,
+): GeneratedFile {
   const serviceName = deriveServiceName(spec)
   const operations = collectOperations(spec)
 
@@ -418,6 +449,20 @@ export function generateExpressRouter(spec: OpenAPIV3_1.Document): GeneratedFile
   }
   const sortedBodyTypes = Array.from(bodyTypes).sort()
 
+  // Collect which schema names are actually needed (only for ops with a matching schema)
+  const usedSchemaNames = new Set<string>()
+  if (options?.schemaNames !== undefined) {
+    for (const op of operations) {
+      const typeName = op.bodyInfo?.typeName
+      if (typeName !== undefined) {
+        const schemaName = `${typeName}Schema`
+        if (options.schemaNames.has(schemaName)) {
+          usedSchemaNames.add(schemaName)
+        }
+      }
+    }
+  }
+
   const lines: string[] = []
   lines.push('// This file is auto-generated. Do not edit manually.')
   lines.push('// Express: apply express.json() middleware before mounting this router so req.body is populated.')
@@ -428,13 +473,20 @@ export function generateExpressRouter(spec: OpenAPIV3_1.Document): GeneratedFile
     lines.push(`import type { ${sortedBodyTypes.join(', ')} } from './models.js'`)
   }
   lines.push(`import type { ${serviceName} } from './service.js'`)
+  if (usedSchemaNames.size > 0 && options?.schemaImportPath !== undefined) {
+    lines.push(`import { z } from 'zod'`)
+    const sortedUsedSchemas = Array.from(usedSchemaNames).sort()
+    lines.push(
+      `import { ${sortedUsedSchemas.join(', ')} } from '${options.schemaImportPath}'`,
+    )
+  }
   lines.push('')
   lines.push(`export function createRouter(service: ${serviceName}): Router {`)
   lines.push('  const router = Router()')
   lines.push('')
 
   for (const op of operations) {
-    lines.push(buildExpressRouteHandler(op, '  '))
+    lines.push(buildExpressRouteHandler(op, '  ', options?.schemaNames))
     lines.push('')
   }
 
@@ -450,7 +502,11 @@ export function generateExpressRouter(spec: OpenAPIV3_1.Document): GeneratedFile
 
 // ── Fastify router generator ───────────────────────────────────────────────────
 
-function buildFastifyRouteHandler(op: RouteOperation, indent: string): string {
+function buildFastifyRouteHandler(
+  op: RouteOperation,
+  indent: string,
+  schemaNames?: Set<string>,
+): string {
   const lines: string[] = []
 
   // Build generic type argument
@@ -491,13 +547,32 @@ function buildFastifyRouteHandler(op: RouteOperation, indent: string): string {
     lines.push(`${indent}  }`)
   }
 
+  // Body handling, with optional Zod validation
+  let bodyVarName = 'req.body'
+  if (op.bodyInfo !== undefined) {
+    const schemaName =
+      op.bodyInfo.typeName !== undefined ? `${op.bodyInfo.typeName}Schema` : undefined
+    const useZod = schemaName !== undefined && schemaNames !== undefined && schemaNames.has(schemaName)
+
+    if (useZod) {
+      lines.push(`${indent}  // Validate request body: returns 422 with Zod issues on failure`)
+      lines.push(`${indent}  const parseResult = ${schemaName}.safeParse(req.body)`)
+      lines.push(`${indent}  if (!parseResult.success) {`)
+      lines.push(
+        `${indent}    return reply.status(422).send({ error: 'Invalid request body', issues: parseResult.error.issues })`,
+      )
+      lines.push(`${indent}  }`)
+      bodyVarName = 'parseResult.data'
+    }
+  }
+
   // Build service call args
   const serviceArgs: string[] = []
   for (const p of op.pathParams) {
     serviceArgs.push(`req.params.${p}`)
   }
   if (op.bodyInfo !== undefined) {
-    serviceArgs.push('req.body')
+    serviceArgs.push(bodyVarName)
   }
   if (op.queryParams.length > 0) {
     serviceArgs.push('params')
@@ -520,7 +595,10 @@ function buildFastifyRouteHandler(op: RouteOperation, indent: string): string {
   return lines.join('\n')
 }
 
-export function generateFastifyRouter(spec: OpenAPIV3_1.Document): GeneratedFile {
+export function generateFastifyRouter(
+  spec: OpenAPIV3_1.Document,
+  options?: RouterOptions,
+): GeneratedFile {
   const serviceName = deriveServiceName(spec)
   const operations = collectOperations(spec)
 
@@ -533,6 +611,20 @@ export function generateFastifyRouter(spec: OpenAPIV3_1.Document): GeneratedFile
   }
   const sortedBodyTypes = Array.from(bodyTypes).sort()
 
+  // Collect which schema names are actually needed (only for ops with a matching schema)
+  const usedSchemaNames = new Set<string>()
+  if (options?.schemaNames !== undefined) {
+    for (const op of operations) {
+      const typeName = op.bodyInfo?.typeName
+      if (typeName !== undefined) {
+        const schemaName = `${typeName}Schema`
+        if (options.schemaNames.has(schemaName)) {
+          usedSchemaNames.add(schemaName)
+        }
+      }
+    }
+  }
+
   const lines: string[] = []
   lines.push('// This file is auto-generated. Do not edit manually.')
   lines.push('')
@@ -541,19 +633,22 @@ export function generateFastifyRouter(spec: OpenAPIV3_1.Document): GeneratedFile
     lines.push(`import type { ${sortedBodyTypes.join(', ')} } from './models.js'`)
   }
   lines.push(`import type { ${serviceName} } from './service.js'`)
+  if (usedSchemaNames.size > 0 && options?.schemaImportPath !== undefined) {
+    lines.push(`import { z } from 'zod'`)
+    const sortedUsedSchemas = Array.from(usedSchemaNames).sort()
+    lines.push(
+      `import { ${sortedUsedSchemas.join(', ')} } from '${options.schemaImportPath}'`,
+    )
+  }
   lines.push('')
   lines.push(`export function createRouter(app: FastifyInstance, service: ${serviceName}): void {`)
 
   for (const op of operations) {
     lines.push('')
-    lines.push(buildFastifyRouteHandler(op, '  '))
+    lines.push(buildFastifyRouteHandler(op, '  ', options?.schemaNames))
   }
 
-  if (operations.length > 0) {
-    lines.push('}')
-  } else {
-    lines.push('}')
-  }
+  lines.push('}')
   lines.push('')
 
   return {
@@ -563,11 +658,6 @@ export function generateFastifyRouter(spec: OpenAPIV3_1.Document): GeneratedFile
 }
 
 // ── Hono router generator ─────────────────────────────────────────────────────
-
-interface RouterOptions {
-  schemaNames?: Set<string>
-  schemaImportPath?: string
-}
 
 export function generateRouter(
   spec: OpenAPIV3_1.Document,

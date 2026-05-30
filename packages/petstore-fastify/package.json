@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "fastify": "^5.0.0",
+    "zod": "catalog:",
     "@codewithagents/openapi-gen": "workspace:*",
     "@codewithagents/openapi-server": "workspace:*"
   },

@@ -1,1 +1,1 @@
-{ "input_openapi": "../petstore/spec/api.json", "output": "generated/", "framework": "fastify" }
+{ "input_openapi": "../petstore/spec/api.json", "output": "generated/", "framework": "fastify", "input_schema": "../petstore/generated/schemas.ts" }

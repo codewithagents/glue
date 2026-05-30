@@ -3,6 +3,8 @@
 import type { FastifyInstance } from "fastify";
 import type { CreatePetRequest } from "./models.js";
 import type { PetstoreService } from "./service.js";
+import { z } from "zod";
+import { CreatePetRequestSchema } from "../../petstore/generated/schemas.js";
 
 export function createRouter(
   app: FastifyInstance,
@@ -19,8 +21,18 @@ export function createRouter(
   );
 
   app.post<{ Body: CreatePetRequest }>("/pets", async (req, reply) => {
+    // Validate request body: returns 422 with Zod issues on failure
+    const parseResult = CreatePetRequestSchema.safeParse(req.body);
+    if (!parseResult.success) {
+      return reply
+        .status(422)
+        .send({
+          error: "Invalid request body",
+          issues: parseResult.error.issues,
+        });
+    }
     reply.status(201);
-    return service.createPet(req.body);
+    return service.createPet(parseResult.data);
   });
 
   app.get<{ Params: { id: string } }>("/pets/:id", async (req, reply) => {

@@ -5,6 +5,8 @@ import { Router } from "express";
 import type { Request, Response } from "express";
 import type { CreatePetRequest } from "./models.js";
 import type { PetstoreService } from "./service.js";
+import { z } from "zod";
+import { CreatePetRequestSchema } from "../../petstore/generated/schemas.js";
 
 export function createRouter(service: PetstoreService): Router {
   const router = Router();
@@ -17,8 +19,18 @@ export function createRouter(service: PetstoreService): Router {
   });
 
   router.post("/pets", async (req: Request, res: Response) => {
-    const body = req.body as CreatePetRequest;
-    res.status(201).json(await service.createPet(body));
+    // Validate request body: returns 422 with Zod issues on failure
+    const parseResult = CreatePetRequestSchema.safeParse(req.body);
+    if (!parseResult.success) {
+      return void res
+        .status(422)
+        .json({
+          error: "Invalid request body",
+          issues: parseResult.error.issues,
+        });
+    }
+    const validatedBody = parseResult.data;
+    res.status(201).json(await service.createPet(validatedBody));
   });
 
   router.get("/pets/:id", async (req: Request, res: Response) => {

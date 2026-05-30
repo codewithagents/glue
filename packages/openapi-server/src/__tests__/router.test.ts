@@ -1137,3 +1137,144 @@ describe('generateFastifyRouter', () => {
     expect(result.content).not.toContain('app.get(')
   })
 })
+
+// ── Express Zod validation tests ──────────────────────────────────────────────
+
+describe('generateExpressRouter with schemaNames (Zod validation)', () => {
+  const postSpec = makeSpec({
+    '/pets': {
+      post: {
+        operationId: 'createPet',
+        requestBody: {
+          required: true,
+          content: { 'application/json': { schema: { $ref: '#/components/schemas/CreatePetRequest' } } },
+        },
+        responses: { '201': { description: 'created' } },
+      },
+    },
+  })
+
+  it('adds safeParse validation when schema is in schemaNames', () => {
+    const result = generateExpressRouter(postSpec, {
+      schemaNames: new Set(['CreatePetRequestSchema']),
+      schemaImportPath: './schemas.js',
+    })
+    expect(result.content).toContain('CreatePetRequestSchema.safeParse(req.body)')
+    expect(result.content).toContain('parseResult.success')
+    expect(result.content).toContain('422')
+  })
+
+  it('uses parseResult.data in service call when schema is present', () => {
+    const result = generateExpressRouter(postSpec, {
+      schemaNames: new Set(['CreatePetRequestSchema']),
+      schemaImportPath: './schemas.js',
+    })
+    expect(result.content).toContain('parseResult.data')
+    expect(result.content).toContain('service.createPet(validatedBody')
+  })
+
+  it('returns 422 with void to suppress return-type error', () => {
+    const result = generateExpressRouter(postSpec, {
+      schemaNames: new Set(['CreatePetRequestSchema']),
+      schemaImportPath: './schemas.js',
+    })
+    expect(result.content).toContain('return void res.status(422).json(')
+    expect(result.content).toContain("error: 'Invalid request body'")
+    expect(result.content).toContain('parseResult.error.issues')
+  })
+
+  it('imports schema and z from schemaImportPath', () => {
+    const result = generateExpressRouter(postSpec, {
+      schemaNames: new Set(['CreatePetRequestSchema']),
+      schemaImportPath: './schemas.js',
+    })
+    expect(result.content).toContain("import { z } from 'zod'")
+    expect(result.content).toContain("import { CreatePetRequestSchema } from './schemas.js'")
+  })
+
+  it('falls back to plain body cast when schemaNames does not match', () => {
+    const result = generateExpressRouter(postSpec, {
+      schemaNames: new Set(['SomeOtherSchema']),
+      schemaImportPath: './schemas.js',
+    })
+    expect(result.content).not.toContain('safeParse')
+    expect(result.content).toContain('req.body as CreatePetRequest')
+  })
+
+  it('falls back to plain body cast when options is undefined', () => {
+    const result = generateExpressRouter(postSpec)
+    expect(result.content).not.toContain('safeParse')
+    expect(result.content).toContain('req.body as CreatePetRequest')
+    expect(result.content).toContain('service.createPet(body')
+  })
+})
+
+// ── Fastify Zod validation tests ──────────────────────────────────────────────
+
+describe('generateFastifyRouter with schemaNames (Zod validation)', () => {
+  const postSpec = makeSpec({
+    '/pets': {
+      post: {
+        operationId: 'createPet',
+        requestBody: {
+          required: true,
+          content: { 'application/json': { schema: { $ref: '#/components/schemas/CreatePetRequest' } } },
+        },
+        responses: { '201': { description: 'created' } },
+      },
+    },
+  })
+
+  it('adds safeParse validation when schema is in schemaNames', () => {
+    const result = generateFastifyRouter(postSpec, {
+      schemaNames: new Set(['CreatePetRequestSchema']),
+      schemaImportPath: './schemas.js',
+    })
+    expect(result.content).toContain('CreatePetRequestSchema.safeParse(req.body)')
+    expect(result.content).toContain('parseResult.success')
+    expect(result.content).toContain('422')
+  })
+
+  it('uses parseResult.data in service call when schema is present', () => {
+    const result = generateFastifyRouter(postSpec, {
+      schemaNames: new Set(['CreatePetRequestSchema']),
+      schemaImportPath: './schemas.js',
+    })
+    expect(result.content).toContain('parseResult.data')
+    expect(result.content).toContain('service.createPet(parseResult.data')
+  })
+
+  it('returns 422 via reply.status(422).send()', () => {
+    const result = generateFastifyRouter(postSpec, {
+      schemaNames: new Set(['CreatePetRequestSchema']),
+      schemaImportPath: './schemas.js',
+    })
+    expect(result.content).toContain('return reply.status(422).send(')
+    expect(result.content).toContain("error: 'Invalid request body'")
+    expect(result.content).toContain('parseResult.error.issues')
+  })
+
+  it('imports schema and z from schemaImportPath', () => {
+    const result = generateFastifyRouter(postSpec, {
+      schemaNames: new Set(['CreatePetRequestSchema']),
+      schemaImportPath: './schemas.js',
+    })
+    expect(result.content).toContain("import { z } from 'zod'")
+    expect(result.content).toContain("import { CreatePetRequestSchema } from './schemas.js'")
+  })
+
+  it('falls back to req.body when schemaNames does not match', () => {
+    const result = generateFastifyRouter(postSpec, {
+      schemaNames: new Set(['SomeOtherSchema']),
+      schemaImportPath: './schemas.js',
+    })
+    expect(result.content).not.toContain('safeParse')
+    expect(result.content).toContain('service.createPet(req.body')
+  })
+
+  it('falls back to req.body when options is undefined', () => {
+    const result = generateFastifyRouter(postSpec)
+    expect(result.content).not.toContain('safeParse')
+    expect(result.content).toContain('service.createPet(req.body')
+  })
+})

@@ -30,10 +30,10 @@ export async function generate(cwd: string, configPath?: string): Promise<void> 
     // First pass: generate router without schema validation
     generatedFiles.push(generateRouter(spec))
   } else if (framework === 'express') {
-    // TODO: add Zod validation support for Express (currently Hono-only)
+    // First pass: generate router without schema validation
     generatedFiles.push(generateExpressRouter(spec))
   } else if (framework === 'fastify') {
-    // TODO: add Zod validation support for Fastify (currently Hono-only)
+    // First pass: generate router without schema validation
     generatedFiles.push(generateFastifyRouter(spec))
   }
 
@@ -47,7 +47,10 @@ export async function generate(cwd: string, configPath?: string): Promise<void> 
   }
 
   // Second pass: if input_schema is configured and file exists, re-generate router with Zod validation
-  if (framework === 'hono' && config.input_schema !== undefined) {
+  if (
+    (framework === 'hono' || framework === 'express' || framework === 'fastify') &&
+    config.input_schema !== undefined
+  ) {
     const schemaPath = resolve(cwd, config.input_schema)
     let schemaContent: string
     try {
@@ -72,10 +75,15 @@ export async function generate(cwd: string, configPath?: string): Promise<void> 
       // Strip .ts extension for import (use .js for NodeNext compatibility)
       const schemaImportPathJs = schemaImportPath.replace(/\.ts$/, '.js')
 
-      const routerFile = generateRouter(spec, {
-        schemaNames: exportedSchemas,
-        schemaImportPath: schemaImportPathJs,
-      })
+      const routerOptions = { schemaNames: exportedSchemas, schemaImportPath: schemaImportPathJs }
+      let routerFile
+      if (framework === 'hono') {
+        routerFile = generateRouter(spec, routerOptions)
+      } else if (framework === 'express') {
+        routerFile = generateExpressRouter(spec, routerOptions)
+      } else {
+        routerFile = generateFastifyRouter(spec, routerOptions)
+      }
       const routerPath = join(outputDir, routerFile.filename)
       await writeFile(routerPath, await formatTs(routerFile.content, routerPath), 'utf-8')
       console.log(`  ✓ router.ts (with Zod validation for ${exportedSchemas.size} schema(s))`)
