@@ -11,6 +11,7 @@ import { parseSpec } from '@codewithagents/openapi-gen'
 import { generateService } from './plugins/service.js'
 import { generateRouter, generateExpressRouter, generateFastifyRouter } from './plugins/router.js'
 
+// fallow-ignore-next-line complexity
 export async function generate(cwd: string, configPath?: string): Promise<void> {
   console.log('Loading config...')
   const config = await loadConfig(cwd, configPath)

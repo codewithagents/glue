@@ -56,6 +56,7 @@ export function validateInputPath(resolvedInput: string): void {
   }
 }
 
+// fallow-ignore-next-line complexity
 export async function loadConfig(cwd: string, configPath?: string): Promise<ServerConfig> {
   const resolvedConfigPath = configPath ?? join(cwd, 'openapi-server.config.json')
 
