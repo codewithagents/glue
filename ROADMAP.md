@@ -1,6 +1,6 @@
 # Roadmap
 
-**Mission:** Zero-footprint glue between OpenAPI and Zod — for both sides of the wire.
+**Mission:** Zero-footprint bridge between OpenAPI and Zod, for both sides of the wire.
 
 Every package is a `devDependency` or a peer-dep-only tool. Nothing we publish adds bytes to a production bundle that isn't already there.
 

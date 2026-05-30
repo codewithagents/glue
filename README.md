@@ -1,11 +1,11 @@
-# @codewithagents/glue
+# CodeWithAgents OpenAPI
 
-[![CI](https://github.com/codewithagents/glue/actions/workflows/ci.yml/badge.svg)](https://github.com/codewithagents/glue/actions/workflows/ci.yml)
-[![CodeQL](https://github.com/codewithagents/glue/actions/workflows/codeql.yml/badge.svg)](https://github.com/codewithagents/glue/actions/workflows/codeql.yml)
-[![codecov](https://codecov.io/gh/codewithagents/glue/graph/badge.svg?branch=main)](https://codecov.io/gh/codewithagents/glue)
+[![CI](https://github.com/codewithagents/openapi-ts/actions/workflows/ci.yml/badge.svg)](https://github.com/codewithagents/openapi-ts/actions/workflows/ci.yml)
+[![CodeQL](https://github.com/codewithagents/openapi-ts/actions/workflows/codeql.yml/badge.svg)](https://github.com/codewithagents/openapi-ts/actions/workflows/codeql.yml)
+[![codecov](https://codecov.io/gh/codewithagents/openapi-ts/graph/badge.svg?branch=main)](https://codecov.io/gh/codewithagents/openapi-ts)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](./packages/openapi-gen/LICENSE)
 
-> TypeScript glue between your OpenAPI spec and your frontend — zero runtime footprint.
+> TypeScript bridge between your OpenAPI spec and your frontend, zero runtime footprint.
 
 You consume a REST API. You need TypeScript types, a fetch client, form error mapping, and React Query hooks. Instead of hand-writing all of this (and keeping it in sync every time the spec changes), you run one command. Everything here is a `devDependency` or generates code that only depends on what your project already has.
 
@@ -15,10 +15,10 @@ You consume a REST API. You need TypeScript types, a fetch client, form error ma
 
 | Package | Version | Coverage | Description |
 |---|---|---|---|
-| [`@codewithagents/api-errors`](./packages/api-errors) | [![npm](https://img.shields.io/npm/v/@codewithagents/api-errors.svg)](https://npmjs.com/package/@codewithagents/api-errors) | [![codecov](https://codecov.io/gh/codewithagents/glue/graph/badge.svg?flag=api-errors&branch=main)](https://codecov.io/gh/codewithagents/glue) | Map API error responses to form field errors — framework-agnostic core + React Hook Form adapter |
-| [`@codewithagents/openapi-gen`](./packages/openapi-gen) | [![npm](https://img.shields.io/npm/v/@codewithagents/openapi-gen.svg)](https://npmjs.com/package/@codewithagents/openapi-gen) | [![codecov](https://codecov.io/gh/codewithagents/glue/graph/badge.svg?flag=openapi-gen&branch=main)](https://codecov.io/gh/codewithagents/glue) | Generate TypeScript models + native `fetch` client + Zod schemas from an OpenAPI 3.x spec |
-| [`@codewithagents/openapi-react-query`](./packages/openapi-react-query) | [![npm](https://img.shields.io/npm/v/@codewithagents/openapi-react-query.svg)](https://npmjs.com/package/@codewithagents/openapi-react-query) | [![codecov](https://codecov.io/gh/codewithagents/glue/graph/badge.svg?flag=openapi-react-query&branch=main)](https://codecov.io/gh/codewithagents/glue) | Generate typed React Query v5 hooks — `useQuery`, `useMutation`, key factories |
-| [`@codewithagents/openapi-server`](./packages/openapi-server) | [![npm](https://img.shields.io/npm/v/@codewithagents/openapi-server.svg)](https://npmjs.com/package/@codewithagents/openapi-server) | [![codecov](https://codecov.io/gh/codewithagents/glue/graph/badge.svg?flag=openapi-server&branch=main)](https://codecov.io/gh/codewithagents/glue) | Generate a framework-agnostic service interface from OpenAPI 3.x. Optional Hono router included — or skip it and wire to any framework you choose |
+| [`@codewithagents/api-errors`](./packages/api-errors) | [![npm](https://img.shields.io/npm/v/@codewithagents/api-errors.svg)](https://npmjs.com/package/@codewithagents/api-errors) | [![codecov](https://codecov.io/gh/codewithagents/openapi-ts/graph/badge.svg?flag=api-errors&branch=main)](https://codecov.io/gh/codewithagents/openapi-ts) | Map API error responses to form field errors, framework-agnostic core + React Hook Form adapter |
+| [`@codewithagents/openapi-gen`](./packages/openapi-gen) | [![npm](https://img.shields.io/npm/v/@codewithagents/openapi-gen.svg)](https://npmjs.com/package/@codewithagents/openapi-gen) | [![codecov](https://codecov.io/gh/codewithagents/openapi-ts/graph/badge.svg?flag=openapi-gen&branch=main)](https://codecov.io/gh/codewithagents/openapi-ts) | Generate TypeScript models + native `fetch` client + Zod schemas from an OpenAPI 3.x spec |
+| [`@codewithagents/openapi-react-query`](./packages/openapi-react-query) | [![npm](https://img.shields.io/npm/v/@codewithagents/openapi-react-query.svg)](https://npmjs.com/package/@codewithagents/openapi-react-query) | [![codecov](https://codecov.io/gh/codewithagents/openapi-ts/graph/badge.svg?flag=openapi-react-query&branch=main)](https://codecov.io/gh/codewithagents/openapi-ts) | Generate typed React Query v5 hooks: `useQuery`, `useMutation`, key factories |
+| [`@codewithagents/openapi-server`](./packages/openapi-server) | [![npm](https://img.shields.io/npm/v/@codewithagents/openapi-server.svg)](https://npmjs.com/package/@codewithagents/openapi-server) | [![codecov](https://codecov.io/gh/codewithagents/openapi-ts/graph/badge.svg?flag=openapi-server&branch=main)](https://codecov.io/gh/codewithagents/openapi-ts) | Generate a framework-agnostic service interface from OpenAPI 3.x. Optional Hono router included, or skip it and wire to any framework you choose |
 
 Each package has its own README with full usage docs and configuration reference.
 
@@ -59,7 +59,7 @@ Everything else is generated and stays in sync when the spec changes.
 
 Code generators have a wide blast radius. A subtle regression in the generator touches every project that runs it. These are the layers we use to catch problems before they reach you.
 
-**Near-100% test coverage.** All four packages run at 100% statements, functions, and lines. Branches sit at 99%+ across the board — the remaining gap is a handful of genuinely unreachable defensive guards (`?? fallback` patterns where the fallback can never trigger by construction). Coverage is tracked per-package via [Codecov](https://codecov.io/gh/codewithagents/glue) and blocks PRs when it drops.
+**Near-100% test coverage.** All four packages run at 100% statements, functions, and lines. Branches sit at 99%+ across the board. The remaining gap is a handful of genuinely unreachable defensive guards (`?? fallback` patterns where the fallback can never trigger by construction). Coverage is tracked per-package via [Codecov](https://codecov.io/gh/codewithagents/openapi-ts) and blocks PRs when it drops.
 
 **128 real-world OpenAPI specs.** The generator runs against a [compatibility matrix](./examples/) of 128 publicly available specs: Stripe, GitHub, Google Calendar, Spotify, Twitter/X, OpenAI, Adyen, Slack, Vercel, Cloudflare, Twilio, Plaid, Notion, Jira, Okta, and more. **128/128 generate without errors** on every PR. The 13 showcase specs (`1Password Connect`, `Adyen Checkout`, `Adyen Legal Entity`, `Canada Holidays`, `Dev.to`, `Exchange Rate`, `Open-Meteo`, `OpenAI`, `Petstore`, `Redocly Museum`, `Resend`, `Spotify`, `Twitter`) have committed output and are drift-checked on every relevant PR. If anything regresses, CI fails.
 
@@ -69,7 +69,7 @@ Code generators have a wide blast radius. A subtle regression in the generator t
 
 **Full-stack E2E tests.** The [`petstore`](./packages/petstore-hono) package is a complete runnable full-stack app: one spec drives generated types, fetch client, React Query hooks, a Hono server with Zod validation, and end-to-end [Playwright](https://playwright.dev/) tests. Every PR runs the full round-trip — spec change to browser assertion.
 
-**Static analysis on every PR.** [Fallow](https://github.com/fallow-rs/fallow) runs on every pull request and posts inline review comments flagging dead code, duplication, and unresolved imports introduced by the diff. [CodeQL](https://github.com/codewithagents/glue/actions/workflows/codeql.yml) handles security scanning.
+**Static analysis on every PR.** [Fallow](https://github.com/fallow-rs/fallow) runs on every pull request and posts inline review comments flagging dead code, duplication, and unresolved imports introduced by the diff. [CodeQL](https://github.com/codewithagents/openapi-ts/actions/workflows/codeql.yml) handles security scanning.
 
 See [`examples/README.md`](./examples/README.md) for the full compatibility breakdown.
 

@@ -3,7 +3,7 @@
   "info": {
     "title": "Petstore",
     "version": "1.0.0",
-    "description": "Simple pet store for showcasing the glue toolchain"
+    "description": "Simple pet store for showcasing the CodeWithAgents OpenAPI toolchain"
   },
   "paths": {
     "/pets": {

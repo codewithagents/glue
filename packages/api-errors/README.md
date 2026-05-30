@@ -1,13 +1,13 @@
 # @codewithagents/api-errors
 
 [![npm](https://img.shields.io/npm/v/@codewithagents/api-errors.svg)](https://npmjs.com/package/@codewithagents/api-errors)
-[![CI](https://github.com/codewithagents/glue/actions/workflows/ci.yml/badge.svg)](https://github.com/codewithagents/glue/actions/workflows/ci.yml)
-[![codecov](https://codecov.io/gh/codewithagents/glue/graph/badge.svg?flag=api-errors)](https://codecov.io/gh/codewithagents/glue)
-[![CodeQL](https://github.com/codewithagents/glue/actions/workflows/codeql.yml/badge.svg)](https://github.com/codewithagents/glue/actions/workflows/codeql.yml)
+[![CI](https://github.com/codewithagents/openapi-ts/actions/workflows/ci.yml/badge.svg)](https://github.com/codewithagents/openapi-ts/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/codewithagents/openapi-ts/graph/badge.svg?flag=api-errors)](https://codecov.io/gh/codewithagents/openapi-ts)
+[![CodeQL](https://github.com/codewithagents/openapi-ts/actions/workflows/codeql.yml/badge.svg)](https://github.com/codewithagents/openapi-ts/actions/workflows/codeql.yml)
 
-📖 **[Full documentation](https://glue.codewithagents.de/api-errors)**
+📖 **[Full documentation](https://openapi.codewithagents.de/api-errors)**
 
-Backend API errors don't automatically map to form field errors. Every project writes the same glue code from scratch: catch the error, inspect its shape, figure out which field each message belongs to, then call your form library's error setter. This package does that for you: a framework-agnostic core with a first-class React Hook Form adapter.
+Backend API errors don't automatically map to form field errors. Every project writes the same boilerplate from scratch: catch the error, inspect its shape, figure out which field each message belongs to, then call your form library's error setter. This package does that for you: a framework-agnostic core with a first-class React Hook Form adapter.
 
 - **Framework-agnostic core**: `extractFieldErrors(error)` returns normalized `{ field, message }` pairs from any error shape. Works with any form library or plain JavaScript.
 - **React Hook Form adapter**: `mapApiErrors(error, setError)` wires directly to RHF's `setError`. One call at the catch site, no mapping loop.
@@ -120,7 +120,7 @@ mapApiErrors(error, setError, { fallbackField: 'root' })
 
 ## Supported Error Formats
 
-See the [full format reference](https://glue.codewithagents.de/api-errors#supported-error-formats) in the docs for the complete parser-precedence rules and all edge cases.
+See the [full format reference](https://openapi.codewithagents.de/api-errors#supported-error-formats) in the docs for the complete parser-precedence rules and all edge cases.
 
 **RFC 7807 Problem Details** (Spring Boot 3+, standard):
 ```json
@@ -159,7 +159,7 @@ Response wrappers are automatically unwrapped: Axios-style `error.response.data`
 
 ## Known behaviour: multiple errors for the same field
 
-See the [multiple errors per field](https://glue.codewithagents.de/api-errors#multiple-errors-per-field) section in the docs for a full example including grouping with `Map.groupBy`.
+See the [multiple errors per field](https://openapi.codewithagents.de/api-errors#multiple-errors-per-field) section in the docs for a full example including grouping with `Map.groupBy`.
 
 When a backend returns multiple errors for the same field (e.g. in the flat array format), `extractFieldErrors` returns all of them. If you pass them all to React Hook Form's `setError`, the **last call wins**; only the last message is displayed. If you need to show all messages, collect them before calling `setError`:
 

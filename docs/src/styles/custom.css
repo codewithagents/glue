@@ -123,8 +123,8 @@
 }
 
 /* Why-this-toolkit card grid: neutral, slightly warmer background */
-.why-glue-grid .card,
-.why-glue-grid starlight-card {
+.why-grid .card,
+.why-grid starlight-card {
   background: var(--sl-color-gray-7);
 }
 
