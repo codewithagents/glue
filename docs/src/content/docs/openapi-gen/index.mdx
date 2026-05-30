@@ -141,7 +141,7 @@ export function getConfig(): Readonly<ClientConfig> { ... }
 
 The default `credentials` is `'same-origin'`. When the spec declares a cookie-based `apiKey` security scheme, the generated default is `'include'` instead.
 
-Call `configureClient` once at startup. Calling it a second time merges into the existing config rather than replacing it. The `token` field accepts a string or an async function, called per request, so JWT refresh flows work automatically.
+Call `configureClient` once at startup. Calling it a second time merges into the existing config rather than replacing it: fields not provided in the later call are inherited from the earlier call, not reset to defaults. The `token` field accepts a string or an async function, called per request, so JWT refresh flows work automatically.
 
 ### `models.ts`
 
@@ -455,7 +455,7 @@ The generator always overwrites `models.ts`, `client.ts`, `client-config.ts`, `i
 
 ### Zod validation is not running at runtime
 
-Ensure your config includes `input_schema` pointing at an existing `schemas.ts` file. On first run with `input_schema` set but no file present, the generator bootstraps the file and also re-generates `models.ts` and `client.ts` with Zod integration in a single pass. If the file did not exist on the first run, run the generator a second time after the file has been created.
+Ensure your config includes `input_schema` pointing at an existing `schemas.ts` file. On first run with `input_schema` set but no file present, the generator bootstraps the schema file only; run the generator a second time to get the Zod-enhanced `models.ts` and `client.ts`.
 
 ## Works with
 
