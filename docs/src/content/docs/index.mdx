@@ -7,7 +7,7 @@ head:
     content: 'CodeWithAgents OpenAPI: typed and validated OpenAPI tooling for TypeScript'
 hero:
   title: Validated at runtime, not just typed at compile time.
-  tagline: Generate types, a fetch client, React Query hooks, and Zod schemas from one spec. The client validates every request and response body against your schemas, so bad data fails at the boundary, not three components deep.
+  tagline: Generate types, a fetch client, React Query hooks, and Zod schemas from one spec. Opt into Zod and the generated client validates every request and response body at runtime, so bad data fails at the boundary, not three components deep.
   actions:
     - text: Get Started
       link: /getting-started
@@ -268,9 +268,9 @@ One source of truth. When the spec changes, re-run the generators and the compil
 
 <CardGrid>
   <Card title="Validated, not just typed" icon="approve-check-circle">
-    Zod schemas are generated from your spec and validated at runtime. The fetch client checks both
-    request and response bodies against those schemas, so bugs surface at the boundary, not deep in
-    your UI.
+    Generate Zod schemas from your spec, then enable runtime validation with one config field
+    (`input_schema`). The fetch client checks both request and response bodies against your schemas,
+    so bugs surface at the boundary, not deep in your UI.
   </Card>
   <Card title="Proven on 128 real specs" icon="star">
     Stripe, GitHub, Spotify, OpenAI, Adyen, AWS, and more. Every spec is generated and compiled in
