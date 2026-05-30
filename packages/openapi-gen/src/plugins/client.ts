@@ -10,7 +10,7 @@ type RequestBodyObject = OpenAPIV3_1.RequestBodyObject
 type ResponseObject = OpenAPIV3_1.ResponseObject
 
 const SUPPORTED_METHODS = ['get', 'post', 'put', 'patch', 'delete'] as const
-type SupportedMethod = (typeof SUPPORTED_METHODS)[number]
+type _SupportedMethod = (typeof SUPPORTED_METHODS)[number]
 
 function refToTypeName(ref: string): string {
   // '#/components/schemas/Foo' -> 'Foo' (sanitized to a valid TS identifier)
@@ -30,7 +30,10 @@ function inlineSchemaToTs(schema: SchemaObject | ReferenceObject): string {
     return (s.type as string[]).map((t) => (t === 'null' ? 'null' : primitiveToTs(t))).join(' | ')
   }
   if (s.type === 'array') {
-    const items = (s as OpenAPIV3_1.ArraySchemaObject).items as SchemaObject | ReferenceObject | undefined
+    const items = (s as OpenAPIV3_1.ArraySchemaObject).items as
+      | SchemaObject
+      | ReferenceObject
+      | undefined
     if (items !== undefined) return `${inlineSchemaToTs(items)}[]`
     return 'unknown[]'
   }
@@ -39,13 +42,19 @@ function inlineSchemaToTs(schema: SchemaObject | ReferenceObject): string {
   return 'unknown'
 }
 
-function resolveSchema(schema: SchemaObject | ReferenceObject): { typeName: string; isArray: boolean } {
+function resolveSchema(schema: SchemaObject | ReferenceObject): {
+  typeName: string
+  isArray: boolean
+} {
   if (isRef(schema)) {
     return { typeName: refToTypeName((schema as ReferenceObject).$ref), isArray: false }
   }
   const s = schema as SchemaObject
   if (s.type === 'array') {
-    const items = (s as OpenAPIV3_1.ArraySchemaObject).items as SchemaObject | ReferenceObject | undefined
+    const items = (s as OpenAPIV3_1.ArraySchemaObject).items as
+      | SchemaObject
+      | ReferenceObject
+      | undefined
     if (items !== undefined) {
       if (isRef(items)) {
         return { typeName: refToTypeName((items as ReferenceObject).$ref), isArray: true }
@@ -111,8 +120,8 @@ function pathToUrlExpression(path: string): string {
  */
 function sanitizeOperationId(id: string): string {
   const parts = id
-    .replace(/'/g, '')           // strip apostrophes without splitting ("user's" → "users")
-    .split(/[^a-zA-Z0-9]+/)     // split on any non-alphanumeric sequence
+    .replace(/'/g, '') // strip apostrophes without splitting ("user's" → "users")
+    .split(/[^a-zA-Z0-9]+/) // split on any non-alphanumeric sequence
     .filter(Boolean)
   if (parts.length === 0) return 'unknown'
   const [first = '', ...rest] = parts
@@ -123,10 +132,43 @@ function sanitizeOperationId(id: string): string {
   // If result starts with a digit, prefix with underscore
   if (/^[0-9]/.test(camel)) return `_${camel}`
   // If result is a JS reserved word, prefix with underscore
-  const RESERVED = new Set(['break','case','catch','class','const','continue','debugger','default',
-    'delete','do','else','export','extends','finally','for','function','if','import','in',
-    'instanceof','let','new','return','static','super','switch','this','throw','try','typeof',
-    'var','void','while','with','yield'])
+  const RESERVED = new Set([
+    'break',
+    'case',
+    'catch',
+    'class',
+    'const',
+    'continue',
+    'debugger',
+    'default',
+    'delete',
+    'do',
+    'else',
+    'export',
+    'extends',
+    'finally',
+    'for',
+    'function',
+    'if',
+    'import',
+    'in',
+    'instanceof',
+    'let',
+    'new',
+    'return',
+    'static',
+    'super',
+    'switch',
+    'this',
+    'throw',
+    'try',
+    'typeof',
+    'var',
+    'void',
+    'while',
+    'with',
+    'yield',
+  ])
   return RESERVED.has(camel) ? `_${camel}` : camel
 }
 
@@ -158,8 +200,14 @@ function deriveOperationName(method: string, path: string): string {
   return prefix + joined
 }
 
-function getReturnType(operation: OperationObject): { typeName: string; isArray: boolean; isVoid: boolean } {
-  const responses = operation.responses as Record<string, ResponseObject | ReferenceObject> | undefined
+function getReturnType(operation: OperationObject): {
+  typeName: string
+  isArray: boolean
+  isVoid: boolean
+} {
+  const responses = operation.responses as
+    | Record<string, ResponseObject | ReferenceObject>
+    | undefined
   if (responses === undefined) return { typeName: 'unknown', isArray: false, isVoid: false }
 
   // Check 200 first, then 201
@@ -169,7 +217,9 @@ function getReturnType(operation: OperationObject): { typeName: string; isArray:
     if (isRef(response)) continue
 
     const resp = response as ResponseObject
-    const content = resp.content as Record<string, { schema?: SchemaObject | ReferenceObject }> | undefined
+    const content = resp.content as
+      | Record<string, { schema?: SchemaObject | ReferenceObject }>
+      | undefined
     if (content === undefined) continue
 
     const jsonContent = content['application/json']
@@ -190,7 +240,7 @@ function getReturnType(operation: OperationObject): { typeName: string; isArray:
 
 function resolveParamRef(
   p: ParameterObject | ReferenceObject,
-  spec: OpenAPIV3_1.Document,
+  spec: OpenAPIV3_1.Document
 ): ParameterObject | null {
   if (!isRef(p)) return p as ParameterObject
   const ref = (p as ReferenceObject).$ref
@@ -198,7 +248,9 @@ function resolveParamRef(
   const match = /^#\/components\/parameters\/(.+)$/.exec(ref)
   if (match === null) return null
   const name = match[1]!
-  const params = spec.components?.parameters as Record<string, ParameterObject | ReferenceObject> | undefined
+  const params = spec.components?.parameters as
+    | Record<string, ParameterObject | ReferenceObject>
+    | undefined
   if (params === undefined) return null
   const resolved = params[name]
   if (resolved === undefined || isRef(resolved)) return null
@@ -215,7 +267,7 @@ type PathItemObject = OpenAPIV3_1.PathItemObject
 function mergeParams(
   pathItem: PathItemObject,
   operation: OperationObject,
-  spec: OpenAPIV3_1.Document,
+  spec: OpenAPIV3_1.Document
 ): ParameterObject[] {
   const pathItemParams = (pathItem.parameters ?? []) as (ParameterObject | ReferenceObject)[]
   const operationParams = (operation.parameters ?? []) as (ParameterObject | ReferenceObject)[]
@@ -234,11 +286,15 @@ function mergeParams(
 }
 
 interface PathParam {
-  name: string    // sanitized camelCase TS identifier (e.g. 'changeSetId' from 'change-set-id')
+  name: string // sanitized camelCase TS identifier (e.g. 'changeSetId' from 'change-set-id')
   urlName: string // original name for URL template (e.g. 'change-set-id')
 }
 
-function getPathParams(pathItem: PathItemObject, operation: OperationObject, spec: OpenAPIV3_1.Document): PathParam[] {
+function getPathParams(
+  pathItem: PathItemObject,
+  operation: OperationObject,
+  spec: OpenAPIV3_1.Document
+): PathParam[] {
   return mergeParams(pathItem, operation, spec)
     .filter((p) => p.in === 'path')
     .map((p) => ({
@@ -248,8 +304,8 @@ function getPathParams(pathItem: PathItemObject, operation: OperationObject, spe
 }
 
 interface QueryParam {
-  name: string      // sanitized TS property name (e.g. 'project_ids' from 'project_ids[]')
-  urlName: string   // original wire name for URL query string (e.g. 'project_ids[]')
+  name: string // sanitized TS property name (e.g. 'project_ids' from 'project_ids[]')
+  urlName: string // original wire name for URL query string (e.g. 'project_ids[]')
   type: string
   required: boolean
 }
@@ -262,14 +318,18 @@ interface QueryParam {
  */
 function normalizeQueryParamName(name: string): string {
   return name
-    .replace(/\[\]$/, '')                                                   // strip trailing [] (array marker)
-    .replace(/'/g, '')                                                      // strip apostrophes
+    .replace(/\[\]$/, '') // strip trailing [] (array marker)
+    .replace(/'/g, '') // strip apostrophes
     .replace(/[^a-zA-Z0-9]+([a-zA-Z])/g, (_, char: string) => char.toUpperCase()) // camelCase any separator
-    .replace(/[^a-zA-Z0-9]+$/, '')                                         // strip trailing non-alphanumeric
-    .replace(/^[^a-zA-Z_$]/, '_')                                          // ensure valid identifier start
+    .replace(/[^a-zA-Z0-9]+$/, '') // strip trailing non-alphanumeric
+    .replace(/^[^a-zA-Z_$]/, '_') // ensure valid identifier start
 }
 
-function getQueryParams(pathItem: PathItemObject, operation: OperationObject, spec: OpenAPIV3_1.Document): QueryParam[] {
+function getQueryParams(
+  pathItem: PathItemObject,
+  operation: OperationObject,
+  spec: OpenAPIV3_1.Document
+): QueryParam[] {
   return mergeParams(pathItem, operation, spec)
     .filter((p) => p.in === 'query')
     .map((p) => ({
@@ -278,12 +338,12 @@ function getQueryParams(pathItem: PathItemObject, operation: OperationObject, sp
       type: queryParamType(p.schema as SchemaObject | ReferenceObject | undefined),
       required: p.required === true,
     }))
-    .filter((p) => p.name.length > 0)  // skip params that reduce to empty string after normalization
+    .filter((p) => p.name.length > 0) // skip params that reduce to empty string after normalization
 }
 
 // Feature 2: Header parameters
 interface HeaderParam {
-  name: string       // camelCase JS identifier (e.g. xStripeSignature)
+  name: string // camelCase JS identifier (e.g. xStripeSignature)
   headerName: string // original HTTP header name (e.g. 'X-Stripe-Signature')
   required: boolean
   type: string
@@ -300,9 +360,13 @@ function headerNameToCamelCase(headerName: string): string {
     .join('')
 }
 
-function getHeaderParams(pathItem: PathItemObject, operation: OperationObject, spec: OpenAPIV3_1.Document): HeaderParam[] {
+function getHeaderParams(
+  pathItem: PathItemObject,
+  operation: OperationObject,
+  spec: OpenAPIV3_1.Document
+): HeaderParam[] {
   return mergeParams(pathItem, operation, spec)
-    .filter((p) => p.in === 'header' && p.name.length > 0)  // skip params with empty names
+    .filter((p) => p.in === 'header' && p.name.length > 0) // skip params with empty names
     .map((p) => ({
       name: headerNameToCamelCase(p.name),
       headerName: p.name,
@@ -330,7 +394,9 @@ function getRequestBodyInfo(operation: OperationObject): RequestBodyInfo | undef
   if (isRef(requestBody)) return undefined
 
   const rb = requestBody as RequestBodyObject
-  const content = rb.content as Record<string, { schema?: SchemaObject | ReferenceObject }> | undefined
+  const content = rb.content as
+    | Record<string, { schema?: SchemaObject | ReferenceObject }>
+    | undefined
   if (content === undefined) return undefined
 
   // Check for multipart/form-data first
@@ -380,10 +446,10 @@ function getRequestBodyInfo(operation: OperationObject): RequestBodyInfo | undef
 }
 
 /** Feature 4: Collect non-2xx error responses that have a JSON $ref schema and return @throws tags */
-function getThrowsTags(
-  operation: OperationObject,
-): string[] {
-  const responses = operation.responses as Record<string, ResponseObject | ReferenceObject> | undefined
+function getThrowsTags(operation: OperationObject): string[] {
+  const responses = operation.responses as
+    | Record<string, ResponseObject | ReferenceObject>
+    | undefined
   if (responses === undefined) return []
 
   const errorStatusCodes = ['400', '401', '403', '404', '409', '422', '429', '500']
@@ -395,7 +461,9 @@ function getThrowsTags(
     if (isRef(response)) continue
 
     const resp = response as ResponseObject
-    const content = resp.content as Record<string, { schema?: SchemaObject | ReferenceObject }> | undefined
+    const content = resp.content as
+      | Record<string, { schema?: SchemaObject | ReferenceObject }>
+      | undefined
     if (content === undefined) continue
 
     const jsonContent = content['application/json']
@@ -417,7 +485,9 @@ function getRequestBodySchemaName(operation: OperationObject): string | undefine
   const requestBody = operation.requestBody as RequestBodyObject | ReferenceObject | undefined
   if (requestBody === undefined || isRef(requestBody)) return undefined
   const rb = requestBody as RequestBodyObject
-  const content = rb.content as Record<string, { schema?: SchemaObject | ReferenceObject }> | undefined
+  const content = rb.content as
+    | Record<string, { schema?: SchemaObject | ReferenceObject }>
+    | undefined
   if (content === undefined) return undefined
   const jsonContent = content['application/json']
   if (jsonContent === undefined || jsonContent.schema === undefined) return undefined
@@ -426,14 +496,20 @@ function getRequestBodySchemaName(operation: OperationObject): string | undefine
 }
 
 /** Get the $ref schema name and isArray from a 200/201 response, if any. */
-function getResponseSchemaName(operation: OperationObject): { name: string; isArray: boolean } | undefined {
-  const responses = operation.responses as Record<string, ResponseObject | ReferenceObject> | undefined
+function getResponseSchemaName(
+  operation: OperationObject
+): { name: string; isArray: boolean } | undefined {
+  const responses = operation.responses as
+    | Record<string, ResponseObject | ReferenceObject>
+    | undefined
   if (responses === undefined) return undefined
   for (const code of ['200', '201']) {
     const response = responses[code]
     if (response === undefined || isRef(response)) continue
     const resp = response as ResponseObject
-    const content = resp.content as Record<string, { schema?: SchemaObject | ReferenceObject }> | undefined
+    const content = resp.content as
+      | Record<string, { schema?: SchemaObject | ReferenceObject }>
+      | undefined
     if (content === undefined) continue
     const jsonContent = content['application/json']
     if (jsonContent === undefined || jsonContent.schema === undefined) continue
@@ -444,7 +520,10 @@ function getResponseSchemaName(operation: OperationObject): { name: string; isAr
     // Array of $ref items
     const s = schema as SchemaObject
     if (s.type === 'array') {
-      const items = (s as OpenAPIV3_1.ArraySchemaObject).items as SchemaObject | ReferenceObject | undefined
+      const items = (s as OpenAPIV3_1.ArraySchemaObject).items as
+        | SchemaObject
+        | ReferenceObject
+        | undefined
       if (items !== undefined && isRef(items)) {
         return { name: refToTypeName((items as ReferenceObject).$ref), isArray: true }
       }
@@ -539,7 +618,8 @@ function generateRequestHelpers(features: HelperFeatures): string {
   lines.push(`    headers: {`)
   lines.push(`      ...(opts.body !== undefined ? { 'Content-Type': 'application/json' } : {}),`)
   lines.push(`      ...headers,`)
-  if (features.hasBearerAuth) lines.push(`      ...(resolvedToken ? { Authorization: \`Bearer \${resolvedToken}\` } : {}),`)
+  if (features.hasBearerAuth)
+    lines.push(`      ...(resolvedToken ? { Authorization: \`Bearer \${resolvedToken}\` } : {}),`)
   if (features.hasHeaderParams) lines.push(`      ...opts.extraHeaders,`)
   lines.push(`    },`)
   lines.push(`    ...(opts.body !== undefined ? { body: JSON.stringify(opts.body) } : {}),`)
@@ -577,7 +657,8 @@ function generateRequestHelpers(features: HelperFeatures): string {
     if (features.hasCookieAuth) lines.push(`    credentials,`)
     lines.push(`    headers: {`)
     lines.push(`      ...headers,`)
-    if (features.hasBearerAuth) lines.push(`      ...(resolvedToken ? { Authorization: \`Bearer \${resolvedToken}\` } : {}),`)
+    if (features.hasBearerAuth)
+      lines.push(`      ...(resolvedToken ? { Authorization: \`Bearer \${resolvedToken}\` } : {}),`)
     if (features.hasHeaderParams) lines.push(`      ...opts.extraHeaders,`)
     lines.push(`    },`)
     lines.push(`    body: formData,`)
@@ -607,7 +688,7 @@ function generateFunctionCode(
   throwsTags: string[],
   options?: ClientOptions,
   requestBodySchemaName?: string,
-  responseSchemaName?: { name: string; isArray: boolean },
+  responseSchemaName?: { name: string; isArray: boolean }
 ): string {
   const lines: string[] = []
 
@@ -673,24 +754,36 @@ function generateFunctionCode(
       if (qp.type.endsWith('[]')) {
         // Array params: use append in a loop (not set) so multiple values are preserved
         // Use urlName for the wire format (may differ from TS name, e.g. 'ids[]' vs 'ids')
-        lines.push(`  if (params?.${qp.name} != null) { for (const v of params.${qp.name}) searchParams.append('${qp.urlName}', String(v)) }`)
+        lines.push(
+          `  if (params?.${qp.name} != null) { for (const v of params.${qp.name}) searchParams.append('${qp.urlName}', String(v)) }`
+        )
       } else {
-        lines.push(`  if (params?.${qp.name} != null) searchParams.set('${qp.urlName}', String(params.${qp.name}))`)
+        lines.push(
+          `  if (params?.${qp.name} != null) searchParams.set('${qp.urlName}', String(params.${qp.name}))`
+        )
       }
     }
   }
 
   // FormData (multipart) — still built in caller, passed to _requestForm
-  if (bodyInfo !== undefined && bodyInfo.kind === 'multipart' && bodyInfo.multipartFields !== undefined) {
+  if (
+    bodyInfo !== undefined &&
+    bodyInfo.kind === 'multipart' &&
+    bodyInfo.multipartFields !== undefined
+  ) {
     lines.push(`  const formData = new FormData()`)
     for (const field of bodyInfo.multipartFields) {
       // Use bracket notation for field names with special chars (e.g. 'file.xml')
       const isSimple = /^[a-zA-Z_$][a-zA-Z0-9_$]*$/.test(field.name)
       const access = isSimple ? `body.${field.name}` : `body[${JSON.stringify(field.name)}]`
       if (field.isBinary) {
-        lines.push(`  if (${access} != null) formData.append(${JSON.stringify(field.name)}, ${access})`)
+        lines.push(
+          `  if (${access} != null) formData.append(${JSON.stringify(field.name)}, ${access})`
+        )
       } else {
-        lines.push(`  if (${access} != null) formData.append(${JSON.stringify(field.name)}, String(${access}))`)
+        lines.push(
+          `  if (${access} != null) formData.append(${JSON.stringify(field.name)}, String(${access}))`
+        )
       }
     }
   }
@@ -698,7 +791,10 @@ function generateFunctionCode(
   // Header params → extraHeaders object (preserves the same conditional spread pattern)
   if (headerParams.length > 0) {
     const spreadParts = headerParams
-      .map((hp) => `    ...(params?.${hp.name} != null ? { '${hp.headerName}': params.${hp.name} } : {}),`)
+      .map(
+        (hp) =>
+          `    ...(params?.${hp.name} != null ? { '${hp.headerName}': params.${hp.name} } : {}),`
+      )
       .join('\n')
     lines.push(`  const extraHeaders: Record<string, string> = {`)
     lines.push(spreadParts)
@@ -779,7 +875,15 @@ export interface ClientOptions {
 
 /** Built-in TypeScript types that must NOT be imported from ./models */
 const BUILTIN_TS_TYPES = new Set([
-  'string', 'number', 'boolean', 'unknown', 'void', 'null', 'undefined', 'any', 'never',
+  'string',
+  'number',
+  'boolean',
+  'unknown',
+  'void',
+  'null',
+  'undefined',
+  'any',
+  'never',
 ])
 
 /**
@@ -841,16 +945,18 @@ export function generateClient(spec: OpenAPIV3_1.Document, options?: ClientOptio
         if (headerParams.length > 0) hasHeaderParamEndpoints = true
 
         // Schema-enhanced: compute request body and response schema names for this operation
-        const requestBodySchemaName = options?.schemaNames !== undefined
-          ? getRequestBodySchemaName(operation)
-          : undefined
-        const responseSchemaName = options?.schemaNames !== undefined
-          ? getResponseSchemaName(operation)
-          : undefined
+        const requestBodySchemaName =
+          options?.schemaNames !== undefined ? getRequestBodySchemaName(operation) : undefined
+        const responseSchemaName =
+          options?.schemaNames !== undefined ? getResponseSchemaName(operation) : undefined
 
         // Collect type names for import — only simple schema identifiers (e.g. "Task"),
         // never inline type expressions (e.g. "Record<string, unknown>") or primitives.
-        if (bodyInfo !== undefined && bodyInfo.kind === 'json' && isImportableType(bodyInfo.typeName)) {
+        if (
+          bodyInfo !== undefined &&
+          bodyInfo.kind === 'json' &&
+          isImportableType(bodyInfo.typeName)
+        ) {
           collectedTypeNames.add(bodyInfo.typeName)
         }
         if (!returnType.isVoid && isImportableType(returnType.typeName)) {
@@ -887,7 +993,7 @@ export function generateClient(spec: OpenAPIV3_1.Document, options?: ClientOptio
           throwsTags,
           options,
           requestBodySchemaName,
-          responseSchemaName,
+          responseSchemaName
         )
         functionBlocks.push(fnCode)
       }
@@ -906,7 +1012,11 @@ export function generateClient(spec: OpenAPIV3_1.Document, options?: ClientOptio
   lines.push(`import { getConfig, type ClientConfig } from './client-config.js'`)
 
   // Schema-enhanced imports
-  if (options?.schemaNames !== undefined && collectedSchemaNames.size > 0 && options.schemaImportPath !== undefined) {
+  if (
+    options?.schemaNames !== undefined &&
+    collectedSchemaNames.size > 0 &&
+    options.schemaImportPath !== undefined
+  ) {
     if (needsZImport) {
       lines.push(`import { z } from 'zod'`)
     }

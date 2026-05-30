@@ -24,7 +24,7 @@ async function runGenerator(extra: Record<string, unknown> = {}): Promise<string
   await writeFile(
     configPath,
     JSON.stringify({ input_openapi: petstoreFixture, output: outDir, ...extra }),
-    'utf-8',
+    'utf-8'
   )
   await generate(tmpDir, configPath)
   return outDir

@@ -39,7 +39,9 @@ function operationHasBody(operation: OperationObject): boolean {
 }
 
 function operationHasQueryParams(operation: OperationObject): boolean {
-  const params = operation.parameters as (OpenAPIV3_1.ParameterObject | ReferenceObject)[] | undefined
+  const params = operation.parameters as
+    | (OpenAPIV3_1.ParameterObject | ReferenceObject)[]
+    | undefined
   if (params === undefined) return false
   return params.some((p) => {
     if ('$ref' in p) return false
@@ -48,7 +50,9 @@ function operationHasQueryParams(operation: OperationObject): boolean {
 }
 
 function operationHasRequiredQueryParams(operation: OperationObject): boolean {
-  const params = operation.parameters as (OpenAPIV3_1.ParameterObject | ReferenceObject)[] | undefined
+  const params = operation.parameters as
+    | (OpenAPIV3_1.ParameterObject | ReferenceObject)[]
+    | undefined
   if (params === undefined) return false
   return params.some((p) => {
     if ('$ref' in p) return false

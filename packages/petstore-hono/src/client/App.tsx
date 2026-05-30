@@ -73,7 +73,7 @@ export function App() {
             data-testid="pet-name"
             placeholder="Name"
             value={name}
-            onChange={e => setName(e.target.value)}
+            onChange={(e) => setName(e.target.value)}
           />
           {fieldErrors.name && <span data-testid="pet-name-error">{fieldErrors.name}</span>}
         </div>
@@ -82,11 +82,15 @@ export function App() {
             data-testid="pet-species"
             placeholder="Species"
             value={species}
-            onChange={e => setSpecies(e.target.value)}
+            onChange={(e) => setSpecies(e.target.value)}
           />
-          {fieldErrors.species && <span data-testid="pet-species-error">{fieldErrors.species}</span>}
+          {fieldErrors.species && (
+            <span data-testid="pet-species-error">{fieldErrors.species}</span>
+          )}
         </div>
-        <button data-testid="add-pet" type="submit">Add Pet</button>
+        <button data-testid="add-pet" type="submit">
+          Add Pet
+        </button>
       </form>
 
       {isLoading && <p>Loading...</p>}
@@ -96,15 +100,12 @@ export function App() {
       )}
 
       <ul>
-        {pets.map(pet => (
+        {pets.map((pet) => (
           <li key={pet.id} data-testid="pet-row">
             <span data-testid="pet-name-display">{pet.name}</span>
             {' — '}
             <span data-testid="pet-species-display">{pet.species}</span>
-            <button
-              data-testid="delete-pet"
-              onClick={() => deletePet.mutate(pet.id)}
-            >
+            <button data-testid="delete-pet" onClick={() => deletePet.mutate(pet.id)}>
               Delete
             </button>
           </li>

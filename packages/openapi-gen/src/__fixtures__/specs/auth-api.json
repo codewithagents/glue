@@ -79,7 +79,10 @@
           "200": {
             "content": {
               "application/json": {
-                "schema": { "type": "array", "items": { "$ref": "#/components/schemas/UserProfile" } }
+                "schema": {
+                  "type": "array",
+                  "items": { "$ref": "#/components/schemas/UserProfile" }
+                }
               }
             }
           }

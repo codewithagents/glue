@@ -28,7 +28,11 @@
         "responses": {
           "200": {
             "description": "ok",
-            "content": { "application/json": { "schema": { "type": "object", "properties": { "id": { "type": "string" } } } } }
+            "content": {
+              "application/json": {
+                "schema": { "type": "object", "properties": { "id": { "type": "string" } } }
+              }
+            }
           }
         }
       }

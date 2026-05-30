@@ -45,13 +45,13 @@ describe('Open-Meteo (weather, no auth)', () => {
   it('returns current weather for Berlin', async () => {
     configureOpenMeteo({
       baseUrl: 'https://api.open-meteo.com',
-      credentials: 'omit',  // required for cross-origin requests in Node.js
+      credentials: 'omit', // required for cross-origin requests in Node.js
     })
 
     const result = await getV1Forecast({
       latitude: 52.52,
       longitude: 13.41,
-      currentWeather: true,  // generated param name is camelCase
+      currentWeather: true, // generated param name is camelCase
     })
 
     expect(result).toBeDefined()
@@ -70,7 +70,7 @@ describe('Open-Meteo (weather, no auth)', () => {
     const result = await getV1Forecast({
       latitude: 48.85,
       longitude: 2.35,
-      hourly: ['temperature_2m'],  // array, not string
+      hourly: ['temperature_2m'], // array, not string
     })
 
     expect(result).toBeDefined()

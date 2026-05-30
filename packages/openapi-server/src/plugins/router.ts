@@ -37,14 +37,16 @@ function toHonoPath(openapiPath: string): string {
 
 function resolveParam(
   p: ParameterObject | ReferenceObject,
-  spec: OpenAPIV3_1.Document,
+  spec: OpenAPIV3_1.Document
 ): ParameterObject | undefined {
   if (!isRef(p)) return p as ParameterObject
   const refStr = (p as ReferenceObject).$ref
   const name = refToName(refStr)
   const components = spec.components as OpenAPIV3_1.ComponentsObject | undefined
   if (components?.parameters === undefined) return undefined
-  const resolved = (components.parameters as Record<string, ParameterObject | ReferenceObject>)[name]
+  const resolved = (components.parameters as Record<string, ParameterObject | ReferenceObject>)[
+    name
+  ]
   if (resolved === undefined || isRef(resolved)) return undefined
   return resolved as ParameterObject
 }
@@ -75,8 +77,8 @@ function deriveServiceName(spec: OpenAPIV3_1.Document): string {
  */
 function sanitizeOperationId(id: string): string {
   const parts = id
-    .replace(/'/g, '')           // strip apostrophes without splitting ("user's" → "users")
-    .split(/[^a-zA-Z0-9]+/)     // split on any non-alphanumeric sequence
+    .replace(/'/g, '') // strip apostrophes without splitting ("user's" → "users")
+    .split(/[^a-zA-Z0-9]+/) // split on any non-alphanumeric sequence
     .filter(Boolean)
   if (parts.length === 0) return 'unknown'
   const [first = '', ...rest] = parts
@@ -139,7 +141,7 @@ interface QueryParam {
  */
 function normalizeParamName(name: string): string {
   return name
-    .replace(/\[\]$/, '')   // strip trailing []
+    .replace(/\[\]$/, '') // strip trailing []
     .replace(/'/g, '')
     .replace(/[^a-zA-Z0-9]+([a-zA-Z])/g, (_, char: string) => char.toUpperCase())
     .replace(/[^a-zA-Z0-9]+$/, '')
@@ -183,7 +185,9 @@ function getBodyInfo(operation: OperationObject): BodyInfo | undefined {
   if (isRef(requestBody)) return { typeName: undefined }
 
   const rb = requestBody as RequestBodyObject
-  const content = rb.content as Record<string, { schema?: OpenAPIV3_1.SchemaObject | ReferenceObject }> | undefined
+  const content = rb.content as
+    | Record<string, { schema?: OpenAPIV3_1.SchemaObject | ReferenceObject }>
+    | undefined
   if (content === undefined) return { typeName: undefined }
 
   const jsonContent = content['application/json']
@@ -209,8 +213,13 @@ function response200IsVoid(resp: ResponseObject | ReferenceObject): boolean {
   return content === undefined || Object.keys(content).length === 0
 }
 
-function getResponseStatus(operation: OperationObject, httpMethod: SupportedMethod): ResponseStatus {
-  const responses = operation.responses as Record<string, ResponseObject | ReferenceObject> | undefined
+function getResponseStatus(
+  operation: OperationObject,
+  httpMethod: SupportedMethod
+): ResponseStatus {
+  const responses = operation.responses as
+    | Record<string, ResponseObject | ReferenceObject>
+    | undefined
 
   if (responses === undefined) {
     return httpMethod === 'delete' ? { status: 204, isVoid: true } : { status: 200, isVoid: false }
@@ -273,11 +282,7 @@ function collectOperations(spec: OpenAPIV3_1.Document): RouteOperation[] {
 }
 
 // fallow-ignore-next-line complexity
-function buildRouteHandler(
-  op: RouteOperation,
-  indent: string,
-  schemaNames?: Set<string>,
-): string {
+function buildRouteHandler(op: RouteOperation, indent: string, schemaNames?: Set<string>): string {
   const lines: string[] = []
   lines.push(`${indent}app.${op.httpMethod}('${op.honoPath}', async (c) => {`)
 
@@ -306,13 +311,11 @@ function buildRouteHandler(
     const schemaName =
       op.bodyInfo.typeName !== undefined ? `${op.bodyInfo.typeName}Schema` : undefined
     if (schemaName !== undefined && schemaNames !== undefined && schemaNames.has(schemaName)) {
-      lines.push(
-        `${indent}  // Validate request body: returns 422 with Zod issues on failure`,
-      )
+      lines.push(`${indent}  // Validate request body: returns 422 with Zod issues on failure`)
       lines.push(`${indent}  const parseResult = ${schemaName}.safeParse(body)`)
       lines.push(`${indent}  if (!parseResult.success) {`)
       lines.push(
-        `${indent}    return c.json({ error: 'Invalid request body', issues: parseResult.error.issues }, 422)`,
+        `${indent}    return c.json({ error: 'Invalid request body', issues: parseResult.error.issues }, 422)`
       )
       lines.push(`${indent}  }`)
       lines.push(`${indent}  const validatedBody = parseResult.data`)
@@ -361,10 +364,12 @@ interface RouterOptions {
 function buildExpressRouteHandler(
   op: RouteOperation,
   indent: string,
-  schemaNames?: Set<string>,
+  schemaNames?: Set<string>
 ): string {
   const lines: string[] = []
-  lines.push(`${indent}router.${op.httpMethod}('${op.honoPath}', async (req: Request, res: Response) => {`)
+  lines.push(
+    `${indent}router.${op.httpMethod}('${op.honoPath}', async (req: Request, res: Response) => {`
+  )
 
   // Query params extraction
   if (op.queryParams.length > 0) {
@@ -389,14 +394,15 @@ function buildExpressRouteHandler(
   if (op.bodyInfo !== undefined) {
     const schemaName =
       op.bodyInfo.typeName !== undefined ? `${op.bodyInfo.typeName}Schema` : undefined
-    const useZod = schemaName !== undefined && schemaNames !== undefined && schemaNames.has(schemaName)
+    const useZod =
+      schemaName !== undefined && schemaNames !== undefined && schemaNames.has(schemaName)
 
     if (useZod) {
       lines.push(`${indent}  // Validate request body: returns 422 with Zod issues on failure`)
       lines.push(`${indent}  const parseResult = ${schemaName}.safeParse(req.body)`)
       lines.push(`${indent}  if (!parseResult.success) {`)
       lines.push(
-        `${indent}    return void res.status(422).json({ error: 'Invalid request body', issues: parseResult.error.issues })`,
+        `${indent}    return void res.status(422).json({ error: 'Invalid request body', issues: parseResult.error.issues })`
       )
       lines.push(`${indent}  }`)
       lines.push(`${indent}  const validatedBody = parseResult.data`)
@@ -438,7 +444,7 @@ function buildExpressRouteHandler(
 // fallow-ignore-next-line complexity
 export function generateExpressRouter(
   spec: OpenAPIV3_1.Document,
-  options?: RouterOptions,
+  options?: RouterOptions
 ): GeneratedFile {
   const serviceName = deriveServiceName(spec)
   const operations = collectOperations(spec)
@@ -468,7 +474,9 @@ export function generateExpressRouter(
 
   const lines: string[] = []
   lines.push('// This file is auto-generated. Do not edit manually.')
-  lines.push('// Express: apply express.json() middleware before mounting this router so req.body is populated.')
+  lines.push(
+    '// Express: apply express.json() middleware before mounting this router so req.body is populated.'
+  )
   lines.push('')
   lines.push("import { Router } from 'express'")
   lines.push("import type { Request, Response } from 'express'")
@@ -479,9 +487,7 @@ export function generateExpressRouter(
   if (usedSchemaNames.size > 0 && options?.schemaImportPath !== undefined) {
     lines.push(`import { z } from 'zod'`)
     const sortedUsedSchemas = Array.from(usedSchemaNames).sort()
-    lines.push(
-      `import { ${sortedUsedSchemas.join(', ')} } from '${options.schemaImportPath}'`,
-    )
+    lines.push(`import { ${sortedUsedSchemas.join(', ')} } from '${options.schemaImportPath}'`)
   }
   lines.push('')
   lines.push(`export function createRouter(service: ${serviceName}): Router {`)
@@ -509,7 +515,7 @@ export function generateExpressRouter(
 function buildFastifyRouteHandler(
   op: RouteOperation,
   indent: string,
-  schemaNames?: Set<string>,
+  schemaNames?: Set<string>
 ): string {
   const lines: string[] = []
 
@@ -543,9 +549,7 @@ function buildFastifyRouteHandler(
 
   // Query params extraction
   if (op.queryParams.length > 0) {
-    const fields = op.queryParams
-      .map((q) => `    ${q.name}: req.query.${q.name}`)
-      .join(',\n')
+    const fields = op.queryParams.map((q) => `    ${q.name}: req.query.${q.name}`).join(',\n')
     lines.push(`${indent}  const params = {`)
     lines.push(fields)
     lines.push(`${indent}  }`)
@@ -556,14 +560,15 @@ function buildFastifyRouteHandler(
   if (op.bodyInfo !== undefined) {
     const schemaName =
       op.bodyInfo.typeName !== undefined ? `${op.bodyInfo.typeName}Schema` : undefined
-    const useZod = schemaName !== undefined && schemaNames !== undefined && schemaNames.has(schemaName)
+    const useZod =
+      schemaName !== undefined && schemaNames !== undefined && schemaNames.has(schemaName)
 
     if (useZod) {
       lines.push(`${indent}  // Validate request body: returns 422 with Zod issues on failure`)
       lines.push(`${indent}  const parseResult = ${schemaName}.safeParse(req.body)`)
       lines.push(`${indent}  if (!parseResult.success) {`)
       lines.push(
-        `${indent}    return reply.status(422).send({ error: 'Invalid request body', issues: parseResult.error.issues })`,
+        `${indent}    return reply.status(422).send({ error: 'Invalid request body', issues: parseResult.error.issues })`
       )
       lines.push(`${indent}  }`)
       bodyVarName = 'parseResult.data'
@@ -602,7 +607,7 @@ function buildFastifyRouteHandler(
 // fallow-ignore-next-line complexity
 export function generateFastifyRouter(
   spec: OpenAPIV3_1.Document,
-  options?: RouterOptions,
+  options?: RouterOptions
 ): GeneratedFile {
   const serviceName = deriveServiceName(spec)
   const operations = collectOperations(spec)
@@ -641,9 +646,7 @@ export function generateFastifyRouter(
   if (usedSchemaNames.size > 0 && options?.schemaImportPath !== undefined) {
     lines.push(`import { z } from 'zod'`)
     const sortedUsedSchemas = Array.from(usedSchemaNames).sort()
-    lines.push(
-      `import { ${sortedUsedSchemas.join(', ')} } from '${options.schemaImportPath}'`,
-    )
+    lines.push(`import { ${sortedUsedSchemas.join(', ')} } from '${options.schemaImportPath}'`)
   }
   lines.push('')
   lines.push(`export function createRouter(app: FastifyInstance, service: ${serviceName}): void {`)
@@ -665,10 +668,7 @@ export function generateFastifyRouter(
 // ── Hono router generator ─────────────────────────────────────────────────────
 
 // fallow-ignore-next-line complexity
-export function generateRouter(
-  spec: OpenAPIV3_1.Document,
-  options?: RouterOptions,
-): GeneratedFile {
+export function generateRouter(spec: OpenAPIV3_1.Document, options?: RouterOptions): GeneratedFile {
   const serviceName = deriveServiceName(spec)
   const operations = collectOperations(spec)
 
@@ -706,9 +706,7 @@ export function generateRouter(
   if (usedSchemaNames.size > 0 && options?.schemaImportPath !== undefined) {
     lines.push(`import { z } from 'zod'`)
     const sortedUsedSchemas = Array.from(usedSchemaNames).sort()
-    lines.push(
-      `import { ${sortedUsedSchemas.join(', ')} } from '${options.schemaImportPath}'`,
-    )
+    lines.push(`import { ${sortedUsedSchemas.join(', ')} } from '${options.schemaImportPath}'`)
   }
   lines.push('')
   lines.push(`export function createRouter(service: ${serviceName}): Hono {`)

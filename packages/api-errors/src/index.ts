@@ -58,7 +58,7 @@ function isStringArray(value: unknown): value is string[] {
 function tryParseRfc7807(
   body: Record<string, unknown>,
   fallbackField: string,
-  transformField: (field: string) => string,
+  transformField: (field: string) => string
 ): FieldError[] | null {
   const { errors } = body
   if (!isObject(errors)) return null
@@ -87,7 +87,7 @@ function tryParseRfc7807(
 function tryParseSpringArray(
   body: Record<string, unknown>,
   fallbackField: string,
-  transformField: (field: string) => string,
+  transformField: (field: string) => string
 ): FieldError[] | null {
   const { errors } = body
   if (!Array.isArray(errors)) return null
@@ -97,8 +97,7 @@ function tryParseSpringArray(
   for (const item of errors) {
     if (!isObject(item)) continue
 
-    const rawField =
-      typeof item['field'] === 'string' ? item['field'] : fallbackField
+    const rawField = typeof item['field'] === 'string' ? item['field'] : fallbackField
     const message =
       typeof item['defaultMessage'] === 'string'
         ? item['defaultMessage']
@@ -119,12 +118,10 @@ function tryParseSpringArray(
 function tryParseFlatObject(
   body: Record<string, unknown>,
   fallbackField: string,
-  transformField: (field: string) => string,
+  transformField: (field: string) => string
 ): FieldError[] | null {
-  const rawField =
-    typeof body['field'] === 'string' ? body['field'] : null
-  const message =
-    typeof body['message'] === 'string' ? body['message'] : null
+  const rawField = typeof body['field'] === 'string' ? body['field'] : null
+  const message = typeof body['message'] === 'string' ? body['message'] : null
 
   if (message === null) return null
 
@@ -139,17 +136,15 @@ function tryParseFlatObject(
 function tryParseFlatArray(
   body: unknown[],
   fallbackField: string,
-  transformField: (field: string) => string,
+  transformField: (field: string) => string
 ): FieldError[] | null {
   const result: FieldError[] = []
 
   for (const item of body) {
     if (!isObject(item)) continue
 
-    const rawField =
-      typeof item['field'] === 'string' ? item['field'] : fallbackField
-    const message =
-      typeof item['message'] === 'string' ? item['message'] : null
+    const rawField = typeof item['field'] === 'string' ? item['field'] : fallbackField
+    const message = typeof item['message'] === 'string' ? item['message'] : null
 
     if (message === null) continue
     result.push({ field: transformField(rawField), message })
@@ -167,7 +162,7 @@ function tryParseFlatArray(
 function tryParseRfc9457Detail(
   body: Record<string, unknown>,
   fallbackField: string,
-  transformField: (field: string) => string,
+  transformField: (field: string) => string
 ): FieldError[] | null {
   const detail = body['detail']
   if (typeof detail !== 'string') return null
@@ -193,10 +188,7 @@ function tryParseRfc9457Detail(
  *
  * Never throws — returns an empty array for unrecognized shapes.
  */
-export function extractFieldErrors(
-  error: unknown,
-  options?: MapApiErrorsOptions,
-): FieldError[] {
+export function extractFieldErrors(error: unknown, options?: MapApiErrorsOptions): FieldError[] {
   const fallbackField = options?.fallbackField ?? 'root'
   const transformField = options?.transformField ?? ((f) => f)
 
@@ -290,7 +282,7 @@ export function extractFieldErrors(
 export function mapApiErrors(
   error: unknown,
   setError: (field: string, error: { type: string; message: string }) => void,
-  options?: MapApiErrorsOptions,
+  options?: MapApiErrorsOptions
 ): void {
   const fieldErrors = extractFieldErrors(error, options)
   for (const { field, message } of fieldErrors) {

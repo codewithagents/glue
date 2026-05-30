@@ -105,8 +105,8 @@ import type {
   UpdateWebhookRequest,
   UpdateWebhookResponse,
   VerifyDomainResponse,
-} from "./models.js";
-import { getConfig, type ClientConfig } from "./client-config.js";
+} from './models.js'
+import { getConfig, type ClientConfig } from './client-config.js'
 import {
   AddContactToSegmentResponseSuccessSchema,
   AutomationRunSchema,
@@ -212,471 +212,385 @@ import {
   UpdateWebhookRequestSchema,
   UpdateWebhookResponseSchema,
   VerifyDomainResponseSchema,
-} from "./schemas.js";
+} from './schemas.js'
 
 export class ApiError extends Error {
   constructor(
     public readonly status: number,
-    public readonly body: unknown,
+    public readonly body: unknown
   ) {
-    super(`API error ${status}`);
-    this.name = "ApiError";
+    super(`API error ${status}`)
+    this.name = 'ApiError'
   }
 }
 
-type _FetchResponse = Awaited<ReturnType<typeof fetch>>;
+type _FetchResponse = Awaited<ReturnType<typeof fetch>>
 
 async function _request(
   method: string,
   path: string,
   opts: {
-    searchParams?: URLSearchParams;
-    body?: unknown;
-    extraHeaders?: Record<string, string>;
+    searchParams?: URLSearchParams
+    body?: unknown
+    extraHeaders?: Record<string, string>
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<_FetchResponse> {
-  const { baseUrl, token, headers, onError } = { ...getConfig(), ...config };
-  const base = baseUrl ? baseUrl.replace(/\/$/, "") : "";
-  const qs = opts.searchParams?.toString() ?? "";
-  const url = qs ? `${base}${path}?${qs}` : `${base}${path}`;
-  const resolvedToken = typeof token === "function" ? await token() : token;
+  const { baseUrl, token, headers, onError } = { ...getConfig(), ...config }
+  const base = baseUrl ? baseUrl.replace(/\/$/, '') : ''
+  const qs = opts.searchParams?.toString() ?? ''
+  const url = qs ? `${base}${path}?${qs}` : `${base}${path}`
+  const resolvedToken = typeof token === 'function' ? await token() : token
   const res = await fetch(url, {
     method,
     headers: {
-      ...(opts.body !== undefined
-        ? { "Content-Type": "application/json" }
-        : {}),
+      ...(opts.body !== undefined ? { 'Content-Type': 'application/json' } : {}),
       ...headers,
       ...(resolvedToken ? { Authorization: `Bearer ${resolvedToken}` } : {}),
       ...opts.extraHeaders,
     },
     ...(opts.body !== undefined ? { body: JSON.stringify(opts.body) } : {}),
-  });
+  })
   if (!res.ok) {
-    const err = new ApiError(res.status, await res.json().catch(() => null));
-    onError?.(err);
-    throw err;
+    const err = new ApiError(res.status, await res.json().catch(() => null))
+    onError?.(err)
+    throw err
   }
-  return res;
+  return res
 }
 
 export async function getEmails(
   params?: {
-    limit?: number;
-    after?: string;
-    before?: string;
+    limit?: number
+    after?: string
+    before?: string
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<ListEmailsResponse> {
-  const searchParams = new URLSearchParams();
-  if (params?.limit != null) searchParams.set("limit", String(params.limit));
-  if (params?.after != null) searchParams.set("after", String(params.after));
-  if (params?.before != null) searchParams.set("before", String(params.before));
-  const res = await _request("GET", "/emails", { searchParams }, config);
-  return ListEmailsResponseSchema.parse(await res.json());
+  const searchParams = new URLSearchParams()
+  if (params?.limit != null) searchParams.set('limit', String(params.limit))
+  if (params?.after != null) searchParams.set('after', String(params.after))
+  if (params?.before != null) searchParams.set('before', String(params.before))
+  const res = await _request('GET', '/emails', { searchParams }, config)
+  return ListEmailsResponseSchema.parse(await res.json())
 }
 
 export async function createEmails(
   body: SendEmailRequest,
   params?: {
-    idempotencyKey?: string;
+    idempotencyKey?: string
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<SendEmailResponse> {
   const extraHeaders: Record<string, string> = {
-    ...(params?.idempotencyKey != null
-      ? { "Idempotency-Key": params.idempotencyKey }
-      : {}),
-  };
-  SendEmailRequestSchema.parse(body);
-  const res = await _request("POST", "/emails", { body, extraHeaders }, config);
-  return SendEmailResponseSchema.parse(await res.json());
+    ...(params?.idempotencyKey != null ? { 'Idempotency-Key': params.idempotencyKey } : {}),
+  }
+  SendEmailRequestSchema.parse(body)
+  const res = await _request('POST', '/emails', { body, extraHeaders }, config)
+  return SendEmailResponseSchema.parse(await res.json())
 }
 
 export async function getEmailsByEmailId(
   emailId: string,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<Email> {
-  const res = await _request(
-    "GET",
-    `/emails/${encodeURIComponent(emailId)}`,
-    {},
-    config,
-  );
-  return EmailSchema.parse(await res.json());
+  const res = await _request('GET', `/emails/${encodeURIComponent(emailId)}`, {}, config)
+  return EmailSchema.parse(await res.json())
 }
 
 export async function patchEmailsByEmailId(
   emailId: string,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<UpdateEmailOptions> {
-  const res = await _request(
-    "PATCH",
-    `/emails/${encodeURIComponent(emailId)}`,
-    {},
-    config,
-  );
-  return UpdateEmailOptionsSchema.parse(await res.json());
+  const res = await _request('PATCH', `/emails/${encodeURIComponent(emailId)}`, {}, config)
+  return UpdateEmailOptionsSchema.parse(await res.json())
 }
 
 export async function createEmailsByEmailIdCancel(
   emailId: string,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<Email> {
-  const res = await _request(
-    "POST",
-    `/emails/${encodeURIComponent(emailId)}/cancel`,
-    {},
-    config,
-  );
-  return EmailSchema.parse(await res.json());
+  const res = await _request('POST', `/emails/${encodeURIComponent(emailId)}/cancel`, {}, config)
+  return EmailSchema.parse(await res.json())
 }
 
 export async function createEmailsBatch(
   body: SendEmailRequest[],
   params?: {
-    idempotencyKey?: string;
+    idempotencyKey?: string
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<CreateBatchEmailsResponse> {
   const extraHeaders: Record<string, string> = {
-    ...(params?.idempotencyKey != null
-      ? { "Idempotency-Key": params.idempotencyKey }
-      : {}),
-  };
-  const res = await _request(
-    "POST",
-    "/emails/batch",
-    { body, extraHeaders },
-    config,
-  );
-  return CreateBatchEmailsResponseSchema.parse(await res.json());
+    ...(params?.idempotencyKey != null ? { 'Idempotency-Key': params.idempotencyKey } : {}),
+  }
+  const res = await _request('POST', '/emails/batch', { body, extraHeaders }, config)
+  return CreateBatchEmailsResponseSchema.parse(await res.json())
 }
 
 export async function getEmailsByEmailIdAttachments(
   emailId: string,
   params?: {
-    limit?: number;
-    after?: string;
-    before?: string;
+    limit?: number
+    after?: string
+    before?: string
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<ListAttachmentsResponse> {
-  const searchParams = new URLSearchParams();
-  if (params?.limit != null) searchParams.set("limit", String(params.limit));
-  if (params?.after != null) searchParams.set("after", String(params.after));
-  if (params?.before != null) searchParams.set("before", String(params.before));
+  const searchParams = new URLSearchParams()
+  if (params?.limit != null) searchParams.set('limit', String(params.limit))
+  if (params?.after != null) searchParams.set('after', String(params.after))
+  if (params?.before != null) searchParams.set('before', String(params.before))
   const res = await _request(
-    "GET",
+    'GET',
     `/emails/${encodeURIComponent(emailId)}/attachments`,
     { searchParams },
-    config,
-  );
-  return ListAttachmentsResponseSchema.parse(await res.json());
+    config
+  )
+  return ListAttachmentsResponseSchema.parse(await res.json())
 }
 
 export async function getEmailsByEmailIdAttachmentsByAttachmentId(
   emailId: string,
   attachmentId: string,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<RetrievedAttachment> {
   const res = await _request(
-    "GET",
+    'GET',
     `/emails/${encodeURIComponent(emailId)}/attachments/${encodeURIComponent(attachmentId)}`,
     {},
-    config,
-  );
-  return RetrievedAttachmentSchema.parse(await res.json());
+    config
+  )
+  return RetrievedAttachmentSchema.parse(await res.json())
 }
 
 export async function getEmailsReceiving(
   params?: {
-    limit?: number;
-    after?: string;
-    before?: string;
+    limit?: number
+    after?: string
+    before?: string
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<ListReceivedEmailsResponse> {
-  const searchParams = new URLSearchParams();
-  if (params?.limit != null) searchParams.set("limit", String(params.limit));
-  if (params?.after != null) searchParams.set("after", String(params.after));
-  if (params?.before != null) searchParams.set("before", String(params.before));
-  const res = await _request(
-    "GET",
-    "/emails/receiving",
-    { searchParams },
-    config,
-  );
-  return ListReceivedEmailsResponseSchema.parse(await res.json());
+  const searchParams = new URLSearchParams()
+  if (params?.limit != null) searchParams.set('limit', String(params.limit))
+  if (params?.after != null) searchParams.set('after', String(params.after))
+  if (params?.before != null) searchParams.set('before', String(params.before))
+  const res = await _request('GET', '/emails/receiving', { searchParams }, config)
+  return ListReceivedEmailsResponseSchema.parse(await res.json())
 }
 
 export async function getEmailsReceivingByEmailId(
   emailId: string,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<GetReceivedEmailResponse> {
-  const res = await _request(
-    "GET",
-    `/emails/receiving/${encodeURIComponent(emailId)}`,
-    {},
-    config,
-  );
-  return GetReceivedEmailResponseSchema.parse(await res.json());
+  const res = await _request('GET', `/emails/receiving/${encodeURIComponent(emailId)}`, {}, config)
+  return GetReceivedEmailResponseSchema.parse(await res.json())
 }
 
 export async function getEmailsReceivingByEmailIdAttachments(
   emailId: string,
   params?: {
-    limit?: number;
-    after?: string;
-    before?: string;
+    limit?: number
+    after?: string
+    before?: string
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<ListAttachmentsResponse> {
-  const searchParams = new URLSearchParams();
-  if (params?.limit != null) searchParams.set("limit", String(params.limit));
-  if (params?.after != null) searchParams.set("after", String(params.after));
-  if (params?.before != null) searchParams.set("before", String(params.before));
+  const searchParams = new URLSearchParams()
+  if (params?.limit != null) searchParams.set('limit', String(params.limit))
+  if (params?.after != null) searchParams.set('after', String(params.after))
+  if (params?.before != null) searchParams.set('before', String(params.before))
   const res = await _request(
-    "GET",
+    'GET',
     `/emails/receiving/${encodeURIComponent(emailId)}/attachments`,
     { searchParams },
-    config,
-  );
-  return ListAttachmentsResponseSchema.parse(await res.json());
+    config
+  )
+  return ListAttachmentsResponseSchema.parse(await res.json())
 }
 
 export async function getEmailsReceivingByEmailIdAttachmentsByAttachmentId(
   emailId: string,
   attachmentId: string,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<RetrievedAttachment> {
   const res = await _request(
-    "GET",
+    'GET',
     `/emails/receiving/${encodeURIComponent(emailId)}/attachments/${encodeURIComponent(attachmentId)}`,
     {},
-    config,
-  );
-  return RetrievedAttachmentSchema.parse(await res.json());
+    config
+  )
+  return RetrievedAttachmentSchema.parse(await res.json())
 }
 
 export async function getDomains(
   params?: {
-    limit?: number;
-    after?: string;
-    before?: string;
+    limit?: number
+    after?: string
+    before?: string
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<ListDomainsResponse> {
-  const searchParams = new URLSearchParams();
-  if (params?.limit != null) searchParams.set("limit", String(params.limit));
-  if (params?.after != null) searchParams.set("after", String(params.after));
-  if (params?.before != null) searchParams.set("before", String(params.before));
-  const res = await _request("GET", "/domains", { searchParams }, config);
-  return ListDomainsResponseSchema.parse(await res.json());
+  const searchParams = new URLSearchParams()
+  if (params?.limit != null) searchParams.set('limit', String(params.limit))
+  if (params?.after != null) searchParams.set('after', String(params.after))
+  if (params?.before != null) searchParams.set('before', String(params.before))
+  const res = await _request('GET', '/domains', { searchParams }, config)
+  return ListDomainsResponseSchema.parse(await res.json())
 }
 
 export async function createDomains(
   body: CreateDomainRequest,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<CreateDomainResponse> {
-  CreateDomainRequestSchema.parse(body);
-  const res = await _request("POST", "/domains", { body }, config);
-  return CreateDomainResponseSchema.parse(await res.json());
+  CreateDomainRequestSchema.parse(body)
+  const res = await _request('POST', '/domains', { body }, config)
+  return CreateDomainResponseSchema.parse(await res.json())
 }
 
 export async function getDomainsByDomainId(
   domainId: string,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<Domain> {
-  const res = await _request(
-    "GET",
-    `/domains/${encodeURIComponent(domainId)}`,
-    {},
-    config,
-  );
-  return DomainSchema.parse(await res.json());
+  const res = await _request('GET', `/domains/${encodeURIComponent(domainId)}`, {}, config)
+  return DomainSchema.parse(await res.json())
 }
 
 export async function patchDomainsByDomainId(
   domainId: string,
   body: UpdateDomainOptions,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<UpdateDomainResponseSuccess> {
-  UpdateDomainOptionsSchema.parse(body);
-  const res = await _request(
-    "PATCH",
-    `/domains/${encodeURIComponent(domainId)}`,
-    { body },
-    config,
-  );
-  return UpdateDomainResponseSuccessSchema.parse(await res.json());
+  UpdateDomainOptionsSchema.parse(body)
+  const res = await _request('PATCH', `/domains/${encodeURIComponent(domainId)}`, { body }, config)
+  return UpdateDomainResponseSuccessSchema.parse(await res.json())
 }
 
 export async function deleteDomainsByDomainId(
   domainId: string,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<DeleteDomainResponse> {
-  const res = await _request(
-    "DELETE",
-    `/domains/${encodeURIComponent(domainId)}`,
-    {},
-    config,
-  );
-  return DeleteDomainResponseSchema.parse(await res.json());
+  const res = await _request('DELETE', `/domains/${encodeURIComponent(domainId)}`, {}, config)
+  return DeleteDomainResponseSchema.parse(await res.json())
 }
 
 export async function createDomainsByDomainIdVerify(
   domainId: string,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<VerifyDomainResponse> {
-  const res = await _request(
-    "POST",
-    `/domains/${encodeURIComponent(domainId)}/verify`,
-    {},
-    config,
-  );
-  return VerifyDomainResponseSchema.parse(await res.json());
+  const res = await _request('POST', `/domains/${encodeURIComponent(domainId)}/verify`, {}, config)
+  return VerifyDomainResponseSchema.parse(await res.json())
 }
 
 export async function getApiKeys(
   params?: {
-    limit?: number;
-    after?: string;
-    before?: string;
+    limit?: number
+    after?: string
+    before?: string
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<ListApiKeysResponse> {
-  const searchParams = new URLSearchParams();
-  if (params?.limit != null) searchParams.set("limit", String(params.limit));
-  if (params?.after != null) searchParams.set("after", String(params.after));
-  if (params?.before != null) searchParams.set("before", String(params.before));
-  const res = await _request("GET", "/api-keys", { searchParams }, config);
-  return ListApiKeysResponseSchema.parse(await res.json());
+  const searchParams = new URLSearchParams()
+  if (params?.limit != null) searchParams.set('limit', String(params.limit))
+  if (params?.after != null) searchParams.set('after', String(params.after))
+  if (params?.before != null) searchParams.set('before', String(params.before))
+  const res = await _request('GET', '/api-keys', { searchParams }, config)
+  return ListApiKeysResponseSchema.parse(await res.json())
 }
 
 export async function createApiKeys(
   body: CreateApiKeyRequest,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<CreateApiKeyResponse> {
-  CreateApiKeyRequestSchema.parse(body);
-  const res = await _request("POST", "/api-keys", { body }, config);
-  return CreateApiKeyResponseSchema.parse(await res.json());
+  CreateApiKeyRequestSchema.parse(body)
+  const res = await _request('POST', '/api-keys', { body }, config)
+  return CreateApiKeyResponseSchema.parse(await res.json())
 }
 
 export async function deleteApiKeysByApiKeyId(
   apiKeyId: string,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<DeleteApiKeyResponse> {
-  const res = await _request(
-    "DELETE",
-    `/api-keys/${encodeURIComponent(apiKeyId)}`,
-    {},
-    config,
-  );
-  return DeleteApiKeyResponseSchema.parse(await res.json());
+  const res = await _request('DELETE', `/api-keys/${encodeURIComponent(apiKeyId)}`, {}, config)
+  return DeleteApiKeyResponseSchema.parse(await res.json())
 }
 
 export async function getTemplates(
   params?: {
-    limit?: number;
-    after?: string;
-    before?: string;
+    limit?: number
+    after?: string
+    before?: string
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<ListTemplatesResponseSuccess> {
-  const searchParams = new URLSearchParams();
-  if (params?.limit != null) searchParams.set("limit", String(params.limit));
-  if (params?.after != null) searchParams.set("after", String(params.after));
-  if (params?.before != null) searchParams.set("before", String(params.before));
-  const res = await _request("GET", "/templates", { searchParams }, config);
-  return ListTemplatesResponseSuccessSchema.parse(await res.json());
+  const searchParams = new URLSearchParams()
+  if (params?.limit != null) searchParams.set('limit', String(params.limit))
+  if (params?.after != null) searchParams.set('after', String(params.after))
+  if (params?.before != null) searchParams.set('before', String(params.before))
+  const res = await _request('GET', '/templates', { searchParams }, config)
+  return ListTemplatesResponseSuccessSchema.parse(await res.json())
 }
 
 export async function createTemplates(
   body: CreateTemplateRequest,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<CreateTemplateResponseSuccess> {
-  CreateTemplateRequestSchema.parse(body);
-  const res = await _request("POST", "/templates", { body }, config);
-  return CreateTemplateResponseSuccessSchema.parse(await res.json());
+  CreateTemplateRequestSchema.parse(body)
+  const res = await _request('POST', '/templates', { body }, config)
+  return CreateTemplateResponseSuccessSchema.parse(await res.json())
 }
 
 export async function getTemplatesById(
   id: string,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<Template> {
-  const res = await _request(
-    "GET",
-    `/templates/${encodeURIComponent(id)}`,
-    {},
-    config,
-  );
-  return TemplateSchema.parse(await res.json());
+  const res = await _request('GET', `/templates/${encodeURIComponent(id)}`, {}, config)
+  return TemplateSchema.parse(await res.json())
 }
 
 export async function patchTemplatesById(
   id: string,
   body: UpdateTemplateOptions,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<UpdateTemplateResponseSuccess> {
-  UpdateTemplateOptionsSchema.parse(body);
-  const res = await _request(
-    "PATCH",
-    `/templates/${encodeURIComponent(id)}`,
-    { body },
-    config,
-  );
-  return UpdateTemplateResponseSuccessSchema.parse(await res.json());
+  UpdateTemplateOptionsSchema.parse(body)
+  const res = await _request('PATCH', `/templates/${encodeURIComponent(id)}`, { body }, config)
+  return UpdateTemplateResponseSuccessSchema.parse(await res.json())
 }
 
 export async function deleteTemplatesById(
   id: string,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<RemoveTemplateResponseSuccess> {
-  const res = await _request(
-    "DELETE",
-    `/templates/${encodeURIComponent(id)}`,
-    {},
-    config,
-  );
-  return RemoveTemplateResponseSuccessSchema.parse(await res.json());
+  const res = await _request('DELETE', `/templates/${encodeURIComponent(id)}`, {}, config)
+  return RemoveTemplateResponseSuccessSchema.parse(await res.json())
 }
 
 export async function createTemplatesByIdPublish(
   id: string,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<PublishTemplateResponseSuccess> {
-  const res = await _request(
-    "POST",
-    `/templates/${encodeURIComponent(id)}/publish`,
-    {},
-    config,
-  );
-  return PublishTemplateResponseSuccessSchema.parse(await res.json());
+  const res = await _request('POST', `/templates/${encodeURIComponent(id)}/publish`, {}, config)
+  return PublishTemplateResponseSuccessSchema.parse(await res.json())
 }
 
 export async function createTemplatesByIdDuplicate(
   id: string,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<DuplicateTemplateResponseSuccess> {
-  const res = await _request(
-    "POST",
-    `/templates/${encodeURIComponent(id)}/duplicate`,
-    {},
-    config,
-  );
-  return DuplicateTemplateResponseSuccessSchema.parse(await res.json());
+  const res = await _request('POST', `/templates/${encodeURIComponent(id)}/duplicate`, {}, config)
+  return DuplicateTemplateResponseSuccessSchema.parse(await res.json())
 }
 
 /**
  * @deprecated
  */
 export async function getAudiences(
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<ListAudiencesResponseSuccess> {
-  const res = await _request("GET", "/audiences", {}, config);
-  return ListAudiencesResponseSuccessSchema.parse(await res.json());
+  const res = await _request('GET', '/audiences', {}, config)
+  return ListAudiencesResponseSuccessSchema.parse(await res.json())
 }
 
 /**
@@ -684,11 +598,11 @@ export async function getAudiences(
  */
 export async function createAudiences(
   body: CreateAudienceOptions,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<CreateAudienceResponseSuccess> {
-  CreateAudienceOptionsSchema.parse(body);
-  const res = await _request("POST", "/audiences", { body }, config);
-  return CreateAudienceResponseSuccessSchema.parse(await res.json());
+  CreateAudienceOptionsSchema.parse(body)
+  const res = await _request('POST', '/audiences', { body }, config)
+  return CreateAudienceResponseSuccessSchema.parse(await res.json())
 }
 
 /**
@@ -696,15 +610,10 @@ export async function createAudiences(
  */
 export async function getAudiencesById(
   id: string,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<GetAudienceResponseSuccess> {
-  const res = await _request(
-    "GET",
-    `/audiences/${encodeURIComponent(id)}`,
-    {},
-    config,
-  );
-  return GetAudienceResponseSuccessSchema.parse(await res.json());
+  const res = await _request('GET', `/audiences/${encodeURIComponent(id)}`, {}, config)
+  return GetAudienceResponseSuccessSchema.parse(await res.json())
 }
 
 /**
@@ -712,726 +621,607 @@ export async function getAudiencesById(
  */
 export async function deleteAudiencesById(
   id: string,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<RemoveAudienceResponseSuccess> {
-  const res = await _request(
-    "DELETE",
-    `/audiences/${encodeURIComponent(id)}`,
-    {},
-    config,
-  );
-  return RemoveAudienceResponseSuccessSchema.parse(await res.json());
+  const res = await _request('DELETE', `/audiences/${encodeURIComponent(id)}`, {}, config)
+  return RemoveAudienceResponseSuccessSchema.parse(await res.json())
 }
 
 export async function getContacts(
   params?: {
-    segmentId?: string;
-    limit?: number;
-    after?: string;
-    before?: string;
+    segmentId?: string
+    limit?: number
+    after?: string
+    before?: string
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<ListContactsResponseSuccess> {
-  const searchParams = new URLSearchParams();
-  if (params?.segmentId != null)
-    searchParams.set("segment_id", String(params.segmentId));
-  if (params?.limit != null) searchParams.set("limit", String(params.limit));
-  if (params?.after != null) searchParams.set("after", String(params.after));
-  if (params?.before != null) searchParams.set("before", String(params.before));
-  const res = await _request("GET", "/contacts", { searchParams }, config);
-  return ListContactsResponseSuccessSchema.parse(await res.json());
+  const searchParams = new URLSearchParams()
+  if (params?.segmentId != null) searchParams.set('segment_id', String(params.segmentId))
+  if (params?.limit != null) searchParams.set('limit', String(params.limit))
+  if (params?.after != null) searchParams.set('after', String(params.after))
+  if (params?.before != null) searchParams.set('before', String(params.before))
+  const res = await _request('GET', '/contacts', { searchParams }, config)
+  return ListContactsResponseSuccessSchema.parse(await res.json())
 }
 
 export async function createContacts(
   body: CreateContactOptions,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<CreateContactResponseSuccess> {
-  CreateContactOptionsSchema.parse(body);
-  const res = await _request("POST", "/contacts", { body }, config);
-  return CreateContactResponseSuccessSchema.parse(await res.json());
+  CreateContactOptionsSchema.parse(body)
+  const res = await _request('POST', '/contacts', { body }, config)
+  return CreateContactResponseSuccessSchema.parse(await res.json())
 }
 
 export async function getContactsById(
   id: string,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<GetContactResponseSuccess> {
-  const res = await _request(
-    "GET",
-    `/contacts/${encodeURIComponent(id)}`,
-    {},
-    config,
-  );
-  return GetContactResponseSuccessSchema.parse(await res.json());
+  const res = await _request('GET', `/contacts/${encodeURIComponent(id)}`, {}, config)
+  return GetContactResponseSuccessSchema.parse(await res.json())
 }
 
 export async function patchContactsById(
   id: string,
   body: UpdateContactOptions,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<UpdateContactResponseSuccess> {
-  UpdateContactOptionsSchema.parse(body);
-  const res = await _request(
-    "PATCH",
-    `/contacts/${encodeURIComponent(id)}`,
-    { body },
-    config,
-  );
-  return UpdateContactResponseSuccessSchema.parse(await res.json());
+  UpdateContactOptionsSchema.parse(body)
+  const res = await _request('PATCH', `/contacts/${encodeURIComponent(id)}`, { body }, config)
+  return UpdateContactResponseSuccessSchema.parse(await res.json())
 }
 
 export async function deleteContactsById(
   id: string,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<RemoveContactResponseSuccess> {
-  const res = await _request(
-    "DELETE",
-    `/contacts/${encodeURIComponent(id)}`,
-    {},
-    config,
-  );
-  return RemoveContactResponseSuccessSchema.parse(await res.json());
+  const res = await _request('DELETE', `/contacts/${encodeURIComponent(id)}`, {}, config)
+  return RemoveContactResponseSuccessSchema.parse(await res.json())
 }
 
 export async function getBroadcasts(
   params?: {
-    limit?: number;
-    after?: string;
-    before?: string;
+    limit?: number
+    after?: string
+    before?: string
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<ListBroadcastsResponseSuccess> {
-  const searchParams = new URLSearchParams();
-  if (params?.limit != null) searchParams.set("limit", String(params.limit));
-  if (params?.after != null) searchParams.set("after", String(params.after));
-  if (params?.before != null) searchParams.set("before", String(params.before));
-  const res = await _request("GET", "/broadcasts", { searchParams }, config);
-  return ListBroadcastsResponseSuccessSchema.parse(await res.json());
+  const searchParams = new URLSearchParams()
+  if (params?.limit != null) searchParams.set('limit', String(params.limit))
+  if (params?.after != null) searchParams.set('after', String(params.after))
+  if (params?.before != null) searchParams.set('before', String(params.before))
+  const res = await _request('GET', '/broadcasts', { searchParams }, config)
+  return ListBroadcastsResponseSuccessSchema.parse(await res.json())
 }
 
 export async function createBroadcasts(
   body: CreateBroadcastOptions,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<CreateBroadcastResponseSuccess> {
-  CreateBroadcastOptionsSchema.parse(body);
-  const res = await _request("POST", "/broadcasts", { body }, config);
-  return CreateBroadcastResponseSuccessSchema.parse(await res.json());
+  CreateBroadcastOptionsSchema.parse(body)
+  const res = await _request('POST', '/broadcasts', { body }, config)
+  return CreateBroadcastResponseSuccessSchema.parse(await res.json())
 }
 
 export async function getBroadcastsById(
   id: string,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<GetBroadcastResponseSuccess> {
-  const res = await _request(
-    "GET",
-    `/broadcasts/${encodeURIComponent(id)}`,
-    {},
-    config,
-  );
-  return GetBroadcastResponseSuccessSchema.parse(await res.json());
+  const res = await _request('GET', `/broadcasts/${encodeURIComponent(id)}`, {}, config)
+  return GetBroadcastResponseSuccessSchema.parse(await res.json())
 }
 
 export async function patchBroadcastsById(
   id: string,
   body: UpdateBroadcastOptions,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<UpdateBroadcastResponseSuccess> {
-  UpdateBroadcastOptionsSchema.parse(body);
-  const res = await _request(
-    "PATCH",
-    `/broadcasts/${encodeURIComponent(id)}`,
-    { body },
-    config,
-  );
-  return UpdateBroadcastResponseSuccessSchema.parse(await res.json());
+  UpdateBroadcastOptionsSchema.parse(body)
+  const res = await _request('PATCH', `/broadcasts/${encodeURIComponent(id)}`, { body }, config)
+  return UpdateBroadcastResponseSuccessSchema.parse(await res.json())
 }
 
 export async function deleteBroadcastsById(
   id: string,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<RemoveBroadcastResponseSuccess> {
-  const res = await _request(
-    "DELETE",
-    `/broadcasts/${encodeURIComponent(id)}`,
-    {},
-    config,
-  );
-  return RemoveBroadcastResponseSuccessSchema.parse(await res.json());
+  const res = await _request('DELETE', `/broadcasts/${encodeURIComponent(id)}`, {}, config)
+  return RemoveBroadcastResponseSuccessSchema.parse(await res.json())
 }
 
 export async function createBroadcastsByIdSend(
   id: string,
   body: SendBroadcastOptions,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<SendBroadcastResponseSuccess> {
-  SendBroadcastOptionsSchema.parse(body);
-  const res = await _request(
-    "POST",
-    `/broadcasts/${encodeURIComponent(id)}/send`,
-    { body },
-    config,
-  );
-  return SendBroadcastResponseSuccessSchema.parse(await res.json());
+  SendBroadcastOptionsSchema.parse(body)
+  const res = await _request('POST', `/broadcasts/${encodeURIComponent(id)}/send`, { body }, config)
+  return SendBroadcastResponseSuccessSchema.parse(await res.json())
 }
 
 export async function getWebhooks(
   params?: {
-    limit?: number;
-    after?: string;
-    before?: string;
+    limit?: number
+    after?: string
+    before?: string
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<ListWebhooksResponse> {
-  const searchParams = new URLSearchParams();
-  if (params?.limit != null) searchParams.set("limit", String(params.limit));
-  if (params?.after != null) searchParams.set("after", String(params.after));
-  if (params?.before != null) searchParams.set("before", String(params.before));
-  const res = await _request("GET", "/webhooks", { searchParams }, config);
-  return ListWebhooksResponseSchema.parse(await res.json());
+  const searchParams = new URLSearchParams()
+  if (params?.limit != null) searchParams.set('limit', String(params.limit))
+  if (params?.after != null) searchParams.set('after', String(params.after))
+  if (params?.before != null) searchParams.set('before', String(params.before))
+  const res = await _request('GET', '/webhooks', { searchParams }, config)
+  return ListWebhooksResponseSchema.parse(await res.json())
 }
 
 export async function createWebhooks(
   body: CreateWebhookRequest,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<CreateWebhookResponse> {
-  CreateWebhookRequestSchema.parse(body);
-  const res = await _request("POST", "/webhooks", { body }, config);
-  return CreateWebhookResponseSchema.parse(await res.json());
+  CreateWebhookRequestSchema.parse(body)
+  const res = await _request('POST', '/webhooks', { body }, config)
+  return CreateWebhookResponseSchema.parse(await res.json())
 }
 
 export async function getWebhooksByWebhookId(
   webhookId: string,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<GetWebhookResponse> {
-  const res = await _request(
-    "GET",
-    `/webhooks/${encodeURIComponent(webhookId)}`,
-    {},
-    config,
-  );
-  return GetWebhookResponseSchema.parse(await res.json());
+  const res = await _request('GET', `/webhooks/${encodeURIComponent(webhookId)}`, {}, config)
+  return GetWebhookResponseSchema.parse(await res.json())
 }
 
 export async function patchWebhooksByWebhookId(
   webhookId: string,
   body: UpdateWebhookRequest,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<UpdateWebhookResponse> {
-  UpdateWebhookRequestSchema.parse(body);
+  UpdateWebhookRequestSchema.parse(body)
   const res = await _request(
-    "PATCH",
+    'PATCH',
     `/webhooks/${encodeURIComponent(webhookId)}`,
     { body },
-    config,
-  );
-  return UpdateWebhookResponseSchema.parse(await res.json());
+    config
+  )
+  return UpdateWebhookResponseSchema.parse(await res.json())
 }
 
 export async function deleteWebhooksByWebhookId(
   webhookId: string,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<DeleteWebhookResponse> {
-  const res = await _request(
-    "DELETE",
-    `/webhooks/${encodeURIComponent(webhookId)}`,
-    {},
-    config,
-  );
-  return DeleteWebhookResponseSchema.parse(await res.json());
+  const res = await _request('DELETE', `/webhooks/${encodeURIComponent(webhookId)}`, {}, config)
+  return DeleteWebhookResponseSchema.parse(await res.json())
 }
 
 export async function getSegments(
   params?: {
-    limit?: number;
-    after?: string;
-    before?: string;
+    limit?: number
+    after?: string
+    before?: string
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<ListSegmentsResponseSuccess> {
-  const searchParams = new URLSearchParams();
-  if (params?.limit != null) searchParams.set("limit", String(params.limit));
-  if (params?.after != null) searchParams.set("after", String(params.after));
-  if (params?.before != null) searchParams.set("before", String(params.before));
-  const res = await _request("GET", "/segments", { searchParams }, config);
-  return ListSegmentsResponseSuccessSchema.parse(await res.json());
+  const searchParams = new URLSearchParams()
+  if (params?.limit != null) searchParams.set('limit', String(params.limit))
+  if (params?.after != null) searchParams.set('after', String(params.after))
+  if (params?.before != null) searchParams.set('before', String(params.before))
+  const res = await _request('GET', '/segments', { searchParams }, config)
+  return ListSegmentsResponseSuccessSchema.parse(await res.json())
 }
 
 export async function createSegments(
   body: CreateSegmentOptions,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<CreateSegmentResponseSuccess> {
-  CreateSegmentOptionsSchema.parse(body);
-  const res = await _request("POST", "/segments", { body }, config);
-  return CreateSegmentResponseSuccessSchema.parse(await res.json());
+  CreateSegmentOptionsSchema.parse(body)
+  const res = await _request('POST', '/segments', { body }, config)
+  return CreateSegmentResponseSuccessSchema.parse(await res.json())
 }
 
 export async function getSegmentsById(
   id: string,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<GetSegmentResponseSuccess> {
-  const res = await _request(
-    "GET",
-    `/segments/${encodeURIComponent(id)}`,
-    {},
-    config,
-  );
-  return GetSegmentResponseSuccessSchema.parse(await res.json());
+  const res = await _request('GET', `/segments/${encodeURIComponent(id)}`, {}, config)
+  return GetSegmentResponseSuccessSchema.parse(await res.json())
 }
 
 export async function deleteSegmentsById(
   id: string,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<RemoveSegmentResponseSuccess> {
-  const res = await _request(
-    "DELETE",
-    `/segments/${encodeURIComponent(id)}`,
-    {},
-    config,
-  );
-  return RemoveSegmentResponseSuccessSchema.parse(await res.json());
+  const res = await _request('DELETE', `/segments/${encodeURIComponent(id)}`, {}, config)
+  return RemoveSegmentResponseSuccessSchema.parse(await res.json())
 }
 
 export async function getTopics(
   params?: {
-    limit?: number;
-    after?: string;
-    before?: string;
+    limit?: number
+    after?: string
+    before?: string
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<ListTopicsResponseSuccess> {
-  const searchParams = new URLSearchParams();
-  if (params?.limit != null) searchParams.set("limit", String(params.limit));
-  if (params?.after != null) searchParams.set("after", String(params.after));
-  if (params?.before != null) searchParams.set("before", String(params.before));
-  const res = await _request("GET", "/topics", { searchParams }, config);
-  return ListTopicsResponseSuccessSchema.parse(await res.json());
+  const searchParams = new URLSearchParams()
+  if (params?.limit != null) searchParams.set('limit', String(params.limit))
+  if (params?.after != null) searchParams.set('after', String(params.after))
+  if (params?.before != null) searchParams.set('before', String(params.before))
+  const res = await _request('GET', '/topics', { searchParams }, config)
+  return ListTopicsResponseSuccessSchema.parse(await res.json())
 }
 
 export async function createTopics(
   body: CreateTopicOptions,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<CreateTopicResponseSuccess> {
-  CreateTopicOptionsSchema.parse(body);
-  const res = await _request("POST", "/topics", { body }, config);
-  return CreateTopicResponseSuccessSchema.parse(await res.json());
+  CreateTopicOptionsSchema.parse(body)
+  const res = await _request('POST', '/topics', { body }, config)
+  return CreateTopicResponseSuccessSchema.parse(await res.json())
 }
 
 export async function getTopicsById(
   id: string,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<GetTopicResponseSuccess> {
-  const res = await _request(
-    "GET",
-    `/topics/${encodeURIComponent(id)}`,
-    {},
-    config,
-  );
-  return GetTopicResponseSuccessSchema.parse(await res.json());
+  const res = await _request('GET', `/topics/${encodeURIComponent(id)}`, {}, config)
+  return GetTopicResponseSuccessSchema.parse(await res.json())
 }
 
 export async function patchTopicsById(
   id: string,
   body: UpdateTopicOptions,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<UpdateTopicResponseSuccess> {
-  UpdateTopicOptionsSchema.parse(body);
-  const res = await _request(
-    "PATCH",
-    `/topics/${encodeURIComponent(id)}`,
-    { body },
-    config,
-  );
-  return UpdateTopicResponseSuccessSchema.parse(await res.json());
+  UpdateTopicOptionsSchema.parse(body)
+  const res = await _request('PATCH', `/topics/${encodeURIComponent(id)}`, { body }, config)
+  return UpdateTopicResponseSuccessSchema.parse(await res.json())
 }
 
 export async function deleteTopicsById(
   id: string,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<RemoveTopicResponseSuccess> {
-  const res = await _request(
-    "DELETE",
-    `/topics/${encodeURIComponent(id)}`,
-    {},
-    config,
-  );
-  return RemoveTopicResponseSuccessSchema.parse(await res.json());
+  const res = await _request('DELETE', `/topics/${encodeURIComponent(id)}`, {}, config)
+  return RemoveTopicResponseSuccessSchema.parse(await res.json())
 }
 
 export async function getContactProperties(
   params?: {
-    limit?: number;
-    after?: string;
-    before?: string;
+    limit?: number
+    after?: string
+    before?: string
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<ListContactPropertiesResponseSuccess> {
-  const searchParams = new URLSearchParams();
-  if (params?.limit != null) searchParams.set("limit", String(params.limit));
-  if (params?.after != null) searchParams.set("after", String(params.after));
-  if (params?.before != null) searchParams.set("before", String(params.before));
-  const res = await _request(
-    "GET",
-    "/contact-properties",
-    { searchParams },
-    config,
-  );
-  return ListContactPropertiesResponseSuccessSchema.parse(await res.json());
+  const searchParams = new URLSearchParams()
+  if (params?.limit != null) searchParams.set('limit', String(params.limit))
+  if (params?.after != null) searchParams.set('after', String(params.after))
+  if (params?.before != null) searchParams.set('before', String(params.before))
+  const res = await _request('GET', '/contact-properties', { searchParams }, config)
+  return ListContactPropertiesResponseSuccessSchema.parse(await res.json())
 }
 
 export async function createContactProperties(
   body: CreateContactPropertyOptions,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<CreateContactPropertyResponseSuccess> {
-  CreateContactPropertyOptionsSchema.parse(body);
-  const res = await _request("POST", "/contact-properties", { body }, config);
-  return CreateContactPropertyResponseSuccessSchema.parse(await res.json());
+  CreateContactPropertyOptionsSchema.parse(body)
+  const res = await _request('POST', '/contact-properties', { body }, config)
+  return CreateContactPropertyResponseSuccessSchema.parse(await res.json())
 }
 
 export async function getContactPropertiesById(
   id: string,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<GetContactPropertyResponseSuccess> {
-  const res = await _request(
-    "GET",
-    `/contact-properties/${encodeURIComponent(id)}`,
-    {},
-    config,
-  );
-  return GetContactPropertyResponseSuccessSchema.parse(await res.json());
+  const res = await _request('GET', `/contact-properties/${encodeURIComponent(id)}`, {}, config)
+  return GetContactPropertyResponseSuccessSchema.parse(await res.json())
 }
 
 export async function patchContactPropertiesById(
   id: string,
   body: UpdateContactPropertyOptions,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<UpdateContactPropertyResponseSuccess> {
-  UpdateContactPropertyOptionsSchema.parse(body);
+  UpdateContactPropertyOptionsSchema.parse(body)
   const res = await _request(
-    "PATCH",
+    'PATCH',
     `/contact-properties/${encodeURIComponent(id)}`,
     { body },
-    config,
-  );
-  return UpdateContactPropertyResponseSuccessSchema.parse(await res.json());
+    config
+  )
+  return UpdateContactPropertyResponseSuccessSchema.parse(await res.json())
 }
 
 export async function deleteContactPropertiesById(
   id: string,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<RemoveContactPropertyResponseSuccess> {
-  const res = await _request(
-    "DELETE",
-    `/contact-properties/${encodeURIComponent(id)}`,
-    {},
-    config,
-  );
-  return RemoveContactPropertyResponseSuccessSchema.parse(await res.json());
+  const res = await _request('DELETE', `/contact-properties/${encodeURIComponent(id)}`, {}, config)
+  return RemoveContactPropertyResponseSuccessSchema.parse(await res.json())
 }
 
 export async function getContactsByContactIdSegments(
   contactId: string,
   params?: {
-    limit?: number;
-    after?: string;
-    before?: string;
+    limit?: number
+    after?: string
+    before?: string
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<ListContactSegmentsResponseSuccess> {
-  const searchParams = new URLSearchParams();
-  if (params?.limit != null) searchParams.set("limit", String(params.limit));
-  if (params?.after != null) searchParams.set("after", String(params.after));
-  if (params?.before != null) searchParams.set("before", String(params.before));
+  const searchParams = new URLSearchParams()
+  if (params?.limit != null) searchParams.set('limit', String(params.limit))
+  if (params?.after != null) searchParams.set('after', String(params.after))
+  if (params?.before != null) searchParams.set('before', String(params.before))
   const res = await _request(
-    "GET",
+    'GET',
     `/contacts/${encodeURIComponent(contactId)}/segments`,
     { searchParams },
-    config,
-  );
-  return ListContactSegmentsResponseSuccessSchema.parse(await res.json());
+    config
+  )
+  return ListContactSegmentsResponseSuccessSchema.parse(await res.json())
 }
 
 export async function createContactsByContactIdSegmentsBySegmentId(
   contactId: string,
   segmentId: string,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<AddContactToSegmentResponseSuccess> {
   const res = await _request(
-    "POST",
+    'POST',
     `/contacts/${encodeURIComponent(contactId)}/segments/${encodeURIComponent(segmentId)}`,
     {},
-    config,
-  );
-  return AddContactToSegmentResponseSuccessSchema.parse(await res.json());
+    config
+  )
+  return AddContactToSegmentResponseSuccessSchema.parse(await res.json())
 }
 
 export async function deleteContactsByContactIdSegmentsBySegmentId(
   contactId: string,
   segmentId: string,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<RemoveContactFromSegmentResponseSuccess> {
   const res = await _request(
-    "DELETE",
+    'DELETE',
     `/contacts/${encodeURIComponent(contactId)}/segments/${encodeURIComponent(segmentId)}`,
     {},
-    config,
-  );
-  return RemoveContactFromSegmentResponseSuccessSchema.parse(await res.json());
+    config
+  )
+  return RemoveContactFromSegmentResponseSuccessSchema.parse(await res.json())
 }
 
 export async function getContactsByContactIdTopics(
   contactId: string,
   params?: {
-    limit?: number;
-    after?: string;
-    before?: string;
+    limit?: number
+    after?: string
+    before?: string
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<GetContactTopicsResponseSuccess> {
-  const searchParams = new URLSearchParams();
-  if (params?.limit != null) searchParams.set("limit", String(params.limit));
-  if (params?.after != null) searchParams.set("after", String(params.after));
-  if (params?.before != null) searchParams.set("before", String(params.before));
+  const searchParams = new URLSearchParams()
+  if (params?.limit != null) searchParams.set('limit', String(params.limit))
+  if (params?.after != null) searchParams.set('after', String(params.after))
+  if (params?.before != null) searchParams.set('before', String(params.before))
   const res = await _request(
-    "GET",
+    'GET',
     `/contacts/${encodeURIComponent(contactId)}/topics`,
     { searchParams },
-    config,
-  );
-  return GetContactTopicsResponseSuccessSchema.parse(await res.json());
+    config
+  )
+  return GetContactTopicsResponseSuccessSchema.parse(await res.json())
 }
 
 export async function patchContactsByContactIdTopics(
   contactId: string,
   body: UpdateContactTopicsOptions,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<UpdateContactTopicsResponseSuccess> {
-  UpdateContactTopicsOptionsSchema.parse(body);
+  UpdateContactTopicsOptionsSchema.parse(body)
   const res = await _request(
-    "PATCH",
+    'PATCH',
     `/contacts/${encodeURIComponent(contactId)}/topics`,
     { body },
-    config,
-  );
-  return UpdateContactTopicsResponseSuccessSchema.parse(await res.json());
+    config
+  )
+  return UpdateContactTopicsResponseSuccessSchema.parse(await res.json())
 }
 
 export async function getLogs(
   params?: {
-    limit?: number;
-    after?: string;
-    before?: string;
+    limit?: number
+    after?: string
+    before?: string
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<ListLogsResponse> {
-  const searchParams = new URLSearchParams();
-  if (params?.limit != null) searchParams.set("limit", String(params.limit));
-  if (params?.after != null) searchParams.set("after", String(params.after));
-  if (params?.before != null) searchParams.set("before", String(params.before));
-  const res = await _request("GET", "/logs", { searchParams }, config);
-  return ListLogsResponseSchema.parse(await res.json());
+  const searchParams = new URLSearchParams()
+  if (params?.limit != null) searchParams.set('limit', String(params.limit))
+  if (params?.after != null) searchParams.set('after', String(params.after))
+  if (params?.before != null) searchParams.set('before', String(params.before))
+  const res = await _request('GET', '/logs', { searchParams }, config)
+  return ListLogsResponseSchema.parse(await res.json())
 }
 
-export async function getLogsByLogId(
-  logId: string,
-  config?: Partial<ClientConfig>,
-): Promise<Log> {
-  const res = await _request(
-    "GET",
-    `/logs/${encodeURIComponent(logId)}`,
-    {},
-    config,
-  );
-  return LogSchema.parse(await res.json());
+export async function getLogsByLogId(logId: string, config?: Partial<ClientConfig>): Promise<Log> {
+  const res = await _request('GET', `/logs/${encodeURIComponent(logId)}`, {}, config)
+  return LogSchema.parse(await res.json())
 }
 
 export async function getAutomations(
   params?: {
-    status?: "enabled" | "disabled";
-    limit?: number;
-    after?: string;
-    before?: string;
+    status?: 'enabled' | 'disabled'
+    limit?: number
+    after?: string
+    before?: string
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<ListAutomationsResponse> {
-  const searchParams = new URLSearchParams();
-  if (params?.status != null) searchParams.set("status", String(params.status));
-  if (params?.limit != null) searchParams.set("limit", String(params.limit));
-  if (params?.after != null) searchParams.set("after", String(params.after));
-  if (params?.before != null) searchParams.set("before", String(params.before));
-  const res = await _request("GET", "/automations", { searchParams }, config);
-  return ListAutomationsResponseSchema.parse(await res.json());
+  const searchParams = new URLSearchParams()
+  if (params?.status != null) searchParams.set('status', String(params.status))
+  if (params?.limit != null) searchParams.set('limit', String(params.limit))
+  if (params?.after != null) searchParams.set('after', String(params.after))
+  if (params?.before != null) searchParams.set('before', String(params.before))
+  const res = await _request('GET', '/automations', { searchParams }, config)
+  return ListAutomationsResponseSchema.parse(await res.json())
 }
 
 export async function createAutomations(
   body: CreateAutomationRequest,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<CreateAutomationResponse> {
-  CreateAutomationRequestSchema.parse(body);
-  const res = await _request("POST", "/automations", { body }, config);
-  return CreateAutomationResponseSchema.parse(await res.json());
+  CreateAutomationRequestSchema.parse(body)
+  const res = await _request('POST', '/automations', { body }, config)
+  return CreateAutomationResponseSchema.parse(await res.json())
 }
 
 export async function getAutomationsByAutomationId(
   automationId: string,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<Automation> {
-  const res = await _request(
-    "GET",
-    `/automations/${encodeURIComponent(automationId)}`,
-    {},
-    config,
-  );
-  return AutomationSchema.parse(await res.json());
+  const res = await _request('GET', `/automations/${encodeURIComponent(automationId)}`, {}, config)
+  return AutomationSchema.parse(await res.json())
 }
 
 export async function patchAutomationsByAutomationId(
   automationId: string,
   body: PatchAutomationRequest,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<PatchAutomationResponse> {
-  PatchAutomationRequestSchema.parse(body);
+  PatchAutomationRequestSchema.parse(body)
   const res = await _request(
-    "PATCH",
+    'PATCH',
     `/automations/${encodeURIComponent(automationId)}`,
     { body },
-    config,
-  );
-  return PatchAutomationResponseSchema.parse(await res.json());
+    config
+  )
+  return PatchAutomationResponseSchema.parse(await res.json())
 }
 
 export async function deleteAutomationsByAutomationId(
   automationId: string,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<DeleteAutomationResponse> {
   const res = await _request(
-    "DELETE",
+    'DELETE',
     `/automations/${encodeURIComponent(automationId)}`,
     {},
-    config,
-  );
-  return DeleteAutomationResponseSchema.parse(await res.json());
+    config
+  )
+  return DeleteAutomationResponseSchema.parse(await res.json())
 }
 
 export async function createAutomationsByAutomationIdStop(
   automationId: string,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<StopAutomationResponse> {
   const res = await _request(
-    "POST",
+    'POST',
     `/automations/${encodeURIComponent(automationId)}/stop`,
     {},
-    config,
-  );
-  return StopAutomationResponseSchema.parse(await res.json());
+    config
+  )
+  return StopAutomationResponseSchema.parse(await res.json())
 }
 
 export async function getAutomationsByAutomationIdRuns(
   automationId: string,
   params?: {
-    status?: string;
-    limit?: number;
-    after?: string;
-    before?: string;
+    status?: string
+    limit?: number
+    after?: string
+    before?: string
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<ListAutomationRunsResponse> {
-  const searchParams = new URLSearchParams();
-  if (params?.status != null) searchParams.set("status", String(params.status));
-  if (params?.limit != null) searchParams.set("limit", String(params.limit));
-  if (params?.after != null) searchParams.set("after", String(params.after));
-  if (params?.before != null) searchParams.set("before", String(params.before));
+  const searchParams = new URLSearchParams()
+  if (params?.status != null) searchParams.set('status', String(params.status))
+  if (params?.limit != null) searchParams.set('limit', String(params.limit))
+  if (params?.after != null) searchParams.set('after', String(params.after))
+  if (params?.before != null) searchParams.set('before', String(params.before))
   const res = await _request(
-    "GET",
+    'GET',
     `/automations/${encodeURIComponent(automationId)}/runs`,
     { searchParams },
-    config,
-  );
-  return ListAutomationRunsResponseSchema.parse(await res.json());
+    config
+  )
+  return ListAutomationRunsResponseSchema.parse(await res.json())
 }
 
 export async function getAutomationsByAutomationIdRunsByRunId(
   automationId: string,
   runId: string,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<AutomationRun> {
   const res = await _request(
-    "GET",
+    'GET',
     `/automations/${encodeURIComponent(automationId)}/runs/${encodeURIComponent(runId)}`,
     {},
-    config,
-  );
-  return AutomationRunSchema.parse(await res.json());
+    config
+  )
+  return AutomationRunSchema.parse(await res.json())
 }
 
 export async function getEvents(
   params?: {
-    limit?: number;
-    after?: string;
-    before?: string;
+    limit?: number
+    after?: string
+    before?: string
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<ListEventsResponse> {
-  const searchParams = new URLSearchParams();
-  if (params?.limit != null) searchParams.set("limit", String(params.limit));
-  if (params?.after != null) searchParams.set("after", String(params.after));
-  if (params?.before != null) searchParams.set("before", String(params.before));
-  const res = await _request("GET", "/events", { searchParams }, config);
-  return ListEventsResponseSchema.parse(await res.json());
+  const searchParams = new URLSearchParams()
+  if (params?.limit != null) searchParams.set('limit', String(params.limit))
+  if (params?.after != null) searchParams.set('after', String(params.after))
+  if (params?.before != null) searchParams.set('before', String(params.before))
+  const res = await _request('GET', '/events', { searchParams }, config)
+  return ListEventsResponseSchema.parse(await res.json())
 }
 
 export async function createEvents(
   body: CreateEventRequest,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<CreateEventResponse> {
-  CreateEventRequestSchema.parse(body);
-  const res = await _request("POST", "/events", { body }, config);
-  return CreateEventResponseSchema.parse(await res.json());
+  CreateEventRequestSchema.parse(body)
+  const res = await _request('POST', '/events', { body }, config)
+  return CreateEventResponseSchema.parse(await res.json())
 }
 
 export async function createEventsSend(
   body: SendEventRequest,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<void> {
-  SendEventRequestSchema.parse(body);
-  await _request("POST", "/events/send", { body }, config);
+  SendEventRequestSchema.parse(body)
+  await _request('POST', '/events/send', { body }, config)
 }
 
 export async function getEventsByIdentifier(
   identifier: string,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<Event> {
-  const res = await _request(
-    "GET",
-    `/events/${encodeURIComponent(identifier)}`,
-    {},
-    config,
-  );
-  return EventSchema.parse(await res.json());
+  const res = await _request('GET', `/events/${encodeURIComponent(identifier)}`, {}, config)
+  return EventSchema.parse(await res.json())
 }
 
 export async function patchEventsByIdentifier(
   identifier: string,
   body: UpdateEventRequest,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<UpdateEventResponse> {
-  UpdateEventRequestSchema.parse(body);
-  const res = await _request(
-    "PATCH",
-    `/events/${encodeURIComponent(identifier)}`,
-    { body },
-    config,
-  );
-  return UpdateEventResponseSchema.parse(await res.json());
+  UpdateEventRequestSchema.parse(body)
+  const res = await _request('PATCH', `/events/${encodeURIComponent(identifier)}`, { body }, config)
+  return UpdateEventResponseSchema.parse(await res.json())
 }
 
 export async function deleteEventsByIdentifier(
   identifier: string,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<RemoveEventResponse> {
-  const res = await _request(
-    "DELETE",
-    `/events/${encodeURIComponent(identifier)}`,
-    {},
-    config,
-  );
-  return RemoveEventResponseSchema.parse(await res.json());
+  const res = await _request('DELETE', `/events/${encodeURIComponent(identifier)}`, {}, config)
+  return RemoveEventResponseSchema.parse(await res.json())
 }

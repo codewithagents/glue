@@ -211,52 +211,50 @@ import type {
   VoiceConsentListResource,
   VoiceConsentResource,
   VoiceResource,
-} from "./models.js";
-import { getConfig, type ClientConfig } from "./client-config.js";
+} from './models.js'
+import { getConfig, type ClientConfig } from './client-config.js'
 
 export class ApiError extends Error {
   constructor(
     public readonly status: number,
-    public readonly body: unknown,
+    public readonly body: unknown
   ) {
-    super(`API error ${status}`);
-    this.name = "ApiError";
+    super(`API error ${status}`)
+    this.name = 'ApiError'
   }
 }
 
-type _FetchResponse = Awaited<ReturnType<typeof fetch>>;
+type _FetchResponse = Awaited<ReturnType<typeof fetch>>
 
 async function _request(
   method: string,
   path: string,
   opts: {
-    searchParams?: URLSearchParams;
-    body?: unknown;
+    searchParams?: URLSearchParams
+    body?: unknown
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<_FetchResponse> {
-  const { baseUrl, token, headers, onError } = { ...getConfig(), ...config };
-  const base = baseUrl ? baseUrl.replace(/\/$/, "") : "";
-  const qs = opts.searchParams?.toString() ?? "";
-  const url = qs ? `${base}${path}?${qs}` : `${base}${path}`;
-  const resolvedToken = typeof token === "function" ? await token() : token;
+  const { baseUrl, token, headers, onError } = { ...getConfig(), ...config }
+  const base = baseUrl ? baseUrl.replace(/\/$/, '') : ''
+  const qs = opts.searchParams?.toString() ?? ''
+  const url = qs ? `${base}${path}?${qs}` : `${base}${path}`
+  const resolvedToken = typeof token === 'function' ? await token() : token
   const res = await fetch(url, {
     method,
     headers: {
-      ...(opts.body !== undefined
-        ? { "Content-Type": "application/json" }
-        : {}),
+      ...(opts.body !== undefined ? { 'Content-Type': 'application/json' } : {}),
       ...headers,
       ...(resolvedToken ? { Authorization: `Bearer ${resolvedToken}` } : {}),
     },
     ...(opts.body !== undefined ? { body: JSON.stringify(opts.body) } : {}),
-  });
+  })
   if (!res.ok) {
-    const err = new ApiError(res.status, await res.json().catch(() => null));
-    onError?.(err);
-    throw err;
+    const err = new ApiError(res.status, await res.json().catch(() => null))
+    onError?.(err)
+    throw err
   }
-  return res;
+  return res
 }
 
 /**
@@ -264,20 +262,20 @@ async function _request(
  */
 export async function listAssistants(
   params?: {
-    limit?: number;
-    order?: "asc" | "desc";
-    after?: string;
-    before?: string;
+    limit?: number
+    order?: 'asc' | 'desc'
+    after?: string
+    before?: string
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<ListAssistantsResponse> {
-  const searchParams = new URLSearchParams();
-  if (params?.limit != null) searchParams.set("limit", String(params.limit));
-  if (params?.order != null) searchParams.set("order", String(params.order));
-  if (params?.after != null) searchParams.set("after", String(params.after));
-  if (params?.before != null) searchParams.set("before", String(params.before));
-  const res = await _request("GET", "/assistants", { searchParams }, config);
-  return res.json();
+  const searchParams = new URLSearchParams()
+  if (params?.limit != null) searchParams.set('limit', String(params.limit))
+  if (params?.order != null) searchParams.set('order', String(params.order))
+  if (params?.after != null) searchParams.set('after', String(params.after))
+  if (params?.before != null) searchParams.set('before', String(params.before))
+  const res = await _request('GET', '/assistants', { searchParams }, config)
+  return res.json()
 }
 
 /**
@@ -285,10 +283,10 @@ export async function listAssistants(
  */
 export async function createAssistant(
   body: CreateAssistantRequest,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<AssistantObject> {
-  const res = await _request("POST", "/assistants", { body }, config);
-  return res.json();
+  const res = await _request('POST', '/assistants', { body }, config)
+  return res.json()
 }
 
 /**
@@ -296,15 +294,10 @@ export async function createAssistant(
  */
 export async function getAssistant(
   assistantId: string,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<AssistantObject> {
-  const res = await _request(
-    "GET",
-    `/assistants/${encodeURIComponent(assistantId)}`,
-    {},
-    config,
-  );
-  return res.json();
+  const res = await _request('GET', `/assistants/${encodeURIComponent(assistantId)}`, {}, config)
+  return res.json()
 }
 
 /**
@@ -313,15 +306,15 @@ export async function getAssistant(
 export async function modifyAssistant(
   assistantId: string,
   body: ModifyAssistantRequest,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<AssistantObject> {
   const res = await _request(
-    "POST",
+    'POST',
     `/assistants/${encodeURIComponent(assistantId)}`,
     { body },
-    config,
-  );
-  return res.json();
+    config
+  )
+  return res.json()
 }
 
 /**
@@ -329,532 +322,473 @@ export async function modifyAssistant(
  */
 export async function deleteAssistant(
   assistantId: string,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<DeleteAssistantResponse> {
-  const res = await _request(
-    "DELETE",
-    `/assistants/${encodeURIComponent(assistantId)}`,
-    {},
-    config,
-  );
-  return res.json();
+  const res = await _request('DELETE', `/assistants/${encodeURIComponent(assistantId)}`, {}, config)
+  return res.json()
 }
 
 export async function createSpeech(
   body: CreateSpeechRequest,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<void> {
-  await _request("POST", "/audio/speech", { body }, config);
+  await _request('POST', '/audio/speech', { body }, config)
 }
 
-export async function createTranscription(
-  config?: Partial<ClientConfig>,
-): Promise<unknown> {
-  const res = await _request("POST", "/audio/transcriptions", {}, config);
-  return res.json();
+export async function createTranscription(config?: Partial<ClientConfig>): Promise<unknown> {
+  const res = await _request('POST', '/audio/transcriptions', {}, config)
+  return res.json()
 }
 
-export async function createTranslation(
-  config?: Partial<ClientConfig>,
-): Promise<unknown> {
-  const res = await _request("POST", "/audio/translations", {}, config);
-  return res.json();
+export async function createTranslation(config?: Partial<ClientConfig>): Promise<unknown> {
+  const res = await _request('POST', '/audio/translations', {}, config)
+  return res.json()
 }
 
 export async function listVoiceConsents(
   params?: {
-    after?: string;
-    limit?: number;
+    after?: string
+    limit?: number
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<VoiceConsentListResource> {
-  const searchParams = new URLSearchParams();
-  if (params?.after != null) searchParams.set("after", String(params.after));
-  if (params?.limit != null) searchParams.set("limit", String(params.limit));
-  const res = await _request(
-    "GET",
-    "/audio/voice_consents",
-    { searchParams },
-    config,
-  );
-  return res.json();
+  const searchParams = new URLSearchParams()
+  if (params?.after != null) searchParams.set('after', String(params.after))
+  if (params?.limit != null) searchParams.set('limit', String(params.limit))
+  const res = await _request('GET', '/audio/voice_consents', { searchParams }, config)
+  return res.json()
 }
 
 export async function createVoiceConsent(
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<VoiceConsentResource> {
-  const res = await _request("POST", "/audio/voice_consents", {}, config);
-  return res.json();
+  const res = await _request('POST', '/audio/voice_consents', {}, config)
+  return res.json()
 }
 
 export async function getVoiceConsent(
   consentId: string,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<VoiceConsentResource> {
   const res = await _request(
-    "GET",
+    'GET',
     `/audio/voice_consents/${encodeURIComponent(consentId)}`,
     {},
-    config,
-  );
-  return res.json();
+    config
+  )
+  return res.json()
 }
 
 export async function updateVoiceConsent(
   consentId: string,
   body: UpdateVoiceConsentRequest,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<VoiceConsentResource> {
   const res = await _request(
-    "POST",
+    'POST',
     `/audio/voice_consents/${encodeURIComponent(consentId)}`,
     { body },
-    config,
-  );
-  return res.json();
+    config
+  )
+  return res.json()
 }
 
 export async function deleteVoiceConsent(
   consentId: string,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<VoiceConsentDeletedResource> {
   const res = await _request(
-    "DELETE",
+    'DELETE',
     `/audio/voice_consents/${encodeURIComponent(consentId)}`,
     {},
-    config,
-  );
-  return res.json();
+    config
+  )
+  return res.json()
 }
 
-export async function createVoice(
-  config?: Partial<ClientConfig>,
-): Promise<VoiceResource> {
-  const res = await _request("POST", "/audio/voices", {}, config);
-  return res.json();
+export async function createVoice(config?: Partial<ClientConfig>): Promise<VoiceResource> {
+  const res = await _request('POST', '/audio/voices', {}, config)
+  return res.json()
 }
 
 export async function listBatches(
   params?: {
-    after?: string;
-    limit?: number;
+    after?: string
+    limit?: number
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<ListBatchesResponse> {
-  const searchParams = new URLSearchParams();
-  if (params?.after != null) searchParams.set("after", String(params.after));
-  if (params?.limit != null) searchParams.set("limit", String(params.limit));
-  const res = await _request("GET", "/batches", { searchParams }, config);
-  return res.json();
+  const searchParams = new URLSearchParams()
+  if (params?.after != null) searchParams.set('after', String(params.after))
+  if (params?.limit != null) searchParams.set('limit', String(params.limit))
+  const res = await _request('GET', '/batches', { searchParams }, config)
+  return res.json()
 }
 
 export async function createBatch(
   body: Record<string, unknown>,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<Batch> {
-  const res = await _request("POST", "/batches", { body }, config);
-  return res.json();
+  const res = await _request('POST', '/batches', { body }, config)
+  return res.json()
 }
 
 export async function retrieveBatch(
   batchId: string,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<Batch> {
-  const res = await _request(
-    "GET",
-    `/batches/${encodeURIComponent(batchId)}`,
-    {},
-    config,
-  );
-  return res.json();
+  const res = await _request('GET', `/batches/${encodeURIComponent(batchId)}`, {}, config)
+  return res.json()
 }
 
-export async function cancelBatch(
-  batchId: string,
-  config?: Partial<ClientConfig>,
-): Promise<Batch> {
-  const res = await _request(
-    "POST",
-    `/batches/${encodeURIComponent(batchId)}/cancel`,
-    {},
-    config,
-  );
-  return res.json();
+export async function cancelBatch(batchId: string, config?: Partial<ClientConfig>): Promise<Batch> {
+  const res = await _request('POST', `/batches/${encodeURIComponent(batchId)}/cancel`, {}, config)
+  return res.json()
 }
 
 export async function listChatCompletions(
   params?: {
-    model?: string;
-    metadata?: string;
-    after?: string;
-    limit?: number;
-    order?: "asc" | "desc";
+    model?: string
+    metadata?: string
+    after?: string
+    limit?: number
+    order?: 'asc' | 'desc'
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<ChatCompletionList> {
-  const searchParams = new URLSearchParams();
-  if (params?.model != null) searchParams.set("model", String(params.model));
-  if (params?.metadata != null)
-    searchParams.set("metadata", String(params.metadata));
-  if (params?.after != null) searchParams.set("after", String(params.after));
-  if (params?.limit != null) searchParams.set("limit", String(params.limit));
-  if (params?.order != null) searchParams.set("order", String(params.order));
-  const res = await _request(
-    "GET",
-    "/chat/completions",
-    { searchParams },
-    config,
-  );
-  return res.json();
+  const searchParams = new URLSearchParams()
+  if (params?.model != null) searchParams.set('model', String(params.model))
+  if (params?.metadata != null) searchParams.set('metadata', String(params.metadata))
+  if (params?.after != null) searchParams.set('after', String(params.after))
+  if (params?.limit != null) searchParams.set('limit', String(params.limit))
+  if (params?.order != null) searchParams.set('order', String(params.order))
+  const res = await _request('GET', '/chat/completions', { searchParams }, config)
+  return res.json()
 }
 
 export async function createChatCompletion(
   body: CreateChatCompletionRequest,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<CreateChatCompletionResponse> {
-  const res = await _request("POST", "/chat/completions", { body }, config);
-  return res.json();
+  const res = await _request('POST', '/chat/completions', { body }, config)
+  return res.json()
 }
 
 export async function getChatCompletion(
   completionId: string,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<CreateChatCompletionResponse> {
   const res = await _request(
-    "GET",
+    'GET',
     `/chat/completions/${encodeURIComponent(completionId)}`,
     {},
-    config,
-  );
-  return res.json();
+    config
+  )
+  return res.json()
 }
 
 export async function updateChatCompletion(
   completionId: string,
   body: Record<string, unknown>,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<CreateChatCompletionResponse> {
   const res = await _request(
-    "POST",
+    'POST',
     `/chat/completions/${encodeURIComponent(completionId)}`,
     { body },
-    config,
-  );
-  return res.json();
+    config
+  )
+  return res.json()
 }
 
 export async function deleteChatCompletion(
   completionId: string,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<ChatCompletionDeleted> {
   const res = await _request(
-    "DELETE",
+    'DELETE',
     `/chat/completions/${encodeURIComponent(completionId)}`,
     {},
-    config,
-  );
-  return res.json();
+    config
+  )
+  return res.json()
 }
 
 export async function getChatCompletionMessages(
   completionId: string,
   params?: {
-    after?: string;
-    limit?: number;
-    order?: "asc" | "desc";
+    after?: string
+    limit?: number
+    order?: 'asc' | 'desc'
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<ChatCompletionMessageList> {
-  const searchParams = new URLSearchParams();
-  if (params?.after != null) searchParams.set("after", String(params.after));
-  if (params?.limit != null) searchParams.set("limit", String(params.limit));
-  if (params?.order != null) searchParams.set("order", String(params.order));
+  const searchParams = new URLSearchParams()
+  if (params?.after != null) searchParams.set('after', String(params.after))
+  if (params?.limit != null) searchParams.set('limit', String(params.limit))
+  if (params?.order != null) searchParams.set('order', String(params.order))
   const res = await _request(
-    "GET",
+    'GET',
     `/chat/completions/${encodeURIComponent(completionId)}/messages`,
     { searchParams },
-    config,
-  );
-  return res.json();
+    config
+  )
+  return res.json()
 }
 
 export async function createCompletion(
   body: CreateCompletionRequest,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<CreateCompletionResponse> {
-  const res = await _request("POST", "/completions", { body }, config);
-  return res.json();
+  const res = await _request('POST', '/completions', { body }, config)
+  return res.json()
 }
 
 export async function listContainers(
   params?: {
-    limit?: number;
-    order?: "asc" | "desc";
-    after?: string;
-    name?: string;
+    limit?: number
+    order?: 'asc' | 'desc'
+    after?: string
+    name?: string
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<ContainerListResource> {
-  const searchParams = new URLSearchParams();
-  if (params?.limit != null) searchParams.set("limit", String(params.limit));
-  if (params?.order != null) searchParams.set("order", String(params.order));
-  if (params?.after != null) searchParams.set("after", String(params.after));
-  if (params?.name != null) searchParams.set("name", String(params.name));
-  const res = await _request("GET", "/containers", { searchParams }, config);
-  return res.json();
+  const searchParams = new URLSearchParams()
+  if (params?.limit != null) searchParams.set('limit', String(params.limit))
+  if (params?.order != null) searchParams.set('order', String(params.order))
+  if (params?.after != null) searchParams.set('after', String(params.after))
+  if (params?.name != null) searchParams.set('name', String(params.name))
+  const res = await _request('GET', '/containers', { searchParams }, config)
+  return res.json()
 }
 
 export async function createContainer(
   body: CreateContainerBody,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<ContainerResource> {
-  const res = await _request("POST", "/containers", { body }, config);
-  return res.json();
+  const res = await _request('POST', '/containers', { body }, config)
+  return res.json()
 }
 
 export async function retrieveContainer(
   containerId: string,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<ContainerResource> {
-  const res = await _request(
-    "GET",
-    `/containers/${encodeURIComponent(containerId)}`,
-    {},
-    config,
-  );
-  return res.json();
+  const res = await _request('GET', `/containers/${encodeURIComponent(containerId)}`, {}, config)
+  return res.json()
 }
 
 export async function deleteContainer(
   containerId: string,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<void> {
-  await _request(
-    "DELETE",
-    `/containers/${encodeURIComponent(containerId)}`,
-    {},
-    config,
-  );
+  await _request('DELETE', `/containers/${encodeURIComponent(containerId)}`, {}, config)
 }
 
 export async function listContainerFiles(
   containerId: string,
   params?: {
-    limit?: number;
-    order?: "asc" | "desc";
-    after?: string;
+    limit?: number
+    order?: 'asc' | 'desc'
+    after?: string
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<ContainerFileListResource> {
-  const searchParams = new URLSearchParams();
-  if (params?.limit != null) searchParams.set("limit", String(params.limit));
-  if (params?.order != null) searchParams.set("order", String(params.order));
-  if (params?.after != null) searchParams.set("after", String(params.after));
+  const searchParams = new URLSearchParams()
+  if (params?.limit != null) searchParams.set('limit', String(params.limit))
+  if (params?.order != null) searchParams.set('order', String(params.order))
+  if (params?.after != null) searchParams.set('after', String(params.after))
   const res = await _request(
-    "GET",
+    'GET',
     `/containers/${encodeURIComponent(containerId)}/files`,
     { searchParams },
-    config,
-  );
-  return res.json();
+    config
+  )
+  return res.json()
 }
 
 export async function createContainerFile(
   containerId: string,
   body: CreateContainerFileBody,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<ContainerFileResource> {
   const res = await _request(
-    "POST",
+    'POST',
     `/containers/${encodeURIComponent(containerId)}/files`,
     { body },
-    config,
-  );
-  return res.json();
+    config
+  )
+  return res.json()
 }
 
 export async function retrieveContainerFile(
   containerId: string,
   fileId: string,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<ContainerFileResource> {
   const res = await _request(
-    "GET",
+    'GET',
     `/containers/${encodeURIComponent(containerId)}/files/${encodeURIComponent(fileId)}`,
     {},
-    config,
-  );
-  return res.json();
+    config
+  )
+  return res.json()
 }
 
 export async function deleteContainerFile(
   containerId: string,
   fileId: string,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<void> {
   await _request(
-    "DELETE",
+    'DELETE',
     `/containers/${encodeURIComponent(containerId)}/files/${encodeURIComponent(fileId)}`,
     {},
-    config,
-  );
+    config
+  )
 }
 
 export async function retrieveContainerFileContent(
   containerId: string,
   fileId: string,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<void> {
   await _request(
-    "GET",
+    'GET',
     `/containers/${encodeURIComponent(containerId)}/files/${encodeURIComponent(fileId)}/content`,
     {},
-    config,
-  );
+    config
+  )
 }
 
 export async function listConversationItems(
   conversationId: string,
   params?: {
-    limit?: number;
-    order?: "asc" | "desc";
-    after?: string;
-    include?: string[];
+    limit?: number
+    order?: 'asc' | 'desc'
+    after?: string
+    include?: string[]
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<ConversationItemList> {
-  const searchParams = new URLSearchParams();
-  if (params?.limit != null) searchParams.set("limit", String(params.limit));
-  if (params?.order != null) searchParams.set("order", String(params.order));
-  if (params?.after != null) searchParams.set("after", String(params.after));
+  const searchParams = new URLSearchParams()
+  if (params?.limit != null) searchParams.set('limit', String(params.limit))
+  if (params?.order != null) searchParams.set('order', String(params.order))
+  if (params?.after != null) searchParams.set('after', String(params.after))
   if (params?.include != null) {
-    for (const v of params.include) searchParams.append("include", String(v));
+    for (const v of params.include) searchParams.append('include', String(v))
   }
   const res = await _request(
-    "GET",
+    'GET',
     `/conversations/${encodeURIComponent(conversationId)}/items`,
     { searchParams },
-    config,
-  );
-  return res.json();
+    config
+  )
+  return res.json()
 }
 
 export async function createConversationItems(
   conversationId: string,
   body: unknown,
   params?: {
-    include?: string[];
+    include?: string[]
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<ConversationItemList> {
-  const searchParams = new URLSearchParams();
+  const searchParams = new URLSearchParams()
   if (params?.include != null) {
-    for (const v of params.include) searchParams.append("include", String(v));
+    for (const v of params.include) searchParams.append('include', String(v))
   }
   const res = await _request(
-    "POST",
+    'POST',
     `/conversations/${encodeURIComponent(conversationId)}/items`,
     { searchParams, body },
-    config,
-  );
-  return res.json();
+    config
+  )
+  return res.json()
 }
 
 export async function getConversationItem(
   conversationId: string,
   itemId: string,
   params?: {
-    include?: string[];
+    include?: string[]
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<ConversationItem> {
-  const searchParams = new URLSearchParams();
+  const searchParams = new URLSearchParams()
   if (params?.include != null) {
-    for (const v of params.include) searchParams.append("include", String(v));
+    for (const v of params.include) searchParams.append('include', String(v))
   }
   const res = await _request(
-    "GET",
+    'GET',
     `/conversations/${encodeURIComponent(conversationId)}/items/${encodeURIComponent(itemId)}`,
     { searchParams },
-    config,
-  );
-  return res.json();
+    config
+  )
+  return res.json()
 }
 
 export async function deleteConversationItem(
   conversationId: string,
   itemId: string,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<ConversationResource> {
   const res = await _request(
-    "DELETE",
+    'DELETE',
     `/conversations/${encodeURIComponent(conversationId)}/items/${encodeURIComponent(itemId)}`,
     {},
-    config,
-  );
-  return res.json();
+    config
+  )
+  return res.json()
 }
 
 export async function createEmbedding(
   body: CreateEmbeddingRequest,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<CreateEmbeddingResponse> {
-  const res = await _request("POST", "/embeddings", { body }, config);
-  return res.json();
+  const res = await _request('POST', '/embeddings', { body }, config)
+  return res.json()
 }
 
 export async function listEvals(
   params?: {
-    after?: string;
-    limit?: number;
-    order?: "asc" | "desc";
-    orderBy?: "created_at" | "updated_at";
+    after?: string
+    limit?: number
+    order?: 'asc' | 'desc'
+    orderBy?: 'created_at' | 'updated_at'
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<EvalList> {
-  const searchParams = new URLSearchParams();
-  if (params?.after != null) searchParams.set("after", String(params.after));
-  if (params?.limit != null) searchParams.set("limit", String(params.limit));
-  if (params?.order != null) searchParams.set("order", String(params.order));
-  if (params?.orderBy != null)
-    searchParams.set("order_by", String(params.orderBy));
-  const res = await _request("GET", "/evals", { searchParams }, config);
-  return res.json();
+  const searchParams = new URLSearchParams()
+  if (params?.after != null) searchParams.set('after', String(params.after))
+  if (params?.limit != null) searchParams.set('limit', String(params.limit))
+  if (params?.order != null) searchParams.set('order', String(params.order))
+  if (params?.orderBy != null) searchParams.set('order_by', String(params.orderBy))
+  const res = await _request('GET', '/evals', { searchParams }, config)
+  return res.json()
 }
 
 export async function createEval(
   body: CreateEvalRequest,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<Eval> {
-  const res = await _request("POST", "/evals", { body }, config);
-  return res.json();
+  const res = await _request('POST', '/evals', { body }, config)
+  return res.json()
 }
 
-export async function getEval(
-  evalId: string,
-  config?: Partial<ClientConfig>,
-): Promise<Eval> {
-  const res = await _request(
-    "GET",
-    `/evals/${encodeURIComponent(evalId)}`,
-    {},
-    config,
-  );
-  return res.json();
+export async function getEval(evalId: string, config?: Partial<ClientConfig>): Promise<Eval> {
+  const res = await _request('GET', `/evals/${encodeURIComponent(evalId)}`, {}, config)
+  return res.json()
 }
 
 export async function updateEval(
   evalId: string,
   body: Record<string, unknown>,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<Eval> {
-  const res = await _request(
-    "POST",
-    `/evals/${encodeURIComponent(evalId)}`,
-    { body },
-    config,
-  );
-  return res.json();
+  const res = await _request('POST', `/evals/${encodeURIComponent(evalId)}`, { body }, config)
+  return res.json()
 }
 
 /**
@@ -862,39 +796,34 @@ export async function updateEval(
  */
 export async function deleteEval(
   evalId: string,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<Record<string, unknown>> {
-  const res = await _request(
-    "DELETE",
-    `/evals/${encodeURIComponent(evalId)}`,
-    {},
-    config,
-  );
-  return res.json();
+  const res = await _request('DELETE', `/evals/${encodeURIComponent(evalId)}`, {}, config)
+  return res.json()
 }
 
 export async function getEvalRuns(
   evalId: string,
   params?: {
-    after?: string;
-    limit?: number;
-    order?: "asc" | "desc";
-    status?: "queued" | "in_progress" | "completed" | "canceled" | "failed";
+    after?: string
+    limit?: number
+    order?: 'asc' | 'desc'
+    status?: 'queued' | 'in_progress' | 'completed' | 'canceled' | 'failed'
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<EvalRunList> {
-  const searchParams = new URLSearchParams();
-  if (params?.after != null) searchParams.set("after", String(params.after));
-  if (params?.limit != null) searchParams.set("limit", String(params.limit));
-  if (params?.order != null) searchParams.set("order", String(params.order));
-  if (params?.status != null) searchParams.set("status", String(params.status));
+  const searchParams = new URLSearchParams()
+  if (params?.after != null) searchParams.set('after', String(params.after))
+  if (params?.limit != null) searchParams.set('limit', String(params.limit))
+  if (params?.order != null) searchParams.set('order', String(params.order))
+  if (params?.status != null) searchParams.set('status', String(params.status))
   const res = await _request(
-    "GET",
+    'GET',
     `/evals/${encodeURIComponent(evalId)}/runs`,
     { searchParams },
-    config,
-  );
-  return res.json();
+    config
+  )
+  return res.json()
 }
 
 /**
@@ -903,43 +832,38 @@ export async function getEvalRuns(
 export async function createEvalRun(
   evalId: string,
   body: CreateEvalRunRequest,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<EvalRun> {
-  const res = await _request(
-    "POST",
-    `/evals/${encodeURIComponent(evalId)}/runs`,
-    { body },
-    config,
-  );
-  return res.json();
+  const res = await _request('POST', `/evals/${encodeURIComponent(evalId)}/runs`, { body }, config)
+  return res.json()
 }
 
 export async function getEvalRun(
   evalId: string,
   runId: string,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<EvalRun> {
   const res = await _request(
-    "GET",
+    'GET',
     `/evals/${encodeURIComponent(evalId)}/runs/${encodeURIComponent(runId)}`,
     {},
-    config,
-  );
-  return res.json();
+    config
+  )
+  return res.json()
 }
 
 export async function cancelEvalRun(
   evalId: string,
   runId: string,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<EvalRun> {
   const res = await _request(
-    "POST",
+    'POST',
     `/evals/${encodeURIComponent(evalId)}/runs/${encodeURIComponent(runId)}`,
     {},
-    config,
-  );
-  return res.json();
+    config
+  )
+  return res.json()
 }
 
 /**
@@ -948,900 +872,779 @@ export async function cancelEvalRun(
 export async function deleteEvalRun(
   evalId: string,
   runId: string,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<Record<string, unknown>> {
   const res = await _request(
-    "DELETE",
+    'DELETE',
     `/evals/${encodeURIComponent(evalId)}/runs/${encodeURIComponent(runId)}`,
     {},
-    config,
-  );
-  return res.json();
+    config
+  )
+  return res.json()
 }
 
 export async function getEvalRunOutputItems(
   evalId: string,
   runId: string,
   params?: {
-    after?: string;
-    limit?: number;
-    status?: "fail" | "pass";
-    order?: "asc" | "desc";
+    after?: string
+    limit?: number
+    status?: 'fail' | 'pass'
+    order?: 'asc' | 'desc'
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<EvalRunOutputItemList> {
-  const searchParams = new URLSearchParams();
-  if (params?.after != null) searchParams.set("after", String(params.after));
-  if (params?.limit != null) searchParams.set("limit", String(params.limit));
-  if (params?.status != null) searchParams.set("status", String(params.status));
-  if (params?.order != null) searchParams.set("order", String(params.order));
+  const searchParams = new URLSearchParams()
+  if (params?.after != null) searchParams.set('after', String(params.after))
+  if (params?.limit != null) searchParams.set('limit', String(params.limit))
+  if (params?.status != null) searchParams.set('status', String(params.status))
+  if (params?.order != null) searchParams.set('order', String(params.order))
   const res = await _request(
-    "GET",
+    'GET',
     `/evals/${encodeURIComponent(evalId)}/runs/${encodeURIComponent(runId)}/output_items`,
     { searchParams },
-    config,
-  );
-  return res.json();
+    config
+  )
+  return res.json()
 }
 
 export async function getEvalRunOutputItem(
   evalId: string,
   runId: string,
   outputItemId: string,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<EvalRunOutputItem> {
   const res = await _request(
-    "GET",
+    'GET',
     `/evals/${encodeURIComponent(evalId)}/runs/${encodeURIComponent(runId)}/output_items/${encodeURIComponent(outputItemId)}`,
     {},
-    config,
-  );
-  return res.json();
+    config
+  )
+  return res.json()
 }
 
 export async function listFiles(
   params?: {
-    purpose?: string;
-    limit?: number;
-    order?: "asc" | "desc";
-    after?: string;
+    purpose?: string
+    limit?: number
+    order?: 'asc' | 'desc'
+    after?: string
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<ListFilesResponse> {
-  const searchParams = new URLSearchParams();
-  if (params?.purpose != null)
-    searchParams.set("purpose", String(params.purpose));
-  if (params?.limit != null) searchParams.set("limit", String(params.limit));
-  if (params?.order != null) searchParams.set("order", String(params.order));
-  if (params?.after != null) searchParams.set("after", String(params.after));
-  const res = await _request("GET", "/files", { searchParams }, config);
-  return res.json();
+  const searchParams = new URLSearchParams()
+  if (params?.purpose != null) searchParams.set('purpose', String(params.purpose))
+  if (params?.limit != null) searchParams.set('limit', String(params.limit))
+  if (params?.order != null) searchParams.set('order', String(params.order))
+  if (params?.after != null) searchParams.set('after', String(params.after))
+  const res = await _request('GET', '/files', { searchParams }, config)
+  return res.json()
 }
 
-export async function createFile(
-  config?: Partial<ClientConfig>,
-): Promise<OpenAIFile> {
-  const res = await _request("POST", "/files", {}, config);
-  return res.json();
+export async function createFile(config?: Partial<ClientConfig>): Promise<OpenAIFile> {
+  const res = await _request('POST', '/files', {}, config)
+  return res.json()
 }
 
 export async function retrieveFile(
   fileId: string,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<OpenAIFile> {
-  const res = await _request(
-    "GET",
-    `/files/${encodeURIComponent(fileId)}`,
-    {},
-    config,
-  );
-  return res.json();
+  const res = await _request('GET', `/files/${encodeURIComponent(fileId)}`, {}, config)
+  return res.json()
 }
 
 export async function deleteFile(
   fileId: string,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<DeleteFileResponse> {
-  const res = await _request(
-    "DELETE",
-    `/files/${encodeURIComponent(fileId)}`,
-    {},
-    config,
-  );
-  return res.json();
+  const res = await _request('DELETE', `/files/${encodeURIComponent(fileId)}`, {}, config)
+  return res.json()
 }
 
 export async function downloadFile(
   fileId: string,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<string> {
-  const res = await _request(
-    "GET",
-    `/files/${encodeURIComponent(fileId)}/content`,
-    {},
-    config,
-  );
-  return res.json();
+  const res = await _request('GET', `/files/${encodeURIComponent(fileId)}/content`, {}, config)
+  return res.json()
 }
 
 export async function runGrader(
   body: RunGraderRequest,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<RunGraderResponse> {
-  const res = await _request(
-    "POST",
-    "/fine_tuning/alpha/graders/run",
-    { body },
-    config,
-  );
-  return res.json();
+  const res = await _request('POST', '/fine_tuning/alpha/graders/run', { body }, config)
+  return res.json()
 }
 
 export async function validateGrader(
   body: ValidateGraderRequest,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<ValidateGraderResponse> {
-  const res = await _request(
-    "POST",
-    "/fine_tuning/alpha/graders/validate",
-    { body },
-    config,
-  );
-  return res.json();
+  const res = await _request('POST', '/fine_tuning/alpha/graders/validate', { body }, config)
+  return res.json()
 }
 
 export async function listFineTuningCheckpointPermissions(
   fineTunedModelCheckpoint: string,
   params?: {
-    projectId?: string;
-    after?: string;
-    limit?: number;
-    order?: "ascending" | "descending";
+    projectId?: string
+    after?: string
+    limit?: number
+    order?: 'ascending' | 'descending'
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<ListFineTuningCheckpointPermissionResponse> {
-  const searchParams = new URLSearchParams();
-  if (params?.projectId != null)
-    searchParams.set("project_id", String(params.projectId));
-  if (params?.after != null) searchParams.set("after", String(params.after));
-  if (params?.limit != null) searchParams.set("limit", String(params.limit));
-  if (params?.order != null) searchParams.set("order", String(params.order));
+  const searchParams = new URLSearchParams()
+  if (params?.projectId != null) searchParams.set('project_id', String(params.projectId))
+  if (params?.after != null) searchParams.set('after', String(params.after))
+  if (params?.limit != null) searchParams.set('limit', String(params.limit))
+  if (params?.order != null) searchParams.set('order', String(params.order))
   const res = await _request(
-    "GET",
+    'GET',
     `/fine_tuning/checkpoints/${encodeURIComponent(fineTunedModelCheckpoint)}/permissions`,
     { searchParams },
-    config,
-  );
-  return res.json();
+    config
+  )
+  return res.json()
 }
 
 export async function createFineTuningCheckpointPermission(
   fineTunedModelCheckpoint: string,
   body: CreateFineTuningCheckpointPermissionRequest,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<ListFineTuningCheckpointPermissionResponse> {
   const res = await _request(
-    "POST",
+    'POST',
     `/fine_tuning/checkpoints/${encodeURIComponent(fineTunedModelCheckpoint)}/permissions`,
     { body },
-    config,
-  );
-  return res.json();
+    config
+  )
+  return res.json()
 }
 
 export async function deleteFineTuningCheckpointPermission(
   fineTunedModelCheckpoint: string,
   permissionId: string,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<DeleteFineTuningCheckpointPermissionResponse> {
   const res = await _request(
-    "DELETE",
+    'DELETE',
     `/fine_tuning/checkpoints/${encodeURIComponent(fineTunedModelCheckpoint)}/permissions/${encodeURIComponent(permissionId)}`,
     {},
-    config,
-  );
-  return res.json();
+    config
+  )
+  return res.json()
 }
 
 export async function listPaginatedFineTuningJobs(
   params?: {
-    after?: string;
-    limit?: number;
-    metadata?: unknown;
+    after?: string
+    limit?: number
+    metadata?: unknown
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<ListPaginatedFineTuningJobsResponse> {
-  const searchParams = new URLSearchParams();
-  if (params?.after != null) searchParams.set("after", String(params.after));
-  if (params?.limit != null) searchParams.set("limit", String(params.limit));
-  if (params?.metadata != null)
-    searchParams.set("metadata", String(params.metadata));
-  const res = await _request(
-    "GET",
-    "/fine_tuning/jobs",
-    { searchParams },
-    config,
-  );
-  return res.json();
+  const searchParams = new URLSearchParams()
+  if (params?.after != null) searchParams.set('after', String(params.after))
+  if (params?.limit != null) searchParams.set('limit', String(params.limit))
+  if (params?.metadata != null) searchParams.set('metadata', String(params.metadata))
+  const res = await _request('GET', '/fine_tuning/jobs', { searchParams }, config)
+  return res.json()
 }
 
 export async function createFineTuningJob(
   body: CreateFineTuningJobRequest,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<FineTuningJob> {
-  const res = await _request("POST", "/fine_tuning/jobs", { body }, config);
-  return res.json();
+  const res = await _request('POST', '/fine_tuning/jobs', { body }, config)
+  return res.json()
 }
 
 export async function retrieveFineTuningJob(
   fineTuningJobId: string,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<FineTuningJob> {
   const res = await _request(
-    "GET",
+    'GET',
     `/fine_tuning/jobs/${encodeURIComponent(fineTuningJobId)}`,
     {},
-    config,
-  );
-  return res.json();
+    config
+  )
+  return res.json()
 }
 
 export async function cancelFineTuningJob(
   fineTuningJobId: string,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<FineTuningJob> {
   const res = await _request(
-    "POST",
+    'POST',
     `/fine_tuning/jobs/${encodeURIComponent(fineTuningJobId)}/cancel`,
     {},
-    config,
-  );
-  return res.json();
+    config
+  )
+  return res.json()
 }
 
 export async function listFineTuningJobCheckpoints(
   fineTuningJobId: string,
   params?: {
-    after?: string;
-    limit?: number;
+    after?: string
+    limit?: number
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<ListFineTuningJobCheckpointsResponse> {
-  const searchParams = new URLSearchParams();
-  if (params?.after != null) searchParams.set("after", String(params.after));
-  if (params?.limit != null) searchParams.set("limit", String(params.limit));
+  const searchParams = new URLSearchParams()
+  if (params?.after != null) searchParams.set('after', String(params.after))
+  if (params?.limit != null) searchParams.set('limit', String(params.limit))
   const res = await _request(
-    "GET",
+    'GET',
     `/fine_tuning/jobs/${encodeURIComponent(fineTuningJobId)}/checkpoints`,
     { searchParams },
-    config,
-  );
-  return res.json();
+    config
+  )
+  return res.json()
 }
 
 export async function listFineTuningEvents(
   fineTuningJobId: string,
   params?: {
-    after?: string;
-    limit?: number;
+    after?: string
+    limit?: number
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<ListFineTuningJobEventsResponse> {
-  const searchParams = new URLSearchParams();
-  if (params?.after != null) searchParams.set("after", String(params.after));
-  if (params?.limit != null) searchParams.set("limit", String(params.limit));
+  const searchParams = new URLSearchParams()
+  if (params?.after != null) searchParams.set('after', String(params.after))
+  if (params?.limit != null) searchParams.set('limit', String(params.limit))
   const res = await _request(
-    "GET",
+    'GET',
     `/fine_tuning/jobs/${encodeURIComponent(fineTuningJobId)}/events`,
     { searchParams },
-    config,
-  );
-  return res.json();
+    config
+  )
+  return res.json()
 }
 
 export async function pauseFineTuningJob(
   fineTuningJobId: string,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<FineTuningJob> {
   const res = await _request(
-    "POST",
+    'POST',
     `/fine_tuning/jobs/${encodeURIComponent(fineTuningJobId)}/pause`,
     {},
-    config,
-  );
-  return res.json();
+    config
+  )
+  return res.json()
 }
 
 export async function resumeFineTuningJob(
   fineTuningJobId: string,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<FineTuningJob> {
   const res = await _request(
-    "POST",
+    'POST',
     `/fine_tuning/jobs/${encodeURIComponent(fineTuningJobId)}/resume`,
     {},
-    config,
-  );
-  return res.json();
+    config
+  )
+  return res.json()
 }
 
 export async function createImageEdit(
   body: EditImageBodyJsonParam,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<ImagesResponse> {
-  const res = await _request("POST", "/images/edits", { body }, config);
-  return res.json();
+  const res = await _request('POST', '/images/edits', { body }, config)
+  return res.json()
 }
 
 export async function createImage(
   body: CreateImageRequest,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<ImagesResponse> {
-  const res = await _request("POST", "/images/generations", { body }, config);
-  return res.json();
+  const res = await _request('POST', '/images/generations', { body }, config)
+  return res.json()
 }
 
 export async function createImageVariation(
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<ImagesResponse> {
-  const res = await _request("POST", "/images/variations", {}, config);
-  return res.json();
+  const res = await _request('POST', '/images/variations', {}, config)
+  return res.json()
 }
 
-export async function listModels(
-  config?: Partial<ClientConfig>,
-): Promise<ListModelsResponse> {
-  const res = await _request("GET", "/models", {}, config);
-  return res.json();
+export async function listModels(config?: Partial<ClientConfig>): Promise<ListModelsResponse> {
+  const res = await _request('GET', '/models', {}, config)
+  return res.json()
 }
 
-export async function retrieveModel(
-  model: string,
-  config?: Partial<ClientConfig>,
-): Promise<Model> {
-  const res = await _request(
-    "GET",
-    `/models/${encodeURIComponent(model)}`,
-    {},
-    config,
-  );
-  return res.json();
+export async function retrieveModel(model: string, config?: Partial<ClientConfig>): Promise<Model> {
+  const res = await _request('GET', `/models/${encodeURIComponent(model)}`, {}, config)
+  return res.json()
 }
 
 export async function deleteModel(
   model: string,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<DeleteModelResponse> {
-  const res = await _request(
-    "DELETE",
-    `/models/${encodeURIComponent(model)}`,
-    {},
-    config,
-  );
-  return res.json();
+  const res = await _request('DELETE', `/models/${encodeURIComponent(model)}`, {}, config)
+  return res.json()
 }
 
 export async function createModeration(
   body: CreateModerationRequest,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<CreateModerationResponse> {
-  const res = await _request("POST", "/moderations", { body }, config);
-  return res.json();
+  const res = await _request('POST', '/moderations', { body }, config)
+  return res.json()
 }
 
 export async function adminApiKeysList(
   params?: {
-    after?: string;
-    order?: "asc" | "desc";
-    limit?: number;
+    after?: string
+    order?: 'asc' | 'desc'
+    limit?: number
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<ApiKeyList> {
-  const searchParams = new URLSearchParams();
-  if (params?.after != null) searchParams.set("after", String(params.after));
-  if (params?.order != null) searchParams.set("order", String(params.order));
-  if (params?.limit != null) searchParams.set("limit", String(params.limit));
-  const res = await _request(
-    "GET",
-    "/organization/admin_api_keys",
-    { searchParams },
-    config,
-  );
-  return res.json();
+  const searchParams = new URLSearchParams()
+  if (params?.after != null) searchParams.set('after', String(params.after))
+  if (params?.order != null) searchParams.set('order', String(params.order))
+  if (params?.limit != null) searchParams.set('limit', String(params.limit))
+  const res = await _request('GET', '/organization/admin_api_keys', { searchParams }, config)
+  return res.json()
 }
 
 export async function adminApiKeysCreate(
   body: Record<string, unknown>,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<AdminApiKeyCreateResponse> {
-  const res = await _request(
-    "POST",
-    "/organization/admin_api_keys",
-    { body },
-    config,
-  );
-  return res.json();
+  const res = await _request('POST', '/organization/admin_api_keys', { body }, config)
+  return res.json()
 }
 
 export async function adminApiKeysGet(
   keyId: string,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<AdminApiKey> {
   const res = await _request(
-    "GET",
+    'GET',
     `/organization/admin_api_keys/${encodeURIComponent(keyId)}`,
     {},
-    config,
-  );
-  return res.json();
+    config
+  )
+  return res.json()
 }
 
 export async function adminApiKeysDelete(
   keyId: string,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<Record<string, unknown>> {
   const res = await _request(
-    "DELETE",
+    'DELETE',
     `/organization/admin_api_keys/${encodeURIComponent(keyId)}`,
     {},
-    config,
-  );
-  return res.json();
+    config
+  )
+  return res.json()
 }
 
 export async function listAuditLogs(
   params?: {
-    effectiveAt?: unknown;
-    projectIds?: string[];
-    eventTypes?: string[];
-    actorIds?: string[];
-    actorEmails?: string[];
-    resourceIds?: string[];
-    limit?: number;
-    after?: string;
-    before?: string;
+    effectiveAt?: unknown
+    projectIds?: string[]
+    eventTypes?: string[]
+    actorIds?: string[]
+    actorEmails?: string[]
+    resourceIds?: string[]
+    limit?: number
+    after?: string
+    before?: string
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<ListAuditLogsResponse> {
-  const searchParams = new URLSearchParams();
-  if (params?.effectiveAt != null)
-    searchParams.set("effective_at", String(params.effectiveAt));
+  const searchParams = new URLSearchParams()
+  if (params?.effectiveAt != null) searchParams.set('effective_at', String(params.effectiveAt))
   if (params?.projectIds != null) {
-    for (const v of params.projectIds)
-      searchParams.append("project_ids[]", String(v));
+    for (const v of params.projectIds) searchParams.append('project_ids[]', String(v))
   }
   if (params?.eventTypes != null) {
-    for (const v of params.eventTypes)
-      searchParams.append("event_types[]", String(v));
+    for (const v of params.eventTypes) searchParams.append('event_types[]', String(v))
   }
   if (params?.actorIds != null) {
-    for (const v of params.actorIds)
-      searchParams.append("actor_ids[]", String(v));
+    for (const v of params.actorIds) searchParams.append('actor_ids[]', String(v))
   }
   if (params?.actorEmails != null) {
-    for (const v of params.actorEmails)
-      searchParams.append("actor_emails[]", String(v));
+    for (const v of params.actorEmails) searchParams.append('actor_emails[]', String(v))
   }
   if (params?.resourceIds != null) {
-    for (const v of params.resourceIds)
-      searchParams.append("resource_ids[]", String(v));
+    for (const v of params.resourceIds) searchParams.append('resource_ids[]', String(v))
   }
-  if (params?.limit != null) searchParams.set("limit", String(params.limit));
-  if (params?.after != null) searchParams.set("after", String(params.after));
-  if (params?.before != null) searchParams.set("before", String(params.before));
-  const res = await _request(
-    "GET",
-    "/organization/audit_logs",
-    { searchParams },
-    config,
-  );
-  return res.json();
+  if (params?.limit != null) searchParams.set('limit', String(params.limit))
+  if (params?.after != null) searchParams.set('after', String(params.after))
+  if (params?.before != null) searchParams.set('before', String(params.before))
+  const res = await _request('GET', '/organization/audit_logs', { searchParams }, config)
+  return res.json()
 }
 
 export async function listOrganizationCertificates(
   params?: {
-    limit?: number;
-    after?: string;
-    order?: "asc" | "desc";
+    limit?: number
+    after?: string
+    order?: 'asc' | 'desc'
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<ListCertificatesResponse> {
-  const searchParams = new URLSearchParams();
-  if (params?.limit != null) searchParams.set("limit", String(params.limit));
-  if (params?.after != null) searchParams.set("after", String(params.after));
-  if (params?.order != null) searchParams.set("order", String(params.order));
-  const res = await _request(
-    "GET",
-    "/organization/certificates",
-    { searchParams },
-    config,
-  );
-  return res.json();
+  const searchParams = new URLSearchParams()
+  if (params?.limit != null) searchParams.set('limit', String(params.limit))
+  if (params?.after != null) searchParams.set('after', String(params.after))
+  if (params?.order != null) searchParams.set('order', String(params.order))
+  const res = await _request('GET', '/organization/certificates', { searchParams }, config)
+  return res.json()
 }
 
 export async function uploadCertificate(
   body: UploadCertificateRequest,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<Certificate> {
-  const res = await _request(
-    "POST",
-    "/organization/certificates",
-    { body },
-    config,
-  );
-  return res.json();
+  const res = await _request('POST', '/organization/certificates', { body }, config)
+  return res.json()
 }
 
 export async function activateOrganizationCertificates(
   body: ToggleCertificatesRequest,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<OrganizationCertificateActivationResponse> {
-  const res = await _request(
-    "POST",
-    "/organization/certificates/activate",
-    { body },
-    config,
-  );
-  return res.json();
+  const res = await _request('POST', '/organization/certificates/activate', { body }, config)
+  return res.json()
 }
 
 export async function deactivateOrganizationCertificates(
   body: ToggleCertificatesRequest,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<OrganizationCertificateDeactivationResponse> {
-  const res = await _request(
-    "POST",
-    "/organization/certificates/deactivate",
-    { body },
-    config,
-  );
-  return res.json();
+  const res = await _request('POST', '/organization/certificates/deactivate', { body }, config)
+  return res.json()
 }
 
 export async function getCertificate(
   certificateId: string,
   params?: {
-    include?: string[];
+    include?: string[]
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<Certificate> {
-  const searchParams = new URLSearchParams();
+  const searchParams = new URLSearchParams()
   if (params?.include != null) {
-    for (const v of params.include) searchParams.append("include", String(v));
+    for (const v of params.include) searchParams.append('include', String(v))
   }
   const res = await _request(
-    "GET",
+    'GET',
     `/organization/certificates/${encodeURIComponent(certificateId)}`,
     { searchParams },
-    config,
-  );
-  return res.json();
+    config
+  )
+  return res.json()
 }
 
 export async function modifyCertificate(
   certificateId: string,
   body: ModifyCertificateRequest,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<Certificate> {
   const res = await _request(
-    "POST",
+    'POST',
     `/organization/certificates/${encodeURIComponent(certificateId)}`,
     { body },
-    config,
-  );
-  return res.json();
+    config
+  )
+  return res.json()
 }
 
 export async function deleteCertificate(
   certificateId: string,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<DeleteCertificateResponse> {
   const res = await _request(
-    "DELETE",
+    'DELETE',
     `/organization/certificates/${encodeURIComponent(certificateId)}`,
     {},
-    config,
-  );
-  return res.json();
+    config
+  )
+  return res.json()
 }
 
 export async function usageCosts(
   params: {
-    startTime: number;
-    endTime?: number;
-    bucketWidth?: "1d";
-    projectIds?: string[];
-    apiKeyIds?: string[];
-    groupBy?: string[];
-    limit?: number;
-    page?: string;
+    startTime: number
+    endTime?: number
+    bucketWidth?: '1d'
+    projectIds?: string[]
+    apiKeyIds?: string[]
+    groupBy?: string[]
+    limit?: number
+    page?: string
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<UsageResponse> {
-  const searchParams = new URLSearchParams();
-  if (params?.startTime != null)
-    searchParams.set("start_time", String(params.startTime));
-  if (params?.endTime != null)
-    searchParams.set("end_time", String(params.endTime));
-  if (params?.bucketWidth != null)
-    searchParams.set("bucket_width", String(params.bucketWidth));
+  const searchParams = new URLSearchParams()
+  if (params?.startTime != null) searchParams.set('start_time', String(params.startTime))
+  if (params?.endTime != null) searchParams.set('end_time', String(params.endTime))
+  if (params?.bucketWidth != null) searchParams.set('bucket_width', String(params.bucketWidth))
   if (params?.projectIds != null) {
-    for (const v of params.projectIds)
-      searchParams.append("project_ids", String(v));
+    for (const v of params.projectIds) searchParams.append('project_ids', String(v))
   }
   if (params?.apiKeyIds != null) {
-    for (const v of params.apiKeyIds)
-      searchParams.append("api_key_ids", String(v));
+    for (const v of params.apiKeyIds) searchParams.append('api_key_ids', String(v))
   }
   if (params?.groupBy != null) {
-    for (const v of params.groupBy) searchParams.append("group_by", String(v));
+    for (const v of params.groupBy) searchParams.append('group_by', String(v))
   }
-  if (params?.limit != null) searchParams.set("limit", String(params.limit));
-  if (params?.page != null) searchParams.set("page", String(params.page));
-  const res = await _request(
-    "GET",
-    "/organization/costs",
-    { searchParams },
-    config,
-  );
-  return res.json();
+  if (params?.limit != null) searchParams.set('limit', String(params.limit))
+  if (params?.page != null) searchParams.set('page', String(params.page))
+  const res = await _request('GET', '/organization/costs', { searchParams }, config)
+  return res.json()
 }
 
 export async function listGroups(
   params?: {
-    limit?: number;
-    after?: string;
-    order?: "asc" | "desc";
+    limit?: number
+    after?: string
+    order?: 'asc' | 'desc'
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<GroupListResource> {
-  const searchParams = new URLSearchParams();
-  if (params?.limit != null) searchParams.set("limit", String(params.limit));
-  if (params?.after != null) searchParams.set("after", String(params.after));
-  if (params?.order != null) searchParams.set("order", String(params.order));
-  const res = await _request(
-    "GET",
-    "/organization/groups",
-    { searchParams },
-    config,
-  );
-  return res.json();
+  const searchParams = new URLSearchParams()
+  if (params?.limit != null) searchParams.set('limit', String(params.limit))
+  if (params?.after != null) searchParams.set('after', String(params.after))
+  if (params?.order != null) searchParams.set('order', String(params.order))
+  const res = await _request('GET', '/organization/groups', { searchParams }, config)
+  return res.json()
 }
 
 export async function createGroup(
   body: CreateGroupBody,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<GroupResponse> {
-  const res = await _request("POST", "/organization/groups", { body }, config);
-  return res.json();
+  const res = await _request('POST', '/organization/groups', { body }, config)
+  return res.json()
 }
 
 export async function updateGroup(
   groupId: string,
   body: UpdateGroupBody,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<GroupResourceWithSuccess> {
   const res = await _request(
-    "POST",
+    'POST',
     `/organization/groups/${encodeURIComponent(groupId)}`,
     { body },
-    config,
-  );
-  return res.json();
+    config
+  )
+  return res.json()
 }
 
 export async function deleteGroup(
   groupId: string,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<GroupDeletedResource> {
   const res = await _request(
-    "DELETE",
+    'DELETE',
     `/organization/groups/${encodeURIComponent(groupId)}`,
     {},
-    config,
-  );
-  return res.json();
+    config
+  )
+  return res.json()
 }
 
 export async function listGroupRoleAssignments(
   groupId: string,
   params?: {
-    limit?: number;
-    after?: string;
-    order?: "asc" | "desc";
+    limit?: number
+    after?: string
+    order?: 'asc' | 'desc'
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<RoleListResource> {
-  const searchParams = new URLSearchParams();
-  if (params?.limit != null) searchParams.set("limit", String(params.limit));
-  if (params?.after != null) searchParams.set("after", String(params.after));
-  if (params?.order != null) searchParams.set("order", String(params.order));
+  const searchParams = new URLSearchParams()
+  if (params?.limit != null) searchParams.set('limit', String(params.limit))
+  if (params?.after != null) searchParams.set('after', String(params.after))
+  if (params?.order != null) searchParams.set('order', String(params.order))
   const res = await _request(
-    "GET",
+    'GET',
     `/organization/groups/${encodeURIComponent(groupId)}/roles`,
     { searchParams },
-    config,
-  );
-  return res.json();
+    config
+  )
+  return res.json()
 }
 
 export async function assignGroupRole(
   groupId: string,
   body: PublicAssignOrganizationGroupRoleBody,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<GroupRoleAssignment> {
   const res = await _request(
-    "POST",
+    'POST',
     `/organization/groups/${encodeURIComponent(groupId)}/roles`,
     { body },
-    config,
-  );
-  return res.json();
+    config
+  )
+  return res.json()
 }
 
 export async function unassignGroupRole(
   groupId: string,
   roleId: string,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<DeletedRoleAssignmentResource> {
   const res = await _request(
-    "DELETE",
+    'DELETE',
     `/organization/groups/${encodeURIComponent(groupId)}/roles/${encodeURIComponent(roleId)}`,
     {},
-    config,
-  );
-  return res.json();
+    config
+  )
+  return res.json()
 }
 
 export async function listGroupUsers(
   groupId: string,
   params?: {
-    limit?: number;
-    after?: string;
-    order?: "asc" | "desc";
+    limit?: number
+    after?: string
+    order?: 'asc' | 'desc'
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<UserListResource> {
-  const searchParams = new URLSearchParams();
-  if (params?.limit != null) searchParams.set("limit", String(params.limit));
-  if (params?.after != null) searchParams.set("after", String(params.after));
-  if (params?.order != null) searchParams.set("order", String(params.order));
+  const searchParams = new URLSearchParams()
+  if (params?.limit != null) searchParams.set('limit', String(params.limit))
+  if (params?.after != null) searchParams.set('after', String(params.after))
+  if (params?.order != null) searchParams.set('order', String(params.order))
   const res = await _request(
-    "GET",
+    'GET',
     `/organization/groups/${encodeURIComponent(groupId)}/users`,
     { searchParams },
-    config,
-  );
-  return res.json();
+    config
+  )
+  return res.json()
 }
 
 export async function addGroupUser(
   groupId: string,
   body: CreateGroupUserBody,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<GroupUserAssignment> {
   const res = await _request(
-    "POST",
+    'POST',
     `/organization/groups/${encodeURIComponent(groupId)}/users`,
     { body },
-    config,
-  );
-  return res.json();
+    config
+  )
+  return res.json()
 }
 
 export async function removeGroupUser(
   groupId: string,
   userId: string,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<GroupUserDeletedResource> {
   const res = await _request(
-    "DELETE",
+    'DELETE',
     `/organization/groups/${encodeURIComponent(groupId)}/users/${encodeURIComponent(userId)}`,
     {},
-    config,
-  );
-  return res.json();
+    config
+  )
+  return res.json()
 }
 
 export async function listInvites(
   params?: {
-    limit?: number;
-    after?: string;
+    limit?: number
+    after?: string
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<InviteListResponse> {
-  const searchParams = new URLSearchParams();
-  if (params?.limit != null) searchParams.set("limit", String(params.limit));
-  if (params?.after != null) searchParams.set("after", String(params.after));
-  const res = await _request(
-    "GET",
-    "/organization/invites",
-    { searchParams },
-    config,
-  );
-  return res.json();
+  const searchParams = new URLSearchParams()
+  if (params?.limit != null) searchParams.set('limit', String(params.limit))
+  if (params?.after != null) searchParams.set('after', String(params.after))
+  const res = await _request('GET', '/organization/invites', { searchParams }, config)
+  return res.json()
 }
 
 export async function inviteUser(
   body: InviteRequest,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<Invite> {
-  const res = await _request("POST", "/organization/invites", { body }, config);
-  return res.json();
+  const res = await _request('POST', '/organization/invites', { body }, config)
+  return res.json()
 }
 
 export async function retrieveInvite(
   inviteId: string,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<Invite> {
   const res = await _request(
-    "GET",
+    'GET',
     `/organization/invites/${encodeURIComponent(inviteId)}`,
     {},
-    config,
-  );
-  return res.json();
+    config
+  )
+  return res.json()
 }
 
 export async function deleteInvite(
   inviteId: string,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<InviteDeleteResponse> {
   const res = await _request(
-    "DELETE",
+    'DELETE',
     `/organization/invites/${encodeURIComponent(inviteId)}`,
     {},
-    config,
-  );
-  return res.json();
+    config
+  )
+  return res.json()
 }
 
 export async function listProjects(
   params?: {
-    limit?: number;
-    after?: string;
-    includeArchived?: boolean;
+    limit?: number
+    after?: string
+    includeArchived?: boolean
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<ProjectListResponse> {
-  const searchParams = new URLSearchParams();
-  if (params?.limit != null) searchParams.set("limit", String(params.limit));
-  if (params?.after != null) searchParams.set("after", String(params.after));
+  const searchParams = new URLSearchParams()
+  if (params?.limit != null) searchParams.set('limit', String(params.limit))
+  if (params?.after != null) searchParams.set('after', String(params.after))
   if (params?.includeArchived != null)
-    searchParams.set("include_archived", String(params.includeArchived));
-  const res = await _request(
-    "GET",
-    "/organization/projects",
-    { searchParams },
-    config,
-  );
-  return res.json();
+    searchParams.set('include_archived', String(params.includeArchived))
+  const res = await _request('GET', '/organization/projects', { searchParams }, config)
+  return res.json()
 }
 
 export async function createProject(
   body: ProjectCreateRequest,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<Project> {
-  const res = await _request(
-    "POST",
-    "/organization/projects",
-    { body },
-    config,
-  );
-  return res.json();
+  const res = await _request('POST', '/organization/projects', { body }, config)
+  return res.json()
 }
 
 export async function retrieveProject(
   projectId: string,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<Project> {
   const res = await _request(
-    "GET",
+    'GET',
     `/organization/projects/${encodeURIComponent(projectId)}`,
     {},
-    config,
-  );
-  return res.json();
+    config
+  )
+  return res.json()
 }
 
 /**
@@ -1850,49 +1653,49 @@ export async function retrieveProject(
 export async function modifyProject(
   projectId: string,
   body: ProjectUpdateRequest,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<Project> {
   const res = await _request(
-    "POST",
+    'POST',
     `/organization/projects/${encodeURIComponent(projectId)}`,
     { body },
-    config,
-  );
-  return res.json();
+    config
+  )
+  return res.json()
 }
 
 export async function listProjectApiKeys(
   projectId: string,
   params?: {
-    limit?: number;
-    after?: string;
+    limit?: number
+    after?: string
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<ProjectApiKeyListResponse> {
-  const searchParams = new URLSearchParams();
-  if (params?.limit != null) searchParams.set("limit", String(params.limit));
-  if (params?.after != null) searchParams.set("after", String(params.after));
+  const searchParams = new URLSearchParams()
+  if (params?.limit != null) searchParams.set('limit', String(params.limit))
+  if (params?.after != null) searchParams.set('after', String(params.after))
   const res = await _request(
-    "GET",
+    'GET',
     `/organization/projects/${encodeURIComponent(projectId)}/api_keys`,
     { searchParams },
-    config,
-  );
-  return res.json();
+    config
+  )
+  return res.json()
 }
 
 export async function retrieveProjectApiKey(
   projectId: string,
   apiKeyId: string,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<ProjectApiKey> {
   const res = await _request(
-    "GET",
+    'GET',
     `/organization/projects/${encodeURIComponent(projectId)}/api_keys/${encodeURIComponent(apiKeyId)}`,
     {},
-    config,
-  );
-  return res.json();
+    config
+  )
+  return res.json()
 }
 
 /**
@@ -1901,150 +1704,150 @@ export async function retrieveProjectApiKey(
 export async function deleteProjectApiKey(
   projectId: string,
   apiKeyId: string,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<ProjectApiKeyDeleteResponse> {
   const res = await _request(
-    "DELETE",
+    'DELETE',
     `/organization/projects/${encodeURIComponent(projectId)}/api_keys/${encodeURIComponent(apiKeyId)}`,
     {},
-    config,
-  );
-  return res.json();
+    config
+  )
+  return res.json()
 }
 
 export async function archiveProject(
   projectId: string,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<Project> {
   const res = await _request(
-    "POST",
+    'POST',
     `/organization/projects/${encodeURIComponent(projectId)}/archive`,
     {},
-    config,
-  );
-  return res.json();
+    config
+  )
+  return res.json()
 }
 
 export async function listProjectCertificates(
   projectId: string,
   params?: {
-    limit?: number;
-    after?: string;
-    order?: "asc" | "desc";
+    limit?: number
+    after?: string
+    order?: 'asc' | 'desc'
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<ListProjectCertificatesResponse> {
-  const searchParams = new URLSearchParams();
-  if (params?.limit != null) searchParams.set("limit", String(params.limit));
-  if (params?.after != null) searchParams.set("after", String(params.after));
-  if (params?.order != null) searchParams.set("order", String(params.order));
+  const searchParams = new URLSearchParams()
+  if (params?.limit != null) searchParams.set('limit', String(params.limit))
+  if (params?.after != null) searchParams.set('after', String(params.after))
+  if (params?.order != null) searchParams.set('order', String(params.order))
   const res = await _request(
-    "GET",
+    'GET',
     `/organization/projects/${encodeURIComponent(projectId)}/certificates`,
     { searchParams },
-    config,
-  );
-  return res.json();
+    config
+  )
+  return res.json()
 }
 
 export async function activateProjectCertificates(
   projectId: string,
   body: ToggleCertificatesRequest,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<OrganizationProjectCertificateActivationResponse> {
   const res = await _request(
-    "POST",
+    'POST',
     `/organization/projects/${encodeURIComponent(projectId)}/certificates/activate`,
     { body },
-    config,
-  );
-  return res.json();
+    config
+  )
+  return res.json()
 }
 
 export async function deactivateProjectCertificates(
   projectId: string,
   body: ToggleCertificatesRequest,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<OrganizationProjectCertificateDeactivationResponse> {
   const res = await _request(
-    "POST",
+    'POST',
     `/organization/projects/${encodeURIComponent(projectId)}/certificates/deactivate`,
     { body },
-    config,
-  );
-  return res.json();
+    config
+  )
+  return res.json()
 }
 
 export async function listProjectGroups(
   projectId: string,
   params?: {
-    limit?: number;
-    after?: string;
-    order?: "asc" | "desc";
+    limit?: number
+    after?: string
+    order?: 'asc' | 'desc'
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<ProjectGroupListResource> {
-  const searchParams = new URLSearchParams();
-  if (params?.limit != null) searchParams.set("limit", String(params.limit));
-  if (params?.after != null) searchParams.set("after", String(params.after));
-  if (params?.order != null) searchParams.set("order", String(params.order));
+  const searchParams = new URLSearchParams()
+  if (params?.limit != null) searchParams.set('limit', String(params.limit))
+  if (params?.after != null) searchParams.set('after', String(params.after))
+  if (params?.order != null) searchParams.set('order', String(params.order))
   const res = await _request(
-    "GET",
+    'GET',
     `/organization/projects/${encodeURIComponent(projectId)}/groups`,
     { searchParams },
-    config,
-  );
-  return res.json();
+    config
+  )
+  return res.json()
 }
 
 export async function addProjectGroup(
   projectId: string,
   body: InviteProjectGroupBody,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<ProjectGroup> {
   const res = await _request(
-    "POST",
+    'POST',
     `/organization/projects/${encodeURIComponent(projectId)}/groups`,
     { body },
-    config,
-  );
-  return res.json();
+    config
+  )
+  return res.json()
 }
 
 export async function removeProjectGroup(
   projectId: string,
   groupId: string,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<ProjectGroupDeletedResource> {
   const res = await _request(
-    "DELETE",
+    'DELETE',
     `/organization/projects/${encodeURIComponent(projectId)}/groups/${encodeURIComponent(groupId)}`,
     {},
-    config,
-  );
-  return res.json();
+    config
+  )
+  return res.json()
 }
 
 export async function listProjectRateLimits(
   projectId: string,
   params?: {
-    limit?: number;
-    after?: string;
-    before?: string;
+    limit?: number
+    after?: string
+    before?: string
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<ProjectRateLimitListResponse> {
-  const searchParams = new URLSearchParams();
-  if (params?.limit != null) searchParams.set("limit", String(params.limit));
-  if (params?.after != null) searchParams.set("after", String(params.after));
-  if (params?.before != null) searchParams.set("before", String(params.before));
+  const searchParams = new URLSearchParams()
+  if (params?.limit != null) searchParams.set('limit', String(params.limit))
+  if (params?.after != null) searchParams.set('after', String(params.after))
+  if (params?.before != null) searchParams.set('before', String(params.before))
   const res = await _request(
-    "GET",
+    'GET',
     `/organization/projects/${encodeURIComponent(projectId)}/rate_limits`,
     { searchParams },
-    config,
-  );
-  return res.json();
+    config
+  )
+  return res.json()
 }
 
 /**
@@ -2054,15 +1857,15 @@ export async function updateProjectRateLimits(
   projectId: string,
   rateLimitId: string,
   body: ProjectRateLimitUpdateRequest,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<ProjectRateLimit> {
   const res = await _request(
-    "POST",
+    'POST',
     `/organization/projects/${encodeURIComponent(projectId)}/rate_limits/${encodeURIComponent(rateLimitId)}`,
     { body },
-    config,
-  );
-  return res.json();
+    config
+  )
+  return res.json()
 }
 
 /**
@@ -2071,21 +1874,21 @@ export async function updateProjectRateLimits(
 export async function listProjectServiceAccounts(
   projectId: string,
   params?: {
-    limit?: number;
-    after?: string;
+    limit?: number
+    after?: string
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<ProjectServiceAccountListResponse> {
-  const searchParams = new URLSearchParams();
-  if (params?.limit != null) searchParams.set("limit", String(params.limit));
-  if (params?.after != null) searchParams.set("after", String(params.after));
+  const searchParams = new URLSearchParams()
+  if (params?.limit != null) searchParams.set('limit', String(params.limit))
+  if (params?.after != null) searchParams.set('after', String(params.after))
   const res = await _request(
-    "GET",
+    'GET',
     `/organization/projects/${encodeURIComponent(projectId)}/service_accounts`,
     { searchParams },
-    config,
-  );
-  return res.json();
+    config
+  )
+  return res.json()
 }
 
 /**
@@ -2094,43 +1897,43 @@ export async function listProjectServiceAccounts(
 export async function createProjectServiceAccount(
   projectId: string,
   body: ProjectServiceAccountCreateRequest,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<ProjectServiceAccountCreateResponse> {
   const res = await _request(
-    "POST",
+    'POST',
     `/organization/projects/${encodeURIComponent(projectId)}/service_accounts`,
     { body },
-    config,
-  );
-  return res.json();
+    config
+  )
+  return res.json()
 }
 
 export async function retrieveProjectServiceAccount(
   projectId: string,
   serviceAccountId: string,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<ProjectServiceAccount> {
   const res = await _request(
-    "GET",
+    'GET',
     `/organization/projects/${encodeURIComponent(projectId)}/service_accounts/${encodeURIComponent(serviceAccountId)}`,
     {},
-    config,
-  );
-  return res.json();
+    config
+  )
+  return res.json()
 }
 
 export async function deleteProjectServiceAccount(
   projectId: string,
   serviceAccountId: string,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<ProjectServiceAccountDeleteResponse> {
   const res = await _request(
-    "DELETE",
+    'DELETE',
     `/organization/projects/${encodeURIComponent(projectId)}/service_accounts/${encodeURIComponent(serviceAccountId)}`,
     {},
-    config,
-  );
-  return res.json();
+    config
+  )
+  return res.json()
 }
 
 /**
@@ -2139,21 +1942,21 @@ export async function deleteProjectServiceAccount(
 export async function listProjectUsers(
   projectId: string,
   params?: {
-    limit?: number;
-    after?: string;
+    limit?: number
+    after?: string
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<ProjectUserListResponse> {
-  const searchParams = new URLSearchParams();
-  if (params?.limit != null) searchParams.set("limit", String(params.limit));
-  if (params?.after != null) searchParams.set("after", String(params.after));
+  const searchParams = new URLSearchParams()
+  if (params?.limit != null) searchParams.set('limit', String(params.limit))
+  if (params?.after != null) searchParams.set('after', String(params.after))
   const res = await _request(
-    "GET",
+    'GET',
     `/organization/projects/${encodeURIComponent(projectId)}/users`,
     { searchParams },
-    config,
-  );
-  return res.json();
+    config
+  )
+  return res.json()
 }
 
 /**
@@ -2162,29 +1965,29 @@ export async function listProjectUsers(
 export async function createProjectUser(
   projectId: string,
   body: ProjectUserCreateRequest,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<ProjectUser> {
   const res = await _request(
-    "POST",
+    'POST',
     `/organization/projects/${encodeURIComponent(projectId)}/users`,
     { body },
-    config,
-  );
-  return res.json();
+    config
+  )
+  return res.json()
 }
 
 export async function retrieveProjectUser(
   projectId: string,
   userId: string,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<ProjectUser> {
   const res = await _request(
-    "GET",
+    'GET',
     `/organization/projects/${encodeURIComponent(projectId)}/users/${encodeURIComponent(userId)}`,
     {},
-    config,
-  );
-  return res.json();
+    config
+  )
+  return res.json()
 }
 
 /**
@@ -2194,15 +1997,15 @@ export async function modifyProjectUser(
   projectId: string,
   userId: string,
   body: ProjectUserUpdateRequest,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<ProjectUser> {
   const res = await _request(
-    "POST",
+    'POST',
     `/organization/projects/${encodeURIComponent(projectId)}/users/${encodeURIComponent(userId)}`,
     { body },
-    config,
-  );
-  return res.json();
+    config
+  )
+  return res.json()
 }
 
 /**
@@ -2211,879 +2014,756 @@ export async function modifyProjectUser(
 export async function deleteProjectUser(
   projectId: string,
   userId: string,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<ProjectUserDeleteResponse> {
   const res = await _request(
-    "DELETE",
+    'DELETE',
     `/organization/projects/${encodeURIComponent(projectId)}/users/${encodeURIComponent(userId)}`,
     {},
-    config,
-  );
-  return res.json();
+    config
+  )
+  return res.json()
 }
 
 export async function listRoles(
   params?: {
-    limit?: number;
-    after?: string;
-    order?: "asc" | "desc";
+    limit?: number
+    after?: string
+    order?: 'asc' | 'desc'
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<PublicRoleListResource> {
-  const searchParams = new URLSearchParams();
-  if (params?.limit != null) searchParams.set("limit", String(params.limit));
-  if (params?.after != null) searchParams.set("after", String(params.after));
-  if (params?.order != null) searchParams.set("order", String(params.order));
-  const res = await _request(
-    "GET",
-    "/organization/roles",
-    { searchParams },
-    config,
-  );
-  return res.json();
+  const searchParams = new URLSearchParams()
+  if (params?.limit != null) searchParams.set('limit', String(params.limit))
+  if (params?.after != null) searchParams.set('after', String(params.after))
+  if (params?.order != null) searchParams.set('order', String(params.order))
+  const res = await _request('GET', '/organization/roles', { searchParams }, config)
+  return res.json()
 }
 
 export async function createRole(
   body: PublicCreateOrganizationRoleBody,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<Role> {
-  const res = await _request("POST", "/organization/roles", { body }, config);
-  return res.json();
+  const res = await _request('POST', '/organization/roles', { body }, config)
+  return res.json()
 }
 
 export async function updateRole(
   roleId: string,
   body: PublicUpdateOrganizationRoleBody,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<Role> {
   const res = await _request(
-    "POST",
+    'POST',
     `/organization/roles/${encodeURIComponent(roleId)}`,
     { body },
-    config,
-  );
-  return res.json();
+    config
+  )
+  return res.json()
 }
 
 export async function deleteRole(
   roleId: string,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<RoleDeletedResource> {
   const res = await _request(
-    "DELETE",
+    'DELETE',
     `/organization/roles/${encodeURIComponent(roleId)}`,
     {},
-    config,
-  );
-  return res.json();
+    config
+  )
+  return res.json()
 }
 
 export async function usageAudioSpeeches(
   params: {
-    startTime: number;
-    endTime?: number;
-    bucketWidth?: "1m" | "1h" | "1d";
-    projectIds?: string[];
-    userIds?: string[];
-    apiKeyIds?: string[];
-    models?: string[];
-    groupBy?: string[];
-    limit?: number;
-    page?: string;
+    startTime: number
+    endTime?: number
+    bucketWidth?: '1m' | '1h' | '1d'
+    projectIds?: string[]
+    userIds?: string[]
+    apiKeyIds?: string[]
+    models?: string[]
+    groupBy?: string[]
+    limit?: number
+    page?: string
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<UsageResponse> {
-  const searchParams = new URLSearchParams();
-  if (params?.startTime != null)
-    searchParams.set("start_time", String(params.startTime));
-  if (params?.endTime != null)
-    searchParams.set("end_time", String(params.endTime));
-  if (params?.bucketWidth != null)
-    searchParams.set("bucket_width", String(params.bucketWidth));
+  const searchParams = new URLSearchParams()
+  if (params?.startTime != null) searchParams.set('start_time', String(params.startTime))
+  if (params?.endTime != null) searchParams.set('end_time', String(params.endTime))
+  if (params?.bucketWidth != null) searchParams.set('bucket_width', String(params.bucketWidth))
   if (params?.projectIds != null) {
-    for (const v of params.projectIds)
-      searchParams.append("project_ids", String(v));
+    for (const v of params.projectIds) searchParams.append('project_ids', String(v))
   }
   if (params?.userIds != null) {
-    for (const v of params.userIds) searchParams.append("user_ids", String(v));
+    for (const v of params.userIds) searchParams.append('user_ids', String(v))
   }
   if (params?.apiKeyIds != null) {
-    for (const v of params.apiKeyIds)
-      searchParams.append("api_key_ids", String(v));
+    for (const v of params.apiKeyIds) searchParams.append('api_key_ids', String(v))
   }
   if (params?.models != null) {
-    for (const v of params.models) searchParams.append("models", String(v));
+    for (const v of params.models) searchParams.append('models', String(v))
   }
   if (params?.groupBy != null) {
-    for (const v of params.groupBy) searchParams.append("group_by", String(v));
+    for (const v of params.groupBy) searchParams.append('group_by', String(v))
   }
-  if (params?.limit != null) searchParams.set("limit", String(params.limit));
-  if (params?.page != null) searchParams.set("page", String(params.page));
-  const res = await _request(
-    "GET",
-    "/organization/usage/audio_speeches",
-    { searchParams },
-    config,
-  );
-  return res.json();
+  if (params?.limit != null) searchParams.set('limit', String(params.limit))
+  if (params?.page != null) searchParams.set('page', String(params.page))
+  const res = await _request('GET', '/organization/usage/audio_speeches', { searchParams }, config)
+  return res.json()
 }
 
 export async function usageAudioTranscriptions(
   params: {
-    startTime: number;
-    endTime?: number;
-    bucketWidth?: "1m" | "1h" | "1d";
-    projectIds?: string[];
-    userIds?: string[];
-    apiKeyIds?: string[];
-    models?: string[];
-    groupBy?: string[];
-    limit?: number;
-    page?: string;
+    startTime: number
+    endTime?: number
+    bucketWidth?: '1m' | '1h' | '1d'
+    projectIds?: string[]
+    userIds?: string[]
+    apiKeyIds?: string[]
+    models?: string[]
+    groupBy?: string[]
+    limit?: number
+    page?: string
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<UsageResponse> {
-  const searchParams = new URLSearchParams();
-  if (params?.startTime != null)
-    searchParams.set("start_time", String(params.startTime));
-  if (params?.endTime != null)
-    searchParams.set("end_time", String(params.endTime));
-  if (params?.bucketWidth != null)
-    searchParams.set("bucket_width", String(params.bucketWidth));
+  const searchParams = new URLSearchParams()
+  if (params?.startTime != null) searchParams.set('start_time', String(params.startTime))
+  if (params?.endTime != null) searchParams.set('end_time', String(params.endTime))
+  if (params?.bucketWidth != null) searchParams.set('bucket_width', String(params.bucketWidth))
   if (params?.projectIds != null) {
-    for (const v of params.projectIds)
-      searchParams.append("project_ids", String(v));
+    for (const v of params.projectIds) searchParams.append('project_ids', String(v))
   }
   if (params?.userIds != null) {
-    for (const v of params.userIds) searchParams.append("user_ids", String(v));
+    for (const v of params.userIds) searchParams.append('user_ids', String(v))
   }
   if (params?.apiKeyIds != null) {
-    for (const v of params.apiKeyIds)
-      searchParams.append("api_key_ids", String(v));
+    for (const v of params.apiKeyIds) searchParams.append('api_key_ids', String(v))
   }
   if (params?.models != null) {
-    for (const v of params.models) searchParams.append("models", String(v));
+    for (const v of params.models) searchParams.append('models', String(v))
   }
   if (params?.groupBy != null) {
-    for (const v of params.groupBy) searchParams.append("group_by", String(v));
+    for (const v of params.groupBy) searchParams.append('group_by', String(v))
   }
-  if (params?.limit != null) searchParams.set("limit", String(params.limit));
-  if (params?.page != null) searchParams.set("page", String(params.page));
+  if (params?.limit != null) searchParams.set('limit', String(params.limit))
+  if (params?.page != null) searchParams.set('page', String(params.page))
   const res = await _request(
-    "GET",
-    "/organization/usage/audio_transcriptions",
+    'GET',
+    '/organization/usage/audio_transcriptions',
     { searchParams },
-    config,
-  );
-  return res.json();
+    config
+  )
+  return res.json()
 }
 
 export async function usageCodeInterpreterSessions(
   params: {
-    startTime: number;
-    endTime?: number;
-    bucketWidth?: "1m" | "1h" | "1d";
-    projectIds?: string[];
-    groupBy?: string[];
-    limit?: number;
-    page?: string;
+    startTime: number
+    endTime?: number
+    bucketWidth?: '1m' | '1h' | '1d'
+    projectIds?: string[]
+    groupBy?: string[]
+    limit?: number
+    page?: string
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<UsageResponse> {
-  const searchParams = new URLSearchParams();
-  if (params?.startTime != null)
-    searchParams.set("start_time", String(params.startTime));
-  if (params?.endTime != null)
-    searchParams.set("end_time", String(params.endTime));
-  if (params?.bucketWidth != null)
-    searchParams.set("bucket_width", String(params.bucketWidth));
+  const searchParams = new URLSearchParams()
+  if (params?.startTime != null) searchParams.set('start_time', String(params.startTime))
+  if (params?.endTime != null) searchParams.set('end_time', String(params.endTime))
+  if (params?.bucketWidth != null) searchParams.set('bucket_width', String(params.bucketWidth))
   if (params?.projectIds != null) {
-    for (const v of params.projectIds)
-      searchParams.append("project_ids", String(v));
+    for (const v of params.projectIds) searchParams.append('project_ids', String(v))
   }
   if (params?.groupBy != null) {
-    for (const v of params.groupBy) searchParams.append("group_by", String(v));
+    for (const v of params.groupBy) searchParams.append('group_by', String(v))
   }
-  if (params?.limit != null) searchParams.set("limit", String(params.limit));
-  if (params?.page != null) searchParams.set("page", String(params.page));
+  if (params?.limit != null) searchParams.set('limit', String(params.limit))
+  if (params?.page != null) searchParams.set('page', String(params.page))
   const res = await _request(
-    "GET",
-    "/organization/usage/code_interpreter_sessions",
+    'GET',
+    '/organization/usage/code_interpreter_sessions',
     { searchParams },
-    config,
-  );
-  return res.json();
+    config
+  )
+  return res.json()
 }
 
 export async function usageCompletions(
   params: {
-    startTime: number;
-    endTime?: number;
-    bucketWidth?: "1m" | "1h" | "1d";
-    projectIds?: string[];
-    userIds?: string[];
-    apiKeyIds?: string[];
-    models?: string[];
-    batch?: boolean;
-    groupBy?: string[];
-    limit?: number;
-    page?: string;
+    startTime: number
+    endTime?: number
+    bucketWidth?: '1m' | '1h' | '1d'
+    projectIds?: string[]
+    userIds?: string[]
+    apiKeyIds?: string[]
+    models?: string[]
+    batch?: boolean
+    groupBy?: string[]
+    limit?: number
+    page?: string
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<UsageResponse> {
-  const searchParams = new URLSearchParams();
-  if (params?.startTime != null)
-    searchParams.set("start_time", String(params.startTime));
-  if (params?.endTime != null)
-    searchParams.set("end_time", String(params.endTime));
-  if (params?.bucketWidth != null)
-    searchParams.set("bucket_width", String(params.bucketWidth));
+  const searchParams = new URLSearchParams()
+  if (params?.startTime != null) searchParams.set('start_time', String(params.startTime))
+  if (params?.endTime != null) searchParams.set('end_time', String(params.endTime))
+  if (params?.bucketWidth != null) searchParams.set('bucket_width', String(params.bucketWidth))
   if (params?.projectIds != null) {
-    for (const v of params.projectIds)
-      searchParams.append("project_ids", String(v));
+    for (const v of params.projectIds) searchParams.append('project_ids', String(v))
   }
   if (params?.userIds != null) {
-    for (const v of params.userIds) searchParams.append("user_ids", String(v));
+    for (const v of params.userIds) searchParams.append('user_ids', String(v))
   }
   if (params?.apiKeyIds != null) {
-    for (const v of params.apiKeyIds)
-      searchParams.append("api_key_ids", String(v));
+    for (const v of params.apiKeyIds) searchParams.append('api_key_ids', String(v))
   }
   if (params?.models != null) {
-    for (const v of params.models) searchParams.append("models", String(v));
+    for (const v of params.models) searchParams.append('models', String(v))
   }
-  if (params?.batch != null) searchParams.set("batch", String(params.batch));
+  if (params?.batch != null) searchParams.set('batch', String(params.batch))
   if (params?.groupBy != null) {
-    for (const v of params.groupBy) searchParams.append("group_by", String(v));
+    for (const v of params.groupBy) searchParams.append('group_by', String(v))
   }
-  if (params?.limit != null) searchParams.set("limit", String(params.limit));
-  if (params?.page != null) searchParams.set("page", String(params.page));
-  const res = await _request(
-    "GET",
-    "/organization/usage/completions",
-    { searchParams },
-    config,
-  );
-  return res.json();
+  if (params?.limit != null) searchParams.set('limit', String(params.limit))
+  if (params?.page != null) searchParams.set('page', String(params.page))
+  const res = await _request('GET', '/organization/usage/completions', { searchParams }, config)
+  return res.json()
 }
 
 export async function usageEmbeddings(
   params: {
-    startTime: number;
-    endTime?: number;
-    bucketWidth?: "1m" | "1h" | "1d";
-    projectIds?: string[];
-    userIds?: string[];
-    apiKeyIds?: string[];
-    models?: string[];
-    groupBy?: string[];
-    limit?: number;
-    page?: string;
+    startTime: number
+    endTime?: number
+    bucketWidth?: '1m' | '1h' | '1d'
+    projectIds?: string[]
+    userIds?: string[]
+    apiKeyIds?: string[]
+    models?: string[]
+    groupBy?: string[]
+    limit?: number
+    page?: string
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<UsageResponse> {
-  const searchParams = new URLSearchParams();
-  if (params?.startTime != null)
-    searchParams.set("start_time", String(params.startTime));
-  if (params?.endTime != null)
-    searchParams.set("end_time", String(params.endTime));
-  if (params?.bucketWidth != null)
-    searchParams.set("bucket_width", String(params.bucketWidth));
+  const searchParams = new URLSearchParams()
+  if (params?.startTime != null) searchParams.set('start_time', String(params.startTime))
+  if (params?.endTime != null) searchParams.set('end_time', String(params.endTime))
+  if (params?.bucketWidth != null) searchParams.set('bucket_width', String(params.bucketWidth))
   if (params?.projectIds != null) {
-    for (const v of params.projectIds)
-      searchParams.append("project_ids", String(v));
+    for (const v of params.projectIds) searchParams.append('project_ids', String(v))
   }
   if (params?.userIds != null) {
-    for (const v of params.userIds) searchParams.append("user_ids", String(v));
+    for (const v of params.userIds) searchParams.append('user_ids', String(v))
   }
   if (params?.apiKeyIds != null) {
-    for (const v of params.apiKeyIds)
-      searchParams.append("api_key_ids", String(v));
+    for (const v of params.apiKeyIds) searchParams.append('api_key_ids', String(v))
   }
   if (params?.models != null) {
-    for (const v of params.models) searchParams.append("models", String(v));
+    for (const v of params.models) searchParams.append('models', String(v))
   }
   if (params?.groupBy != null) {
-    for (const v of params.groupBy) searchParams.append("group_by", String(v));
+    for (const v of params.groupBy) searchParams.append('group_by', String(v))
   }
-  if (params?.limit != null) searchParams.set("limit", String(params.limit));
-  if (params?.page != null) searchParams.set("page", String(params.page));
-  const res = await _request(
-    "GET",
-    "/organization/usage/embeddings",
-    { searchParams },
-    config,
-  );
-  return res.json();
+  if (params?.limit != null) searchParams.set('limit', String(params.limit))
+  if (params?.page != null) searchParams.set('page', String(params.page))
+  const res = await _request('GET', '/organization/usage/embeddings', { searchParams }, config)
+  return res.json()
 }
 
 export async function usageImages(
   params: {
-    startTime: number;
-    endTime?: number;
-    bucketWidth?: "1m" | "1h" | "1d";
-    sources?: string[];
-    sizes?: string[];
-    projectIds?: string[];
-    userIds?: string[];
-    apiKeyIds?: string[];
-    models?: string[];
-    groupBy?: string[];
-    limit?: number;
-    page?: string;
+    startTime: number
+    endTime?: number
+    bucketWidth?: '1m' | '1h' | '1d'
+    sources?: string[]
+    sizes?: string[]
+    projectIds?: string[]
+    userIds?: string[]
+    apiKeyIds?: string[]
+    models?: string[]
+    groupBy?: string[]
+    limit?: number
+    page?: string
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<UsageResponse> {
-  const searchParams = new URLSearchParams();
-  if (params?.startTime != null)
-    searchParams.set("start_time", String(params.startTime));
-  if (params?.endTime != null)
-    searchParams.set("end_time", String(params.endTime));
-  if (params?.bucketWidth != null)
-    searchParams.set("bucket_width", String(params.bucketWidth));
+  const searchParams = new URLSearchParams()
+  if (params?.startTime != null) searchParams.set('start_time', String(params.startTime))
+  if (params?.endTime != null) searchParams.set('end_time', String(params.endTime))
+  if (params?.bucketWidth != null) searchParams.set('bucket_width', String(params.bucketWidth))
   if (params?.sources != null) {
-    for (const v of params.sources) searchParams.append("sources", String(v));
+    for (const v of params.sources) searchParams.append('sources', String(v))
   }
   if (params?.sizes != null) {
-    for (const v of params.sizes) searchParams.append("sizes", String(v));
+    for (const v of params.sizes) searchParams.append('sizes', String(v))
   }
   if (params?.projectIds != null) {
-    for (const v of params.projectIds)
-      searchParams.append("project_ids", String(v));
+    for (const v of params.projectIds) searchParams.append('project_ids', String(v))
   }
   if (params?.userIds != null) {
-    for (const v of params.userIds) searchParams.append("user_ids", String(v));
+    for (const v of params.userIds) searchParams.append('user_ids', String(v))
   }
   if (params?.apiKeyIds != null) {
-    for (const v of params.apiKeyIds)
-      searchParams.append("api_key_ids", String(v));
+    for (const v of params.apiKeyIds) searchParams.append('api_key_ids', String(v))
   }
   if (params?.models != null) {
-    for (const v of params.models) searchParams.append("models", String(v));
+    for (const v of params.models) searchParams.append('models', String(v))
   }
   if (params?.groupBy != null) {
-    for (const v of params.groupBy) searchParams.append("group_by", String(v));
+    for (const v of params.groupBy) searchParams.append('group_by', String(v))
   }
-  if (params?.limit != null) searchParams.set("limit", String(params.limit));
-  if (params?.page != null) searchParams.set("page", String(params.page));
-  const res = await _request(
-    "GET",
-    "/organization/usage/images",
-    { searchParams },
-    config,
-  );
-  return res.json();
+  if (params?.limit != null) searchParams.set('limit', String(params.limit))
+  if (params?.page != null) searchParams.set('page', String(params.page))
+  const res = await _request('GET', '/organization/usage/images', { searchParams }, config)
+  return res.json()
 }
 
 export async function usageModerations(
   params: {
-    startTime: number;
-    endTime?: number;
-    bucketWidth?: "1m" | "1h" | "1d";
-    projectIds?: string[];
-    userIds?: string[];
-    apiKeyIds?: string[];
-    models?: string[];
-    groupBy?: string[];
-    limit?: number;
-    page?: string;
+    startTime: number
+    endTime?: number
+    bucketWidth?: '1m' | '1h' | '1d'
+    projectIds?: string[]
+    userIds?: string[]
+    apiKeyIds?: string[]
+    models?: string[]
+    groupBy?: string[]
+    limit?: number
+    page?: string
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<UsageResponse> {
-  const searchParams = new URLSearchParams();
-  if (params?.startTime != null)
-    searchParams.set("start_time", String(params.startTime));
-  if (params?.endTime != null)
-    searchParams.set("end_time", String(params.endTime));
-  if (params?.bucketWidth != null)
-    searchParams.set("bucket_width", String(params.bucketWidth));
+  const searchParams = new URLSearchParams()
+  if (params?.startTime != null) searchParams.set('start_time', String(params.startTime))
+  if (params?.endTime != null) searchParams.set('end_time', String(params.endTime))
+  if (params?.bucketWidth != null) searchParams.set('bucket_width', String(params.bucketWidth))
   if (params?.projectIds != null) {
-    for (const v of params.projectIds)
-      searchParams.append("project_ids", String(v));
+    for (const v of params.projectIds) searchParams.append('project_ids', String(v))
   }
   if (params?.userIds != null) {
-    for (const v of params.userIds) searchParams.append("user_ids", String(v));
+    for (const v of params.userIds) searchParams.append('user_ids', String(v))
   }
   if (params?.apiKeyIds != null) {
-    for (const v of params.apiKeyIds)
-      searchParams.append("api_key_ids", String(v));
+    for (const v of params.apiKeyIds) searchParams.append('api_key_ids', String(v))
   }
   if (params?.models != null) {
-    for (const v of params.models) searchParams.append("models", String(v));
+    for (const v of params.models) searchParams.append('models', String(v))
   }
   if (params?.groupBy != null) {
-    for (const v of params.groupBy) searchParams.append("group_by", String(v));
+    for (const v of params.groupBy) searchParams.append('group_by', String(v))
   }
-  if (params?.limit != null) searchParams.set("limit", String(params.limit));
-  if (params?.page != null) searchParams.set("page", String(params.page));
-  const res = await _request(
-    "GET",
-    "/organization/usage/moderations",
-    { searchParams },
-    config,
-  );
-  return res.json();
+  if (params?.limit != null) searchParams.set('limit', String(params.limit))
+  if (params?.page != null) searchParams.set('page', String(params.page))
+  const res = await _request('GET', '/organization/usage/moderations', { searchParams }, config)
+  return res.json()
 }
 
 export async function usageVectorStores(
   params: {
-    startTime: number;
-    endTime?: number;
-    bucketWidth?: "1m" | "1h" | "1d";
-    projectIds?: string[];
-    groupBy?: string[];
-    limit?: number;
-    page?: string;
+    startTime: number
+    endTime?: number
+    bucketWidth?: '1m' | '1h' | '1d'
+    projectIds?: string[]
+    groupBy?: string[]
+    limit?: number
+    page?: string
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<UsageResponse> {
-  const searchParams = new URLSearchParams();
-  if (params?.startTime != null)
-    searchParams.set("start_time", String(params.startTime));
-  if (params?.endTime != null)
-    searchParams.set("end_time", String(params.endTime));
-  if (params?.bucketWidth != null)
-    searchParams.set("bucket_width", String(params.bucketWidth));
+  const searchParams = new URLSearchParams()
+  if (params?.startTime != null) searchParams.set('start_time', String(params.startTime))
+  if (params?.endTime != null) searchParams.set('end_time', String(params.endTime))
+  if (params?.bucketWidth != null) searchParams.set('bucket_width', String(params.bucketWidth))
   if (params?.projectIds != null) {
-    for (const v of params.projectIds)
-      searchParams.append("project_ids", String(v));
+    for (const v of params.projectIds) searchParams.append('project_ids', String(v))
   }
   if (params?.groupBy != null) {
-    for (const v of params.groupBy) searchParams.append("group_by", String(v));
+    for (const v of params.groupBy) searchParams.append('group_by', String(v))
   }
-  if (params?.limit != null) searchParams.set("limit", String(params.limit));
-  if (params?.page != null) searchParams.set("page", String(params.page));
-  const res = await _request(
-    "GET",
-    "/organization/usage/vector_stores",
-    { searchParams },
-    config,
-  );
-  return res.json();
+  if (params?.limit != null) searchParams.set('limit', String(params.limit))
+  if (params?.page != null) searchParams.set('page', String(params.page))
+  const res = await _request('GET', '/organization/usage/vector_stores', { searchParams }, config)
+  return res.json()
 }
 
 export async function listUsers(
   params?: {
-    limit?: number;
-    after?: string;
-    emails?: string[];
+    limit?: number
+    after?: string
+    emails?: string[]
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<UserListResponse> {
-  const searchParams = new URLSearchParams();
-  if (params?.limit != null) searchParams.set("limit", String(params.limit));
-  if (params?.after != null) searchParams.set("after", String(params.after));
+  const searchParams = new URLSearchParams()
+  if (params?.limit != null) searchParams.set('limit', String(params.limit))
+  if (params?.after != null) searchParams.set('after', String(params.after))
   if (params?.emails != null) {
-    for (const v of params.emails) searchParams.append("emails", String(v));
+    for (const v of params.emails) searchParams.append('emails', String(v))
   }
-  const res = await _request(
-    "GET",
-    "/organization/users",
-    { searchParams },
-    config,
-  );
-  return res.json();
+  const res = await _request('GET', '/organization/users', { searchParams }, config)
+  return res.json()
 }
 
-export async function retrieveUser(
-  userId: string,
-  config?: Partial<ClientConfig>,
-): Promise<User> {
-  const res = await _request(
-    "GET",
-    `/organization/users/${encodeURIComponent(userId)}`,
-    {},
-    config,
-  );
-  return res.json();
+export async function retrieveUser(userId: string, config?: Partial<ClientConfig>): Promise<User> {
+  const res = await _request('GET', `/organization/users/${encodeURIComponent(userId)}`, {}, config)
+  return res.json()
 }
 
 export async function modifyUser(
   userId: string,
   body: UserRoleUpdateRequest,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<User> {
   const res = await _request(
-    "POST",
+    'POST',
     `/organization/users/${encodeURIComponent(userId)}`,
     { body },
-    config,
-  );
-  return res.json();
+    config
+  )
+  return res.json()
 }
 
 export async function deleteUser(
   userId: string,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<UserDeleteResponse> {
   const res = await _request(
-    "DELETE",
+    'DELETE',
     `/organization/users/${encodeURIComponent(userId)}`,
     {},
-    config,
-  );
-  return res.json();
+    config
+  )
+  return res.json()
 }
 
 export async function listUserRoleAssignments(
   userId: string,
   params?: {
-    limit?: number;
-    after?: string;
-    order?: "asc" | "desc";
+    limit?: number
+    after?: string
+    order?: 'asc' | 'desc'
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<RoleListResource> {
-  const searchParams = new URLSearchParams();
-  if (params?.limit != null) searchParams.set("limit", String(params.limit));
-  if (params?.after != null) searchParams.set("after", String(params.after));
-  if (params?.order != null) searchParams.set("order", String(params.order));
+  const searchParams = new URLSearchParams()
+  if (params?.limit != null) searchParams.set('limit', String(params.limit))
+  if (params?.after != null) searchParams.set('after', String(params.after))
+  if (params?.order != null) searchParams.set('order', String(params.order))
   const res = await _request(
-    "GET",
+    'GET',
     `/organization/users/${encodeURIComponent(userId)}/roles`,
     { searchParams },
-    config,
-  );
-  return res.json();
+    config
+  )
+  return res.json()
 }
 
 export async function assignUserRole(
   userId: string,
   body: PublicAssignOrganizationGroupRoleBody,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<UserRoleAssignment> {
   const res = await _request(
-    "POST",
+    'POST',
     `/organization/users/${encodeURIComponent(userId)}/roles`,
     { body },
-    config,
-  );
-  return res.json();
+    config
+  )
+  return res.json()
 }
 
 export async function unassignUserRole(
   userId: string,
   roleId: string,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<DeletedRoleAssignmentResource> {
   const res = await _request(
-    "DELETE",
+    'DELETE',
     `/organization/users/${encodeURIComponent(userId)}/roles/${encodeURIComponent(roleId)}`,
     {},
-    config,
-  );
-  return res.json();
+    config
+  )
+  return res.json()
 }
 
 export async function listProjectGroupRoleAssignments(
   projectId: string,
   groupId: string,
   params?: {
-    limit?: number;
-    after?: string;
-    order?: "asc" | "desc";
+    limit?: number
+    after?: string
+    order?: 'asc' | 'desc'
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<RoleListResource> {
-  const searchParams = new URLSearchParams();
-  if (params?.limit != null) searchParams.set("limit", String(params.limit));
-  if (params?.after != null) searchParams.set("after", String(params.after));
-  if (params?.order != null) searchParams.set("order", String(params.order));
+  const searchParams = new URLSearchParams()
+  if (params?.limit != null) searchParams.set('limit', String(params.limit))
+  if (params?.after != null) searchParams.set('after', String(params.after))
+  if (params?.order != null) searchParams.set('order', String(params.order))
   const res = await _request(
-    "GET",
+    'GET',
     `/projects/${encodeURIComponent(projectId)}/groups/${encodeURIComponent(groupId)}/roles`,
     { searchParams },
-    config,
-  );
-  return res.json();
+    config
+  )
+  return res.json()
 }
 
 export async function assignProjectGroupRole(
   projectId: string,
   groupId: string,
   body: PublicAssignOrganizationGroupRoleBody,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<GroupRoleAssignment> {
   const res = await _request(
-    "POST",
+    'POST',
     `/projects/${encodeURIComponent(projectId)}/groups/${encodeURIComponent(groupId)}/roles`,
     { body },
-    config,
-  );
-  return res.json();
+    config
+  )
+  return res.json()
 }
 
 export async function unassignProjectGroupRole(
   projectId: string,
   groupId: string,
   roleId: string,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<DeletedRoleAssignmentResource> {
   const res = await _request(
-    "DELETE",
+    'DELETE',
     `/projects/${encodeURIComponent(projectId)}/groups/${encodeURIComponent(groupId)}/roles/${encodeURIComponent(roleId)}`,
     {},
-    config,
-  );
-  return res.json();
+    config
+  )
+  return res.json()
 }
 
 export async function listProjectRoles(
   projectId: string,
   params?: {
-    limit?: number;
-    after?: string;
-    order?: "asc" | "desc";
+    limit?: number
+    after?: string
+    order?: 'asc' | 'desc'
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<PublicRoleListResource> {
-  const searchParams = new URLSearchParams();
-  if (params?.limit != null) searchParams.set("limit", String(params.limit));
-  if (params?.after != null) searchParams.set("after", String(params.after));
-  if (params?.order != null) searchParams.set("order", String(params.order));
+  const searchParams = new URLSearchParams()
+  if (params?.limit != null) searchParams.set('limit', String(params.limit))
+  if (params?.after != null) searchParams.set('after', String(params.after))
+  if (params?.order != null) searchParams.set('order', String(params.order))
   const res = await _request(
-    "GET",
+    'GET',
     `/projects/${encodeURIComponent(projectId)}/roles`,
     { searchParams },
-    config,
-  );
-  return res.json();
+    config
+  )
+  return res.json()
 }
 
 export async function createProjectRole(
   projectId: string,
   body: PublicCreateOrganizationRoleBody,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<Role> {
   const res = await _request(
-    "POST",
+    'POST',
     `/projects/${encodeURIComponent(projectId)}/roles`,
     { body },
-    config,
-  );
-  return res.json();
+    config
+  )
+  return res.json()
 }
 
 export async function updateProjectRole(
   projectId: string,
   roleId: string,
   body: PublicUpdateOrganizationRoleBody,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<Role> {
   const res = await _request(
-    "POST",
+    'POST',
     `/projects/${encodeURIComponent(projectId)}/roles/${encodeURIComponent(roleId)}`,
     { body },
-    config,
-  );
-  return res.json();
+    config
+  )
+  return res.json()
 }
 
 export async function deleteProjectRole(
   projectId: string,
   roleId: string,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<RoleDeletedResource> {
   const res = await _request(
-    "DELETE",
+    'DELETE',
     `/projects/${encodeURIComponent(projectId)}/roles/${encodeURIComponent(roleId)}`,
     {},
-    config,
-  );
-  return res.json();
+    config
+  )
+  return res.json()
 }
 
 export async function listProjectUserRoleAssignments(
   projectId: string,
   userId: string,
   params?: {
-    limit?: number;
-    after?: string;
-    order?: "asc" | "desc";
+    limit?: number
+    after?: string
+    order?: 'asc' | 'desc'
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<RoleListResource> {
-  const searchParams = new URLSearchParams();
-  if (params?.limit != null) searchParams.set("limit", String(params.limit));
-  if (params?.after != null) searchParams.set("after", String(params.after));
-  if (params?.order != null) searchParams.set("order", String(params.order));
+  const searchParams = new URLSearchParams()
+  if (params?.limit != null) searchParams.set('limit', String(params.limit))
+  if (params?.after != null) searchParams.set('after', String(params.after))
+  if (params?.order != null) searchParams.set('order', String(params.order))
   const res = await _request(
-    "GET",
+    'GET',
     `/projects/${encodeURIComponent(projectId)}/users/${encodeURIComponent(userId)}/roles`,
     { searchParams },
-    config,
-  );
-  return res.json();
+    config
+  )
+  return res.json()
 }
 
 export async function assignProjectUserRole(
   projectId: string,
   userId: string,
   body: PublicAssignOrganizationGroupRoleBody,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<UserRoleAssignment> {
   const res = await _request(
-    "POST",
+    'POST',
     `/projects/${encodeURIComponent(projectId)}/users/${encodeURIComponent(userId)}/roles`,
     { body },
-    config,
-  );
-  return res.json();
+    config
+  )
+  return res.json()
 }
 
 export async function unassignProjectUserRole(
   projectId: string,
   userId: string,
   roleId: string,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<DeletedRoleAssignmentResource> {
   const res = await _request(
-    "DELETE",
+    'DELETE',
     `/projects/${encodeURIComponent(projectId)}/users/${encodeURIComponent(userId)}/roles/${encodeURIComponent(roleId)}`,
     {},
-    config,
-  );
-  return res.json();
+    config
+  )
+  return res.json()
 }
 
-export async function createRealtimeCall(
-  config?: Partial<ClientConfig>,
-): Promise<void> {
-  await _request("POST", "/realtime/calls", {}, config);
+export async function createRealtimeCall(config?: Partial<ClientConfig>): Promise<void> {
+  await _request('POST', '/realtime/calls', {}, config)
 }
 
 export async function acceptRealtimeCall(
   callId: string,
   body: RealtimeSessionCreateRequestGA,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<void> {
-  await _request(
-    "POST",
-    `/realtime/calls/${encodeURIComponent(callId)}/accept`,
-    { body },
-    config,
-  );
+  await _request('POST', `/realtime/calls/${encodeURIComponent(callId)}/accept`, { body }, config)
 }
 
 export async function hangupRealtimeCall(
   callId: string,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<void> {
-  await _request(
-    "POST",
-    `/realtime/calls/${encodeURIComponent(callId)}/hangup`,
-    {},
-    config,
-  );
+  await _request('POST', `/realtime/calls/${encodeURIComponent(callId)}/hangup`, {}, config)
 }
 
 export async function referRealtimeCall(
   callId: string,
   body: RealtimeCallReferRequest,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<void> {
-  await _request(
-    "POST",
-    `/realtime/calls/${encodeURIComponent(callId)}/refer`,
-    { body },
-    config,
-  );
+  await _request('POST', `/realtime/calls/${encodeURIComponent(callId)}/refer`, { body }, config)
 }
 
 export async function rejectRealtimeCall(
   callId: string,
   body: RealtimeCallRejectRequest,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<void> {
-  await _request(
-    "POST",
-    `/realtime/calls/${encodeURIComponent(callId)}/reject`,
-    { body },
-    config,
-  );
+  await _request('POST', `/realtime/calls/${encodeURIComponent(callId)}/reject`, { body }, config)
 }
 
 export async function createRealtimeClientSecret(
   body: RealtimeCreateClientSecretRequest,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<RealtimeCreateClientSecretResponse> {
-  const res = await _request(
-    "POST",
-    "/realtime/client_secrets",
-    { body },
-    config,
-  );
-  return res.json();
+  const res = await _request('POST', '/realtime/client_secrets', { body }, config)
+  return res.json()
 }
 
 export async function createRealtimeSession(
   body: RealtimeSessionCreateRequest,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<RealtimeSessionCreateResponse> {
-  const res = await _request("POST", "/realtime/sessions", { body }, config);
-  return res.json();
+  const res = await _request('POST', '/realtime/sessions', { body }, config)
+  return res.json()
 }
 
 export async function createRealtimeTranscriptionSession(
   body: RealtimeTranscriptionSessionCreateRequest,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<RealtimeTranscriptionSessionCreateResponse> {
-  const res = await _request(
-    "POST",
-    "/realtime/transcription_sessions",
-    { body },
-    config,
-  );
-  return res.json();
+  const res = await _request('POST', '/realtime/transcription_sessions', { body }, config)
+  return res.json()
 }
 
 export async function createRealtimeTranslationClientSecret(
   body: RealtimeTranslationClientSecretCreateRequest,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<RealtimeTranslationClientSecretCreateResponse> {
-  const res = await _request(
-    "POST",
-    "/realtime/translations/client_secrets",
-    { body },
-    config,
-  );
-  return res.json();
+  const res = await _request('POST', '/realtime/translations/client_secrets', { body }, config)
+  return res.json()
 }
 
 export async function createResponse(
   body: CreateResponse,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<Response> {
-  const res = await _request("POST", "/responses", { body }, config);
-  return res.json();
+  const res = await _request('POST', '/responses', { body }, config)
+  return res.json()
 }
 
 export async function getResponse(
   responseId: string,
   params?: {
-    include?: string[];
-    stream?: boolean;
-    startingAfter?: number;
-    includeObfuscation?: boolean;
+    include?: string[]
+    stream?: boolean
+    startingAfter?: number
+    includeObfuscation?: boolean
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<Response> {
-  const searchParams = new URLSearchParams();
+  const searchParams = new URLSearchParams()
   if (params?.include != null) {
-    for (const v of params.include) searchParams.append("include", String(v));
+    for (const v of params.include) searchParams.append('include', String(v))
   }
-  if (params?.stream != null) searchParams.set("stream", String(params.stream));
+  if (params?.stream != null) searchParams.set('stream', String(params.stream))
   if (params?.startingAfter != null)
-    searchParams.set("starting_after", String(params.startingAfter));
+    searchParams.set('starting_after', String(params.startingAfter))
   if (params?.includeObfuscation != null)
-    searchParams.set("include_obfuscation", String(params.includeObfuscation));
+    searchParams.set('include_obfuscation', String(params.includeObfuscation))
   const res = await _request(
-    "GET",
+    'GET',
     `/responses/${encodeURIComponent(responseId)}`,
     { searchParams },
-    config,
-  );
-  return res.json();
+    config
+  )
+  return res.json()
 }
 
 /**
@@ -3091,14 +2771,9 @@ export async function getResponse(
  */
 export async function deleteResponse(
   responseId: string,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<void> {
-  await _request(
-    "DELETE",
-    `/responses/${encodeURIComponent(responseId)}`,
-    {},
-    config,
-  );
+  await _request('DELETE', `/responses/${encodeURIComponent(responseId)}`, {}, config)
 }
 
 /**
@@ -3106,297 +2781,282 @@ export async function deleteResponse(
  */
 export async function cancelResponse(
   responseId: string,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<Response> {
   const res = await _request(
-    "POST",
+    'POST',
     `/responses/${encodeURIComponent(responseId)}/cancel`,
     {},
-    config,
-  );
-  return res.json();
+    config
+  )
+  return res.json()
 }
 
 export async function listInputItems(
   responseId: string,
   params?: {
-    limit?: number;
-    order?: "asc" | "desc";
-    after?: string;
-    include?: string[];
+    limit?: number
+    order?: 'asc' | 'desc'
+    after?: string
+    include?: string[]
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<ResponseItemList> {
-  const searchParams = new URLSearchParams();
-  if (params?.limit != null) searchParams.set("limit", String(params.limit));
-  if (params?.order != null) searchParams.set("order", String(params.order));
-  if (params?.after != null) searchParams.set("after", String(params.after));
+  const searchParams = new URLSearchParams()
+  if (params?.limit != null) searchParams.set('limit', String(params.limit))
+  if (params?.order != null) searchParams.set('order', String(params.order))
+  if (params?.after != null) searchParams.set('after', String(params.after))
   if (params?.include != null) {
-    for (const v of params.include) searchParams.append("include", String(v));
+    for (const v of params.include) searchParams.append('include', String(v))
   }
   const res = await _request(
-    "GET",
+    'GET',
     `/responses/${encodeURIComponent(responseId)}/input_items`,
     { searchParams },
-    config,
-  );
-  return res.json();
+    config
+  )
+  return res.json()
 }
 
 export async function createThread(
   body: CreateThreadRequest,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<ThreadObject> {
-  const res = await _request("POST", "/threads", { body }, config);
-  return res.json();
+  const res = await _request('POST', '/threads', { body }, config)
+  return res.json()
 }
 
 export async function createThreadAndRun(
   body: CreateThreadAndRunRequest,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<RunObject> {
-  const res = await _request("POST", "/threads/runs", { body }, config);
-  return res.json();
+  const res = await _request('POST', '/threads/runs', { body }, config)
+  return res.json()
 }
 
 export async function getThread(
   threadId: string,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<ThreadObject> {
-  const res = await _request(
-    "GET",
-    `/threads/${encodeURIComponent(threadId)}`,
-    {},
-    config,
-  );
-  return res.json();
+  const res = await _request('GET', `/threads/${encodeURIComponent(threadId)}`, {}, config)
+  return res.json()
 }
 
 export async function modifyThread(
   threadId: string,
   body: ModifyThreadRequest,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<ThreadObject> {
-  const res = await _request(
-    "POST",
-    `/threads/${encodeURIComponent(threadId)}`,
-    { body },
-    config,
-  );
-  return res.json();
+  const res = await _request('POST', `/threads/${encodeURIComponent(threadId)}`, { body }, config)
+  return res.json()
 }
 
 export async function deleteThread(
   threadId: string,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<DeleteThreadResponse> {
-  const res = await _request(
-    "DELETE",
-    `/threads/${encodeURIComponent(threadId)}`,
-    {},
-    config,
-  );
-  return res.json();
+  const res = await _request('DELETE', `/threads/${encodeURIComponent(threadId)}`, {}, config)
+  return res.json()
 }
 
 export async function listMessages(
   threadId: string,
   params?: {
-    limit?: number;
-    order?: "asc" | "desc";
-    after?: string;
-    before?: string;
-    runId?: string;
+    limit?: number
+    order?: 'asc' | 'desc'
+    after?: string
+    before?: string
+    runId?: string
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<ListMessagesResponse> {
-  const searchParams = new URLSearchParams();
-  if (params?.limit != null) searchParams.set("limit", String(params.limit));
-  if (params?.order != null) searchParams.set("order", String(params.order));
-  if (params?.after != null) searchParams.set("after", String(params.after));
-  if (params?.before != null) searchParams.set("before", String(params.before));
-  if (params?.runId != null) searchParams.set("run_id", String(params.runId));
+  const searchParams = new URLSearchParams()
+  if (params?.limit != null) searchParams.set('limit', String(params.limit))
+  if (params?.order != null) searchParams.set('order', String(params.order))
+  if (params?.after != null) searchParams.set('after', String(params.after))
+  if (params?.before != null) searchParams.set('before', String(params.before))
+  if (params?.runId != null) searchParams.set('run_id', String(params.runId))
   const res = await _request(
-    "GET",
+    'GET',
     `/threads/${encodeURIComponent(threadId)}/messages`,
     { searchParams },
-    config,
-  );
-  return res.json();
+    config
+  )
+  return res.json()
 }
 
 export async function createMessage(
   threadId: string,
   body: CreateMessageRequest,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<MessageObject> {
   const res = await _request(
-    "POST",
+    'POST',
     `/threads/${encodeURIComponent(threadId)}/messages`,
     { body },
-    config,
-  );
-  return res.json();
+    config
+  )
+  return res.json()
 }
 
 export async function getMessage(
   threadId: string,
   messageId: string,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<MessageObject> {
   const res = await _request(
-    "GET",
+    'GET',
     `/threads/${encodeURIComponent(threadId)}/messages/${encodeURIComponent(messageId)}`,
     {},
-    config,
-  );
-  return res.json();
+    config
+  )
+  return res.json()
 }
 
 export async function modifyMessage(
   threadId: string,
   messageId: string,
   body: ModifyMessageRequest,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<MessageObject> {
   const res = await _request(
-    "POST",
+    'POST',
     `/threads/${encodeURIComponent(threadId)}/messages/${encodeURIComponent(messageId)}`,
     { body },
-    config,
-  );
-  return res.json();
+    config
+  )
+  return res.json()
 }
 
 export async function deleteMessage(
   threadId: string,
   messageId: string,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<DeleteMessageResponse> {
   const res = await _request(
-    "DELETE",
+    'DELETE',
     `/threads/${encodeURIComponent(threadId)}/messages/${encodeURIComponent(messageId)}`,
     {},
-    config,
-  );
-  return res.json();
+    config
+  )
+  return res.json()
 }
 
 export async function listRuns(
   threadId: string,
   params?: {
-    limit?: number;
-    order?: "asc" | "desc";
-    after?: string;
-    before?: string;
+    limit?: number
+    order?: 'asc' | 'desc'
+    after?: string
+    before?: string
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<ListRunsResponse> {
-  const searchParams = new URLSearchParams();
-  if (params?.limit != null) searchParams.set("limit", String(params.limit));
-  if (params?.order != null) searchParams.set("order", String(params.order));
-  if (params?.after != null) searchParams.set("after", String(params.after));
-  if (params?.before != null) searchParams.set("before", String(params.before));
+  const searchParams = new URLSearchParams()
+  if (params?.limit != null) searchParams.set('limit', String(params.limit))
+  if (params?.order != null) searchParams.set('order', String(params.order))
+  if (params?.after != null) searchParams.set('after', String(params.after))
+  if (params?.before != null) searchParams.set('before', String(params.before))
   const res = await _request(
-    "GET",
+    'GET',
     `/threads/${encodeURIComponent(threadId)}/runs`,
     { searchParams },
-    config,
-  );
-  return res.json();
+    config
+  )
+  return res.json()
 }
 
 export async function createRun(
   threadId: string,
   body: CreateRunRequest,
   params?: {
-    include?: string[];
+    include?: string[]
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<RunObject> {
-  const searchParams = new URLSearchParams();
+  const searchParams = new URLSearchParams()
   if (params?.include != null) {
-    for (const v of params.include) searchParams.append("include[]", String(v));
+    for (const v of params.include) searchParams.append('include[]', String(v))
   }
   const res = await _request(
-    "POST",
+    'POST',
     `/threads/${encodeURIComponent(threadId)}/runs`,
     { searchParams, body },
-    config,
-  );
-  return res.json();
+    config
+  )
+  return res.json()
 }
 
 export async function getRun(
   threadId: string,
   runId: string,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<RunObject> {
   const res = await _request(
-    "GET",
+    'GET',
     `/threads/${encodeURIComponent(threadId)}/runs/${encodeURIComponent(runId)}`,
     {},
-    config,
-  );
-  return res.json();
+    config
+  )
+  return res.json()
 }
 
 export async function modifyRun(
   threadId: string,
   runId: string,
   body: ModifyRunRequest,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<RunObject> {
   const res = await _request(
-    "POST",
+    'POST',
     `/threads/${encodeURIComponent(threadId)}/runs/${encodeURIComponent(runId)}`,
     { body },
-    config,
-  );
-  return res.json();
+    config
+  )
+  return res.json()
 }
 
 export async function cancelRun(
   threadId: string,
   runId: string,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<RunObject> {
   const res = await _request(
-    "POST",
+    'POST',
     `/threads/${encodeURIComponent(threadId)}/runs/${encodeURIComponent(runId)}/cancel`,
     {},
-    config,
-  );
-  return res.json();
+    config
+  )
+  return res.json()
 }
 
 export async function listRunSteps(
   threadId: string,
   runId: string,
   params?: {
-    limit?: number;
-    order?: "asc" | "desc";
-    after?: string;
-    before?: string;
-    include?: string[];
+    limit?: number
+    order?: 'asc' | 'desc'
+    after?: string
+    before?: string
+    include?: string[]
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<ListRunStepsResponse> {
-  const searchParams = new URLSearchParams();
-  if (params?.limit != null) searchParams.set("limit", String(params.limit));
-  if (params?.order != null) searchParams.set("order", String(params.order));
-  if (params?.after != null) searchParams.set("after", String(params.after));
-  if (params?.before != null) searchParams.set("before", String(params.before));
+  const searchParams = new URLSearchParams()
+  if (params?.limit != null) searchParams.set('limit', String(params.limit))
+  if (params?.order != null) searchParams.set('order', String(params.order))
+  if (params?.after != null) searchParams.set('after', String(params.after))
+  if (params?.before != null) searchParams.set('before', String(params.before))
   if (params?.include != null) {
-    for (const v of params.include) searchParams.append("include[]", String(v));
+    for (const v of params.include) searchParams.append('include[]', String(v))
   }
   const res = await _request(
-    "GET",
+    'GET',
     `/threads/${encodeURIComponent(threadId)}/runs/${encodeURIComponent(runId)}/steps`,
     { searchParams },
-    config,
-  );
-  return res.json();
+    config
+  )
+  return res.json()
 }
 
 export async function getRunStep(
@@ -3404,767 +3064,711 @@ export async function getRunStep(
   runId: string,
   stepId: string,
   params?: {
-    include?: string[];
+    include?: string[]
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<RunStepObject> {
-  const searchParams = new URLSearchParams();
+  const searchParams = new URLSearchParams()
   if (params?.include != null) {
-    for (const v of params.include) searchParams.append("include[]", String(v));
+    for (const v of params.include) searchParams.append('include[]', String(v))
   }
   const res = await _request(
-    "GET",
+    'GET',
     `/threads/${encodeURIComponent(threadId)}/runs/${encodeURIComponent(runId)}/steps/${encodeURIComponent(stepId)}`,
     { searchParams },
-    config,
-  );
-  return res.json();
+    config
+  )
+  return res.json()
 }
 
 export async function submitToolOuputsToRun(
   threadId: string,
   runId: string,
   body: SubmitToolOutputsRunRequest,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<RunObject> {
   const res = await _request(
-    "POST",
+    'POST',
     `/threads/${encodeURIComponent(threadId)}/runs/${encodeURIComponent(runId)}/submit_tool_outputs`,
     { body },
-    config,
-  );
-  return res.json();
+    config
+  )
+  return res.json()
 }
 
 export async function createUpload(
   body: CreateUploadRequest,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<Upload> {
-  const res = await _request("POST", "/uploads", { body }, config);
-  return res.json();
+  const res = await _request('POST', '/uploads', { body }, config)
+  return res.json()
 }
 
 export async function cancelUpload(
   uploadId: string,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<Upload> {
-  const res = await _request(
-    "POST",
-    `/uploads/${encodeURIComponent(uploadId)}/cancel`,
-    {},
-    config,
-  );
-  return res.json();
+  const res = await _request('POST', `/uploads/${encodeURIComponent(uploadId)}/cancel`, {}, config)
+  return res.json()
 }
 
 export async function completeUpload(
   uploadId: string,
   body: CompleteUploadRequest,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<Upload> {
   const res = await _request(
-    "POST",
+    'POST',
     `/uploads/${encodeURIComponent(uploadId)}/complete`,
     { body },
-    config,
-  );
-  return res.json();
+    config
+  )
+  return res.json()
 }
 
 export async function addUploadPart(
   uploadId: string,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<UploadPart> {
-  const res = await _request(
-    "POST",
-    `/uploads/${encodeURIComponent(uploadId)}/parts`,
-    {},
-    config,
-  );
-  return res.json();
+  const res = await _request('POST', `/uploads/${encodeURIComponent(uploadId)}/parts`, {}, config)
+  return res.json()
 }
 
 export async function listVectorStores(
   params?: {
-    limit?: number;
-    order?: "asc" | "desc";
-    after?: string;
-    before?: string;
+    limit?: number
+    order?: 'asc' | 'desc'
+    after?: string
+    before?: string
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<ListVectorStoresResponse> {
-  const searchParams = new URLSearchParams();
-  if (params?.limit != null) searchParams.set("limit", String(params.limit));
-  if (params?.order != null) searchParams.set("order", String(params.order));
-  if (params?.after != null) searchParams.set("after", String(params.after));
-  if (params?.before != null) searchParams.set("before", String(params.before));
-  const res = await _request("GET", "/vector_stores", { searchParams }, config);
-  return res.json();
+  const searchParams = new URLSearchParams()
+  if (params?.limit != null) searchParams.set('limit', String(params.limit))
+  if (params?.order != null) searchParams.set('order', String(params.order))
+  if (params?.after != null) searchParams.set('after', String(params.after))
+  if (params?.before != null) searchParams.set('before', String(params.before))
+  const res = await _request('GET', '/vector_stores', { searchParams }, config)
+  return res.json()
 }
 
 export async function createVectorStore(
   body: CreateVectorStoreRequest,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<VectorStoreObject> {
-  const res = await _request("POST", "/vector_stores", { body }, config);
-  return res.json();
+  const res = await _request('POST', '/vector_stores', { body }, config)
+  return res.json()
 }
 
 export async function getVectorStore(
   vectorStoreId: string,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<VectorStoreObject> {
   const res = await _request(
-    "GET",
+    'GET',
     `/vector_stores/${encodeURIComponent(vectorStoreId)}`,
     {},
-    config,
-  );
-  return res.json();
+    config
+  )
+  return res.json()
 }
 
 export async function modifyVectorStore(
   vectorStoreId: string,
   body: UpdateVectorStoreRequest,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<VectorStoreObject> {
   const res = await _request(
-    "POST",
+    'POST',
     `/vector_stores/${encodeURIComponent(vectorStoreId)}`,
     { body },
-    config,
-  );
-  return res.json();
+    config
+  )
+  return res.json()
 }
 
 export async function deleteVectorStore(
   vectorStoreId: string,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<DeleteVectorStoreResponse> {
   const res = await _request(
-    "DELETE",
+    'DELETE',
     `/vector_stores/${encodeURIComponent(vectorStoreId)}`,
     {},
-    config,
-  );
-  return res.json();
+    config
+  )
+  return res.json()
 }
 
 export async function createVectorStoreFileBatch(
   vectorStoreId: string,
   body: CreateVectorStoreFileBatchRequest,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<VectorStoreFileBatchObject> {
   const res = await _request(
-    "POST",
+    'POST',
     `/vector_stores/${encodeURIComponent(vectorStoreId)}/file_batches`,
     { body },
-    config,
-  );
-  return res.json();
+    config
+  )
+  return res.json()
 }
 
 export async function getVectorStoreFileBatch(
   vectorStoreId: string,
   batchId: string,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<VectorStoreFileBatchObject> {
   const res = await _request(
-    "GET",
+    'GET',
     `/vector_stores/${encodeURIComponent(vectorStoreId)}/file_batches/${encodeURIComponent(batchId)}`,
     {},
-    config,
-  );
-  return res.json();
+    config
+  )
+  return res.json()
 }
 
 export async function cancelVectorStoreFileBatch(
   vectorStoreId: string,
   batchId: string,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<VectorStoreFileBatchObject> {
   const res = await _request(
-    "POST",
+    'POST',
     `/vector_stores/${encodeURIComponent(vectorStoreId)}/file_batches/${encodeURIComponent(batchId)}/cancel`,
     {},
-    config,
-  );
-  return res.json();
+    config
+  )
+  return res.json()
 }
 
 export async function listFilesInVectorStoreBatch(
   vectorStoreId: string,
   batchId: string,
   params?: {
-    limit?: number;
-    order?: "asc" | "desc";
-    after?: string;
-    before?: string;
-    filter?: "in_progress" | "completed" | "failed" | "cancelled";
+    limit?: number
+    order?: 'asc' | 'desc'
+    after?: string
+    before?: string
+    filter?: 'in_progress' | 'completed' | 'failed' | 'cancelled'
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<ListVectorStoreFilesResponse> {
-  const searchParams = new URLSearchParams();
-  if (params?.limit != null) searchParams.set("limit", String(params.limit));
-  if (params?.order != null) searchParams.set("order", String(params.order));
-  if (params?.after != null) searchParams.set("after", String(params.after));
-  if (params?.before != null) searchParams.set("before", String(params.before));
-  if (params?.filter != null) searchParams.set("filter", String(params.filter));
+  const searchParams = new URLSearchParams()
+  if (params?.limit != null) searchParams.set('limit', String(params.limit))
+  if (params?.order != null) searchParams.set('order', String(params.order))
+  if (params?.after != null) searchParams.set('after', String(params.after))
+  if (params?.before != null) searchParams.set('before', String(params.before))
+  if (params?.filter != null) searchParams.set('filter', String(params.filter))
   const res = await _request(
-    "GET",
+    'GET',
     `/vector_stores/${encodeURIComponent(vectorStoreId)}/file_batches/${encodeURIComponent(batchId)}/files`,
     { searchParams },
-    config,
-  );
-  return res.json();
+    config
+  )
+  return res.json()
 }
 
 export async function listVectorStoreFiles(
   vectorStoreId: string,
   params?: {
-    limit?: number;
-    order?: "asc" | "desc";
-    after?: string;
-    before?: string;
-    filter?: "in_progress" | "completed" | "failed" | "cancelled";
+    limit?: number
+    order?: 'asc' | 'desc'
+    after?: string
+    before?: string
+    filter?: 'in_progress' | 'completed' | 'failed' | 'cancelled'
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<ListVectorStoreFilesResponse> {
-  const searchParams = new URLSearchParams();
-  if (params?.limit != null) searchParams.set("limit", String(params.limit));
-  if (params?.order != null) searchParams.set("order", String(params.order));
-  if (params?.after != null) searchParams.set("after", String(params.after));
-  if (params?.before != null) searchParams.set("before", String(params.before));
-  if (params?.filter != null) searchParams.set("filter", String(params.filter));
+  const searchParams = new URLSearchParams()
+  if (params?.limit != null) searchParams.set('limit', String(params.limit))
+  if (params?.order != null) searchParams.set('order', String(params.order))
+  if (params?.after != null) searchParams.set('after', String(params.after))
+  if (params?.before != null) searchParams.set('before', String(params.before))
+  if (params?.filter != null) searchParams.set('filter', String(params.filter))
   const res = await _request(
-    "GET",
+    'GET',
     `/vector_stores/${encodeURIComponent(vectorStoreId)}/files`,
     { searchParams },
-    config,
-  );
-  return res.json();
+    config
+  )
+  return res.json()
 }
 
 export async function createVectorStoreFile(
   vectorStoreId: string,
   body: CreateVectorStoreFileRequest,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<VectorStoreFileObject> {
   const res = await _request(
-    "POST",
+    'POST',
     `/vector_stores/${encodeURIComponent(vectorStoreId)}/files`,
     { body },
-    config,
-  );
-  return res.json();
+    config
+  )
+  return res.json()
 }
 
 export async function getVectorStoreFile(
   vectorStoreId: string,
   fileId: string,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<VectorStoreFileObject> {
   const res = await _request(
-    "GET",
+    'GET',
     `/vector_stores/${encodeURIComponent(vectorStoreId)}/files/${encodeURIComponent(fileId)}`,
     {},
-    config,
-  );
-  return res.json();
+    config
+  )
+  return res.json()
 }
 
 export async function updateVectorStoreFileAttributes(
   vectorStoreId: string,
   fileId: string,
   body: UpdateVectorStoreFileAttributesRequest,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<VectorStoreFileObject> {
   const res = await _request(
-    "POST",
+    'POST',
     `/vector_stores/${encodeURIComponent(vectorStoreId)}/files/${encodeURIComponent(fileId)}`,
     { body },
-    config,
-  );
-  return res.json();
+    config
+  )
+  return res.json()
 }
 
 export async function deleteVectorStoreFile(
   vectorStoreId: string,
   fileId: string,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<DeleteVectorStoreFileResponse> {
   const res = await _request(
-    "DELETE",
+    'DELETE',
     `/vector_stores/${encodeURIComponent(vectorStoreId)}/files/${encodeURIComponent(fileId)}`,
     {},
-    config,
-  );
-  return res.json();
+    config
+  )
+  return res.json()
 }
 
 export async function retrieveVectorStoreFileContent(
   vectorStoreId: string,
   fileId: string,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<VectorStoreFileContentResponse> {
   const res = await _request(
-    "GET",
+    'GET',
     `/vector_stores/${encodeURIComponent(vectorStoreId)}/files/${encodeURIComponent(fileId)}/content`,
     {},
-    config,
-  );
-  return res.json();
+    config
+  )
+  return res.json()
 }
 
 export async function searchVectorStore(
   vectorStoreId: string,
   body: VectorStoreSearchRequest,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<VectorStoreSearchResultsPage> {
   const res = await _request(
-    "POST",
+    'POST',
     `/vector_stores/${encodeURIComponent(vectorStoreId)}/search`,
     { body },
-    config,
-  );
-  return res.json();
+    config
+  )
+  return res.json()
 }
 
 export async function createConversation(
   body: CreateConversationBody,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<ConversationResource> {
-  const res = await _request("POST", "/conversations", { body }, config);
-  return res.json();
+  const res = await _request('POST', '/conversations', { body }, config)
+  return res.json()
 }
 
 export async function getConversation(
   conversationId: string,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<ConversationResource> {
   const res = await _request(
-    "GET",
+    'GET',
     `/conversations/${encodeURIComponent(conversationId)}`,
     {},
-    config,
-  );
-  return res.json();
+    config
+  )
+  return res.json()
 }
 
 export async function updateConversation(
   conversationId: string,
   body: UpdateConversationBody,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<ConversationResource> {
   const res = await _request(
-    "POST",
+    'POST',
     `/conversations/${encodeURIComponent(conversationId)}`,
     { body },
-    config,
-  );
-  return res.json();
+    config
+  )
+  return res.json()
 }
 
 export async function deleteConversation(
   conversationId: string,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<DeletedConversationResource> {
   const res = await _request(
-    "DELETE",
+    'DELETE',
     `/conversations/${encodeURIComponent(conversationId)}`,
     {},
-    config,
-  );
-  return res.json();
+    config
+  )
+  return res.json()
 }
 
 export async function listVideos(
   params?: {
-    limit?: number;
-    order?: string;
-    after?: string;
+    limit?: number
+    order?: string
+    after?: string
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<VideoListResource> {
-  const searchParams = new URLSearchParams();
-  if (params?.limit != null) searchParams.set("limit", String(params.limit));
-  if (params?.order != null) searchParams.set("order", String(params.order));
-  if (params?.after != null) searchParams.set("after", String(params.after));
-  const res = await _request("GET", "/videos", { searchParams }, config);
-  return res.json();
+  const searchParams = new URLSearchParams()
+  if (params?.limit != null) searchParams.set('limit', String(params.limit))
+  if (params?.order != null) searchParams.set('order', String(params.order))
+  if (params?.after != null) searchParams.set('after', String(params.after))
+  const res = await _request('GET', '/videos', { searchParams }, config)
+  return res.json()
 }
 
 export async function createVideo(
   body: CreateVideoJsonBody,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<VideoResource> {
-  const res = await _request("POST", "/videos", { body }, config);
-  return res.json();
+  const res = await _request('POST', '/videos', { body }, config)
+  return res.json()
 }
 
 export async function createVideoCharacter(
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<VideoCharacterResource> {
-  const res = await _request("POST", "/videos/characters", {}, config);
-  return res.json();
+  const res = await _request('POST', '/videos/characters', {}, config)
+  return res.json()
 }
 
 export async function getVideoCharacter(
   characterId: string,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<VideoCharacterResource> {
   const res = await _request(
-    "GET",
+    'GET',
     `/videos/characters/${encodeURIComponent(characterId)}`,
     {},
-    config,
-  );
-  return res.json();
+    config
+  )
+  return res.json()
 }
 
 export async function createVideoEdit(
   body: CreateVideoEditJsonBody,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<VideoResource> {
-  const res = await _request("POST", "/videos/edits", { body }, config);
-  return res.json();
+  const res = await _request('POST', '/videos/edits', { body }, config)
+  return res.json()
 }
 
 export async function createVideoExtend(
   body: CreateVideoExtendJsonBody,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<VideoResource> {
-  const res = await _request("POST", "/videos/extensions", { body }, config);
-  return res.json();
+  const res = await _request('POST', '/videos/extensions', { body }, config)
+  return res.json()
 }
 
 export async function getVideo(
   videoId: string,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<VideoResource> {
-  const res = await _request(
-    "GET",
-    `/videos/${encodeURIComponent(videoId)}`,
-    {},
-    config,
-  );
-  return res.json();
+  const res = await _request('GET', `/videos/${encodeURIComponent(videoId)}`, {}, config)
+  return res.json()
 }
 
 export async function deleteVideo(
   videoId: string,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<DeletedVideoResource> {
-  const res = await _request(
-    "DELETE",
-    `/videos/${encodeURIComponent(videoId)}`,
-    {},
-    config,
-  );
-  return res.json();
+  const res = await _request('DELETE', `/videos/${encodeURIComponent(videoId)}`, {}, config)
+  return res.json()
 }
 
 export async function retrieveVideoContent(
   videoId: string,
   params?: {
-    variant?: string;
+    variant?: string
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<string> {
-  const searchParams = new URLSearchParams();
-  if (params?.variant != null)
-    searchParams.set("variant", String(params.variant));
+  const searchParams = new URLSearchParams()
+  if (params?.variant != null) searchParams.set('variant', String(params.variant))
   const res = await _request(
-    "GET",
+    'GET',
     `/videos/${encodeURIComponent(videoId)}/content`,
     { searchParams },
-    config,
-  );
-  return res.json();
+    config
+  )
+  return res.json()
 }
 
 export async function createVideoRemix(
   videoId: string,
   body: CreateVideoRemixBody,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<VideoResource> {
   const res = await _request(
-    "POST",
+    'POST',
     `/videos/${encodeURIComponent(videoId)}/remix`,
     { body },
-    config,
-  );
-  return res.json();
+    config
+  )
+  return res.json()
 }
 
 export async function getinputtokencounts(
   body: TokenCountsBody,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<TokenCountsResource> {
-  const res = await _request(
-    "POST",
-    "/responses/input_tokens",
-    { body },
-    config,
-  );
-  return res.json();
+  const res = await _request('POST', '/responses/input_tokens', { body }, config)
+  return res.json()
 }
 
 export async function compactconversation(
   body: CompactResponseMethodPublicBody,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<CompactResource> {
-  const res = await _request("POST", "/responses/compact", { body }, config);
-  return res.json();
+  const res = await _request('POST', '/responses/compact', { body }, config)
+  return res.json()
 }
 
 export async function listSkills(
   params?: {
-    limit?: number;
-    order?: string;
-    after?: string;
+    limit?: number
+    order?: string
+    after?: string
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<SkillListResource> {
-  const searchParams = new URLSearchParams();
-  if (params?.limit != null) searchParams.set("limit", String(params.limit));
-  if (params?.order != null) searchParams.set("order", String(params.order));
-  if (params?.after != null) searchParams.set("after", String(params.after));
-  const res = await _request("GET", "/skills", { searchParams }, config);
-  return res.json();
+  const searchParams = new URLSearchParams()
+  if (params?.limit != null) searchParams.set('limit', String(params.limit))
+  if (params?.order != null) searchParams.set('order', String(params.order))
+  if (params?.after != null) searchParams.set('after', String(params.after))
+  const res = await _request('GET', '/skills', { searchParams }, config)
+  return res.json()
 }
 
 export async function createSkill(
   body: CreateSkillBody,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<SkillResource> {
-  const res = await _request("POST", "/skills", { body }, config);
-  return res.json();
+  const res = await _request('POST', '/skills', { body }, config)
+  return res.json()
 }
 
 export async function getSkill(
   skillId: string,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<SkillResource> {
-  const res = await _request(
-    "GET",
-    `/skills/${encodeURIComponent(skillId)}`,
-    {},
-    config,
-  );
-  return res.json();
+  const res = await _request('GET', `/skills/${encodeURIComponent(skillId)}`, {}, config)
+  return res.json()
 }
 
 export async function updateSkillDefaultVersion(
   skillId: string,
   body: SetDefaultSkillVersionBody,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<SkillResource> {
-  const res = await _request(
-    "POST",
-    `/skills/${encodeURIComponent(skillId)}`,
-    { body },
-    config,
-  );
-  return res.json();
+  const res = await _request('POST', `/skills/${encodeURIComponent(skillId)}`, { body }, config)
+  return res.json()
 }
 
 export async function deleteSkill(
   skillId: string,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<DeletedSkillResource> {
-  const res = await _request(
-    "DELETE",
-    `/skills/${encodeURIComponent(skillId)}`,
-    {},
-    config,
-  );
-  return res.json();
+  const res = await _request('DELETE', `/skills/${encodeURIComponent(skillId)}`, {}, config)
+  return res.json()
 }
 
 export async function getSkillContent(
   skillId: string,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<string> {
-  const res = await _request(
-    "GET",
-    `/skills/${encodeURIComponent(skillId)}/content`,
-    {},
-    config,
-  );
-  return res.json();
+  const res = await _request('GET', `/skills/${encodeURIComponent(skillId)}/content`, {}, config)
+  return res.json()
 }
 
 export async function listSkillVersions(
   skillId: string,
   params?: {
-    limit?: number;
-    order?: string;
-    after?: string;
+    limit?: number
+    order?: string
+    after?: string
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<SkillVersionListResource> {
-  const searchParams = new URLSearchParams();
-  if (params?.limit != null) searchParams.set("limit", String(params.limit));
-  if (params?.order != null) searchParams.set("order", String(params.order));
-  if (params?.after != null) searchParams.set("after", String(params.after));
+  const searchParams = new URLSearchParams()
+  if (params?.limit != null) searchParams.set('limit', String(params.limit))
+  if (params?.order != null) searchParams.set('order', String(params.order))
+  if (params?.after != null) searchParams.set('after', String(params.after))
   const res = await _request(
-    "GET",
+    'GET',
     `/skills/${encodeURIComponent(skillId)}/versions`,
     { searchParams },
-    config,
-  );
-  return res.json();
+    config
+  )
+  return res.json()
 }
 
 export async function createSkillVersion(
   skillId: string,
   body: CreateSkillVersionBody,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<SkillVersionResource> {
   const res = await _request(
-    "POST",
+    'POST',
     `/skills/${encodeURIComponent(skillId)}/versions`,
     { body },
-    config,
-  );
-  return res.json();
+    config
+  )
+  return res.json()
 }
 
 export async function getSkillVersion(
   skillId: string,
   version: string,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<SkillVersionResource> {
   const res = await _request(
-    "GET",
+    'GET',
     `/skills/${encodeURIComponent(skillId)}/versions/${encodeURIComponent(version)}`,
     {},
-    config,
-  );
-  return res.json();
+    config
+  )
+  return res.json()
 }
 
 export async function deleteSkillVersion(
   skillId: string,
   version: string,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<DeletedSkillVersionResource> {
   const res = await _request(
-    "DELETE",
+    'DELETE',
     `/skills/${encodeURIComponent(skillId)}/versions/${encodeURIComponent(version)}`,
     {},
-    config,
-  );
-  return res.json();
+    config
+  )
+  return res.json()
 }
 
 export async function getSkillVersionContent(
   skillId: string,
   version: string,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<string> {
   const res = await _request(
-    "GET",
+    'GET',
     `/skills/${encodeURIComponent(skillId)}/versions/${encodeURIComponent(version)}/content`,
     {},
-    config,
-  );
-  return res.json();
+    config
+  )
+  return res.json()
 }
 
 export async function cancelChatSessionMethod(
   sessionId: string,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<ChatSessionResource> {
   const res = await _request(
-    "POST",
+    'POST',
     `/chatkit/sessions/${encodeURIComponent(sessionId)}/cancel`,
     {},
-    config,
-  );
-  return res.json();
+    config
+  )
+  return res.json()
 }
 
 export async function createChatSessionMethod(
   body: CreateChatSessionBody,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<ChatSessionResource> {
-  const res = await _request("POST", "/chatkit/sessions", { body }, config);
-  return res.json();
+  const res = await _request('POST', '/chatkit/sessions', { body }, config)
+  return res.json()
 }
 
 export async function listThreadItemsMethod(
   threadId: string,
   params?: {
-    limit?: number;
-    order?: string;
-    after?: string;
-    before?: string;
+    limit?: number
+    order?: string
+    after?: string
+    before?: string
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<ThreadItemListResource> {
-  const searchParams = new URLSearchParams();
-  if (params?.limit != null) searchParams.set("limit", String(params.limit));
-  if (params?.order != null) searchParams.set("order", String(params.order));
-  if (params?.after != null) searchParams.set("after", String(params.after));
-  if (params?.before != null) searchParams.set("before", String(params.before));
+  const searchParams = new URLSearchParams()
+  if (params?.limit != null) searchParams.set('limit', String(params.limit))
+  if (params?.order != null) searchParams.set('order', String(params.order))
+  if (params?.after != null) searchParams.set('after', String(params.after))
+  if (params?.before != null) searchParams.set('before', String(params.before))
   const res = await _request(
-    "GET",
+    'GET',
     `/chatkit/threads/${encodeURIComponent(threadId)}/items`,
     { searchParams },
-    config,
-  );
-  return res.json();
+    config
+  )
+  return res.json()
 }
 
 export async function getThreadMethod(
   threadId: string,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<ThreadResource> {
-  const res = await _request(
-    "GET",
-    `/chatkit/threads/${encodeURIComponent(threadId)}`,
-    {},
-    config,
-  );
-  return res.json();
+  const res = await _request('GET', `/chatkit/threads/${encodeURIComponent(threadId)}`, {}, config)
+  return res.json()
 }
 
 export async function deleteThreadMethod(
   threadId: string,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<DeletedThreadResource> {
   const res = await _request(
-    "DELETE",
+    'DELETE',
     `/chatkit/threads/${encodeURIComponent(threadId)}`,
     {},
-    config,
-  );
-  return res.json();
+    config
+  )
+  return res.json()
 }
 
 export async function listThreadsMethod(
   params?: {
-    limit?: number;
-    order?: string;
-    after?: string;
-    before?: string;
-    user?: string;
+    limit?: number
+    order?: string
+    after?: string
+    before?: string
+    user?: string
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<ThreadListResource> {
-  const searchParams = new URLSearchParams();
-  if (params?.limit != null) searchParams.set("limit", String(params.limit));
-  if (params?.order != null) searchParams.set("order", String(params.order));
-  if (params?.after != null) searchParams.set("after", String(params.after));
-  if (params?.before != null) searchParams.set("before", String(params.before));
-  if (params?.user != null) searchParams.set("user", String(params.user));
-  const res = await _request(
-    "GET",
-    "/chatkit/threads",
-    { searchParams },
-    config,
-  );
-  return res.json();
+  const searchParams = new URLSearchParams()
+  if (params?.limit != null) searchParams.set('limit', String(params.limit))
+  if (params?.order != null) searchParams.set('order', String(params.order))
+  if (params?.after != null) searchParams.set('after', String(params.after))
+  if (params?.before != null) searchParams.set('before', String(params.before))
+  if (params?.user != null) searchParams.set('user', String(params.user))
+  const res = await _request('GET', '/chatkit/threads', { searchParams }, config)
+  return res.json()
 }

@@ -18,7 +18,16 @@ const arbQueryParam = fc.record({
 })
 
 /** Realistic resource names */
-const RESOURCES = ['items', 'tasks', 'users', 'projects', 'orders', 'reports', 'documents', 'records']
+const RESOURCES = [
+  'items',
+  'tasks',
+  'users',
+  'projects',
+  'orders',
+  'reports',
+  'documents',
+  'records',
+]
 
 /** Generates realistic path strings */
 const arbPath: fc.Arbitrary<string> = fc.oneof(
@@ -27,14 +36,20 @@ const arbPath: fc.Arbitrary<string> = fc.oneof(
   // /resources/{id} (1 path param)
   fc.tuple(fc.constantFrom(...RESOURCES), arbPathParam).map(([r, p]) => `/${r}/{${p}}`),
   // /resources/{p1}/sub/{p2} (2 path params)
-  fc.tuple(fc.constantFrom(...RESOURCES), arbPathParam, fc.constantFrom(...RESOURCES), arbPathParam).map(
-    ([r, p1, sub, p2]) => `/${r}/{${p1}}/${sub}/{${p2}}`,
-  ),
+  fc
+    .tuple(fc.constantFrom(...RESOURCES), arbPathParam, fc.constantFrom(...RESOURCES), arbPathParam)
+    .map(([r, p1, sub, p2]) => `/${r}/{${p1}}/${sub}/{${p2}}`)
 )
 
 type HttpMethod = 'get' | 'post' | 'put' | 'patch' | 'delete'
 
-const arbHttpMethod: fc.Arbitrary<HttpMethod> = fc.constantFrom('get', 'post', 'put', 'patch', 'delete')
+const arbHttpMethod: fc.Arbitrary<HttpMethod> = fc.constantFrom(
+  'get',
+  'post',
+  'put',
+  'patch',
+  'delete'
+)
 
 function extractPathParams(path: string): string[] {
   const matches = path.match(/\{([^}]+)\}/g)
@@ -53,7 +68,12 @@ interface ArbOp {
 
 /** Generates a single operation object */
 const arbOperation: fc.Arbitrary<ArbOp> = fc
-  .tuple(arbOperationId, arbHttpMethod, arbPath, fc.array(arbQueryParam, { minLength: 0, maxLength: 3 }))
+  .tuple(
+    arbOperationId,
+    arbHttpMethod,
+    arbPath,
+    fc.array(arbQueryParam, { minLength: 0, maxLength: 3 })
+  )
   .map(([operationId, method, path, queryParams]) => {
     const pathParams = extractPathParams(path)
     const hasBody = method === 'post' || method === 'put' || method === 'patch'
@@ -124,7 +144,7 @@ describe('property-based tests — generateService invariants', () => {
       fc.property(arbSpec, (spec) => {
         expect(() => generateService(spec)).not.toThrow()
       }),
-      { numRuns: 500 },
+      { numRuns: 500 }
     )
   })
 
@@ -144,7 +164,7 @@ describe('property-based tests — generateService invariants', () => {
           }
         }
       }),
-      { numRuns: 300 },
+      { numRuns: 300 }
     )
   })
 
@@ -171,7 +191,7 @@ describe('property-based tests — generateService invariants', () => {
           }
         }
       }),
-      { numRuns: 300 },
+      { numRuns: 300 }
     )
   })
 
@@ -182,7 +202,7 @@ describe('property-based tests — generateService invariants', () => {
         const { filename } = generateService(spec)
         expect(filename).toBe('service.ts')
       }),
-      { numRuns: 100 },
+      { numRuns: 100 }
     )
   })
 
@@ -193,7 +213,7 @@ describe('property-based tests — generateService invariants', () => {
         const { content } = generateService(spec)
         expect(content).toMatch(/^\/\/ This file is auto-generated/)
       }),
-      { numRuns: 200 },
+      { numRuns: 200 }
     )
   })
 
@@ -204,7 +224,7 @@ describe('property-based tests — generateService invariants', () => {
         const { content } = generateService(spec)
         expect(content).toMatch(/export interface \w+Service \{/)
       }),
-      { numRuns: 200 },
+      { numRuns: 200 }
     )
   })
 })

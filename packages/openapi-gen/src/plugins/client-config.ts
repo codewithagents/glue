@@ -97,9 +97,7 @@ export interface GenerateClientConfigOptions {
 
 export function generateClientConfig(options?: GenerateClientConfigOptions): GeneratedFile {
   const content =
-    options?.defaultCredentials === 'include'
-      ? CLIENT_CONFIG_CONTENT_COOKIE
-      : CLIENT_CONFIG_CONTENT
+    options?.defaultCredentials === 'include' ? CLIENT_CONFIG_CONTENT_COOKIE : CLIENT_CONFIG_CONTENT
   return {
     filename: 'client-config.ts',
     content,

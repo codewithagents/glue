@@ -29,7 +29,17 @@ describe('types plugin explicit assertions per fixture', () => {
     it('generates all expected schemas', async () => {
       const spec = await parseSpec(join(fixturesDir, 'task-manager.json'))
       const { content } = generateTypes(spec)
-      const expectedNames = ['TaskStatus', 'Tag', 'Task', 'CreateTaskRequest', 'PagedTasks', 'Pagination', 'ValidationError', 'NotFoundError', 'ErrorDetail']
+      const expectedNames = [
+        'TaskStatus',
+        'Tag',
+        'Task',
+        'CreateTaskRequest',
+        'PagedTasks',
+        'Pagination',
+        'ValidationError',
+        'NotFoundError',
+        'ErrorDetail',
+      ]
       for (const name of expectedNames) {
         expect(content, `Expected ${name} to appear in output`).toContain(name)
       }
@@ -201,7 +211,7 @@ describe('schema-enhanced types generation', () => {
 
   it('falls back to standard output when no options provided', () => {
     const result = generateTypes(petSpec)
-    expect(result.content).not.toContain("import type { z }")
+    expect(result.content).not.toContain('import type { z }')
     expect(result.content).toContain('export interface Pet')
     expect(result.content).not.toContain('z.infer')
   })

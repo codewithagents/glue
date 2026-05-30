@@ -22,7 +22,9 @@ describe('extractFieldErrors — RFC 7807 format', () => {
   })
 
   it('expands multiple messages per field into separate FieldErrors', () => {
-    expect(extractFieldErrors({ errors: { email: ['must not be blank', 'invalid format'] } })).toEqual([
+    expect(
+      extractFieldErrors({ errors: { email: ['must not be blank', 'invalid format'] } })
+    ).toEqual([
       { field: 'email', message: 'must not be blank' },
       { field: 'email', message: 'invalid format' },
     ])
@@ -55,13 +57,13 @@ describe('extractFieldErrors — RFC 7807 format', () => {
 describe('extractFieldErrors — Spring Boot array format', () => {
   it('maps field + defaultMessage', () => {
     expect(
-      extractFieldErrors({ errors: [{ field: 'email', defaultMessage: 'must not be blank' }] }),
+      extractFieldErrors({ errors: [{ field: 'email', defaultMessage: 'must not be blank' }] })
     ).toEqual([{ field: 'email', message: 'must not be blank' }])
   })
 
   it('falls back to message when defaultMessage is absent', () => {
     expect(
-      extractFieldErrors({ errors: [{ field: 'email', message: 'must not be blank' }] }),
+      extractFieldErrors({ errors: [{ field: 'email', message: 'must not be blank' }] })
     ).toEqual([{ field: 'email', message: 'must not be blank' }])
   })
 
@@ -75,8 +77,8 @@ describe('extractFieldErrors — Spring Boot array format', () => {
     expect(
       extractFieldErrors(
         { errors: [{ defaultMessage: 'something went wrong' }] },
-        { fallbackField: 'root' },
-      ),
+        { fallbackField: 'root' }
+      )
     ).toEqual([{ field: 'root', message: 'something went wrong' }])
   })
 
@@ -115,9 +117,9 @@ describe('extractFieldErrors — flat object format', () => {
   })
 
   it('uses fallbackField when field is absent', () => {
-    expect(extractFieldErrors({ message: 'Something went wrong' }, { fallbackField: 'root' })).toEqual([
-      { field: 'root', message: 'Something went wrong' },
-    ])
+    expect(
+      extractFieldErrors({ message: 'Something went wrong' }, { fallbackField: 'root' })
+    ).toEqual([{ field: 'root', message: 'Something went wrong' }])
   })
 })
 
@@ -131,7 +133,7 @@ describe('extractFieldErrors — flat array format', () => {
       extractFieldErrors([
         { field: 'email', message: 'Invalid' },
         { field: 'name', message: 'Required' },
-      ]),
+      ])
     ).toEqual([
       { field: 'email', message: 'Invalid' },
       { field: 'name', message: 'Required' },
@@ -152,9 +154,9 @@ describe('extractFieldErrors — flat array format', () => {
   })
 
   it('skips entries without a message', () => {
-    expect(extractFieldErrors([{ field: 'email' }, { field: 'name', message: 'Required' }])).toEqual(
-      [{ field: 'name', message: 'Required' }],
-    )
+    expect(
+      extractFieldErrors([{ field: 'email' }, { field: 'name', message: 'Required' }])
+    ).toEqual([{ field: 'name', message: 'Required' }])
   })
 
   it('returns [] when all items are missing a message', () => {
@@ -163,16 +165,16 @@ describe('extractFieldErrors — flat array format', () => {
 
   it('skips non-object items in the array', () => {
     // Covers the `!isObject(item) → continue` branch in tryParseFlatArray
-    expect(
-      extractFieldErrors([null, 42, { field: 'email', message: 'Invalid' }]),
-    ).toEqual([{ field: 'email', message: 'Invalid' }])
+    expect(extractFieldErrors([null, 42, { field: 'email', message: 'Invalid' }])).toEqual([
+      { field: 'email', message: 'Invalid' },
+    ])
   })
 
   it('uses fallbackField when item has no string field key', () => {
     // Covers the `typeof item['field'] === 'string' ? field : fallbackField` false branch
-    expect(
-      extractFieldErrors([{ message: 'Required' }], { fallbackField: 'base' }),
-    ).toEqual([{ field: 'base', message: 'Required' }])
+    expect(extractFieldErrors([{ message: 'Required' }], { fallbackField: 'base' })).toEqual([
+      { field: 'base', message: 'Required' },
+    ])
   })
 })
 
@@ -183,14 +185,14 @@ describe('extractFieldErrors — flat array format', () => {
 describe('extractFieldErrors — response wrappers', () => {
   it('unwraps Axios-style response.data before parsing', () => {
     expect(
-      extractFieldErrors({ response: { data: { errors: { email: ['must not be blank'] } } } }),
+      extractFieldErrors({ response: { data: { errors: { email: ['must not be blank'] } } } })
     ).toEqual([{ field: 'email', message: 'must not be blank' }])
   })
 
   it('unwraps a top-level data wrapper before parsing', () => {
-    expect(
-      extractFieldErrors({ data: { errors: { email: ['must not be blank'] } } }),
-    ).toEqual([{ field: 'email', message: 'must not be blank' }])
+    expect(extractFieldErrors({ data: { errors: { email: ['must not be blank'] } } })).toEqual([
+      { field: 'email', message: 'must not be blank' },
+    ])
   })
 })
 
@@ -230,17 +232,17 @@ describe('extractFieldErrors — unrecognized shapes', () => {
 
 describe('extractFieldErrors — options', () => {
   it('uses fallbackField for errors without a field name', () => {
-    expect(extractFieldErrors({ message: 'Unauthorised' }, { fallbackField: 'serverError' })).toEqual(
-      [{ field: 'serverError', message: 'Unauthorised' }],
-    )
+    expect(
+      extractFieldErrors({ message: 'Unauthorised' }, { fallbackField: 'serverError' })
+    ).toEqual([{ field: 'serverError', message: 'Unauthorised' }])
   })
 
   it('applies transformField to every resolved field name', () => {
     expect(
       extractFieldErrors(
         { errors: { emailAddress: ['invalid'] } },
-        { transformField: (f) => f.replace(/([A-Z])/g, '.$1').toLowerCase() },
-      ),
+        { transformField: (f) => f.replace(/([A-Z])/g, '.$1').toLowerCase() }
+      )
     ).toEqual([{ field: 'email.address', message: 'invalid' }])
   })
 
@@ -251,15 +253,15 @@ describe('extractFieldErrors — options', () => {
         {
           fallbackField: 'serverError',
           transformField: (f) => f.replace(/([A-Z])/g, '_$1').toLowerCase(),
-        },
-      ),
+        }
+      )
     ).toEqual([{ field: 'server_error', message: 'error' }])
   })
 
   it('passes through array bracket notation field names unchanged by default', () => {
-    expect(
-      extractFieldErrors([{ field: 'items[0].name', message: 'Required' }]),
-    ).toEqual([{ field: 'items[0].name', message: 'Required' }])
+    expect(extractFieldErrors([{ field: 'items[0].name', message: 'Required' }])).toEqual([
+      { field: 'items[0].name', message: 'Required' },
+    ])
   })
 
   it('transformField and fallbackField work together on Spring Boot array format', () => {
@@ -268,7 +270,7 @@ describe('extractFieldErrors — options', () => {
       {
         fallbackField: 'serverError',
         transformField: (f) => f.replace(/([A-Z])/g, '_$1').toLowerCase(),
-      },
+      }
     )
     expect(result).toEqual([{ field: 'server_error', message: 'required' }])
   })
@@ -301,11 +303,9 @@ describe('mapApiErrors', () => {
 
   it('honours transformField option', () => {
     const setError = vi.fn()
-    mapApiErrors(
-      { errors: { emailAddress: ['invalid'] } },
-      setError,
-      { transformField: (f) => f.replace(/([A-Z])/g, '.$1').toLowerCase() },
-    )
+    mapApiErrors({ errors: { emailAddress: ['invalid'] } }, setError, {
+      transformField: (f) => f.replace(/([A-Z])/g, '.$1').toLowerCase(),
+    })
     expect(setError).toHaveBeenCalledWith('email.address', { type: 'server', message: 'invalid' })
   })
 
@@ -387,9 +387,9 @@ describe('extractFieldErrors — statusCodes filtering', () => {
 
 describe('extractFieldErrors — RFC 9457 detail', () => {
   it('extracts top-level detail as root error', () => {
-    expect(extractFieldErrors({ title: 'Bad Request', detail: 'Email already taken', status: 422 })).toEqual([
-      { field: 'root', message: 'Email already taken' },
-    ])
+    expect(
+      extractFieldErrors({ title: 'Bad Request', detail: 'Email already taken', status: 422 })
+    ).toEqual([{ field: 'root', message: 'Email already taken' }])
   })
 
   it('works with only detail, no title', () => {
@@ -406,7 +406,10 @@ describe('extractFieldErrors — RFC 9457 detail', () => {
 
   it('applies transformField to fallback field name', () => {
     expect(
-      extractFieldErrors({ detail: 'Error' }, { fallbackField: 'rootError', transformField: (f) => f.toLowerCase() }),
+      extractFieldErrors(
+        { detail: 'Error' },
+        { fallbackField: 'rootError', transformField: (f) => f.toLowerCase() }
+      )
     ).toEqual([{ field: 'rooterror', message: 'Error' }])
   })
 
@@ -483,7 +486,9 @@ describe('extractFieldErrors — ApiError body unwrapping', () => {
       body: { errors: { emailAddress: ['invalid'] } },
     }
     expect(
-      extractFieldErrors(apiError, { transformField: (f) => f.replace(/([A-Z])/g, '.$1').toLowerCase() }),
+      extractFieldErrors(apiError, {
+        transformField: (f) => f.replace(/([A-Z])/g, '.$1').toLowerCase(),
+      })
     ).toEqual([{ field: 'email.address', message: 'invalid' }])
   })
 
@@ -495,7 +500,7 @@ describe('extractFieldErrors — ApiError body unwrapping', () => {
         transformField: () => {
           throw new Error('transform exploded')
         },
-      }),
+      })
     ).toEqual([])
   })
 })

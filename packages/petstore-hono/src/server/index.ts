@@ -8,7 +8,7 @@ const app = new Hono()
 
 // Dev-only reset endpoint — registered BEFORE apiRouter so it takes priority
 if (process.env.NODE_ENV !== 'production') {
-  app.delete('/api/pets', (c) => {
+  app.delete('/api/pets', (_c) => {
     resetPets()
     return new Response(null, { status: 204 })
   })

@@ -36,7 +36,11 @@ describe('loadConfig', () => {
   })
 
   it('loads input_schema when provided', async () => {
-    writeConfig({ input_openapi: 'openapi.json', output: 'src/generated', input_schema: 'generated/schemas.ts' })
+    writeConfig({
+      input_openapi: 'openapi.json',
+      output: 'src/generated',
+      input_schema: 'generated/schemas.ts',
+    })
     const config = await loadConfig(tmpDir)
     expect(config.input_schema).toBe('generated/schemas.ts')
   })
@@ -105,14 +109,21 @@ describe('loadConfig', () => {
   })
 
   it('ignores unknown config fields', async () => {
-    writeConfig({ input_openapi: 'openapi.json', output: 'src/generated', unknown_field: 'ignored' })
+    writeConfig({
+      input_openapi: 'openapi.json',
+      output: 'src/generated',
+      unknown_field: 'ignored',
+    })
     const config = await loadConfig(tmpDir)
     expect(config.input_openapi).toBe('openapi.json')
   })
 
   it('accepts a config loaded via explicit configPath', async () => {
     const configFile = join(tmpDir, 'custom.config.json')
-    writeFileSync(configFile, JSON.stringify({ input_openapi: 'openapi.json', output: 'src/generated' }))
+    writeFileSync(
+      configFile,
+      JSON.stringify({ input_openapi: 'openapi.json', output: 'src/generated' })
+    )
     const config = await loadConfig(tmpDir, configFile)
     expect(config.input_openapi).toBe('openapi.json')
     expect(config.output).toBe('src/generated')
@@ -120,7 +131,10 @@ describe('loadConfig', () => {
 
   it('rejects explicit configPath that is not .json', async () => {
     const configFile = join(tmpDir, 'config.ts')
-    writeFileSync(configFile, JSON.stringify({ input_openapi: 'openapi.json', output: 'src/generated' }))
+    writeFileSync(
+      configFile,
+      JSON.stringify({ input_openapi: 'openapi.json', output: 'src/generated' })
+    )
     await expect(loadConfig(tmpDir, configFile)).rejects.toThrow('Config file must be a .json file')
   })
 
@@ -138,11 +152,15 @@ describe('loadConfig', () => {
 describe('config security validation', () => {
   describe('validateConfigPath', () => {
     it('rejects non-.json config file extension', () => {
-      expect(() => validateConfigPath('/project/config.ts')).toThrow('Config file must be a .json file')
+      expect(() => validateConfigPath('/project/config.ts')).toThrow(
+        'Config file must be a .json file'
+      )
     })
 
     it('rejects .yaml extension', () => {
-      expect(() => validateConfigPath('/project/config.yaml')).toThrow('Config file must be a .json file')
+      expect(() => validateConfigPath('/project/config.yaml')).toThrow(
+        'Config file must be a .json file'
+      )
     })
 
     it('accepts .json extension', () => {
@@ -208,7 +226,9 @@ describe('config security validation', () => {
     })
 
     it('accepts GitHub Actions home runner output path', () => {
-      expect(() => validateOutputPath('/home/runner/work/my-repo/my-repo/src/generated')).not.toThrow()
+      expect(() =>
+        validateOutputPath('/home/runner/work/my-repo/my-repo/src/generated')
+      ).not.toThrow()
     })
 
     it('accepts common CI workspace output path', () => {
@@ -242,7 +262,9 @@ describe('config security validation', () => {
     })
 
     it('accepts GitHub Actions home runner input path', () => {
-      expect(() => validateInputPath('/home/runner/work/my-repo/my-repo/spec/api.json')).not.toThrow()
+      expect(() =>
+        validateInputPath('/home/runner/work/my-repo/my-repo/spec/api.json')
+      ).not.toThrow()
     })
 
     it('accepts common CI workspace input path', () => {

@@ -24,7 +24,7 @@ async function runGenerator(): Promise<string> {
   await writeFile(
     configPath,
     JSON.stringify({ input_openapi: taskHooksFixture, output: outDir }),
-    'utf-8',
+    'utf-8'
   )
   await generate(tmpDir, configPath)
   return outDir

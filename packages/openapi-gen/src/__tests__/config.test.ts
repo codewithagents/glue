@@ -105,11 +105,15 @@ describe('loadConfig', () => {
 describe('config security validation', () => {
   describe('validateConfigPath', () => {
     it('rejects non-.json config file extension', () => {
-      expect(() => validateConfigPath('/project/config.ts')).toThrow('Config file must be a .json file')
+      expect(() => validateConfigPath('/project/config.ts')).toThrow(
+        'Config file must be a .json file'
+      )
     })
 
     it('rejects .yaml extension', () => {
-      expect(() => validateConfigPath('/project/config.yaml')).toThrow('Config file must be a .json file')
+      expect(() => validateConfigPath('/project/config.yaml')).toThrow(
+        'Config file must be a .json file'
+      )
     })
 
     it('accepts .json extension', () => {
@@ -175,11 +179,15 @@ describe('config security validation', () => {
     })
 
     it('accepts GitHub Actions home runner output path', () => {
-      expect(() => validateOutputPath('/home/runner/work/my-repo/my-repo/src/generated')).not.toThrow()
+      expect(() =>
+        validateOutputPath('/home/runner/work/my-repo/my-repo/src/generated')
+      ).not.toThrow()
     })
 
     it('accepts GitLab runner build output path', () => {
-      expect(() => validateOutputPath('/var/lib/gitlab-runner/builds/project/src/generated')).not.toThrow()
+      expect(() =>
+        validateOutputPath('/var/lib/gitlab-runner/builds/project/src/generated')
+      ).not.toThrow()
     })
 
     it('accepts common CI workspace output path', () => {
@@ -213,7 +221,9 @@ describe('config security validation', () => {
     })
 
     it('accepts GitHub Actions home runner input path', () => {
-      expect(() => validateInputPath('/home/runner/work/my-repo/my-repo/spec/api.json')).not.toThrow()
+      expect(() =>
+        validateInputPath('/home/runner/work/my-repo/my-repo/spec/api.json')
+      ).not.toThrow()
     })
 
     it('accepts common CI workspace input path', () => {

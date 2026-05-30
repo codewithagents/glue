@@ -16,7 +16,7 @@ on:
       - 'packages/openapi-server/**'
       - 'examples/**'
   schedule:
-    - cron: '0 6 * * 1'  # Weekly Monday 6am UTC — catch upstream API spec drift
+    - cron: '0 6 * * 1' # Weekly Monday 6am UTC — catch upstream API spec drift
   workflow_dispatch:
 
 permissions:

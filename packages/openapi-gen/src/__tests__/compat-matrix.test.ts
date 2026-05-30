@@ -12,7 +12,9 @@ const configsDir = resolve(import.meta.dirname, '../../../../examples/configs')
 const cases = readdirSync(configsDir)
   .filter((f) => f.endsWith('.json') && !f.startsWith('_'))
   .map((f) => {
-    const config = JSON.parse(readFileSync(resolve(configsDir, f), 'utf-8')) as { input_openapi: string }
+    const config = JSON.parse(readFileSync(resolve(configsDir, f), 'utf-8')) as {
+      input_openapi: string
+    }
     const specPath = resolve(configsDir, config.input_openapi)
     return { name: f.replace('.json', ''), specPath }
   })

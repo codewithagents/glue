@@ -6,7 +6,10 @@ import { describe, it, expect, afterEach } from 'vitest'
 import { generate } from '../generator.js'
 
 const taskApiFixture = join(import.meta.dirname, '../__fixtures__/specs/task-api.json')
-const featureShowcaseFixture = join(import.meta.dirname, '../__fixtures__/specs/feature-showcase.json')
+const featureShowcaseFixture = join(
+  import.meta.dirname,
+  '../__fixtures__/specs/feature-showcase.json'
+)
 
 let tmpDir: string | undefined
 
@@ -18,14 +21,17 @@ afterEach(async () => {
   }
 })
 
-async function runGenerator(specPath: string, extra: Record<string, unknown> = {}): Promise<string> {
+async function runGenerator(
+  specPath: string,
+  extra: Record<string, unknown> = {}
+): Promise<string> {
   tmpDir = await mkdtemp(join(tmpdir(), 'openapi-gen-prettier-test-'))
   const configPath = join(tmpDir, 'openapi-gen.config.json')
   const outDir = join(tmpDir, 'generated')
   await writeFile(
     configPath,
     JSON.stringify({ input_openapi: specPath, output: outDir, ...extra }),
-    'utf-8',
+    'utf-8'
   )
   await generate(tmpDir, configPath)
   return outDir

@@ -2,7 +2,9 @@ import { describe, it, expect } from 'vitest'
 import { generateZodSchemas } from '../plugins/zod.js'
 import type { OpenAPIV3_1 } from 'openapi-types'
 
-function gen(schemas: Record<string, OpenAPIV3_1.SchemaObject | OpenAPIV3_1.ReferenceObject>): string {
+function gen(
+  schemas: Record<string, OpenAPIV3_1.SchemaObject | OpenAPIV3_1.ReferenceObject>
+): string {
   const spec: OpenAPIV3_1.Document = {
     openapi: '3.1.0',
     info: { title: 'Test', version: '1.0.0' },
@@ -12,20 +14,27 @@ function gen(schemas: Record<string, OpenAPIV3_1.SchemaObject | OpenAPIV3_1.Refe
   return generateZodSchemas(spec).content
 }
 
-function genSingle(name: string, schema: OpenAPIV3_1.SchemaObject | OpenAPIV3_1.ReferenceObject): string {
+function genSingle(
+  name: string,
+  schema: OpenAPIV3_1.SchemaObject | OpenAPIV3_1.ReferenceObject
+): string {
   return gen({ [name]: schema })
 }
 
 describe('output file', () => {
   it('returns filename schemas.ts', () => {
-    const spec: OpenAPIV3_1.Document = { openapi: '3.1.0', info: { title: 'T', version: '1' }, paths: {} }
+    const spec: OpenAPIV3_1.Document = {
+      openapi: '3.1.0',
+      info: { title: 'T', version: '1' },
+      paths: {},
+    }
     expect(generateZodSchemas(spec).filename).toBe('schemas.ts')
   })
 
   it('starts with the bootstrap header', () => {
     const out = genSingle('A', { type: 'object' })
     expect(out).toContain('Bootstrapped by @codewithagents/openapi-gen')
-    expect(out).toContain("will NOT overwrite")
+    expect(out).toContain('will NOT overwrite')
   })
 
   it('imports z from zod', () => {
@@ -34,61 +43,79 @@ describe('output file', () => {
   })
 
   it('handles spec with no components gracefully', () => {
-    const spec: OpenAPIV3_1.Document = { openapi: '3.1.0', info: { title: 'T', version: '1' }, paths: {} }
+    const spec: OpenAPIV3_1.Document = {
+      openapi: '3.1.0',
+      info: { title: 'T', version: '1' },
+      paths: {},
+    }
     expect(() => generateZodSchemas(spec)).not.toThrow()
   })
 })
 
 describe('primitive types', () => {
   it('string → z.string()', () => {
-    expect(genSingle('A', { type: 'object', required: ['f'], properties: { f: { type: 'string' } } }))
-      .toContain('z.string()')
+    expect(
+      genSingle('A', { type: 'object', required: ['f'], properties: { f: { type: 'string' } } })
+    ).toContain('z.string()')
   })
 
   it('number → z.number()', () => {
-    expect(genSingle('A', { type: 'object', required: ['f'], properties: { f: { type: 'number' } } }))
-      .toContain('z.number()')
+    expect(
+      genSingle('A', { type: 'object', required: ['f'], properties: { f: { type: 'number' } } })
+    ).toContain('z.number()')
   })
 
   it('integer → z.number()', () => {
-    expect(genSingle('A', { type: 'object', required: ['f'], properties: { f: { type: 'integer' } } }))
-      .toContain('z.number()')
+    expect(
+      genSingle('A', { type: 'object', required: ['f'], properties: { f: { type: 'integer' } } })
+    ).toContain('z.number()')
   })
 
   it('boolean → z.boolean()', () => {
-    expect(genSingle('A', { type: 'object', required: ['f'], properties: { f: { type: 'boolean' } } }))
-      .toContain('z.boolean()')
+    expect(
+      genSingle('A', { type: 'object', required: ['f'], properties: { f: { type: 'boolean' } } })
+    ).toContain('z.boolean()')
   })
 
   it('unknown type → z.unknown()', () => {
-    expect(genSingle('A', {
-      type: 'object', required: ['f'],
-      // @ts-expect-error intentionally invalid type
-      properties: { f: { type: 'custom-type' } },
-    })).toContain('z.unknown()')
+    expect(
+      genSingle('A', {
+        type: 'object',
+        required: ['f'],
+        // @ts-expect-error intentionally invalid type
+        properties: { f: { type: 'custom-type' } },
+      })
+    ).toContain('z.unknown()')
   })
 })
 
 describe('nullable types (OpenAPI 3.1 array syntax)', () => {
   it('["string","null"] → z.string().nullable()', () => {
-    expect(genSingle('A', { type: 'object', properties: { f: { type: ['string', 'null'] } } }))
-      .toContain('z.string().nullable()')
+    expect(
+      genSingle('A', { type: 'object', properties: { f: { type: ['string', 'null'] } } })
+    ).toContain('z.string().nullable()')
   })
 
   it('["number","null"] → z.number().nullable()', () => {
-    expect(genSingle('A', { type: 'object', properties: { f: { type: ['number', 'null'] } } }))
-      .toContain('z.number().nullable()')
+    expect(
+      genSingle('A', { type: 'object', properties: { f: { type: ['number', 'null'] } } })
+    ).toContain('z.number().nullable()')
   })
 
   it('["string","number"] → z.union([z.string(), z.number()])', () => {
-    expect(genSingle('A', { type: 'object', properties: { f: { type: ['string', 'number'] } } }))
-      .toContain('z.union([z.string(), z.number()])')
+    expect(
+      genSingle('A', { type: 'object', properties: { f: { type: ['string', 'number'] } } })
+    ).toContain('z.union([z.string(), z.number()])')
   })
 })
 
 describe('optional fields', () => {
   it('required field has no .optional()', () => {
-    const out = genSingle('A', { type: 'object', required: ['id'], properties: { id: { type: 'string' } } })
+    const out = genSingle('A', {
+      type: 'object',
+      required: ['id'],
+      properties: { id: { type: 'string' } },
+    })
     expect(out).toContain('id: z.string()')
     expect(out).not.toContain('id: z.string().optional()')
   })
@@ -113,19 +140,27 @@ describe('enum types', () => {
 
 describe('array types', () => {
   it('array of string → z.array(z.string())', () => {
-    expect(genSingle('A', { type: 'object', properties: { f: { type: 'array', items: { type: 'string' } } } }))
-      .toContain('z.array(z.string())')
+    expect(
+      genSingle('A', {
+        type: 'object',
+        properties: { f: { type: 'array', items: { type: 'string' } } },
+      })
+    ).toContain('z.array(z.string())')
   })
 
   it('array with no items → z.array(z.unknown())', () => {
-    expect(genSingle('A', { type: 'object', properties: { f: { type: 'array' } } }))
-      .toContain('z.array(z.unknown())')
+    expect(genSingle('A', { type: 'object', properties: { f: { type: 'array' } } })).toContain(
+      'z.array(z.unknown())'
+    )
   })
 
   it('array of $ref → z.array(TagSchema)', () => {
     const out = gen({
       Tag: { type: 'object', properties: { id: { type: 'string' } } },
-      A: { type: 'object', properties: { tags: { type: 'array', items: { $ref: '#/components/schemas/Tag' } } } },
+      A: {
+        type: 'object',
+        properties: { tags: { type: 'array', items: { $ref: '#/components/schemas/Tag' } } },
+      },
     })
     expect(out).toContain('z.array(TagSchema)')
   })
@@ -157,7 +192,11 @@ describe('$ref handling', () => {
   it('top-level $ref → references other schema by name', () => {
     const out = gen({
       Status: { type: 'string', enum: ['a', 'b'] },
-      Task: { type: 'object', required: ['status'], properties: { status: { $ref: '#/components/schemas/Status' } } },
+      Task: {
+        type: 'object',
+        required: ['status'],
+        properties: { status: { $ref: '#/components/schemas/Status' } },
+      },
     })
     expect(out).toContain('StatusSchema')
     expect(out).toContain('status: StatusSchema')
@@ -281,7 +320,10 @@ describe('circular / self-referential schemas', () => {
 
 describe('special property names', () => {
   it('hyphenated property key is quoted', () => {
-    const out = genSingle('A', { type: 'object', properties: { 'Content-Type': { type: 'string' } } })
+    const out = genSingle('A', {
+      type: 'object',
+      properties: { 'Content-Type': { type: 'string' } },
+    })
     expect(out).toMatch(/'Content-Type'/)
   })
 })
@@ -303,12 +345,14 @@ describe('string validation constraints', () => {
   })
 
   it('minLength + maxLength → chained', () => {
-    expect(genSingle('A', { type: 'string', minLength: 2, maxLength: 100 })).toContain('z.string().min(2).max(100)')
+    expect(genSingle('A', { type: 'string', minLength: 2, maxLength: 100 })).toContain(
+      'z.string().min(2).max(100)'
+    )
   })
 
   it('pattern → .regex(new RegExp(...))', () => {
     const out = genSingle('A', { type: 'string', pattern: '^[a-z]+$' })
-    expect(out).toContain("z.string().regex(new RegExp(\"^[a-z]+$\"))")
+    expect(out).toContain('z.string().regex(new RegExp("^[a-z]+$"))')
   })
 
   it('format: email → .email()', () => {
@@ -338,7 +382,10 @@ describe('string validation constraints', () => {
   })
 
   it('nullable string with constraint: type: [string, null] + minLength', () => {
-    const out = genSingle('A', { type: 'object', properties: { f: { type: ['string', 'null'], minLength: 1 } } })
+    const out = genSingle('A', {
+      type: 'object',
+      properties: { f: { type: ['string', 'null'], minLength: 1 } },
+    })
     expect(out).toContain('z.string().min(1).nullable()')
   })
 
@@ -363,7 +410,12 @@ describe('array length constraints', () => {
   })
 
   it('applies both minItems and maxItems', () => {
-    const out = genSingle('A', { type: 'array', items: { type: 'string' }, minItems: 1, maxItems: 3 })
+    const out = genSingle('A', {
+      type: 'array',
+      items: { type: 'string' },
+      minItems: 1,
+      maxItems: 3,
+    })
     expect(out).toContain('z.array(z.string()).min(1).max(3)')
   })
 
@@ -390,7 +442,9 @@ describe('number validation constraints', () => {
   })
 
   it('minimum + maximum → chained', () => {
-    expect(genSingle('A', { type: 'integer', minimum: 0, maximum: 100 })).toContain('z.number().min(0).max(100)')
+    expect(genSingle('A', { type: 'integer', minimum: 0, maximum: 100 })).toContain(
+      'z.number().min(0).max(100)'
+    )
   })
 
   it('number property in object gets range constraints', () => {
@@ -412,17 +466,23 @@ describe('number validation constraints', () => {
   it('exclusiveMinimum (numeric, OpenAPI 3.0 style) → .min(n)', () => {
     // Covers the `typeof schema.exclusiveMinimum === 'number'` branch
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    expect(genSingle('A', { type: 'number', exclusiveMinimum: 0 } as any)).toContain('z.number().min(0)')
+    expect(genSingle('A', { type: 'number', exclusiveMinimum: 0 } as any)).toContain(
+      'z.number().min(0)'
+    )
   })
 
   it('exclusiveMaximum (numeric, OpenAPI 3.0 style) → .max(n)', () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    expect(genSingle('A', { type: 'integer', exclusiveMaximum: 100 } as any)).toContain('z.number().max(100)')
+    expect(genSingle('A', { type: 'integer', exclusiveMaximum: 100 } as any)).toContain(
+      'z.number().max(100)'
+    )
   })
 
   it('exclusiveMinimum + exclusiveMaximum both numeric → chained .min().max()', () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    expect(genSingle('A', { type: 'number', exclusiveMinimum: 1, exclusiveMaximum: 99 } as any)).toContain('z.number().min(1).max(99)')
+    expect(
+      genSingle('A', { type: 'number', exclusiveMinimum: 1, exclusiveMaximum: 99 } as any)
+    ).toContain('z.number().min(1).max(99)')
   })
 })
 
