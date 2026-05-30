@@ -1,0 +1,25 @@
+{
+  "name": "petstore-express",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "generate": "openapi-gen && openapi-server",
+    "start": "tsx src/server/index.ts",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "express": "^5.0.0",
+    "zod": "catalog:",
+    "@codewithagents/openapi-gen": "workspace:*",
+    "@codewithagents/openapi-server": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.0",
+    "@types/supertest": "^6.0.0",
+    "supertest": "^7.0.0",
+    "tsx": "^4.0.0",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  }
+}

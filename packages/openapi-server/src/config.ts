@@ -7,7 +7,7 @@ export interface ServerConfig {
   /** Directory to write generated files */
   output: string
   /** Framework to generate a router for. Default: 'none' */
-  framework?: 'hono' | 'none'
+  framework?: 'hono' | 'express' | 'fastify' | 'none'
   /** Path to user-owned Zod schema file (same file as openapi-gen's input_schema). Optional. */
   input_schema?: string
 }
@@ -92,9 +92,11 @@ export async function loadConfig(cwd: string, configPath?: string): Promise<Serv
   if (
     config['framework'] !== undefined &&
     config['framework'] !== 'hono' &&
+    config['framework'] !== 'express' &&
+    config['framework'] !== 'fastify' &&
     config['framework'] !== 'none'
   ) {
-    throw new Error('"framework" must be either "hono" or "none"')
+    throw new Error('"framework" must be one of: "hono", "express", "fastify", or "none"')
   }
   if (
     config['input_schema'] !== undefined &&
@@ -111,7 +113,7 @@ export async function loadConfig(cwd: string, configPath?: string): Promise<Serv
   return {
     input_openapi: config['input_openapi'] as string,
     output: config['output'] as string,
-    framework: config['framework'] as 'hono' | 'none' | undefined,
+    framework: config['framework'] as 'hono' | 'express' | 'fastify' | 'none' | undefined,
     input_schema: config['input_schema'] as string | undefined,
   }
 }

@@ -282,11 +282,29 @@ Invalid requests get a structured `422` response instead of reaching your servic
 
 `service.ts` has no framework imports at all. It is always generated, always framework-agnostic, and works with anything.
 
-`router.ts` is optional and currently supports:
+`router.ts` is optional and supports:
 
 | Value | What you get |
 |---|---|
-| `"none"` | Only `service.ts`. Wire the interface to Express, Fastify, Koa, plain Node `http`, Bun, Deno, or anything else yourself. |
-| `"hono"` | `service.ts` + a ready-to-mount `router.ts` using [Hono](https://hono.dev). Hono must be in your own `dependencies`; this package adds nothing. |
+| `"none"` | Only `service.ts`. Wire the interface yourself. |
+| `"hono"` | `service.ts` + a ready-to-mount `router.ts` using [Hono](https://hono.dev). Includes optional Zod request validation via `input_schema`. |
+| `"express"` | `service.ts` + a ready-to-mount `router.ts` using [Express](https://expressjs.com) `Router`. Apply `express.json()` middleware before mounting. |
+| `"fastify"` | `service.ts` + a route-registering `router.ts` using [Fastify](https://fastify.dev). Routes are registered onto a `FastifyInstance`; see mount pattern below. |
 
-More router targets (Express, Fastify) are planned. The `"none"` path is always available and keeps the zero-footprint promise: the generated code has no runtime dependencies that you did not already choose.
+The framework package must be in your own `dependencies`. This package adds nothing at runtime.
+
+**Mounting patterns:**
+
+```ts
+// Hono
+app.route('/api', createRouter(service))
+
+// Express
+app.use(express.json())
+app.use('/api', createRouter(service))
+
+// Fastify: createRouter registers routes onto the instance rather than returning one
+fastify.register(async (instance) => { createRouter(instance, service) }, { prefix: '/api' })
+```
+
+The `"none"` path is always available and keeps the zero-footprint promise: the generated code has no runtime dependencies that you did not already choose.

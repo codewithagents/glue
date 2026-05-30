@@ -42,4 +42,16 @@ describe('generated output is Prettier-clean', () => {
     const content = await readFile(join(outDir, 'router.ts'), 'utf-8')
     expect(await check(content, { parser: 'typescript' })).toBe(true)
   })
+
+  it('router.ts is Prettier-clean (express framework)', async () => {
+    const outDir = await runGenerator({ framework: 'express' })
+    const content = await readFile(join(outDir, 'router.ts'), 'utf-8')
+    expect(await check(content, { parser: 'typescript' })).toBe(true)
+  })
+
+  it('router.ts is Prettier-clean (fastify framework)', async () => {
+    const outDir = await runGenerator({ framework: 'fastify' })
+    const content = await readFile(join(outDir, 'router.ts'), 'utf-8')
+    expect(await check(content, { parser: 'typescript' })).toBe(true)
+  })
 })

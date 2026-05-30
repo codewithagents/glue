@@ -85,6 +85,6 @@ jobs:
       - run: pnpm build
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium
-        working-directory: packages/petstore
+        working-directory: packages/petstore-hono
       - name: Run E2E tests
-        run: pnpm --filter @codewithagents/petstore run test:e2e
+        run: pnpm --filter @codewithagents/petstore-hono run test:e2e

@@ -25,7 +25,7 @@ function refToName(ref: string): string {
 function extractPathParamsFromPath(path: string): string[] {
   const matches = path.match(/\{([^}]+)\}/g)
   if (matches === null) return []
-  // Keep raw param names — they are used in c.req.param() which must match
+  // Keep raw param names: they are used in c.req.param() which must match
   // the actual Hono route pattern (e.g. :job-id requires c.req.param('job-id'))
   return matches.map((m) => m.slice(1, -1))
 }
@@ -107,7 +107,7 @@ function deriveOperationName(method: string, path: string): string {
 
   const segments = path.replace(/^\/api\/v\d+\//, '').replace(/^\//, '')
   const parts = segments.split('/').map((seg) => {
-    // Handle mixed segments like "{maxLat}.{format}" — extract each {param} inside
+    // Handle mixed segments like "{maxLat}.{format}": extract each {param} inside
     const paramMatches = seg.match(/\{([^}]+)\}/g)
     if (paramMatches !== null && !(seg.startsWith('{') && seg.endsWith('}'))) {
       return paramMatches
@@ -306,7 +306,7 @@ function buildRouteHandler(
       op.bodyInfo.typeName !== undefined ? `${op.bodyInfo.typeName}Schema` : undefined
     if (schemaName !== undefined && schemaNames !== undefined && schemaNames.has(schemaName)) {
       lines.push(
-        `${indent}  // Validate request body — returns 422 with Zod issues on failure`,
+        `${indent}  // Validate request body: returns 422 with Zod issues on failure`,
       )
       lines.push(`${indent}  const parseResult = ${schemaName}.safeParse(body)`)
       lines.push(`${indent}  if (!parseResult.success) {`)
@@ -347,10 +347,317 @@ function buildRouteHandler(
   return lines.join('\n')
 }
 
+// ── Shared options interface ──────────────────────────────────────────────────
+
 interface RouterOptions {
   schemaNames?: Set<string>
   schemaImportPath?: string
 }
+
+// ── Express router generator ───────────────────────────────────────────────────
+
+function buildExpressRouteHandler(
+  op: RouteOperation,
+  indent: string,
+  schemaNames?: Set<string>,
+): string {
+  const lines: string[] = []
+  lines.push(`${indent}router.${op.httpMethod}('${op.honoPath}', async (req: Request, res: Response) => {`)
+
+  // Query params extraction
+  if (op.queryParams.length > 0) {
+    const fields = op.queryParams
+      .map((q) => {
+        if (q.tsType === 'number') {
+          return `    ${q.name}: Number(req.query['${q.name}'] as string)`
+        }
+        if (q.tsType === 'boolean') {
+          return `    ${q.name}: req.query['${q.name}'] === 'true'`
+        }
+        return `    ${q.name}: req.query['${q.name}'] as string | undefined`
+      })
+      .join(',\n')
+    lines.push(`${indent}  const params = {`)
+    lines.push(fields)
+    lines.push(`${indent}  }`)
+  }
+
+  // Body extraction, with optional Zod validation
+  let bodyVarName = 'body'
+  if (op.bodyInfo !== undefined) {
+    const schemaName =
+      op.bodyInfo.typeName !== undefined ? `${op.bodyInfo.typeName}Schema` : undefined
+    const useZod = schemaName !== undefined && schemaNames !== undefined && schemaNames.has(schemaName)
+
+    if (useZod) {
+      lines.push(`${indent}  // Validate request body: returns 422 with Zod issues on failure`)
+      lines.push(`${indent}  const parseResult = ${schemaName}.safeParse(req.body)`)
+      lines.push(`${indent}  if (!parseResult.success) {`)
+      lines.push(
+        `${indent}    return void res.status(422).json({ error: 'Invalid request body', issues: parseResult.error.issues })`,
+      )
+      lines.push(`${indent}  }`)
+      lines.push(`${indent}  const validatedBody = parseResult.data`)
+      bodyVarName = 'validatedBody'
+    } else {
+      const typeAnnotation = op.bodyInfo.typeName !== undefined ? ` as ${op.bodyInfo.typeName}` : ''
+      lines.push(`${indent}  const body = req.body${typeAnnotation}`)
+    }
+  }
+
+  // Build service call args
+  const serviceArgs: string[] = []
+  for (const p of op.pathParams) {
+    serviceArgs.push(`req.params['${p}']!`)
+  }
+  if (op.bodyInfo !== undefined) {
+    serviceArgs.push(bodyVarName)
+  }
+  if (op.queryParams.length > 0) {
+    serviceArgs.push('params')
+  }
+
+  const serviceCall = `service.${op.methodName}(${serviceArgs.join(', ')})`
+
+  // Response
+  if (op.responseStatus.isVoid) {
+    lines.push(`${indent}  await ${serviceCall}`)
+    lines.push(`${indent}  res.status(${op.responseStatus.status}).end()`)
+  } else if (op.responseStatus.status === 201) {
+    lines.push(`${indent}  res.status(201).json(await ${serviceCall})`)
+  } else {
+    lines.push(`${indent}  res.json(await ${serviceCall})`)
+  }
+
+  lines.push(`${indent}})`)
+  return lines.join('\n')
+}
+
+export function generateExpressRouter(
+  spec: OpenAPIV3_1.Document,
+  options?: RouterOptions,
+): GeneratedFile {
+  const serviceName = deriveServiceName(spec)
+  const operations = collectOperations(spec)
+
+  // Collect body type names for import from models.js
+  const bodyTypes = new Set<string>()
+  for (const op of operations) {
+    if (op.bodyInfo?.typeName !== undefined) {
+      bodyTypes.add(op.bodyInfo.typeName)
+    }
+  }
+  const sortedBodyTypes = Array.from(bodyTypes).sort()
+
+  // Collect which schema names are actually needed (only for ops with a matching schema)
+  const usedSchemaNames = new Set<string>()
+  if (options?.schemaNames !== undefined) {
+    for (const op of operations) {
+      const typeName = op.bodyInfo?.typeName
+      if (typeName !== undefined) {
+        const schemaName = `${typeName}Schema`
+        if (options.schemaNames.has(schemaName)) {
+          usedSchemaNames.add(schemaName)
+        }
+      }
+    }
+  }
+
+  const lines: string[] = []
+  lines.push('// This file is auto-generated. Do not edit manually.')
+  lines.push('// Express: apply express.json() middleware before mounting this router so req.body is populated.')
+  lines.push('')
+  lines.push("import { Router } from 'express'")
+  lines.push("import type { Request, Response } from 'express'")
+  if (sortedBodyTypes.length > 0) {
+    lines.push(`import type { ${sortedBodyTypes.join(', ')} } from './models.js'`)
+  }
+  lines.push(`import type { ${serviceName} } from './service.js'`)
+  if (usedSchemaNames.size > 0 && options?.schemaImportPath !== undefined) {
+    lines.push(`import { z } from 'zod'`)
+    const sortedUsedSchemas = Array.from(usedSchemaNames).sort()
+    lines.push(
+      `import { ${sortedUsedSchemas.join(', ')} } from '${options.schemaImportPath}'`,
+    )
+  }
+  lines.push('')
+  lines.push(`export function createRouter(service: ${serviceName}): Router {`)
+  lines.push('  const router = Router()')
+  lines.push('')
+
+  for (const op of operations) {
+    lines.push(buildExpressRouteHandler(op, '  ', options?.schemaNames))
+    lines.push('')
+  }
+
+  lines.push('  return router')
+  lines.push('}')
+  lines.push('')
+
+  return {
+    filename: 'router.ts',
+    content: lines.join('\n'),
+  }
+}
+
+// ── Fastify router generator ───────────────────────────────────────────────────
+
+function buildFastifyRouteHandler(
+  op: RouteOperation,
+  indent: string,
+  schemaNames?: Set<string>,
+): string {
+  const lines: string[] = []
+
+  // Build generic type argument
+  const genericParts: string[] = []
+
+  if (op.queryParams.length > 0) {
+    const queryFields = op.queryParams
+      .map((q) => {
+        if (q.tsType === 'number') return `${q.name}?: number`
+        if (q.tsType === 'boolean') return `${q.name}?: boolean`
+        return `${q.name}?: string`
+      })
+      .join('; ')
+    genericParts.push(`Querystring: { ${queryFields} }`)
+  }
+
+  if (op.bodyInfo !== undefined && op.bodyInfo.typeName !== undefined) {
+    genericParts.push(`Body: ${op.bodyInfo.typeName}`)
+  } else if (op.bodyInfo !== undefined) {
+    genericParts.push('Body: unknown')
+  }
+
+  if (op.pathParams.length > 0) {
+    const paramFields = op.pathParams.map((p) => `${p}: string`).join('; ')
+    genericParts.push(`Params: { ${paramFields} }`)
+  }
+
+  const generic = genericParts.length > 0 ? `<{ ${genericParts.join('; ')} }>` : ''
+  lines.push(`${indent}app.${op.httpMethod}${generic}('${op.honoPath}', async (req, reply) => {`)
+
+  // Query params extraction
+  if (op.queryParams.length > 0) {
+    const fields = op.queryParams
+      .map((q) => `    ${q.name}: req.query.${q.name}`)
+      .join(',\n')
+    lines.push(`${indent}  const params = {`)
+    lines.push(fields)
+    lines.push(`${indent}  }`)
+  }
+
+  // Body handling, with optional Zod validation
+  let bodyVarName = 'req.body'
+  if (op.bodyInfo !== undefined) {
+    const schemaName =
+      op.bodyInfo.typeName !== undefined ? `${op.bodyInfo.typeName}Schema` : undefined
+    const useZod = schemaName !== undefined && schemaNames !== undefined && schemaNames.has(schemaName)
+
+    if (useZod) {
+      lines.push(`${indent}  // Validate request body: returns 422 with Zod issues on failure`)
+      lines.push(`${indent}  const parseResult = ${schemaName}.safeParse(req.body)`)
+      lines.push(`${indent}  if (!parseResult.success) {`)
+      lines.push(
+        `${indent}    return reply.status(422).send({ error: 'Invalid request body', issues: parseResult.error.issues })`,
+      )
+      lines.push(`${indent}  }`)
+      bodyVarName = 'parseResult.data'
+    }
+  }
+
+  // Build service call args
+  const serviceArgs: string[] = []
+  for (const p of op.pathParams) {
+    serviceArgs.push(`req.params.${p}`)
+  }
+  if (op.bodyInfo !== undefined) {
+    serviceArgs.push(bodyVarName)
+  }
+  if (op.queryParams.length > 0) {
+    serviceArgs.push('params')
+  }
+
+  const serviceCall = `service.${op.methodName}(${serviceArgs.join(', ')})`
+
+  // Response
+  if (op.responseStatus.isVoid) {
+    lines.push(`${indent}  await ${serviceCall}`)
+    lines.push(`${indent}  reply.status(${op.responseStatus.status}).send()`)
+  } else if (op.responseStatus.status === 201) {
+    lines.push(`${indent}  reply.status(201)`)
+    lines.push(`${indent}  return ${serviceCall}`)
+  } else {
+    lines.push(`${indent}  return ${serviceCall}`)
+  }
+
+  lines.push(`${indent}})`)
+  return lines.join('\n')
+}
+
+export function generateFastifyRouter(
+  spec: OpenAPIV3_1.Document,
+  options?: RouterOptions,
+): GeneratedFile {
+  const serviceName = deriveServiceName(spec)
+  const operations = collectOperations(spec)
+
+  // Collect body type names for import from models.js
+  const bodyTypes = new Set<string>()
+  for (const op of operations) {
+    if (op.bodyInfo?.typeName !== undefined) {
+      bodyTypes.add(op.bodyInfo.typeName)
+    }
+  }
+  const sortedBodyTypes = Array.from(bodyTypes).sort()
+
+  // Collect which schema names are actually needed (only for ops with a matching schema)
+  const usedSchemaNames = new Set<string>()
+  if (options?.schemaNames !== undefined) {
+    for (const op of operations) {
+      const typeName = op.bodyInfo?.typeName
+      if (typeName !== undefined) {
+        const schemaName = `${typeName}Schema`
+        if (options.schemaNames.has(schemaName)) {
+          usedSchemaNames.add(schemaName)
+        }
+      }
+    }
+  }
+
+  const lines: string[] = []
+  lines.push('// This file is auto-generated. Do not edit manually.')
+  lines.push('')
+  lines.push("import type { FastifyInstance } from 'fastify'")
+  if (sortedBodyTypes.length > 0) {
+    lines.push(`import type { ${sortedBodyTypes.join(', ')} } from './models.js'`)
+  }
+  lines.push(`import type { ${serviceName} } from './service.js'`)
+  if (usedSchemaNames.size > 0 && options?.schemaImportPath !== undefined) {
+    lines.push(`import { z } from 'zod'`)
+    const sortedUsedSchemas = Array.from(usedSchemaNames).sort()
+    lines.push(
+      `import { ${sortedUsedSchemas.join(', ')} } from '${options.schemaImportPath}'`,
+    )
+  }
+  lines.push('')
+  lines.push(`export function createRouter(app: FastifyInstance, service: ${serviceName}): void {`)
+
+  for (const op of operations) {
+    lines.push('')
+    lines.push(buildFastifyRouteHandler(op, '  ', options?.schemaNames))
+  }
+
+  lines.push('}')
+  lines.push('')
+
+  return {
+    filename: 'router.ts',
+    content: lines.join('\n'),
+  }
+}
+
+// ── Hono router generator ─────────────────────────────────────────────────────
 
 export function generateRouter(
   spec: OpenAPIV3_1.Document,
