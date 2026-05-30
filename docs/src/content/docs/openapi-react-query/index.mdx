@@ -378,10 +378,11 @@ Invalidation scope:
   generated for `PUT` and `PATCH`, where the updated resource should be re-fetched by ID.
 </Aside>
 
-Your own `onSuccess` callback (if provided in `options`) is called **after** auto-invalidation runs. The generated `onSuccess` composes your callback rather than replacing it:
+Your own `onSuccess` callback (if provided in `options`) is called **after** auto-invalidation runs. The generated `onSuccess` composes your callback rather than replacing it. The emitted object spreads `...options` first, then declares the `onSuccess` key immediately after, so the generated `onSuccess` intentionally overwrites any caller-provided `onSuccess` while still invoking it internally via `options?.onSuccess?.(...args)`:
 
 ```ts
 // The generated mutation hook (simplified, auto_invalidate: true)
+// ...options is spread first; onSuccess follows it, overriding any onSuccess in options
 onSuccess: (...args) => {
   queryClient.invalidateQueries({ queryKey: taskKeys.all() })
   options?.onSuccess?.(...args) // your callback runs after invalidation
@@ -641,6 +642,7 @@ export default async function TasksPage() {
     queryKey: taskKeys.list(),
     queryFn: () => listTasks(),
   })
+  // If the endpoint has required query params, pass them to both taskKeys.list(params) and listTasks(params).
 
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
@@ -712,7 +714,7 @@ Check two things:
 
 ### Detail hook fires even with a nullish id
 
-The built-in guard is `enabled: id != null && (options?.enabled ?? true)`. If you explicitly pass `enabled: true` in `options`, that overrides the guard and the hook will fire immediately with a non-null assertion on the id. Omit `enabled` (or pass `enabled: undefined`) to keep the nullish guard active.
+The generated hook emits `enabled: id != null && (options?.enabled ?? true)` and then `...options`. Because `...options` is spread after the built-in `enabled` line, any `enabled` key you pass inside `options` overwrites the entire guard expression via the spread. Omit `enabled` from `options` (or pass `enabled: undefined`) to keep the null guard in effect.
 
 ### Hooks do not work in React Server Components
 
