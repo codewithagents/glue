@@ -11,6 +11,7 @@
   "dependencies": {
     "@astrojs/starlight": "^0.39.2",
     "astro": "^6.4.2",
+    "remark-gfm": "^4.0.1",
     "starlight-package-managers": "^0.12.0"
   }
 }

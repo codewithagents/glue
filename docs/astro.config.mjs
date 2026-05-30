@@ -1,5 +1,6 @@
 import { defineConfig } from 'astro/config'
 import starlight from '@astrojs/starlight'
+import remarkGfm from 'remark-gfm'
 
 // starlight-package-managers is a component library (not a Starlight plugin).
 // Import PackageManagers directly in .mdx files when needed:
@@ -8,6 +9,11 @@ import starlight from '@astrojs/starlight'
 export default defineConfig({
   site: 'https://glue.codewithagents.de',
   base: '/',
+  // Explicitly enable GFM so markdown tables render in .mdx files
+  // (Astro 6 + Starlight 0.39 do not apply it to MDX by default).
+  markdown: {
+    remarkPlugins: [remarkGfm],
+  },
   integrations: [
     starlight({
       title: 'Glue',
