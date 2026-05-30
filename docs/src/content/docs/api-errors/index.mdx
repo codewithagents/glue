@@ -153,7 +153,7 @@ import type { FieldError, MapApiErrorsOptions } from '@codewithagents/api-errors
 
 The format is detected automatically. No configuration is required.
 
-Parsers are tried in a fixed order and the **first match wins**: RFC 7807 errors map, then Spring Boot array, then flat object, then RFC 9457 `detail`. A body that contains both an `errors` map and a `detail` field uses the `errors` map; the `detail` field is ignored.
+Parsers are tried in a fixed order and the **first match wins**: a top-level flat array (when the body itself is an array) is handled first, then the RFC 7807 errors map, then the Spring Boot array, then a flat object, then the RFC 9457 `detail`. A body that contains both an `errors` map and a `detail` field uses the `errors` map; the `detail` field is ignored.
 
 ### RFC 7807 / RFC 9457 Problem Details (Spring Boot 3+)
 
