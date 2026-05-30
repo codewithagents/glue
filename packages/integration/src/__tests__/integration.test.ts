@@ -12,7 +12,14 @@
 import * as hooks from '../../generated/hooks.js'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { extractFieldErrors, mapApiErrors } from '@codewithagents/api-errors'
-import { ApiError, createTask, deleteTask, getTask, updateTask, uploadTaskAttachment } from '../../generated/client.js'
+import {
+  ApiError,
+  createTask,
+  deleteTask,
+  getTask,
+  updateTask,
+  uploadTaskAttachment,
+} from '../../generated/client.js'
 import { configureClient } from '../../generated/client-config.js'
 
 // ---------------------------------------------------------------------------
@@ -33,7 +40,7 @@ function mockFetch(status: number, body: unknown): void {
     new Response(body !== null ? JSON.stringify(body) : null, {
       status,
       headers: { 'Content-Type': 'application/json' },
-    }),
+    })
   )
 }
 
@@ -43,7 +50,12 @@ function mockFetch(status: number, body: unknown): void {
 
 describe('generated client — success responses', () => {
   it('createTask returns the created task on 200', async () => {
-    const task = { id: '1', title: 'Write tests', status: 'pending', createdAt: '2026-01-01T00:00:00Z' }
+    const task = {
+      id: '1',
+      title: 'Write tests',
+      status: 'pending',
+      createdAt: '2026-01-01T00:00:00Z',
+    }
     mockFetch(200, task)
 
     const result = await createTask({ title: 'Write tests' })
@@ -84,7 +96,12 @@ describe('generated client — ApiError on non-2xx', () => {
   })
 
   it('getTask throws ApiError with status 404 and RFC 9457 detail', async () => {
-    const errorBody = { type: 'about:blank', title: 'Not Found', status: 404, detail: 'Task not found' }
+    const errorBody = {
+      type: 'about:blank',
+      title: 'Not Found',
+      status: 404,
+      detail: 'Task not found',
+    }
     mockFetch(404, errorBody)
 
     await expect(getTask('999')).rejects.toMatchObject({
@@ -126,7 +143,10 @@ describe('ApiError → extractFieldErrors', () => {
       const fieldErrors = extractFieldErrors(err, { statusCodes: [422] })
       expect(fieldErrors).toHaveLength(2)
       expect(fieldErrors).toContainEqual({ field: 'title', message: 'must not be blank' })
-      expect(fieldErrors).toContainEqual({ field: 'assigneeEmail', message: 'must be a valid email address' })
+      expect(fieldErrors).toContainEqual({
+        field: 'assigneeEmail',
+        message: 'must be a valid email address',
+      })
     }
   })
 
@@ -163,7 +183,9 @@ describe('ApiError → extractFieldErrors', () => {
     try {
       await createTask({ title: '' })
     } catch (err422) {
-      expect(extractFieldErrors(err422, { statusCodes: [422] })).toEqual([{ field: 'name', message: 'required' }])
+      expect(extractFieldErrors(err422, { statusCodes: [422] })).toEqual([
+        { field: 'name', message: 'required' },
+      ])
     }
 
     // 500 path
@@ -212,7 +234,10 @@ describe('ApiError → mapApiErrors (React Hook Form adapter)', () => {
 
     expect(setError).toHaveBeenCalledTimes(2)
     expect(setError).toHaveBeenCalledWith('title', { type: 'server', message: 'must not be blank' })
-    expect(setError).toHaveBeenCalledWith('assigneeEmail', { type: 'server', message: 'invalid email' })
+    expect(setError).toHaveBeenCalledWith('assigneeEmail', {
+      type: 'server',
+      message: 'invalid email',
+    })
   })
 
   it('does not call setError on 404 when statusCodes restricts to [422]', async () => {
@@ -259,7 +284,12 @@ describe('multipart upload — uploadTaskAttachment', () => {
   })
 
   it('uploadTaskAttachment returns the task on success', async () => {
-    const task = { id: '1', title: 'Upload task', status: 'pending', createdAt: '2026-01-01T00:00:00Z' }
+    const task = {
+      id: '1',
+      title: 'Upload task',
+      status: 'pending',
+      createdAt: '2026-01-01T00:00:00Z',
+    }
     mockFetch(200, task)
     const file = new File(['content'], 'test.txt', { type: 'text/plain' })
     const result = await uploadTaskAttachment({ file })

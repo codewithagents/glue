@@ -3,8 +3,8 @@ title: Server interface
 description: Generate a typed service interface and optional Hono, Express, or Fastify router from your OpenAPI spec with @codewithagents/openapi-server.
 ---
 
-import { Card, CardGrid, Tabs, TabItem, Aside } from '@astrojs/starlight/components';
-import { PackageManagers } from 'starlight-package-managers';
+import { Card, CardGrid, Tabs, TabItem, Aside } from '@astrojs/starlight/components'
+import { PackageManagers } from 'starlight-package-managers'
 
 `@codewithagents/openapi-server` reads your OpenAPI 3.x spec and writes a typed service interface into your project. The interface is plain TypeScript with no framework imports: implement it however you want and wire it to Hono, Express, Fastify, or any router you already use. Set `"framework": "hono"` (or `"express"` / `"fastify"`) and the generator also scaffolds a ready-to-mount router, with optional Zod validation at the boundary so invalid requests never reach your service implementation.
 
@@ -12,10 +12,10 @@ import { PackageManagers } from 'starlight-package-managers';
 
 Running the generator produces up to two files in your output directory:
 
-| File | Contents |
-|---|---|
-| `service.ts` | TypeScript interface with one typed `async` method per API operation. No framework imports. |
-| `router.ts` | `createRouter(service)` factory, generated only when `framework` is set to `"hono"`, `"express"`, or `"fastify"` |
+| File         | Contents                                                                                                         |
+| ------------ | ---------------------------------------------------------------------------------------------------------------- |
+| `service.ts` | TypeScript interface with one typed `async` method per API operation. No framework imports.                      |
+| `router.ts`  | `createRouter(service)` factory, generated only when `framework` is set to `"hono"`, `"express"`, or `"fastify"` |
 
 Key guarantees:
 
@@ -31,7 +31,8 @@ Key guarantees:
 <PackageManagers pkg="@codewithagents/openapi-server" dev />
 
 <Aside type="note">
-`@codewithagents/openapi-server` requires `@codewithagents/openapi-gen`. Run `openapi-gen` first so `models.ts` exists before `service.ts` imports from it.
+  `@codewithagents/openapi-server` requires `@codewithagents/openapi-gen`. Run `openapi-gen` first
+  so `models.ts` exists before `service.ts` imports from it.
 </Aside>
 
 ## Minimal example
@@ -76,7 +77,7 @@ export const petService: PetstoreService = {
   async listPets(params) {
     const all = Array.from(pets.values())
     if (params?.species) {
-      return all.filter(p => p.species.toLowerCase() === params.species!.toLowerCase())
+      return all.filter((p) => p.species.toLowerCase() === params.species!.toLowerCase())
     }
     return all
   },
@@ -123,17 +124,18 @@ npx openapi-server --config ./config/openapi-server.config.json
 ```
 
 <Aside type="note">
-When `--config` is used, all relative paths inside the file resolve from the config file's directory, not from the shell's working directory.
+  When `--config` is used, all relative paths inside the file resolve from the config file's
+  directory, not from the shell's working directory.
 </Aside>
 
 ### Options
 
-| Field | Type | Required | Default | Description |
-|---|---|---|---|---|
-| `input_openapi` | `string` | Yes | n/a | Path to your OpenAPI spec (JSON or YAML) |
-| `output` | `string` | Yes | n/a | Directory to write the generated files |
-| `framework` | `"hono" \| "express" \| "fastify" \| "none"` | No | `"none"` | Router framework to generate. Use `"none"` to generate only `service.ts` |
-| `input_schema` | `string` | No | n/a | Path to user-owned Zod schema file. Enables server-side request validation (never overwritten) |
+| Field           | Type                                         | Required | Default  | Description                                                                                    |
+| --------------- | -------------------------------------------- | -------- | -------- | ---------------------------------------------------------------------------------------------- |
+| `input_openapi` | `string`                                     | Yes      | n/a      | Path to your OpenAPI spec (JSON or YAML)                                                       |
+| `output`        | `string`                                     | Yes      | n/a      | Directory to write the generated files                                                         |
+| `framework`     | `"hono" \| "express" \| "fastify" \| "none"` | No       | `"none"` | Router framework to generate. Use `"none"` to generate only `service.ts`                       |
+| `input_schema`  | `string`                                     | No       | n/a      | Path to user-owned Zod schema file. Enables server-side request validation (never overwritten) |
 
 **Full config example:**
 
@@ -187,7 +189,7 @@ export function createRouter(service: PetstoreService): Hono {
 
   app.get('/pets', async (c) => {
     const params = {
-      species: c.req.query('species') ?? undefined
+      species: c.req.query('species') ?? undefined,
     }
     return c.json(await service.listPets(params))
   })
@@ -271,9 +273,12 @@ import { petService } from './petService.js'
 
 const fastify = Fastify()
 
-fastify.register(async (instance) => {
-  createRouter(instance, petService)
-}, { prefix: '/api' })
+fastify.register(
+  async (instance) => {
+    createRouter(instance, petService)
+  },
+  { prefix: '/api' }
+)
 
 fastify.listen({ port: 3001 })
 ```
@@ -338,18 +343,20 @@ Invalid requests receive a structured `422` response:
 ```json
 {
   "error": "Invalid request body",
-  "issues": [
-    { "code": "too_small", "path": ["name"], "message": "Name is required" }
-  ]
+  "issues": [{ "code": "too_small", "path": ["name"], "message": "Name is required" }]
 }
 ```
 
 <Aside type="tip">
-The schema naming convention is `${TypeName}Schema`. For a request body type `CreatePetRequest`, the generator looks for `CreatePetRequestSchema` in the schema file. Unmatched schemas trigger a warning to stderr; builds still succeed.
+  The schema naming convention is `${TypeName}Schema`. For a request body type `CreatePetRequest`,
+  the generator looks for `CreatePetRequestSchema` in the schema file. Unmatched schemas trigger a
+  warning to stderr; builds still succeed.
 </Aside>
 
 <Aside type="note">
-**Same schemas, both sides of the wire.** `@codewithagents/openapi-gen` validates outgoing requests in the browser. `@codewithagents/openapi-server` validates incoming requests on the server. One `schemas.ts`, one source of truth.
+  **Same schemas, both sides of the wire.** `@codewithagents/openapi-gen` validates outgoing
+  requests in the browser. `@codewithagents/openapi-server` validates incoming requests on the
+  server. One `schemas.ts`, one source of truth.
 </Aside>
 
 The generator runs in two passes: first it writes `router.ts` without any Zod imports, then it rewrites `router.ts` with `safeParse` calls for every route whose body type has a matching schema in `input_schema`. If the schema file does not exist yet at generation time, the second pass is skipped and validation is added on the next run.
@@ -361,15 +368,18 @@ The generator runs in two passes: first it writes `router.ts` without any Zod im
     `@codewithagents/openapi-gen` generates the `models.ts` that `service.ts` imports from. Run both generators together against the same spec.
 
     [Learn more](/openapi-gen)
+
   </Card>
   <Card title="React Query hooks" icon="seti:react">
     Add `@codewithagents/openapi-react-query` to generate typed `useQuery` and `useMutation` hooks for the same spec your server implements.
 
     [Learn more](/openapi-react-query)
+
   </Card>
   <Card title="Form error mapping" icon="warning">
     Add `@codewithagents/api-errors` to map API error responses from the generated client directly to form field errors.
 
     [Learn more](/api-errors)
+
   </Card>
 </CardGrid>

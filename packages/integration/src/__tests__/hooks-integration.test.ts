@@ -102,9 +102,7 @@ beforeEach(() => {
 
 describe('useListTasks', () => {
   it('fetches and returns a task array', async () => {
-    server.use(
-      http.get(`${BASE}/api/v1/tasks`, () => HttpResponse.json(TASK_PAGE)),
-    )
+    server.use(http.get(`${BASE}/api/v1/tasks`, () => HttpResponse.json(TASK_PAGE)))
 
     const { wrapper } = makeWrapper()
     const { result } = renderHook(() => useListTasks(), { wrapper })
@@ -123,14 +121,13 @@ describe('useListTasks', () => {
       http.get(`${BASE}/api/v1/tasks`, ({ request }) => {
         capturedUrl = new URL(request.url)
         return HttpResponse.json({ ...TASK_PAGE, items: [TASK] })
-      }),
+      })
     )
 
     const { wrapper } = makeWrapper()
-    const { result } = renderHook(
-      () => useListTasks({ status: 'pending', page: 2, pageSize: 5 }),
-      { wrapper },
-    )
+    const { result } = renderHook(() => useListTasks({ status: 'pending', page: 2, pageSize: 5 }), {
+      wrapper,
+    })
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true))
 
@@ -141,9 +138,7 @@ describe('useListTasks', () => {
   })
 
   it('starts in loading state then transitions to success', async () => {
-    server.use(
-      http.get(`${BASE}/api/v1/tasks`, () => HttpResponse.json(TASK_PAGE)),
-    )
+    server.use(http.get(`${BASE}/api/v1/tasks`, () => HttpResponse.json(TASK_PAGE)))
 
     const { wrapper } = makeWrapper()
     const { result } = renderHook(() => useListTasks(), { wrapper })
@@ -165,9 +160,7 @@ describe('useListTasks', () => {
 
 describe('useGetTask', () => {
   it('fetches a single task by id', async () => {
-    server.use(
-      http.get(`${BASE}/api/v1/tasks/:id`, () => HttpResponse.json(TASK)),
-    )
+    server.use(http.get(`${BASE}/api/v1/tasks/:id`, () => HttpResponse.json(TASK)))
 
     const { wrapper } = makeWrapper()
     const { result } = renderHook(() => useGetTask('task-1'), { wrapper })
@@ -186,7 +179,7 @@ describe('useGetTask', () => {
       http.get(`${BASE}/api/v1/tasks/:id`, ({ request }) => {
         capturedPathname = new URL(request.url).pathname
         return HttpResponse.json(TASK_2)
-      }),
+      })
     )
 
     const { wrapper } = makeWrapper()
@@ -204,14 +197,11 @@ describe('useGetTask', () => {
       http.get(`${BASE}/api/v1/tasks/:id`, () => {
         fetchCount++
         return HttpResponse.json(TASK)
-      }),
+      })
     )
 
     const { wrapper } = makeWrapper()
-    const { result } = renderHook(
-      () => useGetTask('task-1', { enabled: false }),
-      { wrapper },
-    )
+    const { result } = renderHook(() => useGetTask('task-1', { enabled: false }), { wrapper })
 
     // Give a short moment for any erroneous fetch to occur
     await new Promise((r) => setTimeout(r, 50))
@@ -229,11 +219,14 @@ describe('useGetTask', () => {
 
 describe('useCreateTask', () => {
   it('sends POST and resolves with created task on success', async () => {
-    const newTask: Task = { id: 'task-3', title: 'New Task', status: 'pending', createdAt: '2026-01-03T00:00:00Z' }
+    const newTask: Task = {
+      id: 'task-3',
+      title: 'New Task',
+      status: 'pending',
+      createdAt: '2026-01-03T00:00:00Z',
+    }
 
-    server.use(
-      http.post(`${BASE}/api/v1/tasks`, () => HttpResponse.json(newTask, { status: 201 })),
-    )
+    server.use(http.post(`${BASE}/api/v1/tasks`, () => HttpResponse.json(newTask, { status: 201 })))
 
     const { wrapper } = makeWrapper()
     const { result } = renderHook(() => useCreateTask(), { wrapper })
@@ -258,7 +251,7 @@ describe('useCreateTask', () => {
       http.post(`${BASE}/api/v1/tasks`, async ({ request }) => {
         parsedBody = await request.json()
         return HttpResponse.json(TASK, { status: 201 })
-      }),
+      })
     )
 
     const { wrapper } = makeWrapper()
@@ -274,9 +267,7 @@ describe('useCreateTask', () => {
   })
 
   it('mutateAsync returns the created task', async () => {
-    server.use(
-      http.post(`${BASE}/api/v1/tasks`, () => HttpResponse.json(TASK, { status: 201 })),
-    )
+    server.use(http.post(`${BASE}/api/v1/tasks`, () => HttpResponse.json(TASK, { status: 201 })))
 
     const { wrapper } = makeWrapper()
     const { result } = renderHook(() => useCreateTask(), { wrapper })
@@ -299,15 +290,16 @@ describe('useUpdateTask', () => {
   it('sends PATCH and returns updated task', async () => {
     const updated: Task = { ...TASK, title: 'Buy oat milk', status: 'in_progress' }
 
-    server.use(
-      http.patch(`${BASE}/api/v1/tasks/:id`, () => HttpResponse.json(updated)),
-    )
+    server.use(http.patch(`${BASE}/api/v1/tasks/:id`, () => HttpResponse.json(updated)))
 
     const { wrapper } = makeWrapper()
     const { result } = renderHook(() => useUpdateTask(), { wrapper })
 
     await act(async () => {
-      result.current.mutate({ id: 'task-1', body: { title: 'Buy oat milk', status: 'in_progress' } })
+      result.current.mutate({
+        id: 'task-1',
+        body: { title: 'Buy oat milk', status: 'in_progress' },
+      })
     })
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true))
@@ -325,7 +317,7 @@ describe('useUpdateTask', () => {
         capturedPathname = new URL(request.url).pathname
         parsedBody = await request.json()
         return HttpResponse.json({ ...TASK, status: 'done' })
-      }),
+      })
     )
 
     const { wrapper } = makeWrapper()
@@ -354,7 +346,7 @@ describe('useDeleteTask', () => {
       http.delete(`${BASE}/api/v1/tasks/:id`, ({ request }) => {
         capturedMethod = request.method
         return new HttpResponse(null, { status: 204 })
-      }),
+      })
     )
 
     const { wrapper } = makeWrapper()
@@ -377,7 +369,7 @@ describe('useDeleteTask', () => {
       http.delete(`${BASE}/api/v1/tasks/:id`, ({ request }) => {
         capturedPathname = new URL(request.url).pathname
         return new HttpResponse(null, { status: 204 })
-      }),
+      })
     )
 
     const { wrapper } = makeWrapper()
@@ -399,11 +391,7 @@ describe('useDeleteTask', () => {
 
 describe('error states', () => {
   it('useListTasks sets isError to true and error to ApiError on 500', async () => {
-    server.use(
-      http.get(`${BASE}/api/v1/tasks`, () =>
-        new HttpResponse(null, { status: 500 }),
-      ),
-    )
+    server.use(http.get(`${BASE}/api/v1/tasks`, () => new HttpResponse(null, { status: 500 })))
 
     const { wrapper } = makeWrapper()
     const { result } = renderHook(() => useListTasks(), { wrapper })
@@ -415,12 +403,15 @@ describe('error states', () => {
   })
 
   it('useGetTask sets isError on 404 with parsed body', async () => {
-    const errorBody = { type: 'about:blank', title: 'Not Found', status: 404, detail: 'Task not found' }
+    const errorBody = {
+      type: 'about:blank',
+      title: 'Not Found',
+      status: 404,
+      detail: 'Task not found',
+    }
 
     server.use(
-      http.get(`${BASE}/api/v1/tasks/:id`, () =>
-        HttpResponse.json(errorBody, { status: 404 }),
-      ),
+      http.get(`${BASE}/api/v1/tasks/:id`, () => HttpResponse.json(errorBody, { status: 404 }))
     )
 
     const { wrapper } = makeWrapper()
@@ -442,9 +433,7 @@ describe('error states', () => {
     }
 
     server.use(
-      http.post(`${BASE}/api/v1/tasks`, () =>
-        HttpResponse.json(errorBody, { status: 422 }),
-      ),
+      http.post(`${BASE}/api/v1/tasks`, () => HttpResponse.json(errorBody, { status: 422 }))
     )
 
     const { wrapper } = makeWrapper()
@@ -465,8 +454,8 @@ describe('error states', () => {
   it('useUpdateTask mutation sets isError on 404', async () => {
     server.use(
       http.patch(`${BASE}/api/v1/tasks/:id`, () =>
-        HttpResponse.json({ title: 'Not Found', status: 404 }, { status: 404 }),
-      ),
+        HttpResponse.json({ title: 'Not Found', status: 404 }, { status: 404 })
+      )
     )
 
     const { wrapper } = makeWrapper()
@@ -495,7 +484,7 @@ describe('query key invalidation', () => {
       http.get(`${BASE}/api/v1/tasks`, () => {
         fetchCount++
         return HttpResponse.json(TASK_PAGE)
-      }),
+      })
     )
 
     const { wrapper, queryClient } = makeWrapper()
@@ -520,7 +509,7 @@ describe('query key invalidation', () => {
       http.get(`${BASE}/api/v1/tasks/:id`, () => {
         fetchCount++
         return HttpResponse.json(TASK)
-      }),
+      })
     )
 
     const { wrapper, queryClient } = makeWrapper()

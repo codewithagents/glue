@@ -1,5 +1,5 @@
-import { defineConfig } from 'astro/config';
-import starlight from '@astrojs/starlight';
+import { defineConfig } from 'astro/config'
+import starlight from '@astrojs/starlight'
 
 // starlight-package-managers is a component library (not a Starlight plugin).
 // Import PackageManagers directly in .mdx files when needed:
@@ -54,4 +54,4 @@ export default defineConfig({
       ],
     }),
   ],
-});
+})
