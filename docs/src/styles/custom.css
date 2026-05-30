@@ -50,3 +50,24 @@
   color: #f472b6;
   border-color: #831843;
 }
+
+/* Legal links in the footer (Impressum / Datenschutz on the main domain). */
+.legal-links {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--sl-color-gray-5);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+  font-size: var(--sl-text-xs);
+  color: var(--sl-color-gray-3);
+}
+.legal-links a {
+  color: var(--sl-color-gray-2);
+  text-decoration: none;
+}
+.legal-links a:hover {
+  color: var(--sl-color-accent-high);
+  text-decoration: underline;
+}
