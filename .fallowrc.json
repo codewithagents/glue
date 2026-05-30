@@ -3,7 +3,9 @@
   "ignorePatterns": [
     "examples/generated/**",
     "packages/*/dist/**",
-    "packages/openapi-gen/src/__fixtures__/**"
+    "packages/*/generated/**",
+    "packages/openapi-gen/src/__fixtures__/**",
+    "packages/petstore-hono/**"
   ],
   "ignoreUnresolvedImports": [
     "**/generated/dnd5e/**"
