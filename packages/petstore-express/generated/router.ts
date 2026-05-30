@@ -6,7 +6,7 @@ import type { Request, Response } from "express";
 import type { CreatePetRequest } from "./models.js";
 import type { PetstoreService } from "./service.js";
 import { z } from "zod";
-import { CreatePetRequestSchema } from "../../petstore/generated/schemas.js";
+import { CreatePetRequestSchema } from "../../petstore-hono/generated/schemas.js";
 
 export function createRouter(service: PetstoreService): Router {
   const router = Router();
