@@ -1,0 +1,149 @@
+---
+// FeaturedUsers.astro
+// A reserved "trusted by" slot that doubles as a CTA for early adopters.
+// Uses Starlight CSS variables for full theme-awareness.
+// No entrance animations. Only the hover-lift pattern from custom.css is permitted.
+---
+
+<div class="featured-users">
+  <div class="featured-users__header">
+    <h2 class="featured-users__heading">Built with this toolkit</h2>
+    <p class="featured-users__sub">
+      A reserved slot for projects and teams using these packages in production.
+    </p>
+  </div>
+
+  <div class="featured-users__slot" aria-label="Featured projects placeholder">
+    <div class="slot-placeholder">
+      <span class="slot-placeholder__label">Your project here</span>
+    </div>
+    <div class="slot-placeholder">
+      <span class="slot-placeholder__label">Your project here</span>
+    </div>
+    <div class="slot-placeholder">
+      <span class="slot-placeholder__label">Your project here</span>
+    </div>
+  </div>
+
+  <div class="featured-users__cta">
+    <p class="featured-users__cta-text">
+      Using this in production and enjoying it? We would love to feature your project here.
+    </p>
+    <a
+      href="https://github.com/codewithagents/glue/issues/new"
+      class="featured-users__cta-link"
+      target="_blank"
+      rel="noopener noreferrer"
+    >
+      Open an issue and become one of the first listed
+    </a>
+  </div>
+</div>
+
+<style>
+  .featured-users {
+    padding: 2rem 0 1rem;
+    text-align: center;
+  }
+
+  .featured-users__header {
+    margin-bottom: 1.5rem;
+  }
+
+  /* Override the global h2 top-border from custom.css for this component */
+  .featured-users__heading {
+    font-size: var(--sl-text-2xl);
+    font-weight: 600;
+    color: var(--sl-color-white);
+    margin: 0 0 0.5rem;
+    padding-top: 0;
+    border-top: none;
+    border-image: none;
+  }
+
+  .featured-users__sub {
+    margin: 0;
+    font-size: var(--sl-text-sm);
+    color: var(--sl-color-gray-3);
+  }
+
+  /* Placeholder logo slots */
+  .featured-users__slot {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    justify-content: center;
+    margin-bottom: 1.75rem;
+  }
+
+  .slot-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 160px;
+    height: 64px;
+    border: 1px dashed var(--sl-color-gray-5);
+    border-radius: 8px;
+    background: var(--sl-color-gray-7);
+    transition:
+      border-color 0.15s ease,
+      background 0.15s ease;
+  }
+
+  .slot-placeholder:hover {
+    border-color: var(--sl-color-accent);
+    background: var(--sl-color-accent-low);
+  }
+
+  .slot-placeholder__label {
+    font-size: 0.72rem;
+    color: var(--sl-color-gray-4);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-family: var(--sl-font-mono);
+    pointer-events: none;
+  }
+
+  /* CTA */
+  .featured-users__cta {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.6rem;
+  }
+
+  .featured-users__cta-text {
+    margin: 0;
+    font-size: var(--sl-text-sm);
+    color: var(--sl-color-gray-2);
+  }
+
+  .featured-users__cta-link {
+    display: inline-block;
+    padding: 0.45rem 1.1rem;
+    border: 1px solid var(--sl-color-accent);
+    border-radius: 6px;
+    font-size: var(--sl-text-sm);
+    font-weight: 500;
+    color: var(--sl-color-accent);
+    text-decoration: none;
+    transition:
+      background 0.15s ease,
+      color 0.15s ease;
+  }
+
+  .featured-users__cta-link:hover {
+    background: var(--sl-color-accent);
+    color: var(--sl-color-black);
+  }
+
+  @media (max-width: 480px) {
+    .featured-users__slot {
+      gap: 0.75rem;
+    }
+    .slot-placeholder {
+      width: 130px;
+      height: 54px;
+    }
+  }
+</style>

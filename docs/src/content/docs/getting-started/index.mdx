@@ -34,7 +34,7 @@ If your team maintains an OpenAPI spec, the toolchain turns it into a first-clas
 ## Prerequisites
 
 - Node.js 18 or later
-- An OpenAPI 3.1 spec (JSON or YAML). OpenAPI 3.0.x is best-effort.
+- An OpenAPI 3.1 spec (JSON or YAML). OpenAPI 3.0.x is well-supported in practice: 8 of the 13 showcase specs are 3.0.x and all compile. A few 3.0-only constructs like `nullable` are not yet normalized to 3.1 semantics.
 - TypeScript with `strict: true` recommended (all generated output passes it out of the box)
 
 <Aside type="tip">
