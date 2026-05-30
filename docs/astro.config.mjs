@@ -19,8 +19,62 @@ export default defineConfig({
       title: 'Glue',
       description:
         'Generate types, a fetch client, React Query hooks, and Zod schemas from your OpenAPI spec, then map API errors straight to form fields.',
+      head: [
+        {
+          tag: 'meta',
+          attrs: { property: 'og:type', content: 'website' },
+        },
+        {
+          tag: 'meta',
+          attrs: {
+            property: 'og:title',
+            content: 'Glue: typed and validated OpenAPI tooling for TypeScript',
+          },
+        },
+        {
+          tag: 'meta',
+          attrs: {
+            property: 'og:description',
+            content:
+              'Generate types, a fetch client, React Query hooks, and Zod schemas from your OpenAPI spec, then map API errors straight to form fields.',
+          },
+        },
+        {
+          tag: 'meta',
+          attrs: {
+            property: 'og:image',
+            content: 'https://glue.codewithagents.de/og-image.png',
+          },
+        },
+        {
+          tag: 'meta',
+          attrs: { name: 'twitter:card', content: 'summary_large_image' },
+        },
+        {
+          tag: 'meta',
+          attrs: {
+            name: 'twitter:title',
+            content: 'Glue: typed and validated OpenAPI tooling for TypeScript',
+          },
+        },
+        {
+          tag: 'meta',
+          attrs: {
+            name: 'twitter:description',
+            content:
+              'Generate types, a fetch client, React Query hooks, and Zod schemas from your OpenAPI spec, then map API errors straight to form fields.',
+          },
+        },
+        {
+          tag: 'meta',
+          attrs: {
+            name: 'twitter:image',
+            content: 'https://glue.codewithagents.de/og-image.png',
+          },
+        },
+      ],
       logo: {
-        src: './src/assets/logo-cairn.png',
+        src: './src/assets/logo-cairn.svg',
         alt: 'Glue by CodeWithAgents',
       },
       favicon: '/favicon.svg',

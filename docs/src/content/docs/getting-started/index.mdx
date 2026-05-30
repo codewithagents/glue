@@ -4,27 +4,13 @@ description: What Glue is, and the spec-to-UI pipeline mental model.
 ---
 
 import { Card, CardGrid, Aside } from '@astrojs/starlight/components'
+import PipelineDiagram from '../../../components/PipelineDiagram.astro'
 
 Glue is a TypeScript OpenAPI toolchain that turns a spec into everything you need: types, a fetch client, React Query hooks, Zod schemas, a server-side service interface, and form error mapping. Every generated file compiles under `strict: true` with zero runtime wrapper dependencies. The pipeline is tested against 128 real-world specs (Stripe, GitHub, Spotify, OpenAI, and more) on every PR.
 
 ## The pipeline
 
-```
-OpenAPI spec
-    |
-    v
-openapi-gen   --> TypeScript types        (models.ts)
-              --> Typed fetch client      (client.ts)
-              --> Zod schemas             (optional, user-owned)
-    |
-    +-----------> openapi-react-query --> React Query v5 hooks  (hooks.ts)
-    |
-    +-----------> openapi-server      --> Service interface     (service.ts)
-                                      --> Optional router       (router.ts)
-    |
-    v
-api-errors    --> Form field error mapping (runtime, no codegen)
-```
+<PipelineDiagram />
 
 Everything flows from a single spec. One source of truth. When the spec changes, re-run the generator and the TypeScript compiler tells you exactly what broke.
 

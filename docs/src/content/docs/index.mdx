@@ -2,6 +2,9 @@
 title: Glue
 description: Generate types, a fetch client, React Query hooks, and Zod schemas from your OpenAPI spec, then map API errors straight to form fields.
 template: splash
+head:
+  - tag: title
+    content: 'Glue: typed and validated OpenAPI tooling for TypeScript'
 hero:
   title: Typed and validated, from OpenAPI spec to your UI
   tagline: Generate types, a fetch client, React Query hooks, and Zod schemas from your OpenAPI spec, then map API errors straight to form fields. Framework-agnostic, OpenAPI 3.1 first, and proven against 128 real-world specs in CI.
@@ -25,6 +28,7 @@ import {
   Aside,
   LinkButton,
 } from '@astrojs/starlight/components'
+import PipelineDiagram from '../../components/PipelineDiagram.astro'
 
 <CardGrid>
   <Card title="@codewithagents/openapi-gen" icon="puzzle">
@@ -34,7 +38,8 @@ import {
     React Query v5 hooks, generated. [Learn more](/openapi-react-query)
   </Card>
   <Card title="@codewithagents/openapi-server" icon="laptop">
-    Typed service interface and optional Hono router. [Learn more](/openapi-server)
+    Typed service interface and optional router for Hono, Express, or Fastify. [Learn
+    more](/openapi-server)
   </Card>
   <Card title="@codewithagents/api-errors" icon="warning">
     Map API errors to form field errors. [Learn more](/api-errors)
@@ -47,29 +52,7 @@ import {
 
 Each package is independent, but they compose. A single OpenAPI spec drives everything from server contract to form field error UX.
 
-```
-OpenAPI spec
-     |
-     v
- openapi-gen ──────────────┬──────────────────────────────────────────────────┐
-     |                     |                                                  |
-     v                     v                                                  v
-TypeScript types        Zod schemas (user-owned, extendable)           Fetch client
-                                                                             |
-                                                           ┌─────────────────┤
-                                                           |                 |
-                                                           v                 v
-                                               openapi-react-query    openapi-server
-                                                           |                 |
-                                                           v                 v
-                                               React Query v5 hooks   Service interface
-                                                                       + optional router
-
-api-errors (runtime, no codegen needed)
-     |
-     v
-Form field error mapping from any API error shape
-```
+<PipelineDiagram />
 
 One source of truth. When the spec changes, re-run the generators and the compiler tells you exactly what broke.
 
