@@ -1,4 +1,4 @@
-# codewithagents/glue — monorepo
+# codewithagents/openapi-ts monorepo
 
 ## Stack
 - **pnpm** workspace (`packageManager: pnpm@10.30.3`) — never use npm/yarn at root

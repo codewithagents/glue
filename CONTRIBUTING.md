@@ -15,8 +15,8 @@ Thank you for your interest in contributing! This is a pnpm monorepo. Here's eve
 ## Getting started
 
 ```bash
-git clone https://github.com/codewithagents/glue.git
-cd glue
+git clone https://github.com/codewithagents/openapi-ts.git
+cd openapi-ts
 pnpm install
 ```
 
@@ -131,4 +131,4 @@ BREAKING CHANGE: TypeScript 6.0 is now required.
 
 ## Questions?
 
-Open a [Discussion](https://github.com/codewithagents/glue/discussions) or file an issue. We're happy to help.
+Open a [Discussion](https://github.com/codewithagents/openapi-ts/discussions) or file an issue. We're happy to help.

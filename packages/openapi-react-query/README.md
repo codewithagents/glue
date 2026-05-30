@@ -1,11 +1,11 @@
 # @codewithagents/openapi-react-query
 
 [![npm](https://img.shields.io/npm/v/@codewithagents/openapi-react-query.svg)](https://npmjs.com/package/@codewithagents/openapi-react-query)
-[![CI](https://github.com/codewithagents/glue/actions/workflows/ci.yml/badge.svg)](https://github.com/codewithagents/glue/actions/workflows/ci.yml)
-[![codecov](https://codecov.io/gh/codewithagents/glue/graph/badge.svg?flag=openapi-react-query)](https://codecov.io/gh/codewithagents/glue)
-[![CodeQL](https://github.com/codewithagents/glue/actions/workflows/codeql.yml/badge.svg)](https://github.com/codewithagents/glue/actions/workflows/codeql.yml)
+[![CI](https://github.com/codewithagents/openapi-ts/actions/workflows/ci.yml/badge.svg)](https://github.com/codewithagents/openapi-ts/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/codewithagents/openapi-ts/graph/badge.svg?flag=openapi-react-query)](https://codecov.io/gh/codewithagents/openapi-ts)
+[![CodeQL](https://github.com/codewithagents/openapi-ts/actions/workflows/codeql.yml/badge.svg)](https://github.com/codewithagents/openapi-ts/actions/workflows/codeql.yml)
 
-📖 **[Full documentation](https://glue.codewithagents.de/openapi-react-query)**
+📖 **[Full documentation](https://openapi.codewithagents.de/openapi-react-query)**
 
 Generate typed [React Query v5](https://tanstack.com/query/v5) hooks from an OpenAPI 3.x spec. Run once, get a fully typed `useQuery` hook per GET endpoint and a `useMutation` hook per write operation. No hand-written boilerplate.
 
@@ -16,7 +16,7 @@ Generate typed [React Query v5](https://tanstack.com/query/v5) hooks from an Ope
 - **Suspense variants**: set `suspense: true` to generate `useSuspense*` hooks alongside every query hook.
 - **Prettier-clean output**: every generated file passes `prettier --check` out of the box.
 
-Works alongside [`@codewithagents/openapi-gen`](https://www.npmjs.com/package/@codewithagents/openapi-gen) which generates the underlying typed fetch client. All generated files are committed without running a formatter. See the [petstore demo](https://github.com/codewithagents/glue/tree/main/packages/petstore-hono) for a full-stack example combining all four packages.
+Works alongside [`@codewithagents/openapi-gen`](https://www.npmjs.com/package/@codewithagents/openapi-gen) which generates the underlying typed fetch client. All generated files are committed without running a formatter. See the [petstore demo](https://github.com/codewithagents/openapi-ts/tree/main/packages/petstore-hono) for a full-stack example combining all four packages.
 
 ## Install
 
@@ -27,7 +27,7 @@ npm install @tanstack/react-query
 
 ## Configure
 
-See the [full configuration reference](https://glue.codewithagents.de/openapi-react-query#configuration) in the docs for all options including `overrides` and the `--config` CLI flag.
+See the [full configuration reference](https://openapi.codewithagents.de/openapi-react-query#configuration) in the docs for all options including `overrides` and the `--config` CLI flag.
 
 Create `openapi-react-query.config.json` in your project root:
 
@@ -221,11 +221,11 @@ Relative paths in each config resolve from the config file's directory.
 
 ## Testing
 
-The generator also produces a `test-utils.ts` file alongside `hooks.ts`. It exports `createTestQueryClient()` and `createWrapper()` to eliminate test boilerplate. See [Testing your hooks](https://glue.codewithagents.de/openapi-react-query#testing-your-hooks) in the docs for copy-pasteable Vitest examples using MSW.
+The generator also produces a `test-utils.ts` file alongside `hooks.ts`. It exports `createTestQueryClient()` and `createWrapper()` to eliminate test boilerplate. See [Testing your hooks](https://openapi.codewithagents.de/openapi-react-query#testing-your-hooks) in the docs for copy-pasteable Vitest examples using MSW.
 
 ## Troubleshooting
 
-See the [Troubleshooting](https://glue.codewithagents.de/openapi-react-query#troubleshooting) section in the docs for common issues: cache not invalidating, detail hooks firing with nullish ids, and hooks not working in React Server Components.
+See the [Troubleshooting](https://openapi.codewithagents.de/openapi-react-query#troubleshooting) section in the docs for common issues: cache not invalidating, detail hooks firing with nullish ids, and hooks not working in React Server Components.
 
 ## License
 

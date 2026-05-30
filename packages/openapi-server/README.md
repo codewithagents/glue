@@ -1,11 +1,11 @@
 # @codewithagents/openapi-server
 
 [![npm](https://img.shields.io/npm/v/@codewithagents/openapi-server.svg)](https://npmjs.com/package/@codewithagents/openapi-server)
-[![CI](https://github.com/codewithagents/glue/actions/workflows/ci.yml/badge.svg)](https://github.com/codewithagents/glue/actions/workflows/ci.yml)
-[![codecov](https://codecov.io/gh/codewithagents/glue/graph/badge.svg?flag=openapi-server)](https://codecov.io/gh/codewithagents/glue)
-[![CodeQL](https://github.com/codewithagents/glue/actions/workflows/codeql.yml/badge.svg)](https://github.com/codewithagents/glue/actions/workflows/codeql.yml)
+[![CI](https://github.com/codewithagents/openapi-ts/actions/workflows/ci.yml/badge.svg)](https://github.com/codewithagents/openapi-ts/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/codewithagents/openapi-ts/graph/badge.svg?flag=openapi-server)](https://codecov.io/gh/codewithagents/openapi-ts)
+[![CodeQL](https://github.com/codewithagents/openapi-ts/actions/workflows/codeql.yml/badge.svg)](https://github.com/codewithagents/openapi-ts/actions/workflows/codeql.yml)
 
-📖 **[Full documentation](https://glue.codewithagents.de/openapi-server)**
+📖 **[Full documentation](https://openapi.codewithagents.de/openapi-server)**
 
 Generate a typed service interface from your OpenAPI 3.x spec. Framework-agnostic by design: wire it to Hono, Express, Fastify, or any router you already use.
 
@@ -207,7 +207,7 @@ serve({ fetch: app.fetch, port: 3001 })
 
 ## Config reference
 
-See the [full configuration reference](https://glue.codewithagents.de/openapi-server#configuration) in the docs for a detailed options table and the `--config` CLI flag.
+See the [full configuration reference](https://openapi.codewithagents.de/openapi-server#configuration) in the docs for a detailed options table and the `--config` CLI flag.
 
 `openapi-server.config.json`:
 
@@ -239,7 +239,7 @@ Relative paths in the config resolve from the config file's directory.
 
 ## Zod request validation (`input_schema`)
 
-See the [Zod validation](https://glue.codewithagents.de/openapi-server#zod-validation-input_schema) section in the docs for the two-pass generation flow and schema naming convention.
+See the [Zod validation](https://openapi.codewithagents.de/openapi-server#zod-validation-input_schema) section in the docs for the two-pass generation flow and schema naming convention.
 
 Point `input_schema` at the same `schemas.ts` you use with `@codewithagents/openapi-gen`. The server generator adds runtime validation to every route that receives a request body:
 
@@ -317,4 +317,4 @@ The `"none"` path is always available and keeps the zero-footprint promise: the 
 
 ## Error handling and troubleshooting
 
-The generated router does not wrap service calls in `try/catch`. Errors propagate to the framework's own error handler. See [Error handling](https://glue.codewithagents.de/openapi-server#error-handling) in the docs for per-framework error handler examples and [Troubleshooting](https://glue.codewithagents.de/openapi-server#troubleshooting) for common issues such as missing Zod validation or `Cannot find module './models.js'`.
+The generated router does not wrap service calls in `try/catch`. Errors propagate to the framework's own error handler. See [Error handling](https://openapi.codewithagents.de/openapi-server#error-handling) in the docs for per-framework error handler examples and [Troubleshooting](https://openapi.codewithagents.de/openapi-server#troubleshooting) for common issues such as missing Zod validation or `Cannot find module './models.js'`.

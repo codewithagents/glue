@@ -7,7 +7,7 @@ import remarkGfm from 'remark-gfm'
 //   import { PackageManagers } from 'starlight-package-managers'
 
 export default defineConfig({
-  site: 'https://glue.codewithagents.de',
+  site: 'https://openapi.codewithagents.de',
   base: '/',
   // Explicitly enable GFM so markdown tables render in .mdx files
   // (Astro 6 + Starlight 0.39 do not apply it to MDX by default).
@@ -43,7 +43,7 @@ export default defineConfig({
           tag: 'meta',
           attrs: {
             property: 'og:image',
-            content: 'https://glue.codewithagents.de/og-image.png',
+            content: 'https://openapi.codewithagents.de/og-image.png',
           },
         },
         {
@@ -69,7 +69,7 @@ export default defineConfig({
           tag: 'meta',
           attrs: {
             name: 'twitter:image',
-            content: 'https://glue.codewithagents.de/og-image.png',
+            content: 'https://openapi.codewithagents.de/og-image.png',
           },
         },
       ],
@@ -82,7 +82,7 @@ export default defineConfig({
         {
           icon: 'github',
           label: 'GitHub',
-          href: 'https://github.com/codewithagents/glue',
+          href: 'https://github.com/codewithagents/openapi-ts',
         },
       ],
       customCss: ['./src/styles/custom.css'],

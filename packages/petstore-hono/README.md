@@ -32,8 +32,8 @@ A complete, runnable full-stack application that shows the entire `@codewithagen
 **1. Clone the monorepo and install dependencies:**
 
 ```bash
-git clone https://github.com/codewithagents/glue.git
-cd glue
+git clone https://github.com/codewithagents/openapi-ts.git
+cd openapi-ts
 pnpm install
 ```
 

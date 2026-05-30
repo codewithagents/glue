@@ -1,6 +1,6 @@
 # packages
 
-This directory contains all packages in the `@codewithagents/glue` monorepo.
+This directory contains all packages in the `@codewithagents/openapi-ts` monorepo.
 
 ## Published packages
 

@@ -33,7 +33,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/codewithagents/glue"
+    "url": "https://github.com/codewithagents/openapi-ts"
   },
   "devDependencies": {
     "@vitest/coverage-v8": "catalog:",

@@ -1,11 +1,11 @@
 # @codewithagents/openapi-gen
 
 [![npm](https://img.shields.io/npm/v/@codewithagents/openapi-gen.svg)](https://npmjs.com/package/@codewithagents/openapi-gen)
-[![CI](https://github.com/codewithagents/glue/actions/workflows/ci.yml/badge.svg)](https://github.com/codewithagents/glue/actions/workflows/ci.yml)
-[![codecov](https://codecov.io/gh/codewithagents/glue/graph/badge.svg?flag=openapi-gen)](https://codecov.io/gh/codewithagents/glue)
-[![CodeQL](https://github.com/codewithagents/glue/actions/workflows/codeql.yml/badge.svg)](https://github.com/codewithagents/glue/actions/workflows/codeql.yml)
+[![CI](https://github.com/codewithagents/openapi-ts/actions/workflows/ci.yml/badge.svg)](https://github.com/codewithagents/openapi-ts/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/codewithagents/openapi-ts/graph/badge.svg?flag=openapi-gen)](https://codecov.io/gh/codewithagents/openapi-ts)
+[![CodeQL](https://github.com/codewithagents/openapi-ts/actions/workflows/codeql.yml/badge.svg)](https://github.com/codewithagents/openapi-ts/actions/workflows/codeql.yml)
 
-📖 **[Full documentation](https://glue.codewithagents.de/openapi-gen)**
+📖 **[Full documentation](https://openapi.codewithagents.de/openapi-gen)**
 
 Generate TypeScript types, a typed native `fetch` client, and Zod validation from your OpenAPI spec. Zero runtime footprint. Part of a full-pipeline suite tested against 128 real-world specs.
 
@@ -31,7 +31,7 @@ It is also the foundation of a full pipeline. Combine it with [`@codewithagents/
 | [`@codewithagents/openapi-server`](https://npmjs.com/package/@codewithagents/openapi-server) | Framework-agnostic service interface + optional Hono router |
 | [`@codewithagents/api-errors`](https://npmjs.com/package/@codewithagents/api-errors) | Maps API error responses to form field errors |
 
-See the [petstore demo](https://github.com/codewithagents/glue/tree/main/packages/petstore-hono) for a full-stack example using all four packages.
+See the [petstore demo](https://github.com/codewithagents/openapi-ts/tree/main/packages/petstore-hono) for a full-stack example using all four packages.
 
 ---
 
@@ -207,7 +207,7 @@ Without this, you would pass config to every call manually. With it, bind once p
 
 ## Config reference
 
-See the [full configuration reference](https://glue.codewithagents.de/openapi-gen#configuration) in the docs for detailed field descriptions and the `--config` CLI flag.
+See the [full configuration reference](https://openapi.codewithagents.de/openapi-gen#configuration) in the docs for detailed field descriptions and the `--config` CLI flag.
 
 `openapi-gen.config.json`:
 
@@ -225,7 +225,7 @@ See the [full configuration reference](https://glue.codewithagents.de/openapi-ge
 
 ## Error handling
 
-See [error handling](https://glue.codewithagents.de/openapi-gen#error-handling) in the docs for narrowing `ApiError.body` and the global `onError` hook.
+See [error handling](https://openapi.codewithagents.de/openapi-gen#error-handling) in the docs for narrowing `ApiError.body` and the global `onError` hook.
 
 Generated functions throw `ApiError` for non-2xx responses:
 
@@ -245,7 +245,7 @@ try {
 
 ## Zod validation (`input_schema`)
 
-See the [Zod validation](https://glue.codewithagents.de/openapi-gen#zod-validation-input_schema) section in the docs for the form-wizard pattern, drift detection behaviour, and Zod v4 requirements.
+See the [Zod validation](https://openapi.codewithagents.de/openapi-gen#zod-validation-input_schema) section in the docs for the form-wizard pattern, drift detection behaviour, and Zod v4 requirements.
 
 Point `input_schema` at a user-owned Zod schema file and the generator upgrades its output:
 
@@ -320,4 +320,4 @@ These packages work together, all driven from the same OpenAPI 3.x spec:
 | [`@codewithagents/openapi-server`](https://www.npmjs.com/package/@codewithagents/openapi-server) | Framework-agnostic service interface + optional Hono router |
 | [`@codewithagents/api-errors`](https://www.npmjs.com/package/@codewithagents/api-errors) | Maps API error responses to form field errors |
 
-See the [petstore demo](https://github.com/codewithagents/glue/tree/main/packages/petstore-hono) for a full-stack example using all four packages together.
+See the [petstore demo](https://github.com/codewithagents/openapi-ts/tree/main/packages/petstore-hono) for a full-stack example using all four packages together.
