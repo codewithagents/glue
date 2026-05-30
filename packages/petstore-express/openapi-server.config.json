@@ -1,1 +1,1 @@
-{ "input_openapi": "../petstore/spec/api.json", "output": "generated/", "framework": "express", "input_schema": "../petstore/generated/schemas.ts" }
+{ "input_openapi": "../petstore-hono/spec/api.json", "output": "generated/", "framework": "express", "input_schema": "../petstore-hono/generated/schemas.ts" }

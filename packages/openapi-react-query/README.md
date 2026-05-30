@@ -14,7 +14,7 @@ Generate typed [React Query v5](https://tanstack.com/query/v5) hooks from an Ope
 - **Suspense variants**: set `suspense: true` to generate `useSuspense*` hooks alongside every query hook.
 - **Prettier-clean output**: every generated file passes `prettier --check` out of the box.
 
-Works alongside [`@codewithagents/openapi-gen`](https://www.npmjs.com/package/@codewithagents/openapi-gen) which generates the underlying typed fetch client. All generated files are committed without running a formatter. See the [petstore demo](https://github.com/codewithagents/glue/tree/main/packages/petstore) for a full-stack example combining all four packages.
+Works alongside [`@codewithagents/openapi-gen`](https://www.npmjs.com/package/@codewithagents/openapi-gen) which generates the underlying typed fetch client. All generated files are committed without running a formatter. See the [petstore demo](https://github.com/codewithagents/glue/tree/main/packages/petstore-hono) for a full-stack example combining all four packages.
 
 ## Install
 

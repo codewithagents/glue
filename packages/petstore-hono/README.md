@@ -46,7 +46,7 @@ pnpm build
 **3. Start the petstore in dev mode:**
 
 ```bash
-cd packages/petstore
+cd packages/petstore-hono
 pnpm dev
 ```
 

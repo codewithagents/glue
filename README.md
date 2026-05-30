@@ -67,7 +67,7 @@ Code generators have a wide blast radius. A subtle regression in the generator t
 
 **Mutation testing with Stryker.** `openapi-gen` and `openapi-react-query` run [Stryker](https://stryker-mutator.io/) mutation tests locally. Mutation testing deliberately introduces bugs into the source code and verifies that the test suite catches them. High line coverage that doesn't actually catch regressions shows up here.
 
-**Full-stack E2E tests.** The [`petstore`](./packages/petstore) package is a complete runnable full-stack app: one spec drives generated types, fetch client, React Query hooks, a Hono server with Zod validation, and end-to-end [Playwright](https://playwright.dev/) tests. Every PR runs the full round-trip — spec change to browser assertion.
+**Full-stack E2E tests.** The [`petstore`](./packages/petstore-hono) package is a complete runnable full-stack app: one spec drives generated types, fetch client, React Query hooks, a Hono server with Zod validation, and end-to-end [Playwright](https://playwright.dev/) tests. Every PR runs the full round-trip — spec change to browser assertion.
 
 **Static analysis on every PR.** [Fallow](https://github.com/fallow-rs/fallow) runs on every pull request and posts inline review comments flagging dead code, duplication, and unresolved imports introduced by the diff. [CodeQL](https://github.com/codewithagents/glue/actions/workflows/codeql.yml) handles security scanning.
 

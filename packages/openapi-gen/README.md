@@ -29,7 +29,7 @@ It is also the foundation of a full pipeline. Combine it with [`@codewithagents/
 | [`@codewithagents/openapi-server`](https://npmjs.com/package/@codewithagents/openapi-server) | Framework-agnostic service interface + optional Hono router |
 | [`@codewithagents/api-errors`](https://npmjs.com/package/@codewithagents/api-errors) | Maps API error responses to form field errors |
 
-See the [petstore demo](https://github.com/codewithagents/glue/tree/main/packages/petstore) for a full-stack example using all four packages.
+See the [petstore demo](https://github.com/codewithagents/glue/tree/main/packages/petstore-hono) for a full-stack example using all four packages.
 
 ---
 
@@ -312,4 +312,4 @@ These packages work together, all driven from the same OpenAPI 3.x spec:
 | [`@codewithagents/openapi-server`](https://www.npmjs.com/package/@codewithagents/openapi-server) | Framework-agnostic service interface + optional Hono router |
 | [`@codewithagents/api-errors`](https://www.npmjs.com/package/@codewithagents/api-errors) | Maps API error responses to form field errors |
 
-See the [petstore demo](https://github.com/codewithagents/glue/tree/main/packages/petstore) for a full-stack example using all four packages together.
+See the [petstore demo](https://github.com/codewithagents/glue/tree/main/packages/petstore-hono) for a full-stack example using all four packages together.
