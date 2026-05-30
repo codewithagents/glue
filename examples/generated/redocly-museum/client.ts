@@ -7,8 +7,8 @@ import type {
   SpecialEvent,
   SpecialEventCollection,
   SpecialEventFields,
-} from "./models.js";
-import { getConfig, type ClientConfig } from "./client-config.js";
+} from './models.js'
+import { getConfig, type ClientConfig } from './client-config.js'
 import {
   BuyMuseumTicketsSchema,
   MuseumHoursSchema,
@@ -16,161 +16,136 @@ import {
   SpecialEventCollectionSchema,
   SpecialEventFieldsSchema,
   SpecialEventSchema,
-} from "./schemas.js";
+} from './schemas.js'
 
 export class ApiError extends Error {
   constructor(
     public readonly status: number,
-    public readonly body: unknown,
+    public readonly body: unknown
   ) {
-    super(`API error ${status}`);
-    this.name = "ApiError";
+    super(`API error ${status}`)
+    this.name = 'ApiError'
   }
 }
 
-type _FetchResponse = Awaited<ReturnType<typeof fetch>>;
+type _FetchResponse = Awaited<ReturnType<typeof fetch>>
 
 async function _request(
   method: string,
   path: string,
   opts: {
-    searchParams?: URLSearchParams;
-    body?: unknown;
+    searchParams?: URLSearchParams
+    body?: unknown
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<_FetchResponse> {
-  const { baseUrl, token, headers, onError } = { ...getConfig(), ...config };
-  const base = baseUrl ? baseUrl.replace(/\/$/, "") : "";
-  const qs = opts.searchParams?.toString() ?? "";
-  const url = qs ? `${base}${path}?${qs}` : `${base}${path}`;
-  const resolvedToken = typeof token === "function" ? await token() : token;
+  const { baseUrl, token, headers, onError } = { ...getConfig(), ...config }
+  const base = baseUrl ? baseUrl.replace(/\/$/, '') : ''
+  const qs = opts.searchParams?.toString() ?? ''
+  const url = qs ? `${base}${path}?${qs}` : `${base}${path}`
+  const resolvedToken = typeof token === 'function' ? await token() : token
   const res = await fetch(url, {
     method,
     headers: {
-      ...(opts.body !== undefined
-        ? { "Content-Type": "application/json" }
-        : {}),
+      ...(opts.body !== undefined ? { 'Content-Type': 'application/json' } : {}),
       ...headers,
       ...(resolvedToken ? { Authorization: `Bearer ${resolvedToken}` } : {}),
     },
     ...(opts.body !== undefined ? { body: JSON.stringify(opts.body) } : {}),
-  });
+  })
   if (!res.ok) {
-    const err = new ApiError(res.status, await res.json().catch(() => null));
-    onError?.(err);
-    throw err;
+    const err = new ApiError(res.status, await res.json().catch(() => null))
+    onError?.(err)
+    throw err
   }
-  return res;
+  return res
 }
 
 export async function getMuseumHours(
   params?: {
-    startDate?: string;
-    page?: number;
-    limit?: number;
+    startDate?: string
+    page?: number
+    limit?: number
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<MuseumHours> {
-  const searchParams = new URLSearchParams();
-  if (params?.startDate != null)
-    searchParams.set("startDate", String(params.startDate));
-  if (params?.page != null) searchParams.set("page", String(params.page));
-  if (params?.limit != null) searchParams.set("limit", String(params.limit));
-  const res = await _request("GET", "/museum-hours", { searchParams }, config);
-  return MuseumHoursSchema.parse(await res.json());
+  const searchParams = new URLSearchParams()
+  if (params?.startDate != null) searchParams.set('startDate', String(params.startDate))
+  if (params?.page != null) searchParams.set('page', String(params.page))
+  if (params?.limit != null) searchParams.set('limit', String(params.limit))
+  const res = await _request('GET', '/museum-hours', { searchParams }, config)
+  return MuseumHoursSchema.parse(await res.json())
 }
 
 export async function listSpecialEvents(
   params?: {
-    startDate?: string;
-    endDate?: string;
-    page?: number;
-    limit?: number;
+    startDate?: string
+    endDate?: string
+    page?: number
+    limit?: number
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<SpecialEventCollection> {
-  const searchParams = new URLSearchParams();
-  if (params?.startDate != null)
-    searchParams.set("startDate", String(params.startDate));
-  if (params?.endDate != null)
-    searchParams.set("endDate", String(params.endDate));
-  if (params?.page != null) searchParams.set("page", String(params.page));
-  if (params?.limit != null) searchParams.set("limit", String(params.limit));
-  const res = await _request(
-    "GET",
-    "/special-events",
-    { searchParams },
-    config,
-  );
-  return SpecialEventCollectionSchema.parse(await res.json());
+  const searchParams = new URLSearchParams()
+  if (params?.startDate != null) searchParams.set('startDate', String(params.startDate))
+  if (params?.endDate != null) searchParams.set('endDate', String(params.endDate))
+  if (params?.page != null) searchParams.set('page', String(params.page))
+  if (params?.limit != null) searchParams.set('limit', String(params.limit))
+  const res = await _request('GET', '/special-events', { searchParams }, config)
+  return SpecialEventCollectionSchema.parse(await res.json())
 }
 
 export async function createSpecialEvent(
   body: SpecialEvent,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<SpecialEvent> {
-  SpecialEventSchema.parse(body);
-  const res = await _request("POST", "/special-events", { body }, config);
-  return SpecialEventSchema.parse(await res.json());
+  SpecialEventSchema.parse(body)
+  const res = await _request('POST', '/special-events', { body }, config)
+  return SpecialEventSchema.parse(await res.json())
 }
 
 export async function getSpecialEvent(
   eventId: string,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<SpecialEvent> {
-  const res = await _request(
-    "GET",
-    `/special-events/${encodeURIComponent(eventId)}`,
-    {},
-    config,
-  );
-  return SpecialEventSchema.parse(await res.json());
+  const res = await _request('GET', `/special-events/${encodeURIComponent(eventId)}`, {}, config)
+  return SpecialEventSchema.parse(await res.json())
 }
 
 export async function updateSpecialEvent(
   eventId: string,
   body: SpecialEventFields,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<SpecialEvent> {
-  SpecialEventFieldsSchema.parse(body);
+  SpecialEventFieldsSchema.parse(body)
   const res = await _request(
-    "PATCH",
+    'PATCH',
     `/special-events/${encodeURIComponent(eventId)}`,
     { body },
-    config,
-  );
-  return SpecialEventSchema.parse(await res.json());
+    config
+  )
+  return SpecialEventSchema.parse(await res.json())
 }
 
 export async function deleteSpecialEvent(
   eventId: string,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<void> {
-  await _request(
-    "DELETE",
-    `/special-events/${encodeURIComponent(eventId)}`,
-    {},
-    config,
-  );
+  await _request('DELETE', `/special-events/${encodeURIComponent(eventId)}`, {}, config)
 }
 
 export async function buyMuseumTickets(
   body: BuyMuseumTickets,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<MuseumTicketsConfirmation> {
-  BuyMuseumTicketsSchema.parse(body);
-  const res = await _request("POST", "/tickets", { body }, config);
-  return MuseumTicketsConfirmationSchema.parse(await res.json());
+  BuyMuseumTicketsSchema.parse(body)
+  const res = await _request('POST', '/tickets', { body }, config)
+  return MuseumTicketsConfirmationSchema.parse(await res.json())
 }
 
 export async function getTicketCode(
   ticketId: string,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<void> {
-  await _request(
-    "GET",
-    `/tickets/${encodeURIComponent(ticketId)}/qr`,
-    {},
-    config,
-  );
+  await _request('GET', `/tickets/${encodeURIComponent(ticketId)}/qr`, {}, config)
 }

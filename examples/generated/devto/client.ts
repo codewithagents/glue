@@ -21,9 +21,9 @@ import type {
   User,
   UserInviteParam,
   VideoArticle,
-} from "./models.js";
-import { getConfig, type ClientConfig } from "./client-config.js";
-import { z } from "zod";
+} from './models.js'
+import { getConfig, type ClientConfig } from './client-config.js'
+import { z } from 'zod'
 import {
   AgentSessionIndexSchema,
   AgentSessionShowSchema,
@@ -45,969 +45,718 @@ import {
   UserInviteParamSchema,
   UserSchema,
   VideoArticleSchema,
-} from "./schemas.js";
+} from './schemas.js'
 
 export class ApiError extends Error {
   constructor(
     public readonly status: number,
-    public readonly body: unknown,
+    public readonly body: unknown
   ) {
-    super(`API error ${status}`);
-    this.name = "ApiError";
+    super(`API error ${status}`)
+    this.name = 'ApiError'
   }
 }
 
-type _FetchResponse = Awaited<ReturnType<typeof fetch>>;
+type _FetchResponse = Awaited<ReturnType<typeof fetch>>
 
 async function _request(
   method: string,
   path: string,
   opts: {
-    searchParams?: URLSearchParams;
-    body?: unknown;
+    searchParams?: URLSearchParams
+    body?: unknown
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<_FetchResponse> {
-  const { baseUrl, token, headers, onError } = { ...getConfig(), ...config };
-  const base = baseUrl ? baseUrl.replace(/\/$/, "") : "";
-  const qs = opts.searchParams?.toString() ?? "";
-  const url = qs ? `${base}${path}?${qs}` : `${base}${path}`;
-  const resolvedToken = typeof token === "function" ? await token() : token;
+  const { baseUrl, token, headers, onError } = { ...getConfig(), ...config }
+  const base = baseUrl ? baseUrl.replace(/\/$/, '') : ''
+  const qs = opts.searchParams?.toString() ?? ''
+  const url = qs ? `${base}${path}?${qs}` : `${base}${path}`
+  const resolvedToken = typeof token === 'function' ? await token() : token
   const res = await fetch(url, {
     method,
     headers: {
-      ...(opts.body !== undefined
-        ? { "Content-Type": "application/json" }
-        : {}),
+      ...(opts.body !== undefined ? { 'Content-Type': 'application/json' } : {}),
       ...headers,
       ...(resolvedToken ? { Authorization: `Bearer ${resolvedToken}` } : {}),
     },
     ...(opts.body !== undefined ? { body: JSON.stringify(opts.body) } : {}),
-  });
+  })
   if (!res.ok) {
-    const err = new ApiError(res.status, await res.json().catch(() => null));
-    onError?.(err);
-    throw err;
+    const err = new ApiError(res.status, await res.json().catch(() => null))
+    onError?.(err)
+    throw err
   }
-  return res;
+  return res
 }
 
 export async function getAgentSessions(
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<AgentSessionIndex[]> {
-  const res = await _request("GET", "/api/agent_sessions", {}, config);
-  return z.array(AgentSessionIndexSchema).parse(await res.json());
+  const res = await _request('GET', '/api/agent_sessions', {}, config)
+  return z.array(AgentSessionIndexSchema).parse(await res.json())
 }
 
 export async function createAgentSession(
   body: Record<string, unknown>,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<AgentSessionIndex> {
-  const res = await _request("POST", "/api/agent_sessions", { body }, config);
-  return AgentSessionIndexSchema.parse(await res.json());
+  const res = await _request('POST', '/api/agent_sessions', { body }, config)
+  return AgentSessionIndexSchema.parse(await res.json())
 }
 
 export async function getAgentSessionById(
   id: string,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<AgentSessionShow> {
-  const res = await _request(
-    "GET",
-    `/api/agent_sessions/${encodeURIComponent(id)}`,
-    {},
-    config,
-  );
-  return AgentSessionShowSchema.parse(await res.json());
+  const res = await _request('GET', `/api/agent_sessions/${encodeURIComponent(id)}`, {}, config)
+  return AgentSessionShowSchema.parse(await res.json())
 }
 
 export async function getArticles(
   params?: {
-    page?: number;
-    perPage?: number;
-    tag?: string;
-    tags?: string;
-    tagsExclude?: string;
-    username?: string;
-    state?: "fresh" | "rising" | "all";
-    top?: number;
-    collectionId?: number;
+    page?: number
+    perPage?: number
+    tag?: string
+    tags?: string
+    tagsExclude?: string
+    username?: string
+    state?: 'fresh' | 'rising' | 'all'
+    top?: number
+    collectionId?: number
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<ArticleIndex[]> {
-  const searchParams = new URLSearchParams();
-  if (params?.page != null) searchParams.set("page", String(params.page));
-  if (params?.perPage != null)
-    searchParams.set("per_page", String(params.perPage));
-  if (params?.tag != null) searchParams.set("tag", String(params.tag));
-  if (params?.tags != null) searchParams.set("tags", String(params.tags));
-  if (params?.tagsExclude != null)
-    searchParams.set("tags_exclude", String(params.tagsExclude));
-  if (params?.username != null)
-    searchParams.set("username", String(params.username));
-  if (params?.state != null) searchParams.set("state", String(params.state));
-  if (params?.top != null) searchParams.set("top", String(params.top));
-  if (params?.collectionId != null)
-    searchParams.set("collection_id", String(params.collectionId));
-  const res = await _request("GET", "/api/articles", { searchParams }, config);
-  return z.array(ArticleIndexSchema).parse(await res.json());
+  const searchParams = new URLSearchParams()
+  if (params?.page != null) searchParams.set('page', String(params.page))
+  if (params?.perPage != null) searchParams.set('per_page', String(params.perPage))
+  if (params?.tag != null) searchParams.set('tag', String(params.tag))
+  if (params?.tags != null) searchParams.set('tags', String(params.tags))
+  if (params?.tagsExclude != null) searchParams.set('tags_exclude', String(params.tagsExclude))
+  if (params?.username != null) searchParams.set('username', String(params.username))
+  if (params?.state != null) searchParams.set('state', String(params.state))
+  if (params?.top != null) searchParams.set('top', String(params.top))
+  if (params?.collectionId != null) searchParams.set('collection_id', String(params.collectionId))
+  const res = await _request('GET', '/api/articles', { searchParams }, config)
+  return z.array(ArticleIndexSchema).parse(await res.json())
 }
 
-export async function createArticle(
-  body: Article,
-  config?: Partial<ClientConfig>,
-): Promise<void> {
-  ArticleSchema.parse(body);
-  await _request("POST", "/api/articles", { body }, config);
+export async function createArticle(body: Article, config?: Partial<ClientConfig>): Promise<void> {
+  ArticleSchema.parse(body)
+  await _request('POST', '/api/articles', { body }, config)
 }
 
 export async function getLatestArticles(
   params?: {
-    page?: number;
-    perPage?: number;
+    page?: number
+    perPage?: number
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<ArticleIndex[]> {
-  const searchParams = new URLSearchParams();
-  if (params?.page != null) searchParams.set("page", String(params.page));
-  if (params?.perPage != null)
-    searchParams.set("per_page", String(params.perPage));
-  const res = await _request(
-    "GET",
-    "/api/articles/latest",
-    { searchParams },
-    config,
-  );
-  return z.array(ArticleIndexSchema).parse(await res.json());
+  const searchParams = new URLSearchParams()
+  if (params?.page != null) searchParams.set('page', String(params.page))
+  if (params?.perPage != null) searchParams.set('per_page', String(params.perPage))
+  const res = await _request('GET', '/api/articles/latest', { searchParams }, config)
+  return z.array(ArticleIndexSchema).parse(await res.json())
 }
 
 export async function getArticleById(
   id: string,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<Record<string, unknown>> {
-  const res = await _request(
-    "GET",
-    `/api/articles/${encodeURIComponent(id)}`,
-    {},
-    config,
-  );
-  return res.json();
+  const res = await _request('GET', `/api/articles/${encodeURIComponent(id)}`, {}, config)
+  return res.json()
 }
 
 export async function updateArticle(
   id: string,
   body: Article,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<void> {
-  ArticleSchema.parse(body);
-  await _request(
-    "PUT",
-    `/api/articles/${encodeURIComponent(id)}`,
-    { body },
-    config,
-  );
+  ArticleSchema.parse(body)
+  await _request('PUT', `/api/articles/${encodeURIComponent(id)}`, { body }, config)
 }
 
 export async function getArticleByPath(
   username: string,
   slug: string,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<Record<string, unknown>> {
   const res = await _request(
-    "GET",
+    'GET',
     `/api/articles/${encodeURIComponent(username)}/${encodeURIComponent(slug)}`,
     {},
-    config,
-  );
-  return res.json();
+    config
+  )
+  return res.json()
 }
 
 export async function getUserArticles(
   params?: {
-    page?: number;
-    perPage?: number;
+    page?: number
+    perPage?: number
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<ArticleIndex[]> {
-  const searchParams = new URLSearchParams();
-  if (params?.page != null) searchParams.set("page", String(params.page));
-  if (params?.perPage != null)
-    searchParams.set("per_page", String(params.perPage));
-  const res = await _request(
-    "GET",
-    "/api/articles/me",
-    { searchParams },
-    config,
-  );
-  return z.array(ArticleIndexSchema).parse(await res.json());
+  const searchParams = new URLSearchParams()
+  if (params?.page != null) searchParams.set('page', String(params.page))
+  if (params?.perPage != null) searchParams.set('per_page', String(params.perPage))
+  const res = await _request('GET', '/api/articles/me', { searchParams }, config)
+  return z.array(ArticleIndexSchema).parse(await res.json())
 }
 
 export async function getUserPublishedArticles(
   params?: {
-    page?: number;
-    perPage?: number;
+    page?: number
+    perPage?: number
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<ArticleIndex[]> {
-  const searchParams = new URLSearchParams();
-  if (params?.page != null) searchParams.set("page", String(params.page));
-  if (params?.perPage != null)
-    searchParams.set("per_page", String(params.perPage));
-  const res = await _request(
-    "GET",
-    "/api/articles/me/published",
-    { searchParams },
-    config,
-  );
-  return z.array(ArticleIndexSchema).parse(await res.json());
+  const searchParams = new URLSearchParams()
+  if (params?.page != null) searchParams.set('page', String(params.page))
+  if (params?.perPage != null) searchParams.set('per_page', String(params.perPage))
+  const res = await _request('GET', '/api/articles/me/published', { searchParams }, config)
+  return z.array(ArticleIndexSchema).parse(await res.json())
 }
 
 export async function getUserUnpublishedArticles(
   params?: {
-    page?: number;
-    perPage?: number;
+    page?: number
+    perPage?: number
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<ArticleIndex[]> {
-  const searchParams = new URLSearchParams();
-  if (params?.page != null) searchParams.set("page", String(params.page));
-  if (params?.perPage != null)
-    searchParams.set("per_page", String(params.perPage));
-  const res = await _request(
-    "GET",
-    "/api/articles/me/unpublished",
-    { searchParams },
-    config,
-  );
-  return z.array(ArticleIndexSchema).parse(await res.json());
+  const searchParams = new URLSearchParams()
+  if (params?.page != null) searchParams.set('page', String(params.page))
+  if (params?.perPage != null) searchParams.set('per_page', String(params.perPage))
+  const res = await _request('GET', '/api/articles/me/unpublished', { searchParams }, config)
+  return z.array(ArticleIndexSchema).parse(await res.json())
 }
 
 export async function getUserAllArticles(
   params?: {
-    page?: number;
-    perPage?: number;
+    page?: number
+    perPage?: number
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<ArticleIndex[]> {
-  const searchParams = new URLSearchParams();
-  if (params?.page != null) searchParams.set("page", String(params.page));
-  if (params?.perPage != null)
-    searchParams.set("per_page", String(params.perPage));
-  const res = await _request(
-    "GET",
-    "/api/articles/me/all",
-    { searchParams },
-    config,
-  );
-  return z.array(ArticleIndexSchema).parse(await res.json());
+  const searchParams = new URLSearchParams()
+  if (params?.page != null) searchParams.set('page', String(params.page))
+  if (params?.perPage != null) searchParams.set('per_page', String(params.perPage))
+  const res = await _request('GET', '/api/articles/me/all', { searchParams }, config)
+  return z.array(ArticleIndexSchema).parse(await res.json())
 }
 
 export async function unpublishArticle(
   id: string,
   params?: {
-    note?: string;
+    note?: string
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<void> {
-  const searchParams = new URLSearchParams();
-  if (params?.note != null) searchParams.set("note", String(params.note));
+  const searchParams = new URLSearchParams()
+  if (params?.note != null) searchParams.set('note', String(params.note))
   await _request(
-    "PUT",
+    'PUT',
     `/api/articles/${encodeURIComponent(id)}/unpublish`,
     { searchParams },
-    config,
-  );
+    config
+  )
 }
 
 export async function getSegments(
   params?: {
-    perPage?: number;
+    perPage?: number
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<Segment[]> {
-  const searchParams = new URLSearchParams();
-  if (params?.perPage != null)
-    searchParams.set("per_page", String(params.perPage));
-  const res = await _request("GET", "/api/segments", { searchParams }, config);
-  return z.array(SegmentSchema).parse(await res.json());
+  const searchParams = new URLSearchParams()
+  if (params?.perPage != null) searchParams.set('per_page', String(params.perPage))
+  const res = await _request('GET', '/api/segments', { searchParams }, config)
+  return z.array(SegmentSchema).parse(await res.json())
 }
 
-export async function createSegment(
-  config?: Partial<ClientConfig>,
-): Promise<void> {
-  await _request("POST", "/api/segments", {}, config);
+export async function createSegment(config?: Partial<ClientConfig>): Promise<void> {
+  await _request('POST', '/api/segments', {}, config)
 }
 
 export async function getSegment(
   id: string,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<Record<string, unknown>> {
-  const res = await _request(
-    "GET",
-    `/api/segments/${encodeURIComponent(id)}`,
-    {},
-    config,
-  );
-  return res.json();
+  const res = await _request('GET', `/api/segments/${encodeURIComponent(id)}`, {}, config)
+  return res.json()
 }
 
-export async function deleteSegment(
-  id: string,
-  config?: Partial<ClientConfig>,
-): Promise<void> {
-  await _request(
-    "DELETE",
-    `/api/segments/${encodeURIComponent(id)}`,
-    {},
-    config,
-  );
+export async function deleteSegment(id: string, config?: Partial<ClientConfig>): Promise<void> {
+  await _request('DELETE', `/api/segments/${encodeURIComponent(id)}`, {}, config)
 }
 
 export async function getUsersInSegment(
   id: string,
   params?: {
-    perPage?: number;
+    perPage?: number
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<User[]> {
-  const searchParams = new URLSearchParams();
-  if (params?.perPage != null)
-    searchParams.set("per_page", String(params.perPage));
+  const searchParams = new URLSearchParams()
+  if (params?.perPage != null) searchParams.set('per_page', String(params.perPage))
   const res = await _request(
-    "GET",
+    'GET',
     `/api/segments/${encodeURIComponent(id)}/users`,
     { searchParams },
-    config,
-  );
-  return z.array(UserSchema).parse(await res.json());
+    config
+  )
+  return z.array(UserSchema).parse(await res.json())
 }
 
 export async function addUsersToSegment(
   id: string,
   body: SegmentUserIds,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<void> {
-  SegmentUserIdsSchema.parse(body);
-  await _request(
-    "PUT",
-    `/api/segments/${encodeURIComponent(id)}/add_users`,
-    { body },
-    config,
-  );
+  SegmentUserIdsSchema.parse(body)
+  await _request('PUT', `/api/segments/${encodeURIComponent(id)}/add_users`, { body }, config)
 }
 
 export async function removeUsersFromSegment(
   id: string,
   body: SegmentUserIds,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<void> {
-  SegmentUserIdsSchema.parse(body);
-  await _request(
-    "PUT",
-    `/api/segments/${encodeURIComponent(id)}/remove_users`,
-    { body },
-    config,
-  );
+  SegmentUserIdsSchema.parse(body)
+  await _request('PUT', `/api/segments/${encodeURIComponent(id)}/remove_users`, { body }, config)
 }
 
-export async function getApiBillboards(
-  config?: Partial<ClientConfig>,
-): Promise<Billboard[]> {
-  const res = await _request("GET", "/api/billboards", {}, config);
-  return z.array(BillboardSchema).parse(await res.json());
+export async function getApiBillboards(config?: Partial<ClientConfig>): Promise<Billboard[]> {
+  const res = await _request('GET', '/api/billboards', {}, config)
+  return z.array(BillboardSchema).parse(await res.json())
 }
 
 export async function createApiBillboards(
   body: Record<string, unknown>,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<Record<string, unknown>> {
-  const res = await _request("POST", "/api/billboards", { body }, config);
-  return res.json();
+  const res = await _request('POST', '/api/billboards', { body }, config)
+  return res.json()
 }
 
 export async function getApiBillboardsById(
   id: string,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<void> {
-  await _request(
-    "GET",
-    `/api/billboards/${encodeURIComponent(id)}`,
-    {},
-    config,
-  );
+  await _request('GET', `/api/billboards/${encodeURIComponent(id)}`, {}, config)
 }
 
 export async function updateApiBillboardsById(
   id: string,
   body: Record<string, unknown>,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<Record<string, unknown>> {
-  const res = await _request(
-    "PUT",
-    `/api/billboards/${encodeURIComponent(id)}`,
-    { body },
-    config,
-  );
-  return res.json();
+  const res = await _request('PUT', `/api/billboards/${encodeURIComponent(id)}`, { body }, config)
+  return res.json()
 }
 
 export async function updateApiBillboardsByIdUnpublish(
   id: string,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<void> {
-  await _request(
-    "PUT",
-    `/api/billboards/${encodeURIComponent(id)}/unpublish`,
-    {},
-    config,
-  );
+  await _request('PUT', `/api/billboards/${encodeURIComponent(id)}/unpublish`, {}, config)
 }
 
 export async function getCommentsByArticleId(
   params?: {
-    page?: string;
-    perPage?: number;
-    aId?: string;
-    pId?: string;
+    page?: string
+    perPage?: number
+    aId?: string
+    pId?: string
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<Comment[]> {
-  const searchParams = new URLSearchParams();
-  if (params?.page != null) searchParams.set("page", String(params.page));
-  if (params?.perPage != null)
-    searchParams.set("per_page", String(params.perPage));
-  if (params?.aId != null) searchParams.set("a_id", String(params.aId));
-  if (params?.pId != null) searchParams.set("p_id", String(params.pId));
-  const res = await _request("GET", "/api/comments", { searchParams }, config);
-  return z.array(CommentSchema).parse(await res.json());
+  const searchParams = new URLSearchParams()
+  if (params?.page != null) searchParams.set('page', String(params.page))
+  if (params?.perPage != null) searchParams.set('per_page', String(params.perPage))
+  if (params?.aId != null) searchParams.set('a_id', String(params.aId))
+  if (params?.pId != null) searchParams.set('p_id', String(params.pId))
+  const res = await _request('GET', '/api/comments', { searchParams }, config)
+  return z.array(CommentSchema).parse(await res.json())
 }
 
-export async function getCommentById(
-  id: string,
-  config?: Partial<ClientConfig>,
-): Promise<void> {
-  await _request("GET", `/api/comments/${encodeURIComponent(id)}`, {}, config);
+export async function getCommentById(id: string, config?: Partial<ClientConfig>): Promise<void> {
+  await _request('GET', `/api/comments/${encodeURIComponent(id)}`, {}, config)
 }
 
-export async function getFollowedTags(
-  config?: Partial<ClientConfig>,
-): Promise<FollowedTag[]> {
-  const res = await _request("GET", "/api/follows/tags", {}, config);
-  return z.array(FollowedTagSchema).parse(await res.json());
+export async function getFollowedTags(config?: Partial<ClientConfig>): Promise<FollowedTag[]> {
+  const res = await _request('GET', '/api/follows/tags', {}, config)
+  return z.array(FollowedTagSchema).parse(await res.json())
 }
 
 export async function getFollowers(
   params?: {
-    page?: number;
-    perPage?: number;
-    sort?: string;
+    page?: number
+    perPage?: number
+    sort?: string
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<unknown[]> {
-  const searchParams = new URLSearchParams();
-  if (params?.page != null) searchParams.set("page", String(params.page));
-  if (params?.perPage != null)
-    searchParams.set("per_page", String(params.perPage));
-  if (params?.sort != null) searchParams.set("sort", String(params.sort));
-  const res = await _request(
-    "GET",
-    "/api/followers/users",
-    { searchParams },
-    config,
-  );
-  return res.json();
+  const searchParams = new URLSearchParams()
+  if (params?.page != null) searchParams.set('page', String(params.page))
+  if (params?.perPage != null) searchParams.set('per_page', String(params.perPage))
+  if (params?.sort != null) searchParams.set('sort', String(params.sort))
+  const res = await _request('GET', '/api/followers/users', { searchParams }, config)
+  return res.json()
 }
 
 export async function getOrganization(
   username: string,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<Record<string, unknown>> {
   const res = await _request(
-    "GET",
+    'GET',
     `/api/organizations/${encodeURIComponent(username)}`,
     {},
-    config,
-  );
-  return res.json();
+    config
+  )
+  return res.json()
 }
 
 export async function getOrgUsers(
   organizationIdOrUsername: string,
   params?: {
-    page?: number;
-    perPage?: number;
+    page?: number
+    perPage?: number
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<User[]> {
-  const searchParams = new URLSearchParams();
-  if (params?.page != null) searchParams.set("page", String(params.page));
-  if (params?.perPage != null)
-    searchParams.set("per_page", String(params.perPage));
+  const searchParams = new URLSearchParams()
+  if (params?.page != null) searchParams.set('page', String(params.page))
+  if (params?.perPage != null) searchParams.set('per_page', String(params.perPage))
   const res = await _request(
-    "GET",
+    'GET',
     `/api/organizations/${encodeURIComponent(organizationIdOrUsername)}/users`,
     { searchParams },
-    config,
-  );
-  return z.array(UserSchema).parse(await res.json());
+    config
+  )
+  return z.array(UserSchema).parse(await res.json())
 }
 
 export async function getOrgArticles(
   organizationIdOrUsername: string,
   params?: {
-    page?: number;
-    perPage?: number;
+    page?: number
+    perPage?: number
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<ArticleIndex[]> {
-  const searchParams = new URLSearchParams();
-  if (params?.page != null) searchParams.set("page", String(params.page));
-  if (params?.perPage != null)
-    searchParams.set("per_page", String(params.perPage));
+  const searchParams = new URLSearchParams()
+  if (params?.page != null) searchParams.set('page', String(params.page))
+  if (params?.perPage != null) searchParams.set('per_page', String(params.perPage))
   const res = await _request(
-    "GET",
+    'GET',
     `/api/organizations/${encodeURIComponent(organizationIdOrUsername)}/articles`,
     { searchParams },
-    config,
-  );
-  return z.array(ArticleIndexSchema).parse(await res.json());
+    config
+  )
+  return z.array(ArticleIndexSchema).parse(await res.json())
 }
 
 export async function getOrganizations(
   params?: {
-    page?: number;
-    perPage?: number;
+    page?: number
+    perPage?: number
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<Organization[]> {
-  const searchParams = new URLSearchParams();
-  if (params?.page != null) searchParams.set("page", String(params.page));
-  if (params?.perPage != null)
-    searchParams.set("per_page", String(params.perPage));
-  const res = await _request(
-    "GET",
-    "/api/organizations",
-    { searchParams },
-    config,
-  );
-  return z.array(OrganizationSchema).parse(await res.json());
+  const searchParams = new URLSearchParams()
+  if (params?.page != null) searchParams.set('page', String(params.page))
+  if (params?.perPage != null) searchParams.set('per_page', String(params.perPage))
+  const res = await _request('GET', '/api/organizations', { searchParams }, config)
+  return z.array(OrganizationSchema).parse(await res.json())
 }
 
 export async function createOrganization(
   body: Organization,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<void> {
-  OrganizationSchema.parse(body);
-  await _request("POST", "/api/organizations", { body }, config);
+  OrganizationSchema.parse(body)
+  await _request('POST', '/api/organizations', { body }, config)
 }
 
 export async function getOrganizationById(
   id: string,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<Record<string, unknown>> {
-  const res = await _request(
-    "GET",
-    `/api/organizations/${encodeURIComponent(id)}`,
-    {},
-    config,
-  );
-  return res.json();
+  const res = await _request('GET', `/api/organizations/${encodeURIComponent(id)}`, {}, config)
+  return res.json()
 }
 
 export async function updateApiOrganizationsById(
   id: string,
   body: Organization,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<void> {
-  OrganizationSchema.parse(body);
-  await _request(
-    "PUT",
-    `/api/organizations/${encodeURIComponent(id)}`,
-    { body },
-    config,
-  );
+  OrganizationSchema.parse(body)
+  await _request('PUT', `/api/organizations/${encodeURIComponent(id)}`, { body }, config)
 }
 
 export async function deleteApiOrganizationsById(
   id: string,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<void> {
-  await _request(
-    "DELETE",
-    `/api/organizations/${encodeURIComponent(id)}`,
-    {},
-    config,
-  );
+  await _request('DELETE', `/api/organizations/${encodeURIComponent(id)}`, {}, config)
 }
 
-export async function getApiPages(
-  config?: Partial<ClientConfig>,
-): Promise<Page[]> {
-  const res = await _request("GET", "/api/pages", {}, config);
-  return z.array(PageSchema).parse(await res.json());
+export async function getApiPages(config?: Partial<ClientConfig>): Promise<Page[]> {
+  const res = await _request('GET', '/api/pages', {}, config)
+  return z.array(PageSchema).parse(await res.json())
 }
 
 export async function createApiPages(
   body: Record<string, unknown>,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<void> {
-  await _request("POST", "/api/pages", { body }, config);
+  await _request('POST', '/api/pages', { body }, config)
 }
 
-export async function getApiPagesById(
-  id: string,
-  config?: Partial<ClientConfig>,
-): Promise<Page> {
-  const res = await _request(
-    "GET",
-    `/api/pages/${encodeURIComponent(id)}`,
-    {},
-    config,
-  );
-  return PageSchema.parse(await res.json());
+export async function getApiPagesById(id: string, config?: Partial<ClientConfig>): Promise<Page> {
+  const res = await _request('GET', `/api/pages/${encodeURIComponent(id)}`, {}, config)
+  return PageSchema.parse(await res.json())
 }
 
 export async function updateApiPagesById(
   id: string,
   body: Page,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<Page> {
-  PageSchema.parse(body);
-  const res = await _request(
-    "PUT",
-    `/api/pages/${encodeURIComponent(id)}`,
-    { body },
-    config,
-  );
-  return PageSchema.parse(await res.json());
+  PageSchema.parse(body)
+  const res = await _request('PUT', `/api/pages/${encodeURIComponent(id)}`, { body }, config)
+  return PageSchema.parse(await res.json())
 }
 
 export async function deleteApiPagesById(
   id: string,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<Page> {
-  const res = await _request(
-    "DELETE",
-    `/api/pages/${encodeURIComponent(id)}`,
-    {},
-    config,
-  );
-  return PageSchema.parse(await res.json());
+  const res = await _request('DELETE', `/api/pages/${encodeURIComponent(id)}`, {}, config)
+  return PageSchema.parse(await res.json())
 }
 
 export async function getPodcastEpisodes(
   params?: {
-    page?: number;
-    perPage?: number;
-    username?: string;
+    page?: number
+    perPage?: number
+    username?: string
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<PodcastEpisodeIndex[]> {
-  const searchParams = new URLSearchParams();
-  if (params?.page != null) searchParams.set("page", String(params.page));
-  if (params?.perPage != null)
-    searchParams.set("per_page", String(params.perPage));
-  if (params?.username != null)
-    searchParams.set("username", String(params.username));
-  const res = await _request(
-    "GET",
-    "/api/podcast_episodes",
-    { searchParams },
-    config,
-  );
-  return z.array(PodcastEpisodeIndexSchema).parse(await res.json());
+  const searchParams = new URLSearchParams()
+  if (params?.page != null) searchParams.set('page', String(params.page))
+  if (params?.perPage != null) searchParams.set('per_page', String(params.perPage))
+  if (params?.username != null) searchParams.set('username', String(params.username))
+  const res = await _request('GET', '/api/podcast_episodes', { searchParams }, config)
+  return z.array(PodcastEpisodeIndexSchema).parse(await res.json())
 }
 
 export async function getProfileImage(
   username: string,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<Record<string, unknown>> {
   const res = await _request(
-    "GET",
+    'GET',
     `/api/profile_images/${encodeURIComponent(username)}`,
     {},
-    config,
-  );
-  return res.json();
+    config
+  )
+  return res.json()
 }
 
 export async function createApiReactionsToggle(
   params: {
-    category: "like" | "unicorn" | "exploding_head" | "raised_hands" | "fire";
-    reactableId: number;
-    reactableType: "Comment" | "Article" | "User";
+    category: 'like' | 'unicorn' | 'exploding_head' | 'raised_hands' | 'fire'
+    reactableId: number
+    reactableType: 'Comment' | 'Article' | 'User'
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<void> {
-  const searchParams = new URLSearchParams();
-  if (params?.category != null)
-    searchParams.set("category", String(params.category));
-  if (params?.reactableId != null)
-    searchParams.set("reactable_id", String(params.reactableId));
+  const searchParams = new URLSearchParams()
+  if (params?.category != null) searchParams.set('category', String(params.category))
+  if (params?.reactableId != null) searchParams.set('reactable_id', String(params.reactableId))
   if (params?.reactableType != null)
-    searchParams.set("reactable_type", String(params.reactableType));
-  await _request("POST", "/api/reactions/toggle", { searchParams }, config);
+    searchParams.set('reactable_type', String(params.reactableType))
+  await _request('POST', '/api/reactions/toggle', { searchParams }, config)
 }
 
 export async function createApiReactions(
   params: {
-    category: "like" | "unicorn" | "exploding_head" | "raised_hands" | "fire";
-    reactableId: number;
-    reactableType: "Comment" | "Article" | "User";
+    category: 'like' | 'unicorn' | 'exploding_head' | 'raised_hands' | 'fire'
+    reactableId: number
+    reactableType: 'Comment' | 'Article' | 'User'
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<void> {
-  const searchParams = new URLSearchParams();
-  if (params?.category != null)
-    searchParams.set("category", String(params.category));
-  if (params?.reactableId != null)
-    searchParams.set("reactable_id", String(params.reactableId));
+  const searchParams = new URLSearchParams()
+  if (params?.category != null) searchParams.set('category', String(params.category))
+  if (params?.reactableId != null) searchParams.set('reactable_id', String(params.reactableId))
   if (params?.reactableType != null)
-    searchParams.set("reactable_type", String(params.reactableType));
-  await _request("POST", "/api/reactions", { searchParams }, config);
+    searchParams.set('reactable_type', String(params.reactableType))
+  await _request('POST', '/api/reactions', { searchParams }, config)
 }
 
 export async function getReadinglist(
   params?: {
-    page?: number;
-    perPage?: number;
+    page?: number
+    perPage?: number
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<ArticleIndex[]> {
-  const searchParams = new URLSearchParams();
-  if (params?.page != null) searchParams.set("page", String(params.page));
-  if (params?.perPage != null)
-    searchParams.set("per_page", String(params.perPage));
-  const res = await _request(
-    "GET",
-    "/api/readinglist",
-    { searchParams },
-    config,
-  );
-  return z.array(ArticleIndexSchema).parse(await res.json());
+  const searchParams = new URLSearchParams()
+  if (params?.page != null) searchParams.set('page', String(params.page))
+  if (params?.perPage != null) searchParams.set('per_page', String(params.perPage))
+  const res = await _request('GET', '/api/readinglist', { searchParams }, config)
+  return z.array(ArticleIndexSchema).parse(await res.json())
 }
 
 export async function getSurveys(
   params?: {
-    page?: number;
-    perPage?: number;
-    active?: boolean;
+    page?: number
+    perPage?: number
+    active?: boolean
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<Survey[]> {
-  const searchParams = new URLSearchParams();
-  if (params?.page != null) searchParams.set("page", String(params.page));
-  if (params?.perPage != null)
-    searchParams.set("per_page", String(params.perPage));
-  if (params?.active != null) searchParams.set("active", String(params.active));
-  const res = await _request("GET", "/api/surveys", { searchParams }, config);
-  return z.array(SurveySchema).parse(await res.json());
+  const searchParams = new URLSearchParams()
+  if (params?.page != null) searchParams.set('page', String(params.page))
+  if (params?.perPage != null) searchParams.set('per_page', String(params.perPage))
+  if (params?.active != null) searchParams.set('active', String(params.active))
+  const res = await _request('GET', '/api/surveys', { searchParams }, config)
+  return z.array(SurveySchema).parse(await res.json())
 }
 
 export async function getSurveyByIdOrSlug(
   idOrSlug: string,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<SurveyWithPolls> {
-  const res = await _request(
-    "GET",
-    `/api/surveys/${encodeURIComponent(idOrSlug)}`,
-    {},
-    config,
-  );
-  return SurveyWithPollsSchema.parse(await res.json());
+  const res = await _request('GET', `/api/surveys/${encodeURIComponent(idOrSlug)}`, {}, config)
+  return SurveyWithPollsSchema.parse(await res.json())
 }
 
 export async function getSurveyPollVotes(
   idOrSlug: string,
   params?: {
-    perPage?: number;
-    after?: number;
+    perPage?: number
+    after?: number
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<PollVote[]> {
-  const searchParams = new URLSearchParams();
-  if (params?.perPage != null)
-    searchParams.set("per_page", String(params.perPage));
-  if (params?.after != null) searchParams.set("after", String(params.after));
+  const searchParams = new URLSearchParams()
+  if (params?.perPage != null) searchParams.set('per_page', String(params.perPage))
+  if (params?.after != null) searchParams.set('after', String(params.after))
   const res = await _request(
-    "GET",
+    'GET',
     `/api/surveys/${encodeURIComponent(idOrSlug)}/poll_votes`,
     { searchParams },
-    config,
-  );
-  return z.array(PollVoteSchema).parse(await res.json());
+    config
+  )
+  return z.array(PollVoteSchema).parse(await res.json())
 }
 
 export async function getSurveyPollTextResponses(
   idOrSlug: string,
   params?: {
-    perPage?: number;
-    after?: number;
+    perPage?: number
+    after?: number
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<PollTextResponse[]> {
-  const searchParams = new URLSearchParams();
-  if (params?.perPage != null)
-    searchParams.set("per_page", String(params.perPage));
-  if (params?.after != null) searchParams.set("after", String(params.after));
+  const searchParams = new URLSearchParams()
+  if (params?.perPage != null) searchParams.set('per_page', String(params.perPage))
+  if (params?.after != null) searchParams.set('after', String(params.after))
   const res = await _request(
-    "GET",
+    'GET',
     `/api/surveys/${encodeURIComponent(idOrSlug)}/poll_text_responses`,
     { searchParams },
-    config,
-  );
-  return z.array(PollTextResponseSchema).parse(await res.json());
+    config
+  )
+  return z.array(PollTextResponseSchema).parse(await res.json())
 }
 
 export async function getTags(
   params?: {
-    page?: number;
-    perPage?: number;
+    page?: number
+    perPage?: number
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<Tag[]> {
-  const searchParams = new URLSearchParams();
-  if (params?.page != null) searchParams.set("page", String(params.page));
-  if (params?.perPage != null)
-    searchParams.set("per_page", String(params.perPage));
-  const res = await _request("GET", "/api/tags", { searchParams }, config);
-  return z.array(TagSchema).parse(await res.json());
+  const searchParams = new URLSearchParams()
+  if (params?.page != null) searchParams.set('page', String(params.page))
+  if (params?.perPage != null) searchParams.set('per_page', String(params.perPage))
+  const res = await _request('GET', '/api/tags', { searchParams }, config)
+  return z.array(TagSchema).parse(await res.json())
 }
 
-export async function suspendUser(
-  id: string,
-  config?: Partial<ClientConfig>,
-): Promise<void> {
-  await _request(
-    "PUT",
-    `/api/users/${encodeURIComponent(id)}/suspend`,
-    {},
-    config,
-  );
+export async function suspendUser(id: string, config?: Partial<ClientConfig>): Promise<void> {
+  await _request('PUT', `/api/users/${encodeURIComponent(id)}/suspend`, {}, config)
 }
 
-export async function limitUser(
-  id: string,
-  config?: Partial<ClientConfig>,
-): Promise<void> {
-  await _request(
-    "PUT",
-    `/api/users/${encodeURIComponent(id)}/limited`,
-    {},
-    config,
-  );
+export async function limitUser(id: string, config?: Partial<ClientConfig>): Promise<void> {
+  await _request('PUT', `/api/users/${encodeURIComponent(id)}/limited`, {}, config)
 }
 
-export async function unLimitUser(
-  id: string,
-  config?: Partial<ClientConfig>,
-): Promise<void> {
-  await _request(
-    "DELETE",
-    `/api/users/${encodeURIComponent(id)}/limited`,
-    {},
-    config,
-  );
+export async function unLimitUser(id: string, config?: Partial<ClientConfig>): Promise<void> {
+  await _request('DELETE', `/api/users/${encodeURIComponent(id)}/limited`, {}, config)
 }
 
-export async function spamUser(
-  id: string,
-  config?: Partial<ClientConfig>,
-): Promise<void> {
-  await _request(
-    "PUT",
-    `/api/users/${encodeURIComponent(id)}/spam`,
-    {},
-    config,
-  );
+export async function spamUser(id: string, config?: Partial<ClientConfig>): Promise<void> {
+  await _request('PUT', `/api/users/${encodeURIComponent(id)}/spam`, {}, config)
 }
 
-export async function unSpamUser(
-  id: string,
-  config?: Partial<ClientConfig>,
-): Promise<void> {
-  await _request(
-    "DELETE",
-    `/api/users/${encodeURIComponent(id)}/spam`,
-    {},
-    config,
-  );
+export async function unSpamUser(id: string, config?: Partial<ClientConfig>): Promise<void> {
+  await _request('DELETE', `/api/users/${encodeURIComponent(id)}/spam`, {}, config)
 }
 
-export async function trustUser(
-  id: string,
-  config?: Partial<ClientConfig>,
-): Promise<void> {
-  await _request(
-    "PUT",
-    `/api/users/${encodeURIComponent(id)}/trusted`,
-    {},
-    config,
-  );
+export async function trustUser(id: string, config?: Partial<ClientConfig>): Promise<void> {
+  await _request('PUT', `/api/users/${encodeURIComponent(id)}/trusted`, {}, config)
 }
 
-export async function unTrustUser(
-  id: string,
-  config?: Partial<ClientConfig>,
-): Promise<void> {
-  await _request(
-    "DELETE",
-    `/api/users/${encodeURIComponent(id)}/trusted`,
-    {},
-    config,
-  );
+export async function unTrustUser(id: string, config?: Partial<ClientConfig>): Promise<void> {
+  await _request('DELETE', `/api/users/${encodeURIComponent(id)}/trusted`, {}, config)
 }
 
-export async function getUserMe(
-  config?: Partial<ClientConfig>,
-): Promise<Record<string, unknown>> {
-  const res = await _request("GET", "/api/users/me", {}, config);
-  return res.json();
+export async function getUserMe(config?: Partial<ClientConfig>): Promise<Record<string, unknown>> {
+  const res = await _request('GET', '/api/users/me', {}, config)
+  return res.json()
 }
 
 export async function getUser(
   id: string,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<Record<string, unknown>> {
-  const res = await _request(
-    "GET",
-    `/api/users/${encodeURIComponent(id)}`,
-    {},
-    config,
-  );
-  return res.json();
+  const res = await _request('GET', `/api/users/${encodeURIComponent(id)}`, {}, config)
+  return res.json()
 }
 
-export async function unpublishUser(
-  id: string,
-  config?: Partial<ClientConfig>,
-): Promise<void> {
-  await _request(
-    "PUT",
-    `/api/users/${encodeURIComponent(id)}/unpublish`,
-    {},
-    config,
-  );
+export async function unpublishUser(id: string, config?: Partial<ClientConfig>): Promise<void> {
+  await _request('PUT', `/api/users/${encodeURIComponent(id)}/unpublish`, {}, config)
 }
 
 export async function postAdminUsersCreate(
   body: UserInviteParam,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<void> {
-  UserInviteParamSchema.parse(body);
-  await _request("POST", "/api/admin/users", { body }, config);
+  UserInviteParamSchema.parse(body)
+  await _request('POST', '/api/admin/users', { body }, config)
 }
 
 export async function videos(
   params?: {
-    page?: number;
-    perPage?: number;
+    page?: number
+    perPage?: number
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<VideoArticle[]> {
-  const searchParams = new URLSearchParams();
-  if (params?.page != null) searchParams.set("page", String(params.page));
-  if (params?.perPage != null)
-    searchParams.set("per_page", String(params.perPage));
-  const res = await _request("GET", "/api/videos", { searchParams }, config);
-  return z.array(VideoArticleSchema).parse(await res.json());
+  const searchParams = new URLSearchParams()
+  if (params?.page != null) searchParams.set('page', String(params.page))
+  if (params?.perPage != null) searchParams.set('per_page', String(params.perPage))
+  const res = await _request('GET', '/api/videos', { searchParams }, config)
+  return z.array(VideoArticleSchema).parse(await res.json())
 }

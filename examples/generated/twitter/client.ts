@@ -89,8 +89,8 @@ import type {
   UsersRetweetsCreateRequest,
   UsersRetweetsCreateResponse,
   UsersRetweetsDeleteResponse,
-} from "./models.js";
-import { getConfig, type ClientConfig } from "./client-config.js";
+} from './models.js'
+import { getConfig, type ClientConfig } from './client-config.js'
 import {
   AddOrDeleteRulesRequestSchema,
   AddOrDeleteRulesResponseSchema,
@@ -180,2559 +180,2158 @@ import {
   UsersRetweetsCreateRequestSchema,
   UsersRetweetsCreateResponseSchema,
   UsersRetweetsDeleteResponseSchema,
-} from "./schemas.js";
+} from './schemas.js'
 
 export class ApiError extends Error {
   constructor(
     public readonly status: number,
-    public readonly body: unknown,
+    public readonly body: unknown
   ) {
-    super(`API error ${status}`);
-    this.name = "ApiError";
+    super(`API error ${status}`)
+    this.name = 'ApiError'
   }
 }
 
-type _FetchResponse = Awaited<ReturnType<typeof fetch>>;
+type _FetchResponse = Awaited<ReturnType<typeof fetch>>
 
 async function _request(
   method: string,
   path: string,
   opts: {
-    searchParams?: URLSearchParams;
-    body?: unknown;
+    searchParams?: URLSearchParams
+    body?: unknown
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<_FetchResponse> {
-  const { baseUrl, token, headers, onError } = { ...getConfig(), ...config };
-  const base = baseUrl ? baseUrl.replace(/\/$/, "") : "";
-  const qs = opts.searchParams?.toString() ?? "";
-  const url = qs ? `${base}${path}?${qs}` : `${base}${path}`;
-  const resolvedToken = typeof token === "function" ? await token() : token;
+  const { baseUrl, token, headers, onError } = { ...getConfig(), ...config }
+  const base = baseUrl ? baseUrl.replace(/\/$/, '') : ''
+  const qs = opts.searchParams?.toString() ?? ''
+  const url = qs ? `${base}${path}?${qs}` : `${base}${path}`
+  const resolvedToken = typeof token === 'function' ? await token() : token
   const res = await fetch(url, {
     method,
     headers: {
-      ...(opts.body !== undefined
-        ? { "Content-Type": "application/json" }
-        : {}),
+      ...(opts.body !== undefined ? { 'Content-Type': 'application/json' } : {}),
       ...headers,
       ...(resolvedToken ? { Authorization: `Bearer ${resolvedToken}` } : {}),
     },
     ...(opts.body !== undefined ? { body: JSON.stringify(opts.body) } : {}),
-  });
+  })
   if (!res.ok) {
-    const err = new ApiError(res.status, await res.json().catch(() => null));
-    onError?.(err);
-    throw err;
+    const err = new ApiError(res.status, await res.json().catch(() => null))
+    onError?.(err)
+    throw err
   }
-  return res;
+  return res
 }
 
 export async function listBatchComplianceJobs(
   params: {
-    type: "tweets" | "users";
-    status?: "created" | "in_progress" | "failed" | "complete";
-    complianceJobFields?: string[];
+    type: 'tweets' | 'users'
+    status?: 'created' | 'in_progress' | 'failed' | 'complete'
+    complianceJobFields?: string[]
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<Get2ComplianceJobsResponse> {
-  const searchParams = new URLSearchParams();
-  if (params?.type != null) searchParams.set("type", String(params.type));
-  if (params?.status != null) searchParams.set("status", String(params.status));
+  const searchParams = new URLSearchParams()
+  if (params?.type != null) searchParams.set('type', String(params.type))
+  if (params?.status != null) searchParams.set('status', String(params.status))
   if (params?.complianceJobFields != null) {
     for (const v of params.complianceJobFields)
-      searchParams.append("compliance_job.fields", String(v));
+      searchParams.append('compliance_job.fields', String(v))
   }
-  const res = await _request(
-    "GET",
-    "/2/compliance/jobs",
-    { searchParams },
-    config,
-  );
-  return Get2ComplianceJobsResponseSchema.parse(await res.json());
+  const res = await _request('GET', '/2/compliance/jobs', { searchParams }, config)
+  return Get2ComplianceJobsResponseSchema.parse(await res.json())
 }
 
 export async function createBatchComplianceJob(
   body: CreateComplianceJobRequest,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<CreateComplianceJobResponse> {
-  CreateComplianceJobRequestSchema.parse(body);
-  const res = await _request("POST", "/2/compliance/jobs", { body }, config);
-  return CreateComplianceJobResponseSchema.parse(await res.json());
+  CreateComplianceJobRequestSchema.parse(body)
+  const res = await _request('POST', '/2/compliance/jobs', { body }, config)
+  return CreateComplianceJobResponseSchema.parse(await res.json())
 }
 
 export async function getBatchComplianceJob(
   id: string,
   params?: {
-    complianceJobFields?: string[];
+    complianceJobFields?: string[]
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<Get2ComplianceJobsIdResponse> {
-  const searchParams = new URLSearchParams();
+  const searchParams = new URLSearchParams()
   if (params?.complianceJobFields != null) {
     for (const v of params.complianceJobFields)
-      searchParams.append("compliance_job.fields", String(v));
+      searchParams.append('compliance_job.fields', String(v))
   }
   const res = await _request(
-    "GET",
+    'GET',
     `/2/compliance/jobs/${encodeURIComponent(id)}`,
     { searchParams },
-    config,
-  );
-  return Get2ComplianceJobsIdResponseSchema.parse(await res.json());
+    config
+  )
+  return Get2ComplianceJobsIdResponseSchema.parse(await res.json())
 }
 
 export async function dmConversationIdCreate(
   body: CreateDmConversationRequest,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<CreateDmEventResponse> {
-  CreateDmConversationRequestSchema.parse(body);
-  const res = await _request("POST", "/2/dm_conversations", { body }, config);
-  return CreateDmEventResponseSchema.parse(await res.json());
+  CreateDmConversationRequestSchema.parse(body)
+  const res = await _request('POST', '/2/dm_conversations', { body }, config)
+  return CreateDmEventResponseSchema.parse(await res.json())
 }
 
 export async function getDmConversationsWithParticipantIdDmEvents(
   participantId: string,
   params?: {
-    maxResults?: number;
-    paginationToken?: string;
-    eventTypes?: string[];
-    dmEventFields?: string[];
-    expansions?: string[];
-    mediaFields?: string[];
-    userFields?: string[];
-    tweetFields?: string[];
+    maxResults?: number
+    paginationToken?: string
+    eventTypes?: string[]
+    dmEventFields?: string[]
+    expansions?: string[]
+    mediaFields?: string[]
+    userFields?: string[]
+    tweetFields?: string[]
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<Get2DmConversationsWithParticipantIdDmEventsResponse> {
-  const searchParams = new URLSearchParams();
-  if (params?.maxResults != null)
-    searchParams.set("max_results", String(params.maxResults));
+  const searchParams = new URLSearchParams()
+  if (params?.maxResults != null) searchParams.set('max_results', String(params.maxResults))
   if (params?.paginationToken != null)
-    searchParams.set("pagination_token", String(params.paginationToken));
+    searchParams.set('pagination_token', String(params.paginationToken))
   if (params?.eventTypes != null) {
-    for (const v of params.eventTypes)
-      searchParams.append("event_types", String(v));
+    for (const v of params.eventTypes) searchParams.append('event_types', String(v))
   }
   if (params?.dmEventFields != null) {
-    for (const v of params.dmEventFields)
-      searchParams.append("dm_event.fields", String(v));
+    for (const v of params.dmEventFields) searchParams.append('dm_event.fields', String(v))
   }
   if (params?.expansions != null) {
-    for (const v of params.expansions)
-      searchParams.append("expansions", String(v));
+    for (const v of params.expansions) searchParams.append('expansions', String(v))
   }
   if (params?.mediaFields != null) {
-    for (const v of params.mediaFields)
-      searchParams.append("media.fields", String(v));
+    for (const v of params.mediaFields) searchParams.append('media.fields', String(v))
   }
   if (params?.userFields != null) {
-    for (const v of params.userFields)
-      searchParams.append("user.fields", String(v));
+    for (const v of params.userFields) searchParams.append('user.fields', String(v))
   }
   if (params?.tweetFields != null) {
-    for (const v of params.tweetFields)
-      searchParams.append("tweet.fields", String(v));
+    for (const v of params.tweetFields) searchParams.append('tweet.fields', String(v))
   }
   const res = await _request(
-    "GET",
+    'GET',
     `/2/dm_conversations/with/${encodeURIComponent(participantId)}/dm_events`,
     { searchParams },
-    config,
-  );
-  return Get2DmConversationsWithParticipantIdDmEventsResponseSchema.parse(
-    await res.json(),
-  );
+    config
+  )
+  return Get2DmConversationsWithParticipantIdDmEventsResponseSchema.parse(await res.json())
 }
 
 export async function dmConversationWithUserEventIdCreate(
   participantId: string,
   body: CreateMessageRequest,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<CreateDmEventResponse> {
-  CreateMessageRequestSchema.parse(body);
+  CreateMessageRequestSchema.parse(body)
   const res = await _request(
-    "POST",
+    'POST',
     `/2/dm_conversations/with/${encodeURIComponent(participantId)}/messages`,
     { body },
-    config,
-  );
-  return CreateDmEventResponseSchema.parse(await res.json());
+    config
+  )
+  return CreateDmEventResponseSchema.parse(await res.json())
 }
 
 export async function dmConversationByIdEventIdCreate(
   dmConversationId: string,
   body: CreateMessageRequest,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<CreateDmEventResponse> {
-  CreateMessageRequestSchema.parse(body);
+  CreateMessageRequestSchema.parse(body)
   const res = await _request(
-    "POST",
+    'POST',
     `/2/dm_conversations/${encodeURIComponent(dmConversationId)}/messages`,
     { body },
-    config,
-  );
-  return CreateDmEventResponseSchema.parse(await res.json());
+    config
+  )
+  return CreateDmEventResponseSchema.parse(await res.json())
 }
 
 export async function getDmConversationsIdDmEvents(
   id: string,
   params?: {
-    maxResults?: number;
-    paginationToken?: string;
-    eventTypes?: string[];
-    dmEventFields?: string[];
-    expansions?: string[];
-    mediaFields?: string[];
-    userFields?: string[];
-    tweetFields?: string[];
+    maxResults?: number
+    paginationToken?: string
+    eventTypes?: string[]
+    dmEventFields?: string[]
+    expansions?: string[]
+    mediaFields?: string[]
+    userFields?: string[]
+    tweetFields?: string[]
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<Get2DmConversationsIdDmEventsResponse> {
-  const searchParams = new URLSearchParams();
-  if (params?.maxResults != null)
-    searchParams.set("max_results", String(params.maxResults));
+  const searchParams = new URLSearchParams()
+  if (params?.maxResults != null) searchParams.set('max_results', String(params.maxResults))
   if (params?.paginationToken != null)
-    searchParams.set("pagination_token", String(params.paginationToken));
+    searchParams.set('pagination_token', String(params.paginationToken))
   if (params?.eventTypes != null) {
-    for (const v of params.eventTypes)
-      searchParams.append("event_types", String(v));
+    for (const v of params.eventTypes) searchParams.append('event_types', String(v))
   }
   if (params?.dmEventFields != null) {
-    for (const v of params.dmEventFields)
-      searchParams.append("dm_event.fields", String(v));
+    for (const v of params.dmEventFields) searchParams.append('dm_event.fields', String(v))
   }
   if (params?.expansions != null) {
-    for (const v of params.expansions)
-      searchParams.append("expansions", String(v));
+    for (const v of params.expansions) searchParams.append('expansions', String(v))
   }
   if (params?.mediaFields != null) {
-    for (const v of params.mediaFields)
-      searchParams.append("media.fields", String(v));
+    for (const v of params.mediaFields) searchParams.append('media.fields', String(v))
   }
   if (params?.userFields != null) {
-    for (const v of params.userFields)
-      searchParams.append("user.fields", String(v));
+    for (const v of params.userFields) searchParams.append('user.fields', String(v))
   }
   if (params?.tweetFields != null) {
-    for (const v of params.tweetFields)
-      searchParams.append("tweet.fields", String(v));
+    for (const v of params.tweetFields) searchParams.append('tweet.fields', String(v))
   }
   const res = await _request(
-    "GET",
+    'GET',
     `/2/dm_conversations/${encodeURIComponent(id)}/dm_events`,
     { searchParams },
-    config,
-  );
-  return Get2DmConversationsIdDmEventsResponseSchema.parse(await res.json());
+    config
+  )
+  return Get2DmConversationsIdDmEventsResponseSchema.parse(await res.json())
 }
 
 export async function getDmEvents(
   params?: {
-    maxResults?: number;
-    paginationToken?: string;
-    eventTypes?: string[];
-    dmEventFields?: string[];
-    expansions?: string[];
-    mediaFields?: string[];
-    userFields?: string[];
-    tweetFields?: string[];
+    maxResults?: number
+    paginationToken?: string
+    eventTypes?: string[]
+    dmEventFields?: string[]
+    expansions?: string[]
+    mediaFields?: string[]
+    userFields?: string[]
+    tweetFields?: string[]
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<Get2DmEventsResponse> {
-  const searchParams = new URLSearchParams();
-  if (params?.maxResults != null)
-    searchParams.set("max_results", String(params.maxResults));
+  const searchParams = new URLSearchParams()
+  if (params?.maxResults != null) searchParams.set('max_results', String(params.maxResults))
   if (params?.paginationToken != null)
-    searchParams.set("pagination_token", String(params.paginationToken));
+    searchParams.set('pagination_token', String(params.paginationToken))
   if (params?.eventTypes != null) {
-    for (const v of params.eventTypes)
-      searchParams.append("event_types", String(v));
+    for (const v of params.eventTypes) searchParams.append('event_types', String(v))
   }
   if (params?.dmEventFields != null) {
-    for (const v of params.dmEventFields)
-      searchParams.append("dm_event.fields", String(v));
+    for (const v of params.dmEventFields) searchParams.append('dm_event.fields', String(v))
   }
   if (params?.expansions != null) {
-    for (const v of params.expansions)
-      searchParams.append("expansions", String(v));
+    for (const v of params.expansions) searchParams.append('expansions', String(v))
   }
   if (params?.mediaFields != null) {
-    for (const v of params.mediaFields)
-      searchParams.append("media.fields", String(v));
+    for (const v of params.mediaFields) searchParams.append('media.fields', String(v))
   }
   if (params?.userFields != null) {
-    for (const v of params.userFields)
-      searchParams.append("user.fields", String(v));
+    for (const v of params.userFields) searchParams.append('user.fields', String(v))
   }
   if (params?.tweetFields != null) {
-    for (const v of params.tweetFields)
-      searchParams.append("tweet.fields", String(v));
+    for (const v of params.tweetFields) searchParams.append('tweet.fields', String(v))
   }
-  const res = await _request("GET", "/2/dm_events", { searchParams }, config);
-  return Get2DmEventsResponseSchema.parse(await res.json());
+  const res = await _request('GET', '/2/dm_events', { searchParams }, config)
+  return Get2DmEventsResponseSchema.parse(await res.json())
 }
 
 export async function listIdCreate(
   body: ListCreateRequest,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<ListCreateResponse> {
-  ListCreateRequestSchema.parse(body);
-  const res = await _request("POST", "/2/lists", { body }, config);
-  return ListCreateResponseSchema.parse(await res.json());
+  ListCreateRequestSchema.parse(body)
+  const res = await _request('POST', '/2/lists', { body }, config)
+  return ListCreateResponseSchema.parse(await res.json())
 }
 
 export async function listIdGet(
   id: string,
   params?: {
-    listFields?: string[];
-    expansions?: string[];
-    userFields?: string[];
+    listFields?: string[]
+    expansions?: string[]
+    userFields?: string[]
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<Get2ListsIdResponse> {
-  const searchParams = new URLSearchParams();
+  const searchParams = new URLSearchParams()
   if (params?.listFields != null) {
-    for (const v of params.listFields)
-      searchParams.append("list.fields", String(v));
+    for (const v of params.listFields) searchParams.append('list.fields', String(v))
   }
   if (params?.expansions != null) {
-    for (const v of params.expansions)
-      searchParams.append("expansions", String(v));
+    for (const v of params.expansions) searchParams.append('expansions', String(v))
   }
   if (params?.userFields != null) {
-    for (const v of params.userFields)
-      searchParams.append("user.fields", String(v));
+    for (const v of params.userFields) searchParams.append('user.fields', String(v))
   }
-  const res = await _request(
-    "GET",
-    `/2/lists/${encodeURIComponent(id)}`,
-    { searchParams },
-    config,
-  );
-  return Get2ListsIdResponseSchema.parse(await res.json());
+  const res = await _request('GET', `/2/lists/${encodeURIComponent(id)}`, { searchParams }, config)
+  return Get2ListsIdResponseSchema.parse(await res.json())
 }
 
 export async function listIdUpdate(
   id: string,
   body: ListUpdateRequest,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<ListUpdateResponse> {
-  ListUpdateRequestSchema.parse(body);
-  const res = await _request(
-    "PUT",
-    `/2/lists/${encodeURIComponent(id)}`,
-    { body },
-    config,
-  );
-  return ListUpdateResponseSchema.parse(await res.json());
+  ListUpdateRequestSchema.parse(body)
+  const res = await _request('PUT', `/2/lists/${encodeURIComponent(id)}`, { body }, config)
+  return ListUpdateResponseSchema.parse(await res.json())
 }
 
 export async function listIdDelete(
   id: string,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<ListDeleteResponse> {
-  const res = await _request(
-    "DELETE",
-    `/2/lists/${encodeURIComponent(id)}`,
-    {},
-    config,
-  );
-  return ListDeleteResponseSchema.parse(await res.json());
+  const res = await _request('DELETE', `/2/lists/${encodeURIComponent(id)}`, {}, config)
+  return ListDeleteResponseSchema.parse(await res.json())
 }
 
 export async function listGetFollowers(
   id: string,
   params?: {
-    maxResults?: number;
-    paginationToken?: string;
-    userFields?: string[];
-    expansions?: string[];
-    tweetFields?: string[];
+    maxResults?: number
+    paginationToken?: string
+    userFields?: string[]
+    expansions?: string[]
+    tweetFields?: string[]
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<Get2ListsIdFollowersResponse> {
-  const searchParams = new URLSearchParams();
-  if (params?.maxResults != null)
-    searchParams.set("max_results", String(params.maxResults));
+  const searchParams = new URLSearchParams()
+  if (params?.maxResults != null) searchParams.set('max_results', String(params.maxResults))
   if (params?.paginationToken != null)
-    searchParams.set("pagination_token", String(params.paginationToken));
+    searchParams.set('pagination_token', String(params.paginationToken))
   if (params?.userFields != null) {
-    for (const v of params.userFields)
-      searchParams.append("user.fields", String(v));
+    for (const v of params.userFields) searchParams.append('user.fields', String(v))
   }
   if (params?.expansions != null) {
-    for (const v of params.expansions)
-      searchParams.append("expansions", String(v));
+    for (const v of params.expansions) searchParams.append('expansions', String(v))
   }
   if (params?.tweetFields != null) {
-    for (const v of params.tweetFields)
-      searchParams.append("tweet.fields", String(v));
+    for (const v of params.tweetFields) searchParams.append('tweet.fields', String(v))
   }
   const res = await _request(
-    "GET",
+    'GET',
     `/2/lists/${encodeURIComponent(id)}/followers`,
     { searchParams },
-    config,
-  );
-  return Get2ListsIdFollowersResponseSchema.parse(await res.json());
+    config
+  )
+  return Get2ListsIdFollowersResponseSchema.parse(await res.json())
 }
 
 export async function listGetMembers(
   id: string,
   params?: {
-    maxResults?: number;
-    paginationToken?: string;
-    userFields?: string[];
-    expansions?: string[];
-    tweetFields?: string[];
+    maxResults?: number
+    paginationToken?: string
+    userFields?: string[]
+    expansions?: string[]
+    tweetFields?: string[]
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<Get2ListsIdMembersResponse> {
-  const searchParams = new URLSearchParams();
-  if (params?.maxResults != null)
-    searchParams.set("max_results", String(params.maxResults));
+  const searchParams = new URLSearchParams()
+  if (params?.maxResults != null) searchParams.set('max_results', String(params.maxResults))
   if (params?.paginationToken != null)
-    searchParams.set("pagination_token", String(params.paginationToken));
+    searchParams.set('pagination_token', String(params.paginationToken))
   if (params?.userFields != null) {
-    for (const v of params.userFields)
-      searchParams.append("user.fields", String(v));
+    for (const v of params.userFields) searchParams.append('user.fields', String(v))
   }
   if (params?.expansions != null) {
-    for (const v of params.expansions)
-      searchParams.append("expansions", String(v));
+    for (const v of params.expansions) searchParams.append('expansions', String(v))
   }
   if (params?.tweetFields != null) {
-    for (const v of params.tweetFields)
-      searchParams.append("tweet.fields", String(v));
+    for (const v of params.tweetFields) searchParams.append('tweet.fields', String(v))
   }
   const res = await _request(
-    "GET",
+    'GET',
     `/2/lists/${encodeURIComponent(id)}/members`,
     { searchParams },
-    config,
-  );
-  return Get2ListsIdMembersResponseSchema.parse(await res.json());
+    config
+  )
+  return Get2ListsIdMembersResponseSchema.parse(await res.json())
 }
 
 export async function listAddMember(
   id: string,
   body: ListAddUserRequest,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<ListMutateResponse> {
-  ListAddUserRequestSchema.parse(body);
-  const res = await _request(
-    "POST",
-    `/2/lists/${encodeURIComponent(id)}/members`,
-    { body },
-    config,
-  );
-  return ListMutateResponseSchema.parse(await res.json());
+  ListAddUserRequestSchema.parse(body)
+  const res = await _request('POST', `/2/lists/${encodeURIComponent(id)}/members`, { body }, config)
+  return ListMutateResponseSchema.parse(await res.json())
 }
 
 export async function listRemoveMember(
   id: string,
   userId: string,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<ListMutateResponse> {
   const res = await _request(
-    "DELETE",
+    'DELETE',
     `/2/lists/${encodeURIComponent(id)}/members/${encodeURIComponent(userId)}`,
     {},
-    config,
-  );
-  return ListMutateResponseSchema.parse(await res.json());
+    config
+  )
+  return ListMutateResponseSchema.parse(await res.json())
 }
 
 export async function listsIdTweets(
   id: string,
   params?: {
-    maxResults?: number;
-    paginationToken?: string;
-    tweetFields?: string[];
-    expansions?: string[];
-    mediaFields?: string[];
-    pollFields?: string[];
-    userFields?: string[];
-    placeFields?: string[];
+    maxResults?: number
+    paginationToken?: string
+    tweetFields?: string[]
+    expansions?: string[]
+    mediaFields?: string[]
+    pollFields?: string[]
+    userFields?: string[]
+    placeFields?: string[]
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<Get2ListsIdTweetsResponse> {
-  const searchParams = new URLSearchParams();
-  if (params?.maxResults != null)
-    searchParams.set("max_results", String(params.maxResults));
+  const searchParams = new URLSearchParams()
+  if (params?.maxResults != null) searchParams.set('max_results', String(params.maxResults))
   if (params?.paginationToken != null)
-    searchParams.set("pagination_token", String(params.paginationToken));
+    searchParams.set('pagination_token', String(params.paginationToken))
   if (params?.tweetFields != null) {
-    for (const v of params.tweetFields)
-      searchParams.append("tweet.fields", String(v));
+    for (const v of params.tweetFields) searchParams.append('tweet.fields', String(v))
   }
   if (params?.expansions != null) {
-    for (const v of params.expansions)
-      searchParams.append("expansions", String(v));
+    for (const v of params.expansions) searchParams.append('expansions', String(v))
   }
   if (params?.mediaFields != null) {
-    for (const v of params.mediaFields)
-      searchParams.append("media.fields", String(v));
+    for (const v of params.mediaFields) searchParams.append('media.fields', String(v))
   }
   if (params?.pollFields != null) {
-    for (const v of params.pollFields)
-      searchParams.append("poll.fields", String(v));
+    for (const v of params.pollFields) searchParams.append('poll.fields', String(v))
   }
   if (params?.userFields != null) {
-    for (const v of params.userFields)
-      searchParams.append("user.fields", String(v));
+    for (const v of params.userFields) searchParams.append('user.fields', String(v))
   }
   if (params?.placeFields != null) {
-    for (const v of params.placeFields)
-      searchParams.append("place.fields", String(v));
+    for (const v of params.placeFields) searchParams.append('place.fields', String(v))
   }
   const res = await _request(
-    "GET",
+    'GET',
     `/2/lists/${encodeURIComponent(id)}/tweets`,
     { searchParams },
-    config,
-  );
-  return Get2ListsIdTweetsResponseSchema.parse(await res.json());
+    config
+  )
+  return Get2ListsIdTweetsResponseSchema.parse(await res.json())
 }
 
 export async function getOpenApiSpec(
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<Record<string, unknown>> {
-  const res = await _request("GET", "/2/openapi.json", {}, config);
-  return res.json();
+  const res = await _request('GET', '/2/openapi.json', {}, config)
+  return res.json()
 }
 
 export async function findSpacesByIds(
   params: {
-    ids: string[];
-    spaceFields?: string[];
-    expansions?: string[];
-    userFields?: string[];
-    topicFields?: string[];
+    ids: string[]
+    spaceFields?: string[]
+    expansions?: string[]
+    userFields?: string[]
+    topicFields?: string[]
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<Get2SpacesResponse> {
-  const searchParams = new URLSearchParams();
+  const searchParams = new URLSearchParams()
   if (params?.ids != null) {
-    for (const v of params.ids) searchParams.append("ids", String(v));
+    for (const v of params.ids) searchParams.append('ids', String(v))
   }
   if (params?.spaceFields != null) {
-    for (const v of params.spaceFields)
-      searchParams.append("space.fields", String(v));
+    for (const v of params.spaceFields) searchParams.append('space.fields', String(v))
   }
   if (params?.expansions != null) {
-    for (const v of params.expansions)
-      searchParams.append("expansions", String(v));
+    for (const v of params.expansions) searchParams.append('expansions', String(v))
   }
   if (params?.userFields != null) {
-    for (const v of params.userFields)
-      searchParams.append("user.fields", String(v));
+    for (const v of params.userFields) searchParams.append('user.fields', String(v))
   }
   if (params?.topicFields != null) {
-    for (const v of params.topicFields)
-      searchParams.append("topic.fields", String(v));
+    for (const v of params.topicFields) searchParams.append('topic.fields', String(v))
   }
-  const res = await _request("GET", "/2/spaces", { searchParams }, config);
-  return Get2SpacesResponseSchema.parse(await res.json());
+  const res = await _request('GET', '/2/spaces', { searchParams }, config)
+  return Get2SpacesResponseSchema.parse(await res.json())
 }
 
 export async function findSpacesByCreatorIds(
   params: {
-    userIds: string[];
-    spaceFields?: string[];
-    expansions?: string[];
-    userFields?: string[];
-    topicFields?: string[];
+    userIds: string[]
+    spaceFields?: string[]
+    expansions?: string[]
+    userFields?: string[]
+    topicFields?: string[]
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<Get2SpacesByCreatorIdsResponse> {
-  const searchParams = new URLSearchParams();
+  const searchParams = new URLSearchParams()
   if (params?.userIds != null) {
-    for (const v of params.userIds) searchParams.append("user_ids", String(v));
+    for (const v of params.userIds) searchParams.append('user_ids', String(v))
   }
   if (params?.spaceFields != null) {
-    for (const v of params.spaceFields)
-      searchParams.append("space.fields", String(v));
+    for (const v of params.spaceFields) searchParams.append('space.fields', String(v))
   }
   if (params?.expansions != null) {
-    for (const v of params.expansions)
-      searchParams.append("expansions", String(v));
+    for (const v of params.expansions) searchParams.append('expansions', String(v))
   }
   if (params?.userFields != null) {
-    for (const v of params.userFields)
-      searchParams.append("user.fields", String(v));
+    for (const v of params.userFields) searchParams.append('user.fields', String(v))
   }
   if (params?.topicFields != null) {
-    for (const v of params.topicFields)
-      searchParams.append("topic.fields", String(v));
+    for (const v of params.topicFields) searchParams.append('topic.fields', String(v))
   }
-  const res = await _request(
-    "GET",
-    "/2/spaces/by/creator_ids",
-    { searchParams },
-    config,
-  );
-  return Get2SpacesByCreatorIdsResponseSchema.parse(await res.json());
+  const res = await _request('GET', '/2/spaces/by/creator_ids', { searchParams }, config)
+  return Get2SpacesByCreatorIdsResponseSchema.parse(await res.json())
 }
 
 export async function searchSpaces(
   params: {
-    query: string;
-    state?: "live" | "scheduled" | "all";
-    maxResults?: number;
-    spaceFields?: string[];
-    expansions?: string[];
-    userFields?: string[];
-    topicFields?: string[];
+    query: string
+    state?: 'live' | 'scheduled' | 'all'
+    maxResults?: number
+    spaceFields?: string[]
+    expansions?: string[]
+    userFields?: string[]
+    topicFields?: string[]
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<Get2SpacesSearchResponse> {
-  const searchParams = new URLSearchParams();
-  if (params?.query != null) searchParams.set("query", String(params.query));
-  if (params?.state != null) searchParams.set("state", String(params.state));
-  if (params?.maxResults != null)
-    searchParams.set("max_results", String(params.maxResults));
+  const searchParams = new URLSearchParams()
+  if (params?.query != null) searchParams.set('query', String(params.query))
+  if (params?.state != null) searchParams.set('state', String(params.state))
+  if (params?.maxResults != null) searchParams.set('max_results', String(params.maxResults))
   if (params?.spaceFields != null) {
-    for (const v of params.spaceFields)
-      searchParams.append("space.fields", String(v));
+    for (const v of params.spaceFields) searchParams.append('space.fields', String(v))
   }
   if (params?.expansions != null) {
-    for (const v of params.expansions)
-      searchParams.append("expansions", String(v));
+    for (const v of params.expansions) searchParams.append('expansions', String(v))
   }
   if (params?.userFields != null) {
-    for (const v of params.userFields)
-      searchParams.append("user.fields", String(v));
+    for (const v of params.userFields) searchParams.append('user.fields', String(v))
   }
   if (params?.topicFields != null) {
-    for (const v of params.topicFields)
-      searchParams.append("topic.fields", String(v));
+    for (const v of params.topicFields) searchParams.append('topic.fields', String(v))
   }
-  const res = await _request(
-    "GET",
-    "/2/spaces/search",
-    { searchParams },
-    config,
-  );
-  return Get2SpacesSearchResponseSchema.parse(await res.json());
+  const res = await _request('GET', '/2/spaces/search', { searchParams }, config)
+  return Get2SpacesSearchResponseSchema.parse(await res.json())
 }
 
 export async function findSpaceById(
   id: string,
   params?: {
-    spaceFields?: string[];
-    expansions?: string[];
-    userFields?: string[];
-    topicFields?: string[];
+    spaceFields?: string[]
+    expansions?: string[]
+    userFields?: string[]
+    topicFields?: string[]
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<Get2SpacesIdResponse> {
-  const searchParams = new URLSearchParams();
+  const searchParams = new URLSearchParams()
   if (params?.spaceFields != null) {
-    for (const v of params.spaceFields)
-      searchParams.append("space.fields", String(v));
+    for (const v of params.spaceFields) searchParams.append('space.fields', String(v))
   }
   if (params?.expansions != null) {
-    for (const v of params.expansions)
-      searchParams.append("expansions", String(v));
+    for (const v of params.expansions) searchParams.append('expansions', String(v))
   }
   if (params?.userFields != null) {
-    for (const v of params.userFields)
-      searchParams.append("user.fields", String(v));
+    for (const v of params.userFields) searchParams.append('user.fields', String(v))
   }
   if (params?.topicFields != null) {
-    for (const v of params.topicFields)
-      searchParams.append("topic.fields", String(v));
+    for (const v of params.topicFields) searchParams.append('topic.fields', String(v))
   }
-  const res = await _request(
-    "GET",
-    `/2/spaces/${encodeURIComponent(id)}`,
-    { searchParams },
-    config,
-  );
-  return Get2SpacesIdResponseSchema.parse(await res.json());
+  const res = await _request('GET', `/2/spaces/${encodeURIComponent(id)}`, { searchParams }, config)
+  return Get2SpacesIdResponseSchema.parse(await res.json())
 }
 
 export async function spaceBuyers(
   id: string,
   params?: {
-    paginationToken?: string;
-    maxResults?: number;
-    userFields?: string[];
-    expansions?: string[];
-    tweetFields?: string[];
+    paginationToken?: string
+    maxResults?: number
+    userFields?: string[]
+    expansions?: string[]
+    tweetFields?: string[]
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<Get2SpacesIdBuyersResponse> {
-  const searchParams = new URLSearchParams();
+  const searchParams = new URLSearchParams()
   if (params?.paginationToken != null)
-    searchParams.set("pagination_token", String(params.paginationToken));
-  if (params?.maxResults != null)
-    searchParams.set("max_results", String(params.maxResults));
+    searchParams.set('pagination_token', String(params.paginationToken))
+  if (params?.maxResults != null) searchParams.set('max_results', String(params.maxResults))
   if (params?.userFields != null) {
-    for (const v of params.userFields)
-      searchParams.append("user.fields", String(v));
+    for (const v of params.userFields) searchParams.append('user.fields', String(v))
   }
   if (params?.expansions != null) {
-    for (const v of params.expansions)
-      searchParams.append("expansions", String(v));
+    for (const v of params.expansions) searchParams.append('expansions', String(v))
   }
   if (params?.tweetFields != null) {
-    for (const v of params.tweetFields)
-      searchParams.append("tweet.fields", String(v));
+    for (const v of params.tweetFields) searchParams.append('tweet.fields', String(v))
   }
   const res = await _request(
-    "GET",
+    'GET',
     `/2/spaces/${encodeURIComponent(id)}/buyers`,
     { searchParams },
-    config,
-  );
-  return Get2SpacesIdBuyersResponseSchema.parse(await res.json());
+    config
+  )
+  return Get2SpacesIdBuyersResponseSchema.parse(await res.json())
 }
 
 export async function spaceTweets(
   id: string,
   params?: {
-    maxResults?: number;
-    tweetFields?: string[];
-    expansions?: string[];
-    mediaFields?: string[];
-    pollFields?: string[];
-    userFields?: string[];
-    placeFields?: string[];
+    maxResults?: number
+    tweetFields?: string[]
+    expansions?: string[]
+    mediaFields?: string[]
+    pollFields?: string[]
+    userFields?: string[]
+    placeFields?: string[]
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<Get2SpacesIdTweetsResponse> {
-  const searchParams = new URLSearchParams();
-  if (params?.maxResults != null)
-    searchParams.set("max_results", String(params.maxResults));
+  const searchParams = new URLSearchParams()
+  if (params?.maxResults != null) searchParams.set('max_results', String(params.maxResults))
   if (params?.tweetFields != null) {
-    for (const v of params.tweetFields)
-      searchParams.append("tweet.fields", String(v));
+    for (const v of params.tweetFields) searchParams.append('tweet.fields', String(v))
   }
   if (params?.expansions != null) {
-    for (const v of params.expansions)
-      searchParams.append("expansions", String(v));
+    for (const v of params.expansions) searchParams.append('expansions', String(v))
   }
   if (params?.mediaFields != null) {
-    for (const v of params.mediaFields)
-      searchParams.append("media.fields", String(v));
+    for (const v of params.mediaFields) searchParams.append('media.fields', String(v))
   }
   if (params?.pollFields != null) {
-    for (const v of params.pollFields)
-      searchParams.append("poll.fields", String(v));
+    for (const v of params.pollFields) searchParams.append('poll.fields', String(v))
   }
   if (params?.userFields != null) {
-    for (const v of params.userFields)
-      searchParams.append("user.fields", String(v));
+    for (const v of params.userFields) searchParams.append('user.fields', String(v))
   }
   if (params?.placeFields != null) {
-    for (const v of params.placeFields)
-      searchParams.append("place.fields", String(v));
+    for (const v of params.placeFields) searchParams.append('place.fields', String(v))
   }
   const res = await _request(
-    "GET",
+    'GET',
     `/2/spaces/${encodeURIComponent(id)}/tweets`,
     { searchParams },
-    config,
-  );
-  return Get2SpacesIdTweetsResponseSchema.parse(await res.json());
+    config
+  )
+  return Get2SpacesIdTweetsResponseSchema.parse(await res.json())
 }
 
 export async function findTweetsById(
   params: {
-    ids: string[];
-    tweetFields?: string[];
-    expansions?: string[];
-    mediaFields?: string[];
-    pollFields?: string[];
-    userFields?: string[];
-    placeFields?: string[];
+    ids: string[]
+    tweetFields?: string[]
+    expansions?: string[]
+    mediaFields?: string[]
+    pollFields?: string[]
+    userFields?: string[]
+    placeFields?: string[]
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<Get2TweetsResponse> {
-  const searchParams = new URLSearchParams();
+  const searchParams = new URLSearchParams()
   if (params?.ids != null) {
-    for (const v of params.ids) searchParams.append("ids", String(v));
+    for (const v of params.ids) searchParams.append('ids', String(v))
   }
   if (params?.tweetFields != null) {
-    for (const v of params.tweetFields)
-      searchParams.append("tweet.fields", String(v));
+    for (const v of params.tweetFields) searchParams.append('tweet.fields', String(v))
   }
   if (params?.expansions != null) {
-    for (const v of params.expansions)
-      searchParams.append("expansions", String(v));
+    for (const v of params.expansions) searchParams.append('expansions', String(v))
   }
   if (params?.mediaFields != null) {
-    for (const v of params.mediaFields)
-      searchParams.append("media.fields", String(v));
+    for (const v of params.mediaFields) searchParams.append('media.fields', String(v))
   }
   if (params?.pollFields != null) {
-    for (const v of params.pollFields)
-      searchParams.append("poll.fields", String(v));
+    for (const v of params.pollFields) searchParams.append('poll.fields', String(v))
   }
   if (params?.userFields != null) {
-    for (const v of params.userFields)
-      searchParams.append("user.fields", String(v));
+    for (const v of params.userFields) searchParams.append('user.fields', String(v))
   }
   if (params?.placeFields != null) {
-    for (const v of params.placeFields)
-      searchParams.append("place.fields", String(v));
+    for (const v of params.placeFields) searchParams.append('place.fields', String(v))
   }
-  const res = await _request("GET", "/2/tweets", { searchParams }, config);
-  return Get2TweetsResponseSchema.parse(await res.json());
+  const res = await _request('GET', '/2/tweets', { searchParams }, config)
+  return Get2TweetsResponseSchema.parse(await res.json())
 }
 
 export async function createTweet(
   body: TweetCreateRequest,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<TweetCreateResponse> {
-  TweetCreateRequestSchema.parse(body);
-  const res = await _request("POST", "/2/tweets", { body }, config);
-  return TweetCreateResponseSchema.parse(await res.json());
+  TweetCreateRequestSchema.parse(body)
+  const res = await _request('POST', '/2/tweets', { body }, config)
+  return TweetCreateResponseSchema.parse(await res.json())
 }
 
 export async function getTweetsComplianceStream(
   params: {
-    backfillMinutes?: number;
-    partition: number;
-    startTime?: string;
-    endTime?: string;
+    backfillMinutes?: number
+    partition: number
+    startTime?: string
+    endTime?: string
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<TweetComplianceStreamResponse> {
-  const searchParams = new URLSearchParams();
+  const searchParams = new URLSearchParams()
   if (params?.backfillMinutes != null)
-    searchParams.set("backfill_minutes", String(params.backfillMinutes));
-  if (params?.partition != null)
-    searchParams.set("partition", String(params.partition));
-  if (params?.startTime != null)
-    searchParams.set("start_time", String(params.startTime));
-  if (params?.endTime != null)
-    searchParams.set("end_time", String(params.endTime));
-  const res = await _request(
-    "GET",
-    "/2/tweets/compliance/stream",
-    { searchParams },
-    config,
-  );
-  return TweetComplianceStreamResponseSchema.parse(await res.json());
+    searchParams.set('backfill_minutes', String(params.backfillMinutes))
+  if (params?.partition != null) searchParams.set('partition', String(params.partition))
+  if (params?.startTime != null) searchParams.set('start_time', String(params.startTime))
+  if (params?.endTime != null) searchParams.set('end_time', String(params.endTime))
+  const res = await _request('GET', '/2/tweets/compliance/stream', { searchParams }, config)
+  return TweetComplianceStreamResponseSchema.parse(await res.json())
 }
 
 export async function tweetCountsFullArchiveSearch(
   params: {
-    query: string;
-    startTime?: string;
-    endTime?: string;
-    sinceId?: string;
-    untilId?: string;
-    nextToken?: string;
-    paginationToken?: string;
-    granularity?: "minute" | "hour" | "day";
-    searchCountFields?: string[];
+    query: string
+    startTime?: string
+    endTime?: string
+    sinceId?: string
+    untilId?: string
+    nextToken?: string
+    paginationToken?: string
+    granularity?: 'minute' | 'hour' | 'day'
+    searchCountFields?: string[]
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<Get2TweetsCountsAllResponse> {
-  const searchParams = new URLSearchParams();
-  if (params?.query != null) searchParams.set("query", String(params.query));
-  if (params?.startTime != null)
-    searchParams.set("start_time", String(params.startTime));
-  if (params?.endTime != null)
-    searchParams.set("end_time", String(params.endTime));
-  if (params?.sinceId != null)
-    searchParams.set("since_id", String(params.sinceId));
-  if (params?.untilId != null)
-    searchParams.set("until_id", String(params.untilId));
-  if (params?.nextToken != null)
-    searchParams.set("next_token", String(params.nextToken));
+  const searchParams = new URLSearchParams()
+  if (params?.query != null) searchParams.set('query', String(params.query))
+  if (params?.startTime != null) searchParams.set('start_time', String(params.startTime))
+  if (params?.endTime != null) searchParams.set('end_time', String(params.endTime))
+  if (params?.sinceId != null) searchParams.set('since_id', String(params.sinceId))
+  if (params?.untilId != null) searchParams.set('until_id', String(params.untilId))
+  if (params?.nextToken != null) searchParams.set('next_token', String(params.nextToken))
   if (params?.paginationToken != null)
-    searchParams.set("pagination_token", String(params.paginationToken));
-  if (params?.granularity != null)
-    searchParams.set("granularity", String(params.granularity));
+    searchParams.set('pagination_token', String(params.paginationToken))
+  if (params?.granularity != null) searchParams.set('granularity', String(params.granularity))
   if (params?.searchCountFields != null) {
-    for (const v of params.searchCountFields)
-      searchParams.append("search_count.fields", String(v));
+    for (const v of params.searchCountFields) searchParams.append('search_count.fields', String(v))
   }
-  const res = await _request(
-    "GET",
-    "/2/tweets/counts/all",
-    { searchParams },
-    config,
-  );
-  return Get2TweetsCountsAllResponseSchema.parse(await res.json());
+  const res = await _request('GET', '/2/tweets/counts/all', { searchParams }, config)
+  return Get2TweetsCountsAllResponseSchema.parse(await res.json())
 }
 
 export async function tweetCountsRecentSearch(
   params: {
-    query: string;
-    startTime?: string;
-    endTime?: string;
-    sinceId?: string;
-    untilId?: string;
-    nextToken?: string;
-    paginationToken?: string;
-    granularity?: "minute" | "hour" | "day";
-    searchCountFields?: string[];
+    query: string
+    startTime?: string
+    endTime?: string
+    sinceId?: string
+    untilId?: string
+    nextToken?: string
+    paginationToken?: string
+    granularity?: 'minute' | 'hour' | 'day'
+    searchCountFields?: string[]
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<Get2TweetsCountsRecentResponse> {
-  const searchParams = new URLSearchParams();
-  if (params?.query != null) searchParams.set("query", String(params.query));
-  if (params?.startTime != null)
-    searchParams.set("start_time", String(params.startTime));
-  if (params?.endTime != null)
-    searchParams.set("end_time", String(params.endTime));
-  if (params?.sinceId != null)
-    searchParams.set("since_id", String(params.sinceId));
-  if (params?.untilId != null)
-    searchParams.set("until_id", String(params.untilId));
-  if (params?.nextToken != null)
-    searchParams.set("next_token", String(params.nextToken));
+  const searchParams = new URLSearchParams()
+  if (params?.query != null) searchParams.set('query', String(params.query))
+  if (params?.startTime != null) searchParams.set('start_time', String(params.startTime))
+  if (params?.endTime != null) searchParams.set('end_time', String(params.endTime))
+  if (params?.sinceId != null) searchParams.set('since_id', String(params.sinceId))
+  if (params?.untilId != null) searchParams.set('until_id', String(params.untilId))
+  if (params?.nextToken != null) searchParams.set('next_token', String(params.nextToken))
   if (params?.paginationToken != null)
-    searchParams.set("pagination_token", String(params.paginationToken));
-  if (params?.granularity != null)
-    searchParams.set("granularity", String(params.granularity));
+    searchParams.set('pagination_token', String(params.paginationToken))
+  if (params?.granularity != null) searchParams.set('granularity', String(params.granularity))
   if (params?.searchCountFields != null) {
-    for (const v of params.searchCountFields)
-      searchParams.append("search_count.fields", String(v));
+    for (const v of params.searchCountFields) searchParams.append('search_count.fields', String(v))
   }
-  const res = await _request(
-    "GET",
-    "/2/tweets/counts/recent",
-    { searchParams },
-    config,
-  );
-  return Get2TweetsCountsRecentResponseSchema.parse(await res.json());
+  const res = await _request('GET', '/2/tweets/counts/recent', { searchParams }, config)
+  return Get2TweetsCountsRecentResponseSchema.parse(await res.json())
 }
 
 export async function getTweetsFirehoseStream(
   params: {
-    backfillMinutes?: number;
-    partition: number;
-    startTime?: string;
-    endTime?: string;
-    tweetFields?: string[];
-    expansions?: string[];
-    mediaFields?: string[];
-    pollFields?: string[];
-    userFields?: string[];
-    placeFields?: string[];
+    backfillMinutes?: number
+    partition: number
+    startTime?: string
+    endTime?: string
+    tweetFields?: string[]
+    expansions?: string[]
+    mediaFields?: string[]
+    pollFields?: string[]
+    userFields?: string[]
+    placeFields?: string[]
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<StreamingTweetResponse> {
-  const searchParams = new URLSearchParams();
+  const searchParams = new URLSearchParams()
   if (params?.backfillMinutes != null)
-    searchParams.set("backfill_minutes", String(params.backfillMinutes));
-  if (params?.partition != null)
-    searchParams.set("partition", String(params.partition));
-  if (params?.startTime != null)
-    searchParams.set("start_time", String(params.startTime));
-  if (params?.endTime != null)
-    searchParams.set("end_time", String(params.endTime));
+    searchParams.set('backfill_minutes', String(params.backfillMinutes))
+  if (params?.partition != null) searchParams.set('partition', String(params.partition))
+  if (params?.startTime != null) searchParams.set('start_time', String(params.startTime))
+  if (params?.endTime != null) searchParams.set('end_time', String(params.endTime))
   if (params?.tweetFields != null) {
-    for (const v of params.tweetFields)
-      searchParams.append("tweet.fields", String(v));
+    for (const v of params.tweetFields) searchParams.append('tweet.fields', String(v))
   }
   if (params?.expansions != null) {
-    for (const v of params.expansions)
-      searchParams.append("expansions", String(v));
+    for (const v of params.expansions) searchParams.append('expansions', String(v))
   }
   if (params?.mediaFields != null) {
-    for (const v of params.mediaFields)
-      searchParams.append("media.fields", String(v));
+    for (const v of params.mediaFields) searchParams.append('media.fields', String(v))
   }
   if (params?.pollFields != null) {
-    for (const v of params.pollFields)
-      searchParams.append("poll.fields", String(v));
+    for (const v of params.pollFields) searchParams.append('poll.fields', String(v))
   }
   if (params?.userFields != null) {
-    for (const v of params.userFields)
-      searchParams.append("user.fields", String(v));
+    for (const v of params.userFields) searchParams.append('user.fields', String(v))
   }
   if (params?.placeFields != null) {
-    for (const v of params.placeFields)
-      searchParams.append("place.fields", String(v));
+    for (const v of params.placeFields) searchParams.append('place.fields', String(v))
   }
-  const res = await _request(
-    "GET",
-    "/2/tweets/firehose/stream",
-    { searchParams },
-    config,
-  );
-  return StreamingTweetResponseSchema.parse(await res.json());
+  const res = await _request('GET', '/2/tweets/firehose/stream', { searchParams }, config)
+  return StreamingTweetResponseSchema.parse(await res.json())
 }
 
 export async function getTweetsLabelStream(
   params?: {
-    backfillMinutes?: number;
-    startTime?: string;
-    endTime?: string;
+    backfillMinutes?: number
+    startTime?: string
+    endTime?: string
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<TweetLabelStreamResponse> {
-  const searchParams = new URLSearchParams();
+  const searchParams = new URLSearchParams()
   if (params?.backfillMinutes != null)
-    searchParams.set("backfill_minutes", String(params.backfillMinutes));
-  if (params?.startTime != null)
-    searchParams.set("start_time", String(params.startTime));
-  if (params?.endTime != null)
-    searchParams.set("end_time", String(params.endTime));
-  const res = await _request(
-    "GET",
-    "/2/tweets/label/stream",
-    { searchParams },
-    config,
-  );
-  return TweetLabelStreamResponseSchema.parse(await res.json());
+    searchParams.set('backfill_minutes', String(params.backfillMinutes))
+  if (params?.startTime != null) searchParams.set('start_time', String(params.startTime))
+  if (params?.endTime != null) searchParams.set('end_time', String(params.endTime))
+  const res = await _request('GET', '/2/tweets/label/stream', { searchParams }, config)
+  return TweetLabelStreamResponseSchema.parse(await res.json())
 }
 
 export async function sampleStream(
   params?: {
-    backfillMinutes?: number;
-    tweetFields?: string[];
-    expansions?: string[];
-    mediaFields?: string[];
-    pollFields?: string[];
-    userFields?: string[];
-    placeFields?: string[];
+    backfillMinutes?: number
+    tweetFields?: string[]
+    expansions?: string[]
+    mediaFields?: string[]
+    pollFields?: string[]
+    userFields?: string[]
+    placeFields?: string[]
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<StreamingTweetResponse> {
-  const searchParams = new URLSearchParams();
+  const searchParams = new URLSearchParams()
   if (params?.backfillMinutes != null)
-    searchParams.set("backfill_minutes", String(params.backfillMinutes));
+    searchParams.set('backfill_minutes', String(params.backfillMinutes))
   if (params?.tweetFields != null) {
-    for (const v of params.tweetFields)
-      searchParams.append("tweet.fields", String(v));
+    for (const v of params.tweetFields) searchParams.append('tweet.fields', String(v))
   }
   if (params?.expansions != null) {
-    for (const v of params.expansions)
-      searchParams.append("expansions", String(v));
+    for (const v of params.expansions) searchParams.append('expansions', String(v))
   }
   if (params?.mediaFields != null) {
-    for (const v of params.mediaFields)
-      searchParams.append("media.fields", String(v));
+    for (const v of params.mediaFields) searchParams.append('media.fields', String(v))
   }
   if (params?.pollFields != null) {
-    for (const v of params.pollFields)
-      searchParams.append("poll.fields", String(v));
+    for (const v of params.pollFields) searchParams.append('poll.fields', String(v))
   }
   if (params?.userFields != null) {
-    for (const v of params.userFields)
-      searchParams.append("user.fields", String(v));
+    for (const v of params.userFields) searchParams.append('user.fields', String(v))
   }
   if (params?.placeFields != null) {
-    for (const v of params.placeFields)
-      searchParams.append("place.fields", String(v));
+    for (const v of params.placeFields) searchParams.append('place.fields', String(v))
   }
-  const res = await _request(
-    "GET",
-    "/2/tweets/sample/stream",
-    { searchParams },
-    config,
-  );
-  return StreamingTweetResponseSchema.parse(await res.json());
+  const res = await _request('GET', '/2/tweets/sample/stream', { searchParams }, config)
+  return StreamingTweetResponseSchema.parse(await res.json())
 }
 
 export async function getTweetsSample10Stream(
   params: {
-    backfillMinutes?: number;
-    partition: number;
-    startTime?: string;
-    endTime?: string;
-    tweetFields?: string[];
-    expansions?: string[];
-    mediaFields?: string[];
-    pollFields?: string[];
-    userFields?: string[];
-    placeFields?: string[];
+    backfillMinutes?: number
+    partition: number
+    startTime?: string
+    endTime?: string
+    tweetFields?: string[]
+    expansions?: string[]
+    mediaFields?: string[]
+    pollFields?: string[]
+    userFields?: string[]
+    placeFields?: string[]
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<Get2TweetsSample10StreamResponse> {
-  const searchParams = new URLSearchParams();
+  const searchParams = new URLSearchParams()
   if (params?.backfillMinutes != null)
-    searchParams.set("backfill_minutes", String(params.backfillMinutes));
-  if (params?.partition != null)
-    searchParams.set("partition", String(params.partition));
-  if (params?.startTime != null)
-    searchParams.set("start_time", String(params.startTime));
-  if (params?.endTime != null)
-    searchParams.set("end_time", String(params.endTime));
+    searchParams.set('backfill_minutes', String(params.backfillMinutes))
+  if (params?.partition != null) searchParams.set('partition', String(params.partition))
+  if (params?.startTime != null) searchParams.set('start_time', String(params.startTime))
+  if (params?.endTime != null) searchParams.set('end_time', String(params.endTime))
   if (params?.tweetFields != null) {
-    for (const v of params.tweetFields)
-      searchParams.append("tweet.fields", String(v));
+    for (const v of params.tweetFields) searchParams.append('tweet.fields', String(v))
   }
   if (params?.expansions != null) {
-    for (const v of params.expansions)
-      searchParams.append("expansions", String(v));
+    for (const v of params.expansions) searchParams.append('expansions', String(v))
   }
   if (params?.mediaFields != null) {
-    for (const v of params.mediaFields)
-      searchParams.append("media.fields", String(v));
+    for (const v of params.mediaFields) searchParams.append('media.fields', String(v))
   }
   if (params?.pollFields != null) {
-    for (const v of params.pollFields)
-      searchParams.append("poll.fields", String(v));
+    for (const v of params.pollFields) searchParams.append('poll.fields', String(v))
   }
   if (params?.userFields != null) {
-    for (const v of params.userFields)
-      searchParams.append("user.fields", String(v));
+    for (const v of params.userFields) searchParams.append('user.fields', String(v))
   }
   if (params?.placeFields != null) {
-    for (const v of params.placeFields)
-      searchParams.append("place.fields", String(v));
+    for (const v of params.placeFields) searchParams.append('place.fields', String(v))
   }
-  const res = await _request(
-    "GET",
-    "/2/tweets/sample10/stream",
-    { searchParams },
-    config,
-  );
-  return Get2TweetsSample10StreamResponseSchema.parse(await res.json());
+  const res = await _request('GET', '/2/tweets/sample10/stream', { searchParams }, config)
+  return Get2TweetsSample10StreamResponseSchema.parse(await res.json())
 }
 
 export async function tweetsFullarchiveSearch(
   params: {
-    query: string;
-    startTime?: string;
-    endTime?: string;
-    sinceId?: string;
-    untilId?: string;
-    maxResults?: number;
-    nextToken?: string;
-    paginationToken?: string;
-    sortOrder?: "recency" | "relevancy";
-    tweetFields?: string[];
-    expansions?: string[];
-    mediaFields?: string[];
-    pollFields?: string[];
-    userFields?: string[];
-    placeFields?: string[];
+    query: string
+    startTime?: string
+    endTime?: string
+    sinceId?: string
+    untilId?: string
+    maxResults?: number
+    nextToken?: string
+    paginationToken?: string
+    sortOrder?: 'recency' | 'relevancy'
+    tweetFields?: string[]
+    expansions?: string[]
+    mediaFields?: string[]
+    pollFields?: string[]
+    userFields?: string[]
+    placeFields?: string[]
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<Get2TweetsSearchAllResponse> {
-  const searchParams = new URLSearchParams();
-  if (params?.query != null) searchParams.set("query", String(params.query));
-  if (params?.startTime != null)
-    searchParams.set("start_time", String(params.startTime));
-  if (params?.endTime != null)
-    searchParams.set("end_time", String(params.endTime));
-  if (params?.sinceId != null)
-    searchParams.set("since_id", String(params.sinceId));
-  if (params?.untilId != null)
-    searchParams.set("until_id", String(params.untilId));
-  if (params?.maxResults != null)
-    searchParams.set("max_results", String(params.maxResults));
-  if (params?.nextToken != null)
-    searchParams.set("next_token", String(params.nextToken));
+  const searchParams = new URLSearchParams()
+  if (params?.query != null) searchParams.set('query', String(params.query))
+  if (params?.startTime != null) searchParams.set('start_time', String(params.startTime))
+  if (params?.endTime != null) searchParams.set('end_time', String(params.endTime))
+  if (params?.sinceId != null) searchParams.set('since_id', String(params.sinceId))
+  if (params?.untilId != null) searchParams.set('until_id', String(params.untilId))
+  if (params?.maxResults != null) searchParams.set('max_results', String(params.maxResults))
+  if (params?.nextToken != null) searchParams.set('next_token', String(params.nextToken))
   if (params?.paginationToken != null)
-    searchParams.set("pagination_token", String(params.paginationToken));
-  if (params?.sortOrder != null)
-    searchParams.set("sort_order", String(params.sortOrder));
+    searchParams.set('pagination_token', String(params.paginationToken))
+  if (params?.sortOrder != null) searchParams.set('sort_order', String(params.sortOrder))
   if (params?.tweetFields != null) {
-    for (const v of params.tweetFields)
-      searchParams.append("tweet.fields", String(v));
+    for (const v of params.tweetFields) searchParams.append('tweet.fields', String(v))
   }
   if (params?.expansions != null) {
-    for (const v of params.expansions)
-      searchParams.append("expansions", String(v));
+    for (const v of params.expansions) searchParams.append('expansions', String(v))
   }
   if (params?.mediaFields != null) {
-    for (const v of params.mediaFields)
-      searchParams.append("media.fields", String(v));
+    for (const v of params.mediaFields) searchParams.append('media.fields', String(v))
   }
   if (params?.pollFields != null) {
-    for (const v of params.pollFields)
-      searchParams.append("poll.fields", String(v));
+    for (const v of params.pollFields) searchParams.append('poll.fields', String(v))
   }
   if (params?.userFields != null) {
-    for (const v of params.userFields)
-      searchParams.append("user.fields", String(v));
+    for (const v of params.userFields) searchParams.append('user.fields', String(v))
   }
   if (params?.placeFields != null) {
-    for (const v of params.placeFields)
-      searchParams.append("place.fields", String(v));
+    for (const v of params.placeFields) searchParams.append('place.fields', String(v))
   }
-  const res = await _request(
-    "GET",
-    "/2/tweets/search/all",
-    { searchParams },
-    config,
-  );
-  return Get2TweetsSearchAllResponseSchema.parse(await res.json());
+  const res = await _request('GET', '/2/tweets/search/all', { searchParams }, config)
+  return Get2TweetsSearchAllResponseSchema.parse(await res.json())
 }
 
 export async function tweetsRecentSearch(
   params: {
-    query: string;
-    startTime?: string;
-    endTime?: string;
-    sinceId?: string;
-    untilId?: string;
-    maxResults?: number;
-    nextToken?: string;
-    paginationToken?: string;
-    sortOrder?: "recency" | "relevancy";
-    tweetFields?: string[];
-    expansions?: string[];
-    mediaFields?: string[];
-    pollFields?: string[];
-    userFields?: string[];
-    placeFields?: string[];
+    query: string
+    startTime?: string
+    endTime?: string
+    sinceId?: string
+    untilId?: string
+    maxResults?: number
+    nextToken?: string
+    paginationToken?: string
+    sortOrder?: 'recency' | 'relevancy'
+    tweetFields?: string[]
+    expansions?: string[]
+    mediaFields?: string[]
+    pollFields?: string[]
+    userFields?: string[]
+    placeFields?: string[]
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<Get2TweetsSearchRecentResponse> {
-  const searchParams = new URLSearchParams();
-  if (params?.query != null) searchParams.set("query", String(params.query));
-  if (params?.startTime != null)
-    searchParams.set("start_time", String(params.startTime));
-  if (params?.endTime != null)
-    searchParams.set("end_time", String(params.endTime));
-  if (params?.sinceId != null)
-    searchParams.set("since_id", String(params.sinceId));
-  if (params?.untilId != null)
-    searchParams.set("until_id", String(params.untilId));
-  if (params?.maxResults != null)
-    searchParams.set("max_results", String(params.maxResults));
-  if (params?.nextToken != null)
-    searchParams.set("next_token", String(params.nextToken));
+  const searchParams = new URLSearchParams()
+  if (params?.query != null) searchParams.set('query', String(params.query))
+  if (params?.startTime != null) searchParams.set('start_time', String(params.startTime))
+  if (params?.endTime != null) searchParams.set('end_time', String(params.endTime))
+  if (params?.sinceId != null) searchParams.set('since_id', String(params.sinceId))
+  if (params?.untilId != null) searchParams.set('until_id', String(params.untilId))
+  if (params?.maxResults != null) searchParams.set('max_results', String(params.maxResults))
+  if (params?.nextToken != null) searchParams.set('next_token', String(params.nextToken))
   if (params?.paginationToken != null)
-    searchParams.set("pagination_token", String(params.paginationToken));
-  if (params?.sortOrder != null)
-    searchParams.set("sort_order", String(params.sortOrder));
+    searchParams.set('pagination_token', String(params.paginationToken))
+  if (params?.sortOrder != null) searchParams.set('sort_order', String(params.sortOrder))
   if (params?.tweetFields != null) {
-    for (const v of params.tweetFields)
-      searchParams.append("tweet.fields", String(v));
+    for (const v of params.tweetFields) searchParams.append('tweet.fields', String(v))
   }
   if (params?.expansions != null) {
-    for (const v of params.expansions)
-      searchParams.append("expansions", String(v));
+    for (const v of params.expansions) searchParams.append('expansions', String(v))
   }
   if (params?.mediaFields != null) {
-    for (const v of params.mediaFields)
-      searchParams.append("media.fields", String(v));
+    for (const v of params.mediaFields) searchParams.append('media.fields', String(v))
   }
   if (params?.pollFields != null) {
-    for (const v of params.pollFields)
-      searchParams.append("poll.fields", String(v));
+    for (const v of params.pollFields) searchParams.append('poll.fields', String(v))
   }
   if (params?.userFields != null) {
-    for (const v of params.userFields)
-      searchParams.append("user.fields", String(v));
+    for (const v of params.userFields) searchParams.append('user.fields', String(v))
   }
   if (params?.placeFields != null) {
-    for (const v of params.placeFields)
-      searchParams.append("place.fields", String(v));
+    for (const v of params.placeFields) searchParams.append('place.fields', String(v))
   }
-  const res = await _request(
-    "GET",
-    "/2/tweets/search/recent",
-    { searchParams },
-    config,
-  );
-  return Get2TweetsSearchRecentResponseSchema.parse(await res.json());
+  const res = await _request('GET', '/2/tweets/search/recent', { searchParams }, config)
+  return Get2TweetsSearchRecentResponseSchema.parse(await res.json())
 }
 
 export async function searchStream(
   params?: {
-    backfillMinutes?: number;
-    startTime?: string;
-    endTime?: string;
-    tweetFields?: string[];
-    expansions?: string[];
-    mediaFields?: string[];
-    pollFields?: string[];
-    userFields?: string[];
-    placeFields?: string[];
+    backfillMinutes?: number
+    startTime?: string
+    endTime?: string
+    tweetFields?: string[]
+    expansions?: string[]
+    mediaFields?: string[]
+    pollFields?: string[]
+    userFields?: string[]
+    placeFields?: string[]
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<FilteredStreamingTweetResponse> {
-  const searchParams = new URLSearchParams();
+  const searchParams = new URLSearchParams()
   if (params?.backfillMinutes != null)
-    searchParams.set("backfill_minutes", String(params.backfillMinutes));
-  if (params?.startTime != null)
-    searchParams.set("start_time", String(params.startTime));
-  if (params?.endTime != null)
-    searchParams.set("end_time", String(params.endTime));
+    searchParams.set('backfill_minutes', String(params.backfillMinutes))
+  if (params?.startTime != null) searchParams.set('start_time', String(params.startTime))
+  if (params?.endTime != null) searchParams.set('end_time', String(params.endTime))
   if (params?.tweetFields != null) {
-    for (const v of params.tweetFields)
-      searchParams.append("tweet.fields", String(v));
+    for (const v of params.tweetFields) searchParams.append('tweet.fields', String(v))
   }
   if (params?.expansions != null) {
-    for (const v of params.expansions)
-      searchParams.append("expansions", String(v));
+    for (const v of params.expansions) searchParams.append('expansions', String(v))
   }
   if (params?.mediaFields != null) {
-    for (const v of params.mediaFields)
-      searchParams.append("media.fields", String(v));
+    for (const v of params.mediaFields) searchParams.append('media.fields', String(v))
   }
   if (params?.pollFields != null) {
-    for (const v of params.pollFields)
-      searchParams.append("poll.fields", String(v));
+    for (const v of params.pollFields) searchParams.append('poll.fields', String(v))
   }
   if (params?.userFields != null) {
-    for (const v of params.userFields)
-      searchParams.append("user.fields", String(v));
+    for (const v of params.userFields) searchParams.append('user.fields', String(v))
   }
   if (params?.placeFields != null) {
-    for (const v of params.placeFields)
-      searchParams.append("place.fields", String(v));
+    for (const v of params.placeFields) searchParams.append('place.fields', String(v))
   }
-  const res = await _request(
-    "GET",
-    "/2/tweets/search/stream",
-    { searchParams },
-    config,
-  );
-  return FilteredStreamingTweetResponseSchema.parse(await res.json());
+  const res = await _request('GET', '/2/tweets/search/stream', { searchParams }, config)
+  return FilteredStreamingTweetResponseSchema.parse(await res.json())
 }
 
 export async function getRules(
   params?: {
-    ids?: string[];
-    maxResults?: number;
-    paginationToken?: string;
+    ids?: string[]
+    maxResults?: number
+    paginationToken?: string
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<RulesLookupResponse> {
-  const searchParams = new URLSearchParams();
+  const searchParams = new URLSearchParams()
   if (params?.ids != null) {
-    for (const v of params.ids) searchParams.append("ids", String(v));
+    for (const v of params.ids) searchParams.append('ids', String(v))
   }
-  if (params?.maxResults != null)
-    searchParams.set("max_results", String(params.maxResults));
+  if (params?.maxResults != null) searchParams.set('max_results', String(params.maxResults))
   if (params?.paginationToken != null)
-    searchParams.set("pagination_token", String(params.paginationToken));
-  const res = await _request(
-    "GET",
-    "/2/tweets/search/stream/rules",
-    { searchParams },
-    config,
-  );
-  return RulesLookupResponseSchema.parse(await res.json());
+    searchParams.set('pagination_token', String(params.paginationToken))
+  const res = await _request('GET', '/2/tweets/search/stream/rules', { searchParams }, config)
+  return RulesLookupResponseSchema.parse(await res.json())
 }
 
 export async function addOrDeleteRules(
   body: AddOrDeleteRulesRequest,
   params?: {
-    dryRun?: boolean;
+    dryRun?: boolean
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<AddOrDeleteRulesResponse> {
-  const searchParams = new URLSearchParams();
-  if (params?.dryRun != null)
-    searchParams.set("dry_run", String(params.dryRun));
-  AddOrDeleteRulesRequestSchema.parse(body);
+  const searchParams = new URLSearchParams()
+  if (params?.dryRun != null) searchParams.set('dry_run', String(params.dryRun))
+  AddOrDeleteRulesRequestSchema.parse(body)
   const res = await _request(
-    "POST",
-    "/2/tweets/search/stream/rules",
+    'POST',
+    '/2/tweets/search/stream/rules',
     { searchParams, body },
-    config,
-  );
-  return AddOrDeleteRulesResponseSchema.parse(await res.json());
+    config
+  )
+  return AddOrDeleteRulesResponseSchema.parse(await res.json())
 }
 
 export async function findTweetById(
   id: string,
   params?: {
-    tweetFields?: string[];
-    expansions?: string[];
-    mediaFields?: string[];
-    pollFields?: string[];
-    userFields?: string[];
-    placeFields?: string[];
+    tweetFields?: string[]
+    expansions?: string[]
+    mediaFields?: string[]
+    pollFields?: string[]
+    userFields?: string[]
+    placeFields?: string[]
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<Get2TweetsIdResponse> {
-  const searchParams = new URLSearchParams();
+  const searchParams = new URLSearchParams()
   if (params?.tweetFields != null) {
-    for (const v of params.tweetFields)
-      searchParams.append("tweet.fields", String(v));
+    for (const v of params.tweetFields) searchParams.append('tweet.fields', String(v))
   }
   if (params?.expansions != null) {
-    for (const v of params.expansions)
-      searchParams.append("expansions", String(v));
+    for (const v of params.expansions) searchParams.append('expansions', String(v))
   }
   if (params?.mediaFields != null) {
-    for (const v of params.mediaFields)
-      searchParams.append("media.fields", String(v));
+    for (const v of params.mediaFields) searchParams.append('media.fields', String(v))
   }
   if (params?.pollFields != null) {
-    for (const v of params.pollFields)
-      searchParams.append("poll.fields", String(v));
+    for (const v of params.pollFields) searchParams.append('poll.fields', String(v))
   }
   if (params?.userFields != null) {
-    for (const v of params.userFields)
-      searchParams.append("user.fields", String(v));
+    for (const v of params.userFields) searchParams.append('user.fields', String(v))
   }
   if (params?.placeFields != null) {
-    for (const v of params.placeFields)
-      searchParams.append("place.fields", String(v));
+    for (const v of params.placeFields) searchParams.append('place.fields', String(v))
   }
-  const res = await _request(
-    "GET",
-    `/2/tweets/${encodeURIComponent(id)}`,
-    { searchParams },
-    config,
-  );
-  return Get2TweetsIdResponseSchema.parse(await res.json());
+  const res = await _request('GET', `/2/tweets/${encodeURIComponent(id)}`, { searchParams }, config)
+  return Get2TweetsIdResponseSchema.parse(await res.json())
 }
 
 export async function deleteTweetById(
   id: string,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<TweetDeleteResponse> {
-  const res = await _request(
-    "DELETE",
-    `/2/tweets/${encodeURIComponent(id)}`,
-    {},
-    config,
-  );
-  return TweetDeleteResponseSchema.parse(await res.json());
+  const res = await _request('DELETE', `/2/tweets/${encodeURIComponent(id)}`, {}, config)
+  return TweetDeleteResponseSchema.parse(await res.json())
 }
 
 export async function tweetsIdLikingUsers(
   id: string,
   params?: {
-    maxResults?: number;
-    paginationToken?: string;
-    userFields?: string[];
-    expansions?: string[];
-    tweetFields?: string[];
+    maxResults?: number
+    paginationToken?: string
+    userFields?: string[]
+    expansions?: string[]
+    tweetFields?: string[]
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<Get2TweetsIdLikingUsersResponse> {
-  const searchParams = new URLSearchParams();
-  if (params?.maxResults != null)
-    searchParams.set("max_results", String(params.maxResults));
+  const searchParams = new URLSearchParams()
+  if (params?.maxResults != null) searchParams.set('max_results', String(params.maxResults))
   if (params?.paginationToken != null)
-    searchParams.set("pagination_token", String(params.paginationToken));
+    searchParams.set('pagination_token', String(params.paginationToken))
   if (params?.userFields != null) {
-    for (const v of params.userFields)
-      searchParams.append("user.fields", String(v));
+    for (const v of params.userFields) searchParams.append('user.fields', String(v))
   }
   if (params?.expansions != null) {
-    for (const v of params.expansions)
-      searchParams.append("expansions", String(v));
+    for (const v of params.expansions) searchParams.append('expansions', String(v))
   }
   if (params?.tweetFields != null) {
-    for (const v of params.tweetFields)
-      searchParams.append("tweet.fields", String(v));
+    for (const v of params.tweetFields) searchParams.append('tweet.fields', String(v))
   }
   const res = await _request(
-    "GET",
+    'GET',
     `/2/tweets/${encodeURIComponent(id)}/liking_users`,
     { searchParams },
-    config,
-  );
-  return Get2TweetsIdLikingUsersResponseSchema.parse(await res.json());
+    config
+  )
+  return Get2TweetsIdLikingUsersResponseSchema.parse(await res.json())
 }
 
 export async function findTweetsThatQuoteATweet(
   id: string,
   params?: {
-    maxResults?: number;
-    paginationToken?: string;
-    exclude?: string[];
-    tweetFields?: string[];
-    expansions?: string[];
-    mediaFields?: string[];
-    pollFields?: string[];
-    userFields?: string[];
-    placeFields?: string[];
+    maxResults?: number
+    paginationToken?: string
+    exclude?: string[]
+    tweetFields?: string[]
+    expansions?: string[]
+    mediaFields?: string[]
+    pollFields?: string[]
+    userFields?: string[]
+    placeFields?: string[]
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<Get2TweetsIdQuoteTweetsResponse> {
-  const searchParams = new URLSearchParams();
-  if (params?.maxResults != null)
-    searchParams.set("max_results", String(params.maxResults));
+  const searchParams = new URLSearchParams()
+  if (params?.maxResults != null) searchParams.set('max_results', String(params.maxResults))
   if (params?.paginationToken != null)
-    searchParams.set("pagination_token", String(params.paginationToken));
+    searchParams.set('pagination_token', String(params.paginationToken))
   if (params?.exclude != null) {
-    for (const v of params.exclude) searchParams.append("exclude", String(v));
+    for (const v of params.exclude) searchParams.append('exclude', String(v))
   }
   if (params?.tweetFields != null) {
-    for (const v of params.tweetFields)
-      searchParams.append("tweet.fields", String(v));
+    for (const v of params.tweetFields) searchParams.append('tweet.fields', String(v))
   }
   if (params?.expansions != null) {
-    for (const v of params.expansions)
-      searchParams.append("expansions", String(v));
+    for (const v of params.expansions) searchParams.append('expansions', String(v))
   }
   if (params?.mediaFields != null) {
-    for (const v of params.mediaFields)
-      searchParams.append("media.fields", String(v));
+    for (const v of params.mediaFields) searchParams.append('media.fields', String(v))
   }
   if (params?.pollFields != null) {
-    for (const v of params.pollFields)
-      searchParams.append("poll.fields", String(v));
+    for (const v of params.pollFields) searchParams.append('poll.fields', String(v))
   }
   if (params?.userFields != null) {
-    for (const v of params.userFields)
-      searchParams.append("user.fields", String(v));
+    for (const v of params.userFields) searchParams.append('user.fields', String(v))
   }
   if (params?.placeFields != null) {
-    for (const v of params.placeFields)
-      searchParams.append("place.fields", String(v));
+    for (const v of params.placeFields) searchParams.append('place.fields', String(v))
   }
   const res = await _request(
-    "GET",
+    'GET',
     `/2/tweets/${encodeURIComponent(id)}/quote_tweets`,
     { searchParams },
-    config,
-  );
-  return Get2TweetsIdQuoteTweetsResponseSchema.parse(await res.json());
+    config
+  )
+  return Get2TweetsIdQuoteTweetsResponseSchema.parse(await res.json())
 }
 
 export async function tweetsIdRetweetingUsers(
   id: string,
   params?: {
-    maxResults?: number;
-    paginationToken?: string;
-    userFields?: string[];
-    expansions?: string[];
-    tweetFields?: string[];
+    maxResults?: number
+    paginationToken?: string
+    userFields?: string[]
+    expansions?: string[]
+    tweetFields?: string[]
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<Get2TweetsIdRetweetedByResponse> {
-  const searchParams = new URLSearchParams();
-  if (params?.maxResults != null)
-    searchParams.set("max_results", String(params.maxResults));
+  const searchParams = new URLSearchParams()
+  if (params?.maxResults != null) searchParams.set('max_results', String(params.maxResults))
   if (params?.paginationToken != null)
-    searchParams.set("pagination_token", String(params.paginationToken));
+    searchParams.set('pagination_token', String(params.paginationToken))
   if (params?.userFields != null) {
-    for (const v of params.userFields)
-      searchParams.append("user.fields", String(v));
+    for (const v of params.userFields) searchParams.append('user.fields', String(v))
   }
   if (params?.expansions != null) {
-    for (const v of params.expansions)
-      searchParams.append("expansions", String(v));
+    for (const v of params.expansions) searchParams.append('expansions', String(v))
   }
   if (params?.tweetFields != null) {
-    for (const v of params.tweetFields)
-      searchParams.append("tweet.fields", String(v));
+    for (const v of params.tweetFields) searchParams.append('tweet.fields', String(v))
   }
   const res = await _request(
-    "GET",
+    'GET',
     `/2/tweets/${encodeURIComponent(id)}/retweeted_by`,
     { searchParams },
-    config,
-  );
-  return Get2TweetsIdRetweetedByResponseSchema.parse(await res.json());
+    config
+  )
+  return Get2TweetsIdRetweetedByResponseSchema.parse(await res.json())
 }
 
 export async function hideReplyById(
   tweetId: string,
   body: TweetHideRequest,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<TweetHideResponse> {
-  TweetHideRequestSchema.parse(body);
+  TweetHideRequestSchema.parse(body)
   const res = await _request(
-    "PUT",
+    'PUT',
     `/2/tweets/${encodeURIComponent(tweetId)}/hidden`,
     { body },
-    config,
-  );
-  return TweetHideResponseSchema.parse(await res.json());
+    config
+  )
+  return TweetHideResponseSchema.parse(await res.json())
 }
 
 export async function findUsersById(
   params: {
-    ids: string[];
-    userFields?: string[];
-    expansions?: string[];
-    tweetFields?: string[];
+    ids: string[]
+    userFields?: string[]
+    expansions?: string[]
+    tweetFields?: string[]
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<Get2UsersResponse> {
-  const searchParams = new URLSearchParams();
+  const searchParams = new URLSearchParams()
   if (params?.ids != null) {
-    for (const v of params.ids) searchParams.append("ids", String(v));
+    for (const v of params.ids) searchParams.append('ids', String(v))
   }
   if (params?.userFields != null) {
-    for (const v of params.userFields)
-      searchParams.append("user.fields", String(v));
+    for (const v of params.userFields) searchParams.append('user.fields', String(v))
   }
   if (params?.expansions != null) {
-    for (const v of params.expansions)
-      searchParams.append("expansions", String(v));
+    for (const v of params.expansions) searchParams.append('expansions', String(v))
   }
   if (params?.tweetFields != null) {
-    for (const v of params.tweetFields)
-      searchParams.append("tweet.fields", String(v));
+    for (const v of params.tweetFields) searchParams.append('tweet.fields', String(v))
   }
-  const res = await _request("GET", "/2/users", { searchParams }, config);
-  return Get2UsersResponseSchema.parse(await res.json());
+  const res = await _request('GET', '/2/users', { searchParams }, config)
+  return Get2UsersResponseSchema.parse(await res.json())
 }
 
 export async function findUsersByUsername(
   params: {
-    usernames: string[];
-    userFields?: string[];
-    expansions?: string[];
-    tweetFields?: string[];
+    usernames: string[]
+    userFields?: string[]
+    expansions?: string[]
+    tweetFields?: string[]
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<Get2UsersByResponse> {
-  const searchParams = new URLSearchParams();
+  const searchParams = new URLSearchParams()
   if (params?.usernames != null) {
-    for (const v of params.usernames)
-      searchParams.append("usernames", String(v));
+    for (const v of params.usernames) searchParams.append('usernames', String(v))
   }
   if (params?.userFields != null) {
-    for (const v of params.userFields)
-      searchParams.append("user.fields", String(v));
+    for (const v of params.userFields) searchParams.append('user.fields', String(v))
   }
   if (params?.expansions != null) {
-    for (const v of params.expansions)
-      searchParams.append("expansions", String(v));
+    for (const v of params.expansions) searchParams.append('expansions', String(v))
   }
   if (params?.tweetFields != null) {
-    for (const v of params.tweetFields)
-      searchParams.append("tweet.fields", String(v));
+    for (const v of params.tweetFields) searchParams.append('tweet.fields', String(v))
   }
-  const res = await _request("GET", "/2/users/by", { searchParams }, config);
-  return Get2UsersByResponseSchema.parse(await res.json());
+  const res = await _request('GET', '/2/users/by', { searchParams }, config)
+  return Get2UsersByResponseSchema.parse(await res.json())
 }
 
 export async function findUserByUsername(
   username: string,
   params?: {
-    userFields?: string[];
-    expansions?: string[];
-    tweetFields?: string[];
+    userFields?: string[]
+    expansions?: string[]
+    tweetFields?: string[]
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<Get2UsersByUsernameUsernameResponse> {
-  const searchParams = new URLSearchParams();
+  const searchParams = new URLSearchParams()
   if (params?.userFields != null) {
-    for (const v of params.userFields)
-      searchParams.append("user.fields", String(v));
+    for (const v of params.userFields) searchParams.append('user.fields', String(v))
   }
   if (params?.expansions != null) {
-    for (const v of params.expansions)
-      searchParams.append("expansions", String(v));
+    for (const v of params.expansions) searchParams.append('expansions', String(v))
   }
   if (params?.tweetFields != null) {
-    for (const v of params.tweetFields)
-      searchParams.append("tweet.fields", String(v));
+    for (const v of params.tweetFields) searchParams.append('tweet.fields', String(v))
   }
   const res = await _request(
-    "GET",
+    'GET',
     `/2/users/by/username/${encodeURIComponent(username)}`,
     { searchParams },
-    config,
-  );
-  return Get2UsersByUsernameUsernameResponseSchema.parse(await res.json());
+    config
+  )
+  return Get2UsersByUsernameUsernameResponseSchema.parse(await res.json())
 }
 
 export async function getUsersComplianceStream(
   params: {
-    backfillMinutes?: number;
-    partition: number;
-    startTime?: string;
-    endTime?: string;
+    backfillMinutes?: number
+    partition: number
+    startTime?: string
+    endTime?: string
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<UserComplianceStreamResponse> {
-  const searchParams = new URLSearchParams();
+  const searchParams = new URLSearchParams()
   if (params?.backfillMinutes != null)
-    searchParams.set("backfill_minutes", String(params.backfillMinutes));
-  if (params?.partition != null)
-    searchParams.set("partition", String(params.partition));
-  if (params?.startTime != null)
-    searchParams.set("start_time", String(params.startTime));
-  if (params?.endTime != null)
-    searchParams.set("end_time", String(params.endTime));
-  const res = await _request(
-    "GET",
-    "/2/users/compliance/stream",
-    { searchParams },
-    config,
-  );
-  return UserComplianceStreamResponseSchema.parse(await res.json());
+    searchParams.set('backfill_minutes', String(params.backfillMinutes))
+  if (params?.partition != null) searchParams.set('partition', String(params.partition))
+  if (params?.startTime != null) searchParams.set('start_time', String(params.startTime))
+  if (params?.endTime != null) searchParams.set('end_time', String(params.endTime))
+  const res = await _request('GET', '/2/users/compliance/stream', { searchParams }, config)
+  return UserComplianceStreamResponseSchema.parse(await res.json())
 }
 
 export async function findMyUser(
   params?: {
-    userFields?: string[];
-    expansions?: string[];
-    tweetFields?: string[];
+    userFields?: string[]
+    expansions?: string[]
+    tweetFields?: string[]
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<Get2UsersMeResponse> {
-  const searchParams = new URLSearchParams();
+  const searchParams = new URLSearchParams()
   if (params?.userFields != null) {
-    for (const v of params.userFields)
-      searchParams.append("user.fields", String(v));
+    for (const v of params.userFields) searchParams.append('user.fields', String(v))
   }
   if (params?.expansions != null) {
-    for (const v of params.expansions)
-      searchParams.append("expansions", String(v));
+    for (const v of params.expansions) searchParams.append('expansions', String(v))
   }
   if (params?.tweetFields != null) {
-    for (const v of params.tweetFields)
-      searchParams.append("tweet.fields", String(v));
+    for (const v of params.tweetFields) searchParams.append('tweet.fields', String(v))
   }
-  const res = await _request("GET", "/2/users/me", { searchParams }, config);
-  return Get2UsersMeResponseSchema.parse(await res.json());
+  const res = await _request('GET', '/2/users/me', { searchParams }, config)
+  return Get2UsersMeResponseSchema.parse(await res.json())
 }
 
 export async function findUserById(
   id: string,
   params?: {
-    userFields?: string[];
-    expansions?: string[];
-    tweetFields?: string[];
+    userFields?: string[]
+    expansions?: string[]
+    tweetFields?: string[]
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<Get2UsersIdResponse> {
-  const searchParams = new URLSearchParams();
+  const searchParams = new URLSearchParams()
   if (params?.userFields != null) {
-    for (const v of params.userFields)
-      searchParams.append("user.fields", String(v));
+    for (const v of params.userFields) searchParams.append('user.fields', String(v))
   }
   if (params?.expansions != null) {
-    for (const v of params.expansions)
-      searchParams.append("expansions", String(v));
+    for (const v of params.expansions) searchParams.append('expansions', String(v))
   }
   if (params?.tweetFields != null) {
-    for (const v of params.tweetFields)
-      searchParams.append("tweet.fields", String(v));
+    for (const v of params.tweetFields) searchParams.append('tweet.fields', String(v))
   }
-  const res = await _request(
-    "GET",
-    `/2/users/${encodeURIComponent(id)}`,
-    { searchParams },
-    config,
-  );
-  return Get2UsersIdResponseSchema.parse(await res.json());
+  const res = await _request('GET', `/2/users/${encodeURIComponent(id)}`, { searchParams }, config)
+  return Get2UsersIdResponseSchema.parse(await res.json())
 }
 
 export async function usersIdBlocking(
   id: string,
   params?: {
-    maxResults?: number;
-    paginationToken?: string;
-    userFields?: string[];
-    expansions?: string[];
-    tweetFields?: string[];
+    maxResults?: number
+    paginationToken?: string
+    userFields?: string[]
+    expansions?: string[]
+    tweetFields?: string[]
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<Get2UsersIdBlockingResponse> {
-  const searchParams = new URLSearchParams();
-  if (params?.maxResults != null)
-    searchParams.set("max_results", String(params.maxResults));
+  const searchParams = new URLSearchParams()
+  if (params?.maxResults != null) searchParams.set('max_results', String(params.maxResults))
   if (params?.paginationToken != null)
-    searchParams.set("pagination_token", String(params.paginationToken));
+    searchParams.set('pagination_token', String(params.paginationToken))
   if (params?.userFields != null) {
-    for (const v of params.userFields)
-      searchParams.append("user.fields", String(v));
+    for (const v of params.userFields) searchParams.append('user.fields', String(v))
   }
   if (params?.expansions != null) {
-    for (const v of params.expansions)
-      searchParams.append("expansions", String(v));
+    for (const v of params.expansions) searchParams.append('expansions', String(v))
   }
   if (params?.tweetFields != null) {
-    for (const v of params.tweetFields)
-      searchParams.append("tweet.fields", String(v));
+    for (const v of params.tweetFields) searchParams.append('tweet.fields', String(v))
   }
   const res = await _request(
-    "GET",
+    'GET',
     `/2/users/${encodeURIComponent(id)}/blocking`,
     { searchParams },
-    config,
-  );
-  return Get2UsersIdBlockingResponseSchema.parse(await res.json());
+    config
+  )
+  return Get2UsersIdBlockingResponseSchema.parse(await res.json())
 }
 
 export async function usersIdBlock(
   id: string,
   body: BlockUserRequest,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<BlockUserMutationResponse> {
-  BlockUserRequestSchema.parse(body);
+  BlockUserRequestSchema.parse(body)
   const res = await _request(
-    "POST",
+    'POST',
     `/2/users/${encodeURIComponent(id)}/blocking`,
     { body },
-    config,
-  );
-  return BlockUserMutationResponseSchema.parse(await res.json());
+    config
+  )
+  return BlockUserMutationResponseSchema.parse(await res.json())
 }
 
 export async function getUsersIdBookmarks(
   id: string,
   params?: {
-    maxResults?: number;
-    paginationToken?: string;
-    tweetFields?: string[];
-    expansions?: string[];
-    mediaFields?: string[];
-    pollFields?: string[];
-    userFields?: string[];
-    placeFields?: string[];
+    maxResults?: number
+    paginationToken?: string
+    tweetFields?: string[]
+    expansions?: string[]
+    mediaFields?: string[]
+    pollFields?: string[]
+    userFields?: string[]
+    placeFields?: string[]
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<Get2UsersIdBookmarksResponse> {
-  const searchParams = new URLSearchParams();
-  if (params?.maxResults != null)
-    searchParams.set("max_results", String(params.maxResults));
+  const searchParams = new URLSearchParams()
+  if (params?.maxResults != null) searchParams.set('max_results', String(params.maxResults))
   if (params?.paginationToken != null)
-    searchParams.set("pagination_token", String(params.paginationToken));
+    searchParams.set('pagination_token', String(params.paginationToken))
   if (params?.tweetFields != null) {
-    for (const v of params.tweetFields)
-      searchParams.append("tweet.fields", String(v));
+    for (const v of params.tweetFields) searchParams.append('tweet.fields', String(v))
   }
   if (params?.expansions != null) {
-    for (const v of params.expansions)
-      searchParams.append("expansions", String(v));
+    for (const v of params.expansions) searchParams.append('expansions', String(v))
   }
   if (params?.mediaFields != null) {
-    for (const v of params.mediaFields)
-      searchParams.append("media.fields", String(v));
+    for (const v of params.mediaFields) searchParams.append('media.fields', String(v))
   }
   if (params?.pollFields != null) {
-    for (const v of params.pollFields)
-      searchParams.append("poll.fields", String(v));
+    for (const v of params.pollFields) searchParams.append('poll.fields', String(v))
   }
   if (params?.userFields != null) {
-    for (const v of params.userFields)
-      searchParams.append("user.fields", String(v));
+    for (const v of params.userFields) searchParams.append('user.fields', String(v))
   }
   if (params?.placeFields != null) {
-    for (const v of params.placeFields)
-      searchParams.append("place.fields", String(v));
+    for (const v of params.placeFields) searchParams.append('place.fields', String(v))
   }
   const res = await _request(
-    "GET",
+    'GET',
     `/2/users/${encodeURIComponent(id)}/bookmarks`,
     { searchParams },
-    config,
-  );
-  return Get2UsersIdBookmarksResponseSchema.parse(await res.json());
+    config
+  )
+  return Get2UsersIdBookmarksResponseSchema.parse(await res.json())
 }
 
 export async function postUsersIdBookmarks(
   id: string,
   body: BookmarkAddRequest,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<BookmarkMutationResponse> {
-  BookmarkAddRequestSchema.parse(body);
+  BookmarkAddRequestSchema.parse(body)
   const res = await _request(
-    "POST",
+    'POST',
     `/2/users/${encodeURIComponent(id)}/bookmarks`,
     { body },
-    config,
-  );
-  return BookmarkMutationResponseSchema.parse(await res.json());
+    config
+  )
+  return BookmarkMutationResponseSchema.parse(await res.json())
 }
 
 export async function usersIdBookmarksDelete(
   id: string,
   tweetId: string,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<BookmarkMutationResponse> {
   const res = await _request(
-    "DELETE",
+    'DELETE',
     `/2/users/${encodeURIComponent(id)}/bookmarks/${encodeURIComponent(tweetId)}`,
     {},
-    config,
-  );
-  return BookmarkMutationResponseSchema.parse(await res.json());
+    config
+  )
+  return BookmarkMutationResponseSchema.parse(await res.json())
 }
 
 export async function userFollowedLists(
   id: string,
   params?: {
-    maxResults?: number;
-    paginationToken?: string;
-    listFields?: string[];
-    expansions?: string[];
-    userFields?: string[];
+    maxResults?: number
+    paginationToken?: string
+    listFields?: string[]
+    expansions?: string[]
+    userFields?: string[]
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<Get2UsersIdFollowedListsResponse> {
-  const searchParams = new URLSearchParams();
-  if (params?.maxResults != null)
-    searchParams.set("max_results", String(params.maxResults));
+  const searchParams = new URLSearchParams()
+  if (params?.maxResults != null) searchParams.set('max_results', String(params.maxResults))
   if (params?.paginationToken != null)
-    searchParams.set("pagination_token", String(params.paginationToken));
+    searchParams.set('pagination_token', String(params.paginationToken))
   if (params?.listFields != null) {
-    for (const v of params.listFields)
-      searchParams.append("list.fields", String(v));
+    for (const v of params.listFields) searchParams.append('list.fields', String(v))
   }
   if (params?.expansions != null) {
-    for (const v of params.expansions)
-      searchParams.append("expansions", String(v));
+    for (const v of params.expansions) searchParams.append('expansions', String(v))
   }
   if (params?.userFields != null) {
-    for (const v of params.userFields)
-      searchParams.append("user.fields", String(v));
+    for (const v of params.userFields) searchParams.append('user.fields', String(v))
   }
   const res = await _request(
-    "GET",
+    'GET',
     `/2/users/${encodeURIComponent(id)}/followed_lists`,
     { searchParams },
-    config,
-  );
-  return Get2UsersIdFollowedListsResponseSchema.parse(await res.json());
+    config
+  )
+  return Get2UsersIdFollowedListsResponseSchema.parse(await res.json())
 }
 
 export async function listUserFollow(
   id: string,
   body: ListFollowedRequest,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<ListFollowedResponse> {
-  ListFollowedRequestSchema.parse(body);
+  ListFollowedRequestSchema.parse(body)
   const res = await _request(
-    "POST",
+    'POST',
     `/2/users/${encodeURIComponent(id)}/followed_lists`,
     { body },
-    config,
-  );
-  return ListFollowedResponseSchema.parse(await res.json());
+    config
+  )
+  return ListFollowedResponseSchema.parse(await res.json())
 }
 
 export async function listUserUnfollow(
   id: string,
   listId: string,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<ListFollowedResponse> {
   const res = await _request(
-    "DELETE",
+    'DELETE',
     `/2/users/${encodeURIComponent(id)}/followed_lists/${encodeURIComponent(listId)}`,
     {},
-    config,
-  );
-  return ListFollowedResponseSchema.parse(await res.json());
+    config
+  )
+  return ListFollowedResponseSchema.parse(await res.json())
 }
 
 export async function usersIdFollowers(
   id: string,
   params?: {
-    maxResults?: number;
-    paginationToken?: string;
-    userFields?: string[];
-    expansions?: string[];
-    tweetFields?: string[];
+    maxResults?: number
+    paginationToken?: string
+    userFields?: string[]
+    expansions?: string[]
+    tweetFields?: string[]
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<Get2UsersIdFollowersResponse> {
-  const searchParams = new URLSearchParams();
-  if (params?.maxResults != null)
-    searchParams.set("max_results", String(params.maxResults));
+  const searchParams = new URLSearchParams()
+  if (params?.maxResults != null) searchParams.set('max_results', String(params.maxResults))
   if (params?.paginationToken != null)
-    searchParams.set("pagination_token", String(params.paginationToken));
+    searchParams.set('pagination_token', String(params.paginationToken))
   if (params?.userFields != null) {
-    for (const v of params.userFields)
-      searchParams.append("user.fields", String(v));
+    for (const v of params.userFields) searchParams.append('user.fields', String(v))
   }
   if (params?.expansions != null) {
-    for (const v of params.expansions)
-      searchParams.append("expansions", String(v));
+    for (const v of params.expansions) searchParams.append('expansions', String(v))
   }
   if (params?.tweetFields != null) {
-    for (const v of params.tweetFields)
-      searchParams.append("tweet.fields", String(v));
+    for (const v of params.tweetFields) searchParams.append('tweet.fields', String(v))
   }
   const res = await _request(
-    "GET",
+    'GET',
     `/2/users/${encodeURIComponent(id)}/followers`,
     { searchParams },
-    config,
-  );
-  return Get2UsersIdFollowersResponseSchema.parse(await res.json());
+    config
+  )
+  return Get2UsersIdFollowersResponseSchema.parse(await res.json())
 }
 
 export async function usersIdFollowing(
   id: string,
   params?: {
-    maxResults?: number;
-    paginationToken?: string;
-    userFields?: string[];
-    expansions?: string[];
-    tweetFields?: string[];
+    maxResults?: number
+    paginationToken?: string
+    userFields?: string[]
+    expansions?: string[]
+    tweetFields?: string[]
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<Get2UsersIdFollowingResponse> {
-  const searchParams = new URLSearchParams();
-  if (params?.maxResults != null)
-    searchParams.set("max_results", String(params.maxResults));
+  const searchParams = new URLSearchParams()
+  if (params?.maxResults != null) searchParams.set('max_results', String(params.maxResults))
   if (params?.paginationToken != null)
-    searchParams.set("pagination_token", String(params.paginationToken));
+    searchParams.set('pagination_token', String(params.paginationToken))
   if (params?.userFields != null) {
-    for (const v of params.userFields)
-      searchParams.append("user.fields", String(v));
+    for (const v of params.userFields) searchParams.append('user.fields', String(v))
   }
   if (params?.expansions != null) {
-    for (const v of params.expansions)
-      searchParams.append("expansions", String(v));
+    for (const v of params.expansions) searchParams.append('expansions', String(v))
   }
   if (params?.tweetFields != null) {
-    for (const v of params.tweetFields)
-      searchParams.append("tweet.fields", String(v));
+    for (const v of params.tweetFields) searchParams.append('tweet.fields', String(v))
   }
   const res = await _request(
-    "GET",
+    'GET',
     `/2/users/${encodeURIComponent(id)}/following`,
     { searchParams },
-    config,
-  );
-  return Get2UsersIdFollowingResponseSchema.parse(await res.json());
+    config
+  )
+  return Get2UsersIdFollowingResponseSchema.parse(await res.json())
 }
 
 export async function usersIdFollow(
   id: string,
   body: UsersFollowingCreateRequest,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<UsersFollowingCreateResponse> {
-  UsersFollowingCreateRequestSchema.parse(body);
+  UsersFollowingCreateRequestSchema.parse(body)
   const res = await _request(
-    "POST",
+    'POST',
     `/2/users/${encodeURIComponent(id)}/following`,
     { body },
-    config,
-  );
-  return UsersFollowingCreateResponseSchema.parse(await res.json());
+    config
+  )
+  return UsersFollowingCreateResponseSchema.parse(await res.json())
 }
 
 export async function usersIdLikedTweets(
   id: string,
   params?: {
-    maxResults?: number;
-    paginationToken?: string;
-    tweetFields?: string[];
-    expansions?: string[];
-    mediaFields?: string[];
-    pollFields?: string[];
-    userFields?: string[];
-    placeFields?: string[];
+    maxResults?: number
+    paginationToken?: string
+    tweetFields?: string[]
+    expansions?: string[]
+    mediaFields?: string[]
+    pollFields?: string[]
+    userFields?: string[]
+    placeFields?: string[]
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<Get2UsersIdLikedTweetsResponse> {
-  const searchParams = new URLSearchParams();
-  if (params?.maxResults != null)
-    searchParams.set("max_results", String(params.maxResults));
+  const searchParams = new URLSearchParams()
+  if (params?.maxResults != null) searchParams.set('max_results', String(params.maxResults))
   if (params?.paginationToken != null)
-    searchParams.set("pagination_token", String(params.paginationToken));
+    searchParams.set('pagination_token', String(params.paginationToken))
   if (params?.tweetFields != null) {
-    for (const v of params.tweetFields)
-      searchParams.append("tweet.fields", String(v));
+    for (const v of params.tweetFields) searchParams.append('tweet.fields', String(v))
   }
   if (params?.expansions != null) {
-    for (const v of params.expansions)
-      searchParams.append("expansions", String(v));
+    for (const v of params.expansions) searchParams.append('expansions', String(v))
   }
   if (params?.mediaFields != null) {
-    for (const v of params.mediaFields)
-      searchParams.append("media.fields", String(v));
+    for (const v of params.mediaFields) searchParams.append('media.fields', String(v))
   }
   if (params?.pollFields != null) {
-    for (const v of params.pollFields)
-      searchParams.append("poll.fields", String(v));
+    for (const v of params.pollFields) searchParams.append('poll.fields', String(v))
   }
   if (params?.userFields != null) {
-    for (const v of params.userFields)
-      searchParams.append("user.fields", String(v));
+    for (const v of params.userFields) searchParams.append('user.fields', String(v))
   }
   if (params?.placeFields != null) {
-    for (const v of params.placeFields)
-      searchParams.append("place.fields", String(v));
+    for (const v of params.placeFields) searchParams.append('place.fields', String(v))
   }
   const res = await _request(
-    "GET",
+    'GET',
     `/2/users/${encodeURIComponent(id)}/liked_tweets`,
     { searchParams },
-    config,
-  );
-  return Get2UsersIdLikedTweetsResponseSchema.parse(await res.json());
+    config
+  )
+  return Get2UsersIdLikedTweetsResponseSchema.parse(await res.json())
 }
 
 export async function usersIdLike(
   id: string,
   body: UsersLikesCreateRequest,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<UsersLikesCreateResponse> {
-  UsersLikesCreateRequestSchema.parse(body);
-  const res = await _request(
-    "POST",
-    `/2/users/${encodeURIComponent(id)}/likes`,
-    { body },
-    config,
-  );
-  return UsersLikesCreateResponseSchema.parse(await res.json());
+  UsersLikesCreateRequestSchema.parse(body)
+  const res = await _request('POST', `/2/users/${encodeURIComponent(id)}/likes`, { body }, config)
+  return UsersLikesCreateResponseSchema.parse(await res.json())
 }
 
 export async function usersIdUnlike(
   id: string,
   tweetId: string,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<UsersLikesDeleteResponse> {
   const res = await _request(
-    "DELETE",
+    'DELETE',
     `/2/users/${encodeURIComponent(id)}/likes/${encodeURIComponent(tweetId)}`,
     {},
-    config,
-  );
-  return UsersLikesDeleteResponseSchema.parse(await res.json());
+    config
+  )
+  return UsersLikesDeleteResponseSchema.parse(await res.json())
 }
 
 export async function getUserListMemberships(
   id: string,
   params?: {
-    maxResults?: number;
-    paginationToken?: string;
-    listFields?: string[];
-    expansions?: string[];
-    userFields?: string[];
+    maxResults?: number
+    paginationToken?: string
+    listFields?: string[]
+    expansions?: string[]
+    userFields?: string[]
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<Get2UsersIdListMembershipsResponse> {
-  const searchParams = new URLSearchParams();
-  if (params?.maxResults != null)
-    searchParams.set("max_results", String(params.maxResults));
+  const searchParams = new URLSearchParams()
+  if (params?.maxResults != null) searchParams.set('max_results', String(params.maxResults))
   if (params?.paginationToken != null)
-    searchParams.set("pagination_token", String(params.paginationToken));
+    searchParams.set('pagination_token', String(params.paginationToken))
   if (params?.listFields != null) {
-    for (const v of params.listFields)
-      searchParams.append("list.fields", String(v));
+    for (const v of params.listFields) searchParams.append('list.fields', String(v))
   }
   if (params?.expansions != null) {
-    for (const v of params.expansions)
-      searchParams.append("expansions", String(v));
+    for (const v of params.expansions) searchParams.append('expansions', String(v))
   }
   if (params?.userFields != null) {
-    for (const v of params.userFields)
-      searchParams.append("user.fields", String(v));
+    for (const v of params.userFields) searchParams.append('user.fields', String(v))
   }
   const res = await _request(
-    "GET",
+    'GET',
     `/2/users/${encodeURIComponent(id)}/list_memberships`,
     { searchParams },
-    config,
-  );
-  return Get2UsersIdListMembershipsResponseSchema.parse(await res.json());
+    config
+  )
+  return Get2UsersIdListMembershipsResponseSchema.parse(await res.json())
 }
 
 export async function usersIdMentions(
   id: string,
   params?: {
-    sinceId?: string;
-    untilId?: string;
-    maxResults?: number;
-    paginationToken?: string;
-    startTime?: string;
-    endTime?: string;
-    tweetFields?: string[];
-    expansions?: string[];
-    mediaFields?: string[];
-    pollFields?: string[];
-    userFields?: string[];
-    placeFields?: string[];
+    sinceId?: string
+    untilId?: string
+    maxResults?: number
+    paginationToken?: string
+    startTime?: string
+    endTime?: string
+    tweetFields?: string[]
+    expansions?: string[]
+    mediaFields?: string[]
+    pollFields?: string[]
+    userFields?: string[]
+    placeFields?: string[]
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<Get2UsersIdMentionsResponse> {
-  const searchParams = new URLSearchParams();
-  if (params?.sinceId != null)
-    searchParams.set("since_id", String(params.sinceId));
-  if (params?.untilId != null)
-    searchParams.set("until_id", String(params.untilId));
-  if (params?.maxResults != null)
-    searchParams.set("max_results", String(params.maxResults));
+  const searchParams = new URLSearchParams()
+  if (params?.sinceId != null) searchParams.set('since_id', String(params.sinceId))
+  if (params?.untilId != null) searchParams.set('until_id', String(params.untilId))
+  if (params?.maxResults != null) searchParams.set('max_results', String(params.maxResults))
   if (params?.paginationToken != null)
-    searchParams.set("pagination_token", String(params.paginationToken));
-  if (params?.startTime != null)
-    searchParams.set("start_time", String(params.startTime));
-  if (params?.endTime != null)
-    searchParams.set("end_time", String(params.endTime));
+    searchParams.set('pagination_token', String(params.paginationToken))
+  if (params?.startTime != null) searchParams.set('start_time', String(params.startTime))
+  if (params?.endTime != null) searchParams.set('end_time', String(params.endTime))
   if (params?.tweetFields != null) {
-    for (const v of params.tweetFields)
-      searchParams.append("tweet.fields", String(v));
+    for (const v of params.tweetFields) searchParams.append('tweet.fields', String(v))
   }
   if (params?.expansions != null) {
-    for (const v of params.expansions)
-      searchParams.append("expansions", String(v));
+    for (const v of params.expansions) searchParams.append('expansions', String(v))
   }
   if (params?.mediaFields != null) {
-    for (const v of params.mediaFields)
-      searchParams.append("media.fields", String(v));
+    for (const v of params.mediaFields) searchParams.append('media.fields', String(v))
   }
   if (params?.pollFields != null) {
-    for (const v of params.pollFields)
-      searchParams.append("poll.fields", String(v));
+    for (const v of params.pollFields) searchParams.append('poll.fields', String(v))
   }
   if (params?.userFields != null) {
-    for (const v of params.userFields)
-      searchParams.append("user.fields", String(v));
+    for (const v of params.userFields) searchParams.append('user.fields', String(v))
   }
   if (params?.placeFields != null) {
-    for (const v of params.placeFields)
-      searchParams.append("place.fields", String(v));
+    for (const v of params.placeFields) searchParams.append('place.fields', String(v))
   }
   const res = await _request(
-    "GET",
+    'GET',
     `/2/users/${encodeURIComponent(id)}/mentions`,
     { searchParams },
-    config,
-  );
-  return Get2UsersIdMentionsResponseSchema.parse(await res.json());
+    config
+  )
+  return Get2UsersIdMentionsResponseSchema.parse(await res.json())
 }
 
 export async function usersIdMuting(
   id: string,
   params?: {
-    maxResults?: number;
-    paginationToken?: string;
-    userFields?: string[];
-    expansions?: string[];
-    tweetFields?: string[];
+    maxResults?: number
+    paginationToken?: string
+    userFields?: string[]
+    expansions?: string[]
+    tweetFields?: string[]
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<Get2UsersIdMutingResponse> {
-  const searchParams = new URLSearchParams();
-  if (params?.maxResults != null)
-    searchParams.set("max_results", String(params.maxResults));
+  const searchParams = new URLSearchParams()
+  if (params?.maxResults != null) searchParams.set('max_results', String(params.maxResults))
   if (params?.paginationToken != null)
-    searchParams.set("pagination_token", String(params.paginationToken));
+    searchParams.set('pagination_token', String(params.paginationToken))
   if (params?.userFields != null) {
-    for (const v of params.userFields)
-      searchParams.append("user.fields", String(v));
+    for (const v of params.userFields) searchParams.append('user.fields', String(v))
   }
   if (params?.expansions != null) {
-    for (const v of params.expansions)
-      searchParams.append("expansions", String(v));
+    for (const v of params.expansions) searchParams.append('expansions', String(v))
   }
   if (params?.tweetFields != null) {
-    for (const v of params.tweetFields)
-      searchParams.append("tweet.fields", String(v));
+    for (const v of params.tweetFields) searchParams.append('tweet.fields', String(v))
   }
   const res = await _request(
-    "GET",
+    'GET',
     `/2/users/${encodeURIComponent(id)}/muting`,
     { searchParams },
-    config,
-  );
-  return Get2UsersIdMutingResponseSchema.parse(await res.json());
+    config
+  )
+  return Get2UsersIdMutingResponseSchema.parse(await res.json())
 }
 
 export async function usersIdMute(
   id: string,
   body: MuteUserRequest,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<MuteUserMutationResponse> {
-  MuteUserRequestSchema.parse(body);
-  const res = await _request(
-    "POST",
-    `/2/users/${encodeURIComponent(id)}/muting`,
-    { body },
-    config,
-  );
-  return MuteUserMutationResponseSchema.parse(await res.json());
+  MuteUserRequestSchema.parse(body)
+  const res = await _request('POST', `/2/users/${encodeURIComponent(id)}/muting`, { body }, config)
+  return MuteUserMutationResponseSchema.parse(await res.json())
 }
 
 export async function listUserOwnedLists(
   id: string,
   params?: {
-    maxResults?: number;
-    paginationToken?: string;
-    listFields?: string[];
-    expansions?: string[];
-    userFields?: string[];
+    maxResults?: number
+    paginationToken?: string
+    listFields?: string[]
+    expansions?: string[]
+    userFields?: string[]
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<Get2UsersIdOwnedListsResponse> {
-  const searchParams = new URLSearchParams();
-  if (params?.maxResults != null)
-    searchParams.set("max_results", String(params.maxResults));
+  const searchParams = new URLSearchParams()
+  if (params?.maxResults != null) searchParams.set('max_results', String(params.maxResults))
   if (params?.paginationToken != null)
-    searchParams.set("pagination_token", String(params.paginationToken));
+    searchParams.set('pagination_token', String(params.paginationToken))
   if (params?.listFields != null) {
-    for (const v of params.listFields)
-      searchParams.append("list.fields", String(v));
+    for (const v of params.listFields) searchParams.append('list.fields', String(v))
   }
   if (params?.expansions != null) {
-    for (const v of params.expansions)
-      searchParams.append("expansions", String(v));
+    for (const v of params.expansions) searchParams.append('expansions', String(v))
   }
   if (params?.userFields != null) {
-    for (const v of params.userFields)
-      searchParams.append("user.fields", String(v));
+    for (const v of params.userFields) searchParams.append('user.fields', String(v))
   }
   const res = await _request(
-    "GET",
+    'GET',
     `/2/users/${encodeURIComponent(id)}/owned_lists`,
     { searchParams },
-    config,
-  );
-  return Get2UsersIdOwnedListsResponseSchema.parse(await res.json());
+    config
+  )
+  return Get2UsersIdOwnedListsResponseSchema.parse(await res.json())
 }
 
 export async function listUserPinnedLists(
   id: string,
   params?: {
-    listFields?: string[];
-    expansions?: string[];
-    userFields?: string[];
+    listFields?: string[]
+    expansions?: string[]
+    userFields?: string[]
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<Get2UsersIdPinnedListsResponse> {
-  const searchParams = new URLSearchParams();
+  const searchParams = new URLSearchParams()
   if (params?.listFields != null) {
-    for (const v of params.listFields)
-      searchParams.append("list.fields", String(v));
+    for (const v of params.listFields) searchParams.append('list.fields', String(v))
   }
   if (params?.expansions != null) {
-    for (const v of params.expansions)
-      searchParams.append("expansions", String(v));
+    for (const v of params.expansions) searchParams.append('expansions', String(v))
   }
   if (params?.userFields != null) {
-    for (const v of params.userFields)
-      searchParams.append("user.fields", String(v));
+    for (const v of params.userFields) searchParams.append('user.fields', String(v))
   }
   const res = await _request(
-    "GET",
+    'GET',
     `/2/users/${encodeURIComponent(id)}/pinned_lists`,
     { searchParams },
-    config,
-  );
-  return Get2UsersIdPinnedListsResponseSchema.parse(await res.json());
+    config
+  )
+  return Get2UsersIdPinnedListsResponseSchema.parse(await res.json())
 }
 
 export async function listUserPin(
   id: string,
   body: ListPinnedRequest,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<ListPinnedResponse> {
-  ListPinnedRequestSchema.parse(body);
+  ListPinnedRequestSchema.parse(body)
   const res = await _request(
-    "POST",
+    'POST',
     `/2/users/${encodeURIComponent(id)}/pinned_lists`,
     { body },
-    config,
-  );
-  return ListPinnedResponseSchema.parse(await res.json());
+    config
+  )
+  return ListPinnedResponseSchema.parse(await res.json())
 }
 
 export async function listUserUnpin(
   id: string,
   listId: string,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<ListUnpinResponse> {
   const res = await _request(
-    "DELETE",
+    'DELETE',
     `/2/users/${encodeURIComponent(id)}/pinned_lists/${encodeURIComponent(listId)}`,
     {},
-    config,
-  );
-  return ListUnpinResponseSchema.parse(await res.json());
+    config
+  )
+  return ListUnpinResponseSchema.parse(await res.json())
 }
 
 export async function usersIdRetweets(
   id: string,
   body: UsersRetweetsCreateRequest,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<UsersRetweetsCreateResponse> {
-  UsersRetweetsCreateRequestSchema.parse(body);
+  UsersRetweetsCreateRequestSchema.parse(body)
   const res = await _request(
-    "POST",
+    'POST',
     `/2/users/${encodeURIComponent(id)}/retweets`,
     { body },
-    config,
-  );
-  return UsersRetweetsCreateResponseSchema.parse(await res.json());
+    config
+  )
+  return UsersRetweetsCreateResponseSchema.parse(await res.json())
 }
 
 export async function usersIdUnretweets(
   id: string,
   sourceTweetId: string,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<UsersRetweetsDeleteResponse> {
   const res = await _request(
-    "DELETE",
+    'DELETE',
     `/2/users/${encodeURIComponent(id)}/retweets/${encodeURIComponent(sourceTweetId)}`,
     {},
-    config,
-  );
-  return UsersRetweetsDeleteResponseSchema.parse(await res.json());
+    config
+  )
+  return UsersRetweetsDeleteResponseSchema.parse(await res.json())
 }
 
 export async function usersIdTimeline(
   id: string,
   params?: {
-    sinceId?: string;
-    untilId?: string;
-    maxResults?: number;
-    paginationToken?: string;
-    exclude?: string[];
-    startTime?: string;
-    endTime?: string;
-    tweetFields?: string[];
-    expansions?: string[];
-    mediaFields?: string[];
-    pollFields?: string[];
-    userFields?: string[];
-    placeFields?: string[];
+    sinceId?: string
+    untilId?: string
+    maxResults?: number
+    paginationToken?: string
+    exclude?: string[]
+    startTime?: string
+    endTime?: string
+    tweetFields?: string[]
+    expansions?: string[]
+    mediaFields?: string[]
+    pollFields?: string[]
+    userFields?: string[]
+    placeFields?: string[]
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<Get2UsersIdTimelinesReverseChronologicalResponse> {
-  const searchParams = new URLSearchParams();
-  if (params?.sinceId != null)
-    searchParams.set("since_id", String(params.sinceId));
-  if (params?.untilId != null)
-    searchParams.set("until_id", String(params.untilId));
-  if (params?.maxResults != null)
-    searchParams.set("max_results", String(params.maxResults));
+  const searchParams = new URLSearchParams()
+  if (params?.sinceId != null) searchParams.set('since_id', String(params.sinceId))
+  if (params?.untilId != null) searchParams.set('until_id', String(params.untilId))
+  if (params?.maxResults != null) searchParams.set('max_results', String(params.maxResults))
   if (params?.paginationToken != null)
-    searchParams.set("pagination_token", String(params.paginationToken));
+    searchParams.set('pagination_token', String(params.paginationToken))
   if (params?.exclude != null) {
-    for (const v of params.exclude) searchParams.append("exclude", String(v));
+    for (const v of params.exclude) searchParams.append('exclude', String(v))
   }
-  if (params?.startTime != null)
-    searchParams.set("start_time", String(params.startTime));
-  if (params?.endTime != null)
-    searchParams.set("end_time", String(params.endTime));
+  if (params?.startTime != null) searchParams.set('start_time', String(params.startTime))
+  if (params?.endTime != null) searchParams.set('end_time', String(params.endTime))
   if (params?.tweetFields != null) {
-    for (const v of params.tweetFields)
-      searchParams.append("tweet.fields", String(v));
+    for (const v of params.tweetFields) searchParams.append('tweet.fields', String(v))
   }
   if (params?.expansions != null) {
-    for (const v of params.expansions)
-      searchParams.append("expansions", String(v));
+    for (const v of params.expansions) searchParams.append('expansions', String(v))
   }
   if (params?.mediaFields != null) {
-    for (const v of params.mediaFields)
-      searchParams.append("media.fields", String(v));
+    for (const v of params.mediaFields) searchParams.append('media.fields', String(v))
   }
   if (params?.pollFields != null) {
-    for (const v of params.pollFields)
-      searchParams.append("poll.fields", String(v));
+    for (const v of params.pollFields) searchParams.append('poll.fields', String(v))
   }
   if (params?.userFields != null) {
-    for (const v of params.userFields)
-      searchParams.append("user.fields", String(v));
+    for (const v of params.userFields) searchParams.append('user.fields', String(v))
   }
   if (params?.placeFields != null) {
-    for (const v of params.placeFields)
-      searchParams.append("place.fields", String(v));
+    for (const v of params.placeFields) searchParams.append('place.fields', String(v))
   }
   const res = await _request(
-    "GET",
+    'GET',
     `/2/users/${encodeURIComponent(id)}/timelines/reverse_chronological`,
     { searchParams },
-    config,
-  );
-  return Get2UsersIdTimelinesReverseChronologicalResponseSchema.parse(
-    await res.json(),
-  );
+    config
+  )
+  return Get2UsersIdTimelinesReverseChronologicalResponseSchema.parse(await res.json())
 }
 
 export async function usersIdTweets(
   id: string,
   params?: {
-    sinceId?: string;
-    untilId?: string;
-    maxResults?: number;
-    paginationToken?: string;
-    exclude?: string[];
-    startTime?: string;
-    endTime?: string;
-    tweetFields?: string[];
-    expansions?: string[];
-    mediaFields?: string[];
-    pollFields?: string[];
-    userFields?: string[];
-    placeFields?: string[];
+    sinceId?: string
+    untilId?: string
+    maxResults?: number
+    paginationToken?: string
+    exclude?: string[]
+    startTime?: string
+    endTime?: string
+    tweetFields?: string[]
+    expansions?: string[]
+    mediaFields?: string[]
+    pollFields?: string[]
+    userFields?: string[]
+    placeFields?: string[]
   },
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<Get2UsersIdTweetsResponse> {
-  const searchParams = new URLSearchParams();
-  if (params?.sinceId != null)
-    searchParams.set("since_id", String(params.sinceId));
-  if (params?.untilId != null)
-    searchParams.set("until_id", String(params.untilId));
-  if (params?.maxResults != null)
-    searchParams.set("max_results", String(params.maxResults));
+  const searchParams = new URLSearchParams()
+  if (params?.sinceId != null) searchParams.set('since_id', String(params.sinceId))
+  if (params?.untilId != null) searchParams.set('until_id', String(params.untilId))
+  if (params?.maxResults != null) searchParams.set('max_results', String(params.maxResults))
   if (params?.paginationToken != null)
-    searchParams.set("pagination_token", String(params.paginationToken));
+    searchParams.set('pagination_token', String(params.paginationToken))
   if (params?.exclude != null) {
-    for (const v of params.exclude) searchParams.append("exclude", String(v));
+    for (const v of params.exclude) searchParams.append('exclude', String(v))
   }
-  if (params?.startTime != null)
-    searchParams.set("start_time", String(params.startTime));
-  if (params?.endTime != null)
-    searchParams.set("end_time", String(params.endTime));
+  if (params?.startTime != null) searchParams.set('start_time', String(params.startTime))
+  if (params?.endTime != null) searchParams.set('end_time', String(params.endTime))
   if (params?.tweetFields != null) {
-    for (const v of params.tweetFields)
-      searchParams.append("tweet.fields", String(v));
+    for (const v of params.tweetFields) searchParams.append('tweet.fields', String(v))
   }
   if (params?.expansions != null) {
-    for (const v of params.expansions)
-      searchParams.append("expansions", String(v));
+    for (const v of params.expansions) searchParams.append('expansions', String(v))
   }
   if (params?.mediaFields != null) {
-    for (const v of params.mediaFields)
-      searchParams.append("media.fields", String(v));
+    for (const v of params.mediaFields) searchParams.append('media.fields', String(v))
   }
   if (params?.pollFields != null) {
-    for (const v of params.pollFields)
-      searchParams.append("poll.fields", String(v));
+    for (const v of params.pollFields) searchParams.append('poll.fields', String(v))
   }
   if (params?.userFields != null) {
-    for (const v of params.userFields)
-      searchParams.append("user.fields", String(v));
+    for (const v of params.userFields) searchParams.append('user.fields', String(v))
   }
   if (params?.placeFields != null) {
-    for (const v of params.placeFields)
-      searchParams.append("place.fields", String(v));
+    for (const v of params.placeFields) searchParams.append('place.fields', String(v))
   }
   const res = await _request(
-    "GET",
+    'GET',
     `/2/users/${encodeURIComponent(id)}/tweets`,
     { searchParams },
-    config,
-  );
-  return Get2UsersIdTweetsResponseSchema.parse(await res.json());
+    config
+  )
+  return Get2UsersIdTweetsResponseSchema.parse(await res.json())
 }
 
 export async function usersIdUnblock(
   sourceUserId: string,
   targetUserId: string,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<BlockUserMutationResponse> {
   const res = await _request(
-    "DELETE",
+    'DELETE',
     `/2/users/${encodeURIComponent(sourceUserId)}/blocking/${encodeURIComponent(targetUserId)}`,
     {},
-    config,
-  );
-  return BlockUserMutationResponseSchema.parse(await res.json());
+    config
+  )
+  return BlockUserMutationResponseSchema.parse(await res.json())
 }
 
 export async function usersIdUnfollow(
   sourceUserId: string,
   targetUserId: string,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<UsersFollowingDeleteResponse> {
   const res = await _request(
-    "DELETE",
+    'DELETE',
     `/2/users/${encodeURIComponent(sourceUserId)}/following/${encodeURIComponent(targetUserId)}`,
     {},
-    config,
-  );
-  return UsersFollowingDeleteResponseSchema.parse(await res.json());
+    config
+  )
+  return UsersFollowingDeleteResponseSchema.parse(await res.json())
 }
 
 export async function usersIdUnmute(
   sourceUserId: string,
   targetUserId: string,
-  config?: Partial<ClientConfig>,
+  config?: Partial<ClientConfig>
 ): Promise<MuteUserMutationResponse> {
   const res = await _request(
-    "DELETE",
+    'DELETE',
     `/2/users/${encodeURIComponent(sourceUserId)}/muting/${encodeURIComponent(targetUserId)}`,
     {},
-    config,
-  );
-  return MuteUserMutationResponseSchema.parse(await res.json());
+    config
+  )
+  return MuteUserMutationResponseSchema.parse(await res.json())
 }

@@ -2,19 +2,19 @@
 
 export interface ClientConfig {
   /** Base URL for all API requests (e.g. 'https://api.example.com') */
-  baseUrl: string
+  baseUrl: string;
   /**
    * Bearer token or a function that returns one (supports async refresh).
    * When provided, adds `Authorization: Bearer <token>` to every request.
    */
-  token?: string | (() => string | Promise<string>)
+  token?: string | (() => string | Promise<string>);
   /**
    * Fetch credentials mode. Use 'include' for cookie-based auth.
    * Defaults to 'same-origin'.
    */
-  credentials?: RequestCredentials
+  credentials?: RequestCredentials;
   /** Additional headers sent with every request */
-  headers?: Record<string, string>
+  headers?: Record<string, string>;
   /**
    * Global error hook — called with every non-2xx response error before it is
    * thrown. Use for logging, monitoring, or triggering auth refresh flows.
@@ -24,20 +24,20 @@ export interface ClientConfig {
    *   onError: (err) => Sentry.captureException(err),
    * })
    */
-  onError?: (err: Error) => void
+  onError?: (err: Error) => void;
 }
 
 let _config: ClientConfig = {
-  baseUrl: '',
-  credentials: 'same-origin',
-}
+  baseUrl: "",
+  credentials: "same-origin",
+};
 
 /** Configure the API client. Call once at app startup before making any requests. */
 export function configureClient(config: ClientConfig): void {
-  _config = { ..._config, ...config }
+  _config = { ..._config, ...config };
 }
 
 /** @internal — used by generated fetch functions */
 export function getConfig(): Readonly<ClientConfig> {
-  return _config
+  return _config;
 }
