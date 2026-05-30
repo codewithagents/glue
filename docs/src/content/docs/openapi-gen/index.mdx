@@ -20,6 +20,8 @@ Running the generator produces up to five files in your output directory:
 | `index.ts`         | Barrel re-export of all three files above                                              |
 | `server.ts`        | `createServerClient()` factory (generated only when `server_client: true`)             |
 
+When `input_schema` is set, the generator also bootstraps a `schemas.ts` file at the path you specify on the first run.
+
 Key guarantees:
 
 - **Zero runtime footprint.** The generated client uses only `fetch`. No axios, no wrapper libraries.
@@ -76,18 +78,9 @@ try {
 
 ## Configuration
 
-The config file must be valid JSON. By default the generator looks for `openapi-gen.config.json` in the current working directory. Use `--config <path>` to point at a different file.
+The config file must be valid JSON and must have a `.json` extension. By default the generator looks for `openapi-gen.config.json` in the current working directory.
 
-```bash
-npx openapi-gen --config ./config/openapi-gen.config.json
-```
-
-<Aside type="note">
-  When `--config` is used, all relative paths inside the file resolve from the config file's
-  directory, not from the shell's working directory.
-</Aside>
-
-### Options
+### Full configuration reference
 
 | Field           | Type      | Required | Default | Description                                                                                                              |
 | --------------- | --------- | -------- | ------- | ------------------------------------------------------------------------------------------------------------------------ |
@@ -109,6 +102,23 @@ npx openapi-gen --config ./config/openapi-gen.config.json
 }
 ```
 
+## CLI reference
+
+```bash
+npx openapi-gen                                       # uses openapi-gen.config.json in CWD
+npx openapi-gen --config ./config/openapi-gen.config.json  # explicit path
+```
+
+| Flag       | Argument         | Description                                                                                                                                                         |
+| ---------- | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `--config` | `<path-to.json>` | Path to a config file. Must end in `.json`. Relative paths inside the config file resolve from the config file's directory, not from the shell's working directory. |
+
+<Aside type="note">
+  The `--config` value must end in `.json`. Any other extension is rejected with an error. When
+  `--config` is used, all relative paths inside the config file resolve from the config file's
+  directory, not from the shell's working directory.
+</Aside>
+
 ## Generated files in depth
 
 ### `client-config.ts`
@@ -129,7 +139,9 @@ export function configureClient(config: ClientConfig): void { ... }
 export function getConfig(): Readonly<ClientConfig> { ... }
 ```
 
-Call `configureClient` once at startup. The `token` field accepts a string or an async function, called per request, so JWT refresh flows work automatically.
+The default `credentials` is `'same-origin'`. When the spec declares a cookie-based `apiKey` security scheme, the generated default is `'include'` instead.
+
+Call `configureClient` once at startup. Calling it a second time merges into the existing config rather than replacing it. The `token` field accepts a string or an async function, called per request, so JWT refresh flows work automatically.
 
 ### `models.ts`
 
@@ -179,6 +191,41 @@ export async function createTask(
 ): Promise<Task> { ... }
 ```
 
+## Error handling
+
+Every generated function throws `ApiError` for non-2xx responses. The class is emitted directly into `client.ts`:
+
+```typescript
+// src/api/client.ts  (auto-generated)
+export class ApiError extends Error {
+  constructor(
+    public readonly status: number, // HTTP status code, e.g. 422
+    public readonly body: unknown // parsed JSON body, or null if parsing failed
+  ) {
+    super(`API error ${status}`)
+    this.name = 'ApiError'
+  }
+}
+```
+
+Use `instanceof` to narrow and read `err.status` and `err.body`:
+
+```typescript
+try {
+  const task = await createTask({ title: 'Ship it' })
+} catch (err) {
+  if (err instanceof ApiError) {
+    console.error(err.status, err.body)
+    // err.body is unknown — narrow it before use:
+    if (typeof err.body === 'object' && err.body !== null && 'message' in err.body) {
+      console.error((err.body as { message: string }).message)
+    }
+  }
+}
+```
+
+`ApiError` is also the direct input to [`@codewithagents/api-errors`](/api-errors), which maps validation errors to form field errors.
+
 ## Usage examples
 
 ### Bearer token auth
@@ -199,6 +246,18 @@ configureClient({
 configureClient({
   baseUrl: 'https://api.example.com',
   credentials: 'include', // sends HttpOnly cookies automatically
+})
+```
+
+### Global error hook
+
+```typescript
+configureClient({
+  baseUrl: 'https://api.example.com',
+  onError: (err) => {
+    // called before every ApiError is thrown — use for logging or monitoring
+    Sentry.captureException(err)
+  },
 })
 ```
 
@@ -265,7 +324,7 @@ export default async function TasksPage() {
 
 ### Zod validation (`input_schema`)
 
-Point `input_schema` at a file path and the generator bootstraps a Zod schema file on first run. The file is never overwritten, you own it. Re-running the generator updates `models.ts` to use `z.infer<>` types and adds runtime validation to `client.ts`.
+Point `input_schema` at a file path and the generator bootstraps a Zod schema file on first run. The file is never overwritten. Re-running the generator updates `models.ts` to use `z.infer<>` types and adds runtime validation to `client.ts`.
 
 **Step 1: add `input_schema` to config**
 
@@ -309,22 +368,94 @@ export type CreateTaskRequest = z.infer<typeof CreateTaskRequestSchema>
 
 ```typescript
 // client.ts  (regenerated with Zod integration)
-export async function createTask(body: CreateTaskRequest): Promise<Task> {
-  const validatedBody = CreateTaskRequestSchema.strip().parse(body) // strips UI-only fields
-  const res = await _request('POST', '/api/v1/tasks', { body: validatedBody }, config)
+export async function createTask(
+  body: CreateTaskRequest,
+  config?: Partial<ClientConfig>
+): Promise<Task> {
+  CreateTaskRequestSchema.parse(body) // validates request body before sending
+  const res = await _request('POST', '/api/v1/tasks', { body }, config)
   return TaskSchema.parse(await res.json()) // throws ZodError on bad response
 }
 ```
 
 <Aside type="tip">
-  The `.strip()` call before sending removes any UI-only fields you added to the schema for forms or
-  multi-step wizards, so they never reach the API.
+  The `.passthrough()` call on object schemas keeps unknown server fields in the parsed output,
+  making schemas forward-compatible when the server adds new optional fields.
 </Aside>
 
 <Aside type="note">
   If a schema exists in `schemas.ts` but has no matching component in the spec (or vice versa), the
   generator prints a drift warning to stderr. Your build still succeeds; the warning is advisory.
 </Aside>
+
+## Edge cases and gotchas
+
+### `input_schema` is bootstrapped once and never overwritten
+
+The first time you run the generator with `input_schema` set, the file is created at the path you specified. Every subsequent run skips that write entirely. Delete the file and re-run to get a fresh bootstrap from the current spec.
+
+### `--reset-schema` does not exist
+
+The drift warning printed to stderr mentions "Run with --reset-schema to re-bootstrap." That flag does not exist in the CLI. The only way to reset the schema file is to delete it manually and re-run the generator.
+
+### Zod v4 is required
+
+The bootstrapped `schemas.ts` uses `z.record(z.string(), ...)` (two-argument form) and `z.lazy()` for circular references. Both require Zod v4. Zod v3 does not support the two-argument `z.record` signature.
+
+```bash
+pnpm add zod@^4
+```
+
+### Request body validation uses `.parse()`, not `.strip().parse()`
+
+The generated client calls `Schema.parse(body)` before sending, not `.strip().parse()`. This is intentional: not all generated schemas are `ZodObject` (for example `allOf` maps to `ZodIntersection` and `oneOf` maps to `ZodUnion`, neither of which has `.strip()`). Use a wrapping schema to strip UI-only fields:
+
+```typescript
+// schemas.ts
+export const CreateTaskRequestSchema = z.object({
+  title: z.string().min(1),
+})
+
+// For multi-step forms: extend with UI-only fields
+export const CreateTaskFormSchema = CreateTaskRequestSchema.extend({
+  currentStep: z.number(),
+  termsAccepted: z.boolean(),
+})
+// Use CreateTaskFormSchema for React Hook Form.
+// Strip UI fields before calling the API client:
+const apiBody = CreateTaskRequestSchema.parse(formValues)
+await createTask(apiBody)
+```
+
+### Path safety restrictions
+
+The generator rejects `output` and `input_openapi` paths that resolve to system directories (`/etc`, `/usr`, `/bin`, `/sys`, `/proc`, `/dev`, `C:\Windows`, and similar). This is a security check that prevents accidental misconfiguration.
+
+## Version and runtime requirements
+
+| Requirement    | Minimum                                                                                        |
+| -------------- | ---------------------------------------------------------------------------------------------- |
+| Node.js        | 18 (native `fetch` is required at runtime; the generator itself uses `fs/promises` and `path`) |
+| TypeScript     | 5.x recommended; output targets `strict: true`                                                 |
+| Module format  | ESM only. The generated files use `.js` extensions in all imports (NodeNext resolution)        |
+| Prettier       | Any version in your project — the generator reads your config to format output                 |
+| Zod (optional) | v4 required when `input_schema` is used                                                        |
+
+The package itself is published as ESM. It must be used from an ESM context (`"type": "module"` in `package.json` or a `.mjs` file).
+
+## Troubleshooting
+
+### "Config file not found"
+
+The generator looks for `openapi-gen.config.json` in the current working directory. If you run the CLI from a subdirectory or use a different file name, pass `--config <path>` explicitly. The path argument must end in `.json`.
+
+### Output files are not regenerating
+
+The generator always overwrites `models.ts`, `client.ts`, `client-config.ts`, `index.ts`, and (if enabled) `server.ts` on every run. However, `schemas.ts` (the `input_schema` file) is never overwritten after the first bootstrap. If you want a fresh Zod schema file, delete it and re-run.
+
+### Zod validation is not running at runtime
+
+Ensure your config includes `input_schema` pointing at an existing `schemas.ts` file. On first run with `input_schema` set but no file present, the generator bootstraps the file and also re-generates `models.ts` and `client.ts` with Zod integration in a single pass. If the file did not exist on the first run, run the generator a second time after the file has been created.
 
 ## Works with
 
