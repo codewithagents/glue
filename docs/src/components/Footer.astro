@@ -1,0 +1,16 @@
+---
+// Custom footer: renders Starlight's default footer, then appends the legal
+// links required for a .de presence. Impressum and Datenschutz live on the
+// main CodeWithAgents site; we link out to them rather than duplicating.
+import Default from '@astrojs/starlight/components/Footer.astro';
+---
+
+<Default><slot /></Default>
+
+<div class="legal-links">
+  <a href="https://www.codewithagents.de/impressum">Impressum</a>
+  <span aria-hidden="true">·</span>
+  <a href="https://www.codewithagents.de/datenschutz">Datenschutz</a>
+  <span aria-hidden="true">·</span>
+  <span class="legal-copy">© CodeWithAgents</span>
+</div>

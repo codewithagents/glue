@@ -1,0 +1,96 @@
+---
+title: Compatibility
+description: OpenAPI version support and the 128-spec compatibility matrix.
+---
+
+import { Aside } from '@astrojs/starlight/components'
+
+The generator is tested against 128 real-world public API specs on every relevant PR and on a weekly schedule. Specs include payment processors, cloud platforms, developer tools, social platforms, and government APIs covering a wide range of OpenAPI authoring styles. If your spec uses a pattern that exists in the wild, the generator has almost certainly encountered it.
+
+## OpenAPI version support
+
+| Version                         | Support level                                                                                                                                |
+| ------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| OpenAPI 3.1.x (including 3.1.1) | Primary target. Full support.                                                                                                                |
+| OpenAPI 3.0.x                   | Best-effort. Most features work. 3.0-specific constructs such as `nullable: true` pass through; full 3.0 normalization is a planned feature. |
+| OpenAPI 2.0 (Swagger)           | Not supported.                                                                                                                               |
+
+OpenAPI 3.1 is the primary target across all packages in the suite.
+
+## The compatibility matrix
+
+128 specs live in `examples/specs/`. Every spec has a corresponding config in `examples/configs/`. The suite splits into two tiers.
+
+### Showcase specs (13 committed)
+
+13 specs have their generated output committed to `examples/generated/` and tracked in git. The Showcase CI workflow regenerates these on every relevant PR and fails the build if the output has drifted (`git diff --exit-code examples/generated/`). All 13 generated clients also pass `tsc --noEmit --strict`.
+
+| Spec                 | OpenAPI version | Paths           | Domain                  |
+| -------------------- | --------------- | --------------- | ----------------------- |
+| `redocly-museum`     | 3.1.0           | 5               | Reference / museum      |
+| `1password-connect`  | 3.0.2           | 11              | Security / secrets      |
+| `petstore-3.0`       | 3.0.4           | 13              | Canonical reference     |
+| `adyen-legal-entity` | 3.1.0           | 20              | Fintech / KYC           |
+| `adyen-checkout`     | 3.1.0           | 26              | Payments                |
+| `resend`             | 3.1.0           | 47              | Email / developer tools |
+| `devto`              | 3.0.3           | 49              | Developer community     |
+| `open-meteo`         | 3.0.0           | 1 (deep schema) | Weather                 |
+| `spotify`            | 3.0.3           | 71              | Music                   |
+| `twitter`            | 3.0.0           | 67              | Social                  |
+| `openai`             | 3.0.0           | ~100            | AI                      |
+| `exchangerate`       | 3.0.2           | 1               | Finance / FX rates      |
+| `canada_holidays`    | 3.0.0           | 6               | Public data             |
+
+<Aside type="note">
+  The `resend` spec was patched from `openapi: "3.1.2"` to `"3.1.0"` because 3.1.2 is not an
+  official OpenAPI release. The committed output reflects the patched version.
+</Aside>
+
+### Compatibility matrix specs (115 runtime-only)
+
+The remaining 115 specs are generated during `pnpm test` in each package (parameterized tests). Their output is not committed to git. The test suite fails if any spec produces a generator error.
+
+Together with the 13 showcase specs, all 128 specs generate without errors.
+
+## What "tested" means
+
+The two tiers provide different guarantees.
+
+**Showcase specs (13):**
+
+- Output is committed to `examples/generated/` and tracked in git.
+- The Showcase workflow regenerates them and runs `git diff --exit-code`. Any behavior change that affects output fails CI immediately.
+- All generated files pass `tsc --noEmit --strict` (TypeScript strict mode, no emit).
+- Runs on every PR that touches `packages/openapi-gen/**`, `packages/openapi-react-query/**`, `packages/openapi-server/**`, or `examples/**`, plus a weekly run on Monday at 6am UTC to catch upstream spec drift.
+
+**Compatibility matrix specs (115):**
+
+- Generated at test time by parameterized vitest tests in `pnpm test`.
+- Checked for generator errors (no crashes, no uncaught exceptions).
+- Output is not type-checked and is not committed.
+- Runs on every PR via the standard CI workflow.
+
+<Aside type="tip">
+  If you want to regenerate the showcase output locally after changing the generator, run `pnpm
+  generate` in the `examples/` directory and commit the result. CI will verify it matches on the
+  next push.
+</Aside>
+
+## Edge cases covered
+
+The full 128-spec suite exercises many real-world authoring patterns:
+
+- **Dots in operationIds**: `calendar.calendars.insert` becomes `calendarCalendarsInsert` (Google API style)
+- **Spaces and special characters**: operationIds with whitespace, parentheses, or braces are sanitized to valid identifiers
+- **Kebab-case operationIds**: `post-applePay-sessions` becomes `postApplePaySessions`
+- **Hyphenated schema names**: `CapabilityProblemEntity-recursive` becomes `CapabilityProblemEntityRecursive`
+- **Array query params**: `project_ids[]` maps to TS property `project_ids`, wire name `project_ids[]`
+- **Dot-notation query params**: `place.fields` maps to TS property `placeFields`, wire name `place.fields`
+- **Path-item level parameters**: inherited by all operations under that path
+- **Schema name conflicts with global types**: OpenAI has a schema named `Response`
+- **100+ query parameters on a single endpoint**: Open-Meteo
+- **Mixed 3.0.x and 3.1.x specs** in the same suite
+
+## Notable specs in the matrix
+
+A sample of the real-world APIs covered: Stripe, GitHub, Google Calendar, Google Drive, Google Sheets, Google Cloud Run, Google Compute, Google GKE, Spotify, Slack, Vercel, Twilio (messaging, verify, video), Plaid, Notion, Jira, Okta, Asana, Bitbucket, Box, Brex, CircleCI, Klarna, Linode, NASA APOD, Pinecone, SendGrid, Square, Webflow, Xero, YouTube, Zoom, Zuora, Adyen, AWS (API Gateway, CloudFormation, Cognito, DynamoDB, IAM, Lambda, RDS, S3, SNS, SQS), Ably, Airflow, Amadeus, Appwrite, BBC, Bigquery, Braze, Bungie, Bunq, ClickSend, ClickUp, Codat, ConfigCat, DigitalOcean, Discourse, Docker, DocuSign, Dracoon, ElevenLabs, eBay (fulfillment, marketing), Flickr, Getty Images, Giphy, Here (positioning, tracking), Lufthansa, Medium, New York Times, Postman, RAWG, Reverb, ShipStation, Shutterstock, Snyk, SoundCloud, StackExchange, Telegram, TomTom (maps, routing), Traccar, Trello, Vimeo, Vonage, Visual Crossing Weather, Wolfram, Wordnik, World Time, and more.

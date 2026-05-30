@@ -63,7 +63,7 @@ describe('listTasks', () => {
       http.get(`${BASE}/api/v1/tasks`, ({ request }) => {
         capturedRequest = request
         return HttpResponse.json(TASK_PAGE)
-      }),
+      })
     )
 
     await listTasks(undefined, { baseUrl: BASE })
@@ -80,7 +80,7 @@ describe('listTasks', () => {
       http.get(`${BASE}/api/v1/tasks`, ({ request }) => {
         capturedUrl = new URL(request.url)
         return HttpResponse.json(TASK_PAGE)
-      }),
+      })
     )
 
     await listTasks({ status: 'in_progress', page: 2, pageSize: 10 }, { baseUrl: BASE })
@@ -92,9 +92,7 @@ describe('listTasks', () => {
   })
 
   it('returns parsed TaskPage response', async () => {
-    server.use(
-      http.get(`${BASE}/api/v1/tasks`, () => HttpResponse.json(TASK_PAGE)),
-    )
+    server.use(http.get(`${BASE}/api/v1/tasks`, () => HttpResponse.json(TASK_PAGE)))
 
     const result = await listTasks(undefined, { baseUrl: BASE })
 
@@ -110,7 +108,7 @@ describe('listTasks', () => {
       http.get(`${BASE}/api/v1/tasks`, ({ request }) => {
         capturedUrl = new URL(request.url)
         return HttpResponse.json(TASK_PAGE)
-      }),
+      })
     )
 
     await listTasks({ status: undefined, page: 1 }, { baseUrl: BASE })
@@ -133,7 +131,7 @@ describe('createTask', () => {
       http.post(`${BASE}/api/v1/tasks`, ({ request }) => {
         capturedRequest = request
         return HttpResponse.json(TASK, { status: 201 })
-      }),
+      })
     )
 
     await createTask({ title: 'Buy milk' }, { baseUrl: BASE })
@@ -149,7 +147,7 @@ describe('createTask', () => {
       http.post(`${BASE}/api/v1/tasks`, ({ request }) => {
         capturedRequest = request
         return HttpResponse.json(TASK)
-      }),
+      })
     )
 
     await createTask({ title: 'Buy milk' }, { baseUrl: BASE })
@@ -164,7 +162,7 @@ describe('createTask', () => {
       http.post(`${BASE}/api/v1/tasks`, async ({ request }) => {
         parsedBody = await request.json()
         return HttpResponse.json(TASK)
-      }),
+      })
     )
 
     await createTask({ title: 'Buy milk', priority: 3 }, { baseUrl: BASE })
@@ -173,9 +171,7 @@ describe('createTask', () => {
   })
 
   it('returns parsed Task response', async () => {
-    server.use(
-      http.post(`${BASE}/api/v1/tasks`, () => HttpResponse.json(TASK)),
-    )
+    server.use(http.post(`${BASE}/api/v1/tasks`, () => HttpResponse.json(TASK)))
 
     const result = await createTask({ title: 'Buy milk' }, { baseUrl: BASE })
 
@@ -195,7 +191,7 @@ describe('getTask', () => {
       http.get(`${BASE}/api/v1/tasks/:id`, ({ request }) => {
         capturedRequest = request
         return HttpResponse.json(TASK)
-      }),
+      })
     )
 
     await getTask('task-1', { baseUrl: BASE })
@@ -211,7 +207,7 @@ describe('getTask', () => {
       http.get(`${BASE}/api/v1/tasks/:id`, ({ request }) => {
         capturedPathname = new URL(request.url).pathname
         return HttpResponse.json({ ...TASK, id: 'hello world' })
-      }),
+      })
     )
 
     await getTask('hello world', { baseUrl: BASE })
@@ -220,9 +216,7 @@ describe('getTask', () => {
   })
 
   it('returns parsed Task', async () => {
-    server.use(
-      http.get(`${BASE}/api/v1/tasks/:id`, () => HttpResponse.json(TASK)),
-    )
+    server.use(http.get(`${BASE}/api/v1/tasks/:id`, () => HttpResponse.json(TASK)))
 
     const result = await getTask('task-1', { baseUrl: BASE })
 
@@ -242,7 +236,7 @@ describe('updateTask', () => {
       http.patch(`${BASE}/api/v1/tasks/:id`, ({ request }) => {
         capturedRequest = request
         return HttpResponse.json({ ...TASK, title: 'Updated' })
-      }),
+      })
     )
 
     await updateTask('task-1', { title: 'Updated' }, { baseUrl: BASE })
@@ -258,7 +252,7 @@ describe('updateTask', () => {
       http.patch(`${BASE}/api/v1/tasks/:id`, async ({ request }) => {
         parsedBody = await request.json()
         return HttpResponse.json({ ...TASK, status: 'done' })
-      }),
+      })
     )
 
     await updateTask('task-1', { status: 'done' }, { baseUrl: BASE })
@@ -269,9 +263,7 @@ describe('updateTask', () => {
   it('returns parsed Task', async () => {
     const updated = { ...TASK, title: 'Updated title' }
 
-    server.use(
-      http.patch(`${BASE}/api/v1/tasks/:id`, () => HttpResponse.json(updated)),
-    )
+    server.use(http.patch(`${BASE}/api/v1/tasks/:id`, () => HttpResponse.json(updated)))
 
     const result = await updateTask('task-1', { title: 'Updated title' }, { baseUrl: BASE })
 
@@ -291,7 +283,7 @@ describe('deleteTask', () => {
       http.delete(`${BASE}/api/v1/tasks/:id`, ({ request }) => {
         capturedRequest = request
         return new HttpResponse(null, { status: 204 })
-      }),
+      })
     )
 
     await deleteTask('task-1', { baseUrl: BASE })
@@ -302,7 +294,7 @@ describe('deleteTask', () => {
 
   it('resolves with void on 204', async () => {
     server.use(
-      http.delete(`${BASE}/api/v1/tasks/:id`, () => new HttpResponse(null, { status: 204 })),
+      http.delete(`${BASE}/api/v1/tasks/:id`, () => new HttpResponse(null, { status: 204 }))
     )
 
     const result = await deleteTask('task-1', { baseUrl: BASE })
@@ -323,7 +315,7 @@ describe('authentication', () => {
       http.get(`${BASE}/api/v1/tasks`, ({ request }) => {
         capturedAuth = request.headers.get('authorization')
         return HttpResponse.json(TASK_PAGE)
-      }),
+      })
     )
 
     await listTasks(undefined, { baseUrl: BASE, token: 'my-static-token' })
@@ -338,7 +330,7 @@ describe('authentication', () => {
       http.get(`${BASE}/api/v1/tasks`, ({ request }) => {
         capturedAuth = request.headers.get('authorization')
         return HttpResponse.json(TASK_PAGE)
-      }),
+      })
     )
 
     const asyncToken = async () => 'resolved-async-token'
@@ -354,7 +346,7 @@ describe('authentication', () => {
       http.get(`${BASE}/api/v1/tasks`, ({ request }) => {
         capturedAuth = request.headers.get('authorization')
         return HttpResponse.json(TASK_PAGE)
-      }),
+      })
     )
 
     await listTasks(undefined, { baseUrl: BASE })
@@ -369,12 +361,15 @@ describe('authentication', () => {
 
 describe('error handling', () => {
   it('404 response throws ApiError with status: 404 and parsed body', async () => {
-    const errorBody = { type: 'about:blank', title: 'Not Found', status: 404, detail: 'Task not found' }
+    const errorBody = {
+      type: 'about:blank',
+      title: 'Not Found',
+      status: 404,
+      detail: 'Task not found',
+    }
 
     server.use(
-      http.get(`${BASE}/api/v1/tasks/:id`, () =>
-        HttpResponse.json(errorBody, { status: 404 }),
-      ),
+      http.get(`${BASE}/api/v1/tasks/:id`, () => HttpResponse.json(errorBody, { status: 404 }))
     )
 
     await expect(getTask('missing', { baseUrl: BASE })).rejects.toMatchObject({
@@ -391,9 +386,7 @@ describe('error handling', () => {
     }
 
     server.use(
-      http.post(`${BASE}/api/v1/tasks`, () =>
-        HttpResponse.json(errorBody, { status: 422 }),
-      ),
+      http.post(`${BASE}/api/v1/tasks`, () => HttpResponse.json(errorBody, { status: 422 }))
     )
 
     await expect(createTask({ title: '' }, { baseUrl: BASE })).rejects.toMatchObject({
@@ -407,13 +400,11 @@ describe('error handling', () => {
 
     server.use(
       http.get(`${BASE}/api/v1/tasks/:id`, () =>
-        HttpResponse.json({ title: 'Not Found' }, { status: 404 }),
-      ),
+        HttpResponse.json({ title: 'Not Found' }, { status: 404 })
+      )
     )
 
-    await expect(
-      getTask('missing', { baseUrl: BASE, onError }),
-    ).rejects.toBeInstanceOf(ApiError)
+    await expect(getTask('missing', { baseUrl: BASE, onError })).rejects.toBeInstanceOf(ApiError)
 
     expect(onError).toHaveBeenCalledOnce()
     expect(onError).toHaveBeenCalledWith(expect.objectContaining({ status: 404 }))
@@ -423,11 +414,7 @@ describe('error handling', () => {
     const onError = vi.fn()
     let thrownError: unknown
 
-    server.use(
-      http.get(`${BASE}/api/v1/tasks/:id`, () =>
-        new HttpResponse(null, { status: 500 }),
-      ),
-    )
+    server.use(http.get(`${BASE}/api/v1/tasks/:id`, () => new HttpResponse(null, { status: 500 })))
 
     try {
       await getTask('any', { baseUrl: BASE, onError })
@@ -453,10 +440,13 @@ describe('uploadTaskAttachment', () => {
       http.post(`${BASE}/api/v1/tasks/upload`, ({ request }) => {
         capturedRequest = request
         return HttpResponse.json(TASK)
-      }),
+      })
     )
 
-    await uploadTaskAttachment({ file: new Blob(['data'], { type: 'text/plain' }) }, { baseUrl: BASE })
+    await uploadTaskAttachment(
+      { file: new Blob(['data'], { type: 'text/plain' }) },
+      { baseUrl: BASE }
+    )
 
     expect(capturedRequest).toBeDefined()
     expect(capturedRequest!.method).toBe('POST')
@@ -470,7 +460,7 @@ describe('uploadTaskAttachment', () => {
       http.post(`${BASE}/api/v1/tasks/upload`, ({ request }) => {
         capturedContentType = request.headers.get('content-type')
         return HttpResponse.json(TASK)
-      }),
+      })
     )
 
     await uploadTaskAttachment({ file: new Blob(['data']) }, { baseUrl: BASE })
@@ -487,7 +477,7 @@ describe('uploadTaskAttachment', () => {
       http.post(`${BASE}/api/v1/tasks/upload`, async ({ request }) => {
         capturedFormData = await request.formData()
         return HttpResponse.json(TASK)
-      }),
+      })
     )
 
     const file = new Blob(['file-content'], { type: 'image/png' })
@@ -505,7 +495,7 @@ describe('uploadTaskAttachment', () => {
       http.post(`${BASE}/api/v1/tasks/upload`, async ({ request }) => {
         capturedFormData = await request.formData()
         return HttpResponse.json(TASK)
-      }),
+      })
     )
 
     await uploadTaskAttachment({ file: new Blob(['data']) }, { baseUrl: BASE })
@@ -531,7 +521,7 @@ describe('configureClient (global state)', () => {
       http.get(`${BASE}/api/v1/tasks`, ({ request }) => {
         capturedPathname = new URL(request.url).pathname
         return HttpResponse.json(TASK_PAGE)
-      }),
+      })
     )
 
     configureClient({ baseUrl: BASE })
@@ -547,7 +537,7 @@ describe('configureClient (global state)', () => {
       http.get(`${BASE}/api/v1/tasks`, ({ request }) => {
         capturedAuth = request.headers.get('authorization')
         return HttpResponse.json(TASK_PAGE)
-      }),
+      })
     )
 
     configureClient({ baseUrl: BASE, token: 'global-token' })
@@ -563,7 +553,7 @@ describe('configureClient (global state)', () => {
       http.get(`${BASE}/api/v1/tasks`, ({ request }) => {
         capturedAuth = request.headers.get('authorization')
         return HttpResponse.json(TASK_PAGE)
-      }),
+      })
     )
 
     configureClient({ baseUrl: BASE, token: 'global-token' })
@@ -585,7 +575,7 @@ describe('createServerClient', () => {
       http.get(`${BASE}/api/v1/tasks`, ({ request }) => {
         capturedAuth = request.headers.get('authorization')
         return HttpResponse.json(TASK_PAGE)
-      }),
+      })
     )
 
     const api = createServerClient({ baseUrl: BASE, token: 'server-token' })
@@ -595,9 +585,7 @@ describe('createServerClient', () => {
   })
 
   it('listTasks() works without passing config per-call', async () => {
-    server.use(
-      http.get(`${BASE}/api/v1/tasks`, () => HttpResponse.json(TASK_PAGE)),
-    )
+    server.use(http.get(`${BASE}/api/v1/tasks`, () => HttpResponse.json(TASK_PAGE)))
 
     const api = createServerClient({ baseUrl: BASE })
     const result = await api.listTasks()
@@ -612,7 +600,7 @@ describe('createServerClient', () => {
       http.get(`${BASE}/api/v1/tasks/:id`, ({ request }) => {
         capturedPathname = new URL(request.url).pathname
         return HttpResponse.json(TASK)
-      }),
+      })
     )
 
     const api = createServerClient({ baseUrl: BASE })

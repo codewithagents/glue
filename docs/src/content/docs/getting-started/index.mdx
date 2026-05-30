@@ -1,0 +1,61 @@
+---
+title: Introduction
+description: What Glue is, and the spec-to-UI pipeline mental model.
+---
+
+import { Card, CardGrid, Aside } from '@astrojs/starlight/components'
+
+Glue is a TypeScript OpenAPI toolchain that turns a spec into everything you need: types, a fetch client, React Query hooks, Zod schemas, a server-side service interface, and form error mapping. Every generated file compiles under `strict: true` with zero runtime wrapper dependencies. The pipeline is tested against 128 real-world specs (Stripe, GitHub, Spotify, OpenAI, and more) on every PR.
+
+## The pipeline
+
+```
+OpenAPI spec
+    |
+    v
+openapi-gen   --> TypeScript types        (models.ts)
+              --> Typed fetch client      (client.ts)
+              --> Zod schemas             (optional, user-owned)
+    |
+    +-----------> openapi-react-query --> React Query v5 hooks  (hooks.ts)
+    |
+    +-----------> openapi-server      --> Service interface     (service.ts)
+                                      --> Optional router       (router.ts)
+    |
+    v
+api-errors    --> Form field error mapping (runtime, no codegen)
+```
+
+Everything flows from a single spec. One source of truth. When the spec changes, re-run the generator and the TypeScript compiler tells you exactly what broke.
+
+## Packages
+
+| Package                                                       | What it does                                                                       |
+| ------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| [`@codewithagents/openapi-gen`](/openapi-gen)                 | Generates TypeScript interfaces, a native `fetch` client, and optional Zod schemas |
+| [`@codewithagents/openapi-react-query`](/openapi-react-query) | Generates typed React Query v5 hooks from the client `openapi-gen` produces        |
+| [`@codewithagents/openapi-server`](/openapi-server)           | Generates a typed service interface and optional Hono, Express, or Fastify router  |
+| [`@codewithagents/api-errors`](/api-errors)                   | Maps API error responses to form field errors at runtime (no codegen step)         |
+
+Each package is independent. Use only the ones your project needs. They share one spec and one output directory when used together.
+
+## Who it is for
+
+Glue is built for TypeScript projects that want end-to-end type safety from an OpenAPI spec. It works with any HTTP framework on the server side and any React setup on the client. The generated output is plain TypeScript: no axios, no wrapper libraries, nothing added to your runtime bundle beyond what you already use.
+
+If your team maintains an OpenAPI spec, Glue turns it into a first-class TypeScript artifact at codegen time rather than leaving the gap between spec and code to manual effort.
+
+## Prerequisites
+
+- Node.js 18 or later
+- An OpenAPI 3.1 spec (JSON or YAML). OpenAPI 3.0.x is best-effort.
+- TypeScript with `strict: true` recommended (all generated output passes it out of the box)
+
+<Aside type="tip">
+  Start with only `@codewithagents/openapi-gen`. Get a typed client working, then layer in hooks or
+  a server interface when you need them.
+</Aside>
+
+## Next step
+
+Follow the [Quickstart](/getting-started/quickstart) to go from a spec file to a working typed client in a few minutes.

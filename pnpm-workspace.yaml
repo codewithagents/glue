@@ -1,6 +1,7 @@
 packages:
   - 'packages/*'
   - 'examples'
+  - 'docs'
 
 catalog:
   # Test tooling — used across all packages
