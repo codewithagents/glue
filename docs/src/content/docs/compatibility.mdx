@@ -9,11 +9,11 @@ The generator is tested against 128 real-world public API specs on every relevan
 
 ## OpenAPI version support
 
-| Version                         | Support level                                                                                                                                |
-| ------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
-| OpenAPI 3.1.x (including 3.1.1) | Primary target. Full support.                                                                                                                |
-| OpenAPI 3.0.x                   | Best-effort. Most features work. 3.0-specific constructs such as `nullable: true` pass through; full 3.0 normalization is a planned feature. |
-| OpenAPI 2.0 (Swagger)           | Not supported.                                                                                                                               |
+| Version                         | Support level                                                                                                                                                                                                   |
+| ------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| OpenAPI 3.1.x (including 3.1.1) | Primary target. Full support.                                                                                                                                                                                   |
+| OpenAPI 3.0.x                   | Supported in practice. 8 of the 13 showcase specs are 3.0.x and all compile under `tsc --strict`. A few 3.0-only constructs such as `nullable: true` pass through; full 3.0 normalization is a planned feature. |
+| OpenAPI 2.0 (Swagger)           | Not supported.                                                                                                                                                                                                  |
 
 OpenAPI 3.1 is the primary target across all packages in the suite.
 

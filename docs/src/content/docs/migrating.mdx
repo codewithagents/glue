@@ -1,0 +1,235 @@
+---
+title: Migrating from hey-api or orval
+description: Switch to the CodeWithAgents OpenAPI toolchain from another TypeScript OpenAPI generator.
+---
+
+import { Steps, Tabs, TabItem, Aside, Card, CardGrid } from '@astrojs/starlight/components'
+
+This guide is for developers who already have a TypeScript project with an OpenAPI generator set up and want to switch to `@codewithagents/openapi-gen`. It covers the mental model shift, the step-by-step switch, and what to watch for.
+
+## The mental model shift
+
+Many OpenAPI generators follow a pattern where the generated code depends on a runtime client library that the generator itself publishes. Your code calls into that runtime, and the generated types describe its API. The generator ships a package to `dependencies`, not just `devDependencies`.
+
+This toolchain works differently:
+
+- **Generated files are owned code.** `models.ts`, `client.ts`, `client-config.ts`, and (optionally) `schemas.ts` live in your repository. They are plain TypeScript you can read, extend, and commit like any other file.
+- **Zero runtime footprint.** The generator (`@codewithagents/openapi-gen`) is a `devDependency`. The generated `client.ts` uses only native `fetch`. Nothing is added to your production bundle that your project did not already have.
+- **Runtime validation is opt-in and user-owned.** If you add `input_schema` to your config, the generator bootstraps a Zod `schemas.ts` file once, then never overwrites it. You add error messages and business rules. The generator warns on drift but your schema stays yours.
+- **Requests and responses are validated at runtime** when Zod integration is enabled: the client calls `Schema.parse(body)` before sending and `Schema.parse(await res.json())` after receiving.
+
+## Switch step by step
+
+<Steps>
+
+1. **Remove the old generator.**
+
+   Uninstall the previous generator and any runtime packages it required:
+
+   ```bash
+   # example: remove hey-api packages
+   npm uninstall @hey-api/client-fetch @hey-api/openapi-ts
+
+   # example: remove orval
+   npm uninstall orval
+   ```
+
+   Delete the old generated output directory and any existing generator config files (`orval.config.ts`, `openapi-ts.config.ts`, etc.).
+
+2. **Install `@codewithagents/openapi-gen`.**
+
+   ```bash
+   npm install -D @codewithagents/openapi-gen
+   ```
+
+   If you also want React Query hooks, add the hooks package:
+
+   ```bash
+   npm install -D @codewithagents/openapi-react-query
+   ```
+
+3. **Create the config file.**
+
+   Create `openapi-gen.config.json` in your project root:
+
+   ```json
+   {
+     "input_openapi": "./openapi.json",
+     "output": "./src/api"
+   }
+   ```
+
+   Optional fields for a fuller setup:
+
+   ```json
+   {
+     "input_openapi": "./openapi.json",
+     "output": "./src/api",
+     "input_schema": "./src/api/schemas.ts",
+     "baseUrl": "https://api.example.com",
+     "server_client": true
+   }
+   ```
+
+   | Field           | Required | Description                                                                                    |
+   | --------------- | -------- | ---------------------------------------------------------------------------------------------- |
+   | `input_openapi` | Yes      | Path to your OpenAPI spec (JSON or YAML)                                                       |
+   | `output`        | Yes      | Directory to write the generated files                                                         |
+   | `input_schema`  | No       | Path to a user-owned Zod schema file. Bootstrapped on first run, never overwritten after that. |
+   | `baseUrl`       | No       | Default base URL embedded in `client-config.ts`                                                |
+   | `server_client` | No       | When `true`, also generates `server.ts` with a `createServerClient()` factory                  |
+
+4. **Run the generator.**
+
+   ```bash
+   npx openapi-gen
+   ```
+
+   This writes the following files to your `output` directory:
+
+   | File               | Contents                                     |
+   | ------------------ | -------------------------------------------- |
+   | `models.ts`        | TypeScript interfaces for every schema       |
+   | `client.ts`        | One typed `async function` per API operation |
+   | `client-config.ts` | `configureClient()` and `getConfig()`        |
+   | `index.ts`         | Barrel re-export of all three files above    |
+
+5. **Update your imports.**
+
+   Replace imports from the old generator's runtime with imports from your generated barrel:
+
+   ```typescript
+   // Before: importing from a runtime package
+   import { createClient } from '@hey-api/client-fetch'
+
+   // After: importing from your own generated code
+   import { configureClient, listTasks, ApiError } from './src/api'
+   ```
+
+   Call `configureClient` once at app startup:
+
+   ```typescript
+   import { configureClient } from './src/api'
+
+   configureClient({
+     baseUrl: 'https://api.example.com',
+     token: () => getAccessToken(), // sync or async, called per request
+   })
+   ```
+
+6. **Add a generate script to `package.json`.**
+
+   ```json
+   {
+     "scripts": {
+       "generate": "openapi-gen"
+     }
+   }
+   ```
+
+</Steps>
+
+## Before and after: config comparison
+
+<Tabs>
+  <TabItem label="Before (illustrative)">
+    ```ts
+    // orval.config.ts  (illustrative, your config may differ)
+    import { defineConfig } from 'orval'
+
+    export default defineConfig({
+      myApi: {
+        input: './openapi.json',
+        output: {
+          target: './src/api/client.ts',
+          client: 'react-query',
+        },
+      },
+    })
+    ```
+
+    ```json
+    // package.json dependencies (illustrative)
+    {
+      "devDependencies": {
+        "orval": "^7.x"
+      },
+      "dependencies": {
+        "axios": "^1.x"
+      }
+    }
+    ```
+
+  </TabItem>
+  <TabItem label="After">
+    ```json
+    // openapi-gen.config.json
+    {
+      "input_openapi": "./openapi.json",
+      "output": "./src/api"
+    }
+    ```
+
+    ```json
+    // package.json
+    {
+      "scripts": {
+        "generate": "openapi-gen"
+      },
+      "devDependencies": {
+        "@codewithagents/openapi-gen": "^1.0.0"
+      }
+    }
+    ```
+
+  </TabItem>
+</Tabs>
+
+## What gets simpler, what to watch for
+
+<Aside type="tip" title="What gets simpler">
+  **Owned code.** The generated files live in your repo. You can read them, debug them, and search them like any other TypeScript file.
+
+**No runtime wrapper dependency.** The generated client uses only `fetch`. Nothing is added to your production bundle.
+
+**Runtime validation.** Add `input_schema` to get Zod validation on every request and response, with schemas you control and can extend with business rules.
+
+**Predictable re-generation.** Running `npx openapi-gen` again overwrites `models.ts`, `client.ts`, `client-config.ts`, and `index.ts`. Your `schemas.ts` is never overwritten.
+
+</Aside>
+
+<Aside type="caution" title="What to watch for">
+  **TypeScript-only output.** The generator produces `.ts` files and requires a TypeScript project. There is no JavaScript-only output mode.
+
+**`schemas.ts` is yours after bootstrap.** The first run with `input_schema` writes the file. Every subsequent run skips it. If the spec changes and the schema drifts, the generator prints a warning, but does not update the file automatically.
+
+**OpenAPI 3.0 `nullable` not yet normalized.** OpenAPI 3.0.x works in practice, with one known gap: the `nullable: true` construct is currently treated as optional rather than normalized to the 3.1 `type: [..., "null"]` semantics. Full normalization is planned. If your spec relies heavily on `nullable: true`, OpenAPI 3.1 gets the most complete treatment today.
+
+**ESM only.** The generated files use `.js` extensions in imports (NodeNext resolution). Your project must use `"type": "module"` or be configured for ESM.
+
+**Zod v4 required** when using `input_schema`. The bootstrapped `schemas.ts` uses Zod v4 APIs. Zod v3 is not supported.
+
+</Aside>
+
+## Next steps
+
+<CardGrid>
+  <Card title="Quickstart" icon="rocket">
+    Full walkthrough of installing and running the generator from scratch.
+
+    [Getting Started: Quickstart](/getting-started/quickstart)
+
+  </Card>
+  <Card title="Types and fetch client" icon="document">
+    Complete configuration reference, generated file details, and advanced usage.
+
+    [openapi-gen guide](/openapi-gen)
+
+  </Card>
+  <Card title="React Query hooks" icon="seti:react">
+    Generate typed `useQuery` and `useMutation` hooks on top of the generated client.
+
+    [openapi-react-query guide](/openapi-react-query)
+
+  </Card>
+</CardGrid>

@@ -4,9 +4,9 @@
 
 ## Two tiers
 
-### Showcase specs (11)
+### Showcase specs (13)
 
-Generated output is committed to `examples/generated/`. CI regenerates on every relevant PR and fails if output has drifted. All 11 generated clients also pass `tsc --strict`.
+Generated output is committed to `examples/generated/`. CI regenerates on every relevant PR and fails if output has drifted. All 13 generated clients also pass `tsc --strict`.
 
 These are the "golden examples" — they prove the generator handles real edge cases end-to-end.
 
@@ -23,12 +23,14 @@ These are the "golden examples" — they prove the generator handles real edge c
 | `spotify` | 3.0.3 | 71 | Music |
 | `twitter` | 3.0.0 | 67 | Social |
 | `openai` | 3.0.0 | ~100 | AI |
+| `exchangerate` | 3.0.2 | 1 | Finance / FX rates |
+| `canada_holidays` | 3.0.0 | 6 | Public data |
 
-### Compatibility matrix specs (117)
+### Compatibility matrix specs (115)
 
-Spec files are committed to `examples/specs/` and configs to `examples/configs/`. Generated output is **not** committed — CI generates all 117 at runtime as part of `pnpm test` in each package.
+Spec files are committed to `examples/specs/` and configs to `examples/configs/`. Generated output is **not** committed. CI generates all 115 at runtime as part of `pnpm test` in each package.
 
-**All 117 generate without errors** — together with the 11 showcase specs, that's 128/128 total.
+**All 115 generate without errors.** Together with the 13 showcase specs, that's 128/128 total.
 
 A sample of the APIs covered: Stripe, GitHub, Google Calendar, Google Drive, Google Sheets, Spotify, Slack, Vercel, Cloudflare, Twilio, Plaid, Notion, Jira, Okta, Asana, Bitbucket, Box, Brex, CircleCI, Figma (via Notion), Klarna, Linode, NASA, Pinecone, SendGrid, Square, Webflow, Xero, YouTube, Zoom, Zuora, and many more.
 
@@ -52,7 +54,7 @@ Edge cases covered by the full 128-spec suite:
 
 ```bash
 cd examples
-pnpm generate    # runs openapi-gen on all 11 showcase specs
+pnpm generate    # runs openapi-gen on all 13 showcase specs
 ```
 
 Or from the repo root:
@@ -74,7 +76,7 @@ The `Examples` workflow (`.github/workflows/examples.yml`) runs on every relevan
 - **Triggers**: path-filtered (`packages/openapi-gen/**`, `examples/**`) on PRs and pushes to main, plus weekly on Monday 6am UTC
 - **Steps**:
   1. Build the generator packages
-  2. Run all 128 configs — all 117 compat matrix specs must generate without errors (parameterized tests via `pnpm test`)
+  2. Run all 128 configs: all 115 compat matrix specs must generate without errors (parameterized tests via `pnpm test`)
   3. `git diff --exit-code examples/generated/` — fails if showcase output has drifted
   4. `tsc --noEmit` on all generated output in `examples/generated/`
 

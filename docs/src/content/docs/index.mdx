@@ -6,8 +6,8 @@ head:
   - tag: title
     content: 'CodeWithAgents OpenAPI: typed and validated OpenAPI tooling for TypeScript'
 hero:
-  title: Typed and validated, from OpenAPI spec to your UI
-  tagline: Generate TypeScript types, Zod schemas, a fetch client, and React Query hooks from a single spec, with runtime validation built into the client, not just compile-time types.
+  title: Validated at runtime, not just typed at compile time.
+  tagline: Generate types, a fetch client, React Query hooks, and Zod schemas from one spec. Opt into Zod and the generated client validates every request and response body at runtime, so bad data fails at the boundary, not three components deep.
   actions:
     - text: Get Started
       link: /getting-started
@@ -32,6 +32,7 @@ import PipelineDiagram from '../../components/PipelineDiagram.astro'
 import HeroExtras from '../../components/HeroExtras.astro'
 import SpecStrip from '../../components/SpecStrip.astro'
 import AnimationSetup from '../../components/AnimationSetup.astro'
+import FeaturedUsers from '../../components/FeaturedUsers.astro'
 
 <AnimationSetup />
 
@@ -267,9 +268,9 @@ One source of truth. When the spec changes, re-run the generators and the compil
 
 <CardGrid>
   <Card title="Validated, not just typed" icon="approve-check-circle">
-    Zod schemas are generated from your spec and validated at runtime. The fetch client checks both
-    request and response bodies against those schemas, so bugs surface at the boundary, not deep in
-    your UI.
+    Generate Zod schemas from your spec, then enable runtime validation with one config field
+    (`input_schema`). The fetch client checks both request and response bodies against your schemas,
+    so bugs surface at the boundary, not deep in your UI.
   </Card>
   <Card title="Proven on 128 real specs" icon="star">
     Stripe, GitHub, Spotify, OpenAI, Adyen, AWS, and more. Every spec is generated and compiled in
@@ -283,8 +284,9 @@ One source of truth. When the spec changes, re-run the generators and the compil
 
 <CardGrid>
   <Card title="OpenAPI 3.1 first-class" icon="document">
-    Full support for `$ref`, `allOf`, `anyOf`, `oneOf`, `nullable`, and 3.1.1 keyword changes.
-    OpenAPI 3.0.x is best-effort. No Swagger 2.0.
+    Full support for `$ref`, `allOf`, `anyOf`, `oneOf`, `nullable`, and 3.1.1 keyword changes. 3.0.x
+    is supported in practice: 8 of our 13 showcase specs are 3.0.x and all compile. A few 3.0-only
+    constructs like `nullable` are not yet normalized to 3.1 semantics. No Swagger 2.0.
   </Card>
   <Card title="Native fetch. Zero added bundle weight." icon="approve-check">
     The generated client uses only native `fetch`. No axios, no wrapper libraries. Nothing from the
@@ -368,11 +370,19 @@ One source of truth. When the spec changes, re-run the generators and the compil
 <Aside type="note" title="Look elsewhere if">
 
 - **You need a non-TypeScript target.** Output is TypeScript only. Python, Go, Java, and other language clients are out of scope.
-- **Your spec is OpenAPI 2.0 / Swagger.** Only OpenAPI 3.x is supported (3.1.x first-class, 3.0.x best-effort).
+- **Your spec is OpenAPI 2.0 / Swagger.** Only OpenAPI 3.x is supported. No Swagger 2.0.
 - **You want a managed runtime SDK.** The generated code is yours to own, not a library you call into, so there is no built-in retry, pagination, or caching layer.
 - **You need a hosted GUI or dashboard.** The toolchain is a CLI plus npm packages.
 
 </Aside>
+
+</div>
+
+---
+
+<div class="reveal">
+
+<FeaturedUsers />
 
 </div>
 
