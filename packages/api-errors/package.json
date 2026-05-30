@@ -35,6 +35,10 @@
     "type": "git",
     "url": "https://github.com/codewithagents/openapi-ts"
   },
+  "homepage": "https://openapi.codewithagents.de/api-errors",
+  "bugs": {
+    "url": "https://github.com/codewithagents/openapi-ts/issues"
+  },
   "devDependencies": {
     "@vitest/coverage-v8": "catalog:",
     "typescript": "catalog:",
