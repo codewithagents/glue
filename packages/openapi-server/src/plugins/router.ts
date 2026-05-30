@@ -140,12 +140,14 @@ interface QueryParam {
  *  Strips trailing [] (array marker), converts separators to camelCase.
  */
 function normalizeParamName(name: string): string {
-  return name
-    .replace(/\[\]$/, '') // strip trailing []
-    .replace(/'/g, '')
-    .replace(/[^a-zA-Z0-9]+([a-zA-Z])/g, (_, char: string) => char.toUpperCase())
-    .replace(/[^a-zA-Z0-9]+$/, '')
-    .replace(/^[^a-zA-Z_$]/, '_')
+  // Split on non-alphanumeric sequences to avoid polynomial ReDoS from [^x]+y patterns.
+  const stripped = name.replace(/\[\]$/, '').replace(/'/g, '')
+  const parts = stripped.split(/[^a-zA-Z0-9]+/).filter(Boolean)
+  if (parts.length === 0) return '_'
+  const camel = parts
+    .map((part, i) => (i === 0 ? part : part[0].toUpperCase() + part.slice(1)))
+    .join('')
+  return /^[^a-zA-Z_$]/.test(camel) ? `_${camel}` : camel
 }
 
 function schemaToTsType(schema: OpenAPIV3_1.SchemaObject | ReferenceObject | undefined): string {

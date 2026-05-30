@@ -40,7 +40,7 @@ describe('toPropertyKey', () => {
     (input) => {
       const result = toPropertyKey(input)
       expect(result.startsWith("'") || result.startsWith('"')).toBe(true)
-      expect(result).toContain(input.replace(/'/g, "\\'"))
+      expect(result).toContain(input.replace(/\\/g, '\\\\').replace(/'/g, "\\'"))
     }
   )
 
