@@ -1,0 +1,70 @@
+---
+// SpecStrip - text wordmark strip of real-world specs Glue is tested against.
+// Uses styled TEXT only. No third-party logo images (copyright + reliability).
+// Theme-aware via Starlight CSS custom properties.
+---
+
+<div class="spec-strip" aria-label="Real-world specs Glue is tested against">
+  <p class="spec-strip__label">Generates clean, type-safe code from real-world specs like:</p>
+  <ul class="spec-strip__list" role="list">
+    <li class="spec-strip__item">Stripe</li>
+    <li class="spec-strip__item">GitHub</li>
+    <li class="spec-strip__item">Spotify</li>
+    <li class="spec-strip__item">OpenAI</li>
+    <li class="spec-strip__item">Adyen</li>
+    <li class="spec-strip__item spec-strip__item--more">+ 123 more in CI</li>
+  </ul>
+</div>
+
+<style>
+  .spec-strip {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1.25rem 0 0.25rem;
+  }
+
+  .spec-strip__label {
+    margin: 0;
+    font-size: var(--sl-text-sm);
+    color: var(--sl-color-gray-3);
+    text-align: center;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-size: 0.7rem;
+  }
+
+  .spec-strip__list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 0.75rem;
+    justify-content: center;
+    align-items: center;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .spec-strip__item {
+    font-family: var(--sl-font-mono);
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--sl-color-gray-2);
+    padding: 0.25rem 0.65rem;
+    border: 1px solid var(--sl-color-gray-5);
+    border-radius: 999px;
+    background: var(--sl-color-gray-7);
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+    transition: color 0.15s, border-color 0.15s;
+  }
+
+  .spec-strip__item--more {
+    color: var(--sl-color-gray-3);
+    font-weight: 400;
+    border-style: dashed;
+    font-family: var(--sl-font);
+    font-size: 0.75rem;
+  }
+</style>

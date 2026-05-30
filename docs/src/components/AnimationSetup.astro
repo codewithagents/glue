@@ -1,0 +1,123 @@
+---
+// AnimationSetup - scroll-reveal IntersectionObserver and hero entrance animations.
+//
+// Safety contract:
+//   - All content is visible by default (no JS fallback).
+//   - The script adds `.js-animate` to <html> which enables the hidden start state.
+//   - IntersectionObserver then adds `.is-visible` to each `.reveal` section.
+//   - Hero entrance runs on load via a separate `.hero-entrance` keyframe.
+//   - All animations are fully disabled under prefers-reduced-motion.
+---
+
+<script>
+  // Only animate if the user hasn't opted out of motion.
+  const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  if (!prefersReduced) {
+    document.documentElement.classList.add('js-animate')
+
+    // Scroll-reveal: observe every .reveal element.
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            const el = entry.target as HTMLElement
+            el.classList.add('is-visible')
+            observer.unobserve(el)
+          }
+        })
+      },
+      { threshold: 0.08, rootMargin: '0px 0px -40px 0px' }
+    )
+
+    document.querySelectorAll('.reveal').forEach((el, i) => {
+      // Stagger delay: each section gets a small offset.
+      ;(el as HTMLElement).style.setProperty('--reveal-delay', `${i * 60}ms`)
+      observer.observe(el)
+    })
+  }
+</script>
+
+<style is:global>
+  /* Hero entrance: runs once on page load.
+     Targets Starlight's hero slot children. */
+  @keyframes hero-fade-in {
+    from {
+      opacity: 0;
+      transform: translateY(18px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .js-animate .hero-title-text,
+  .js-animate [data-page-title],
+  .js-animate .sl-markdown-content h1:first-of-type {
+    animation: hero-fade-in 0.55s ease-out both;
+  }
+
+  /* Starlight splash hero inner elements */
+  .js-animate .hero > * {
+    animation: hero-fade-in 0.55s ease-out both;
+  }
+  .js-animate .hero > *:nth-child(2) {
+    animation-delay: 0.08s;
+  }
+  .js-animate .hero > *:nth-child(3) {
+    animation-delay: 0.16s;
+  }
+  .js-animate .hero > *:nth-child(4) {
+    animation-delay: 0.22s;
+  }
+
+  /* Scroll-reveal base: sections are visible until JS enables animation */
+  .js-animate .reveal {
+    opacity: 0;
+    transform: translateY(22px);
+    transition:
+      opacity 0.5s ease-out,
+      transform 0.5s ease-out;
+    transition-delay: var(--reveal-delay, 0ms);
+  }
+
+  .js-animate .reveal.is-visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* Card hover lift */
+  .sl-markdown-content .card,
+  starlight-card,
+  .card {
+    transition:
+      transform 0.18s ease,
+      box-shadow 0.18s ease;
+  }
+
+  .sl-markdown-content .card:hover,
+  starlight-card:hover,
+  .card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px -4px rgba(0, 0, 0, 0.18);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .js-animate .hero > *,
+    .js-animate .reveal,
+    .js-animate .reveal.is-visible {
+      animation: none !important;
+      transition: none !important;
+      opacity: 1 !important;
+      transform: none !important;
+    }
+
+    .sl-markdown-content .card:hover,
+    starlight-card:hover,
+    .card:hover {
+      transform: none;
+      box-shadow: none;
+      transition: none;
+    }
+  }
+</style>
