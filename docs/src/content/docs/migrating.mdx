@@ -203,7 +203,7 @@ This toolchain works differently:
 
 **`schemas.ts` is yours after bootstrap.** The first run with `input_schema` writes the file. Every subsequent run skips it. If the spec changes and the schema drifts, the generator prints a warning, but does not update the file automatically.
 
-**OpenAPI 3.0 `nullable` not yet normalized.** OpenAPI 3.0.x is supported on a best-effort basis. The `nullable: true` construct is not yet normalized to 3.1 `type: [..., "null"]` semantics. This is planned. For now, 3.1 specs get the best coverage.
+**OpenAPI 3.0 `nullable` not yet normalized.** OpenAPI 3.0.x works in practice, with one known gap: the `nullable: true` construct is currently treated as optional rather than normalized to the 3.1 `type: [..., "null"]` semantics. Full normalization is planned. If your spec relies heavily on `nullable: true`, OpenAPI 3.1 gets the most complete treatment today.
 
 **ESM only.** The generated files use `.js` extensions in imports (NodeNext resolution). Your project must use `"type": "module"` or be configured for ESM.
 
