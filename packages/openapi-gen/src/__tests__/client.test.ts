@@ -32,7 +32,7 @@ function compileFiles(files: Record<string, string>): readonly ts.Diagnostic[] {
       skipLibCheck: true,
       lib: ['ES2025', 'DOM'],
     },
-    '.',
+    '.'
   )
 
   const fileNames = Object.keys(virtualFiles)
@@ -47,7 +47,14 @@ function compileFiles(files: Record<string, string>): readonly ts.Diagnostic[] {
     fileExists: (name) => name in virtualFiles || defaultHost.fileExists(name),
     readFile: (name) => virtualFiles[name] ?? defaultHost.readFile(name),
     getCurrentDirectory: () => '/virtual',
-    resolveModuleNameLiterals: (moduleLiterals, containingFile, redirectedRef, compilerOpts, containingSf, reusedNames) => {
+    resolveModuleNameLiterals: (
+      moduleLiterals,
+      containingFile,
+      redirectedRef,
+      compilerOpts,
+      containingSf,
+      reusedNames
+    ) => {
       return moduleLiterals.map((lit) => {
         const specifier = lit.text
         // Resolve relative imports within the virtual filesystem
@@ -56,10 +63,7 @@ function compileFiles(files: Record<string, string>): readonly ts.Diagnostic[] {
           // Strip leading ./ and any .js extension so both `./models` and
           // `./models.js` resolve to the virtual `models.ts` file.
           const baseName = specifier.replace(/^\.\//, '').replace(/\.js$/, '')
-          const candidates = [
-            `${dir}/${baseName}.ts`,
-            `${dir}/${baseName}/index.ts`,
-          ]
+          const candidates = [`${dir}/${baseName}.ts`, `${dir}/${baseName}/index.ts`]
           for (const cand of candidates) {
             if (cand in virtualFiles) {
               return {
@@ -75,7 +79,12 @@ function compileFiles(files: Record<string, string>): readonly ts.Diagnostic[] {
         // Fall back to default resolution for external modules
         if (defaultHost.resolveModuleNameLiterals) {
           return defaultHost.resolveModuleNameLiterals(
-            [lit], containingFile, redirectedRef, compilerOpts, containingSf, reusedNames,
+            [lit],
+            containingFile,
+            redirectedRef,
+            compilerOpts,
+            containingSf,
+            reusedNames
           )[0]!
         }
         return { resolvedModule: undefined }
@@ -84,9 +93,9 @@ function compileFiles(files: Record<string, string>): readonly ts.Diagnostic[] {
   }
 
   const program = ts.createProgram(fileNames, options, customHost)
-  return ts.getPreEmitDiagnostics(program).filter(
-    (d) => d.file?.fileName !== undefined && d.file.fileName in virtualFiles,
-  )
+  return ts
+    .getPreEmitDiagnostics(program)
+    .filter((d) => d.file?.fileName !== undefined && d.file.fileName in virtualFiles)
 }
 
 describe('generateClient', () => {
@@ -197,7 +206,7 @@ describe('generateClient', () => {
       const messages = diagnostics
         .map(
           (d) =>
-            `${d.file?.fileName}:${d.start} — ${ts.flattenDiagnosticMessageText(d.messageText, '\n')}`,
+            `${d.file?.fileName}:${d.start} — ${ts.flattenDiagnosticMessageText(d.messageText, '\n')}`
         )
         .join('\n')
       throw new Error(`TypeScript errors in generated client:\n${messages}`)
@@ -259,7 +268,7 @@ async function serverSideExample() {
       const messages = diagnostics
         .map(
           (d) =>
-            `${d.file?.fileName}:${d.start} — ${ts.flattenDiagnosticMessageText(d.messageText, '\n')}`,
+            `${d.file?.fileName}:${d.start} — ${ts.flattenDiagnosticMessageText(d.messageText, '\n')}`
         )
         .join('\n')
       throw new Error(`TypeScript errors in SSR usage:\n${messages}`)
@@ -511,7 +520,7 @@ describe('$ref parameter resolution', () => {
       const messages = diagnostics
         .map(
           (d) =>
-            `${d.file?.fileName}:${d.start} — ${ts.flattenDiagnosticMessageText(d.messageText, '\n')}`,
+            `${d.file?.fileName}:${d.start} — ${ts.flattenDiagnosticMessageText(d.messageText, '\n')}`
         )
         .join('\n')
       throw new Error(`TypeScript errors in ref-params client:\n${messages}`)
@@ -628,7 +637,7 @@ describe('feature-showcase fixture', () => {
       const messages = diagnostics
         .map(
           (d) =>
-            `${d.file?.fileName}:${d.start} — ${ts.flattenDiagnosticMessageText(d.messageText, '\n')}`,
+            `${d.file?.fileName}:${d.start} — ${ts.flattenDiagnosticMessageText(d.messageText, '\n')}`
         )
         .join('\n')
       throw new Error(`TypeScript errors in generated feature-showcase client:\n${messages}`)
@@ -806,10 +815,14 @@ describe('coverage: queryParamType edge cases (lines 70, 81)', () => {
         '/items': {
           get: {
             operationId: 'listItems',
-            parameters: [
-              { name: 'active', in: 'query', schema: { type: 'boolean' } },
-            ],
-            responses: { '200': { content: { 'application/json': { schema: { type: 'array', items: { type: 'string' } } } } } },
+            parameters: [{ name: 'active', in: 'query', schema: { type: 'boolean' } }],
+            responses: {
+              '200': {
+                content: {
+                  'application/json': { schema: { type: 'array', items: { type: 'string' } } },
+                },
+              },
+            },
           },
         },
       },
@@ -834,7 +847,13 @@ describe('coverage: queryParamType edge cases (lines 70, 81)', () => {
                 schema: { type: 'array', items: { type: 'integer' } },
               },
             ],
-            responses: { '200': { content: { 'application/json': { schema: { type: 'array', items: { type: 'string' } } } } } },
+            responses: {
+              '200': {
+                content: {
+                  'application/json': { schema: { type: 'array', items: { type: 'string' } } },
+                },
+              },
+            },
           },
         },
       },
@@ -856,7 +875,9 @@ describe('coverage: queryParamType edge cases (lines 70, 81)', () => {
               // Schema with no type — primitiveToTs(undefined) returns 'unknown'
               { name: 'filter', in: 'query', schema: {} },
             ],
-            responses: { '200': { content: { 'application/json': { schema: { type: 'string' } } } } },
+            responses: {
+              '200': { content: { 'application/json': { schema: { type: 'string' } } } },
+            },
           },
         },
       },
@@ -877,7 +898,13 @@ describe('coverage: deriveOperationName via no-operationId spec (lines 101-123, 
         '/api/v1/tasks': {
           get: {
             // No operationId — deriveOperationName('get', '/api/v1/tasks') → 'getTasks'
-            responses: { '200': { content: { 'application/json': { schema: { type: 'array', items: { type: 'string' } } } } } },
+            responses: {
+              '200': {
+                content: {
+                  'application/json': { schema: { type: 'array', items: { type: 'string' } } },
+                },
+              },
+            },
           },
         },
       },
@@ -895,7 +922,9 @@ describe('coverage: deriveOperationName via no-operationId spec (lines 101-123, 
         '/api/v1/tasks/{id}': {
           get: {
             parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }],
-            responses: { '200': { content: { 'application/json': { schema: { type: 'string' } } } } },
+            responses: {
+              '200': { content: { 'application/json': { schema: { type: 'string' } } } },
+            },
           },
         },
       },
@@ -914,7 +943,9 @@ describe('coverage: deriveOperationName via no-operationId spec (lines 101-123, 
             requestBody: {
               content: { 'application/json': { schema: { type: 'object' } } },
             },
-            responses: { '201': { content: { 'application/json': { schema: { type: 'string' } } } } },
+            responses: {
+              '201': { content: { 'application/json': { schema: { type: 'string' } } } },
+            },
           },
         },
       },
@@ -1108,7 +1139,7 @@ describe('_request helper: shared fetch abstraction (issue #124)', () => {
   //   _requestForm — handles multipart/form-data endpoints (only emitted when spec has them)
   // Tree-shaking: _requestForm is absent from generated code for specs with no multipart endpoints.
 
-  let taskContent: string     // no multipart → only _request emitted
+  let taskContent: string // no multipart → only _request emitted
   let showcaseContent: string // has multipart → both _request and _requestForm emitted
 
   beforeAll(async () => {
@@ -1228,7 +1259,13 @@ const noAuthSpec: OpenAPIV3_1.Document = {
     '/items': {
       get: {
         operationId: 'listItems',
-        responses: { '200': { content: { 'application/json': { schema: { type: 'array', items: { type: 'string' } } } } } },
+        responses: {
+          '200': {
+            content: {
+              'application/json': { schema: { type: 'array', items: { type: 'string' } } },
+            },
+          },
+        },
       },
       post: {
         operationId: 'createItem',
@@ -1469,7 +1506,9 @@ describe('coverage: queryParamType with no schema (line 77)', () => {
               // No schema property - queryParamType(undefined) returns 'string'
               { name: 'cursor', in: 'query' } as any,
             ],
-            responses: { '200': { content: { 'application/json': { schema: { type: 'string' } } } } },
+            responses: {
+              '200': { content: { 'application/json': { schema: { type: 'string' } } } },
+            },
           },
         },
       },
@@ -1520,7 +1559,9 @@ describe('coverage: resolveParamRef edge cases (lines 202-204)', () => {
           get: {
             operationId: 'listItems',
             parameters: [{ $ref: '#/components/parameters/PageParam' } as any],
-            responses: { '200': { content: { 'application/json': { schema: { type: 'string' } } } } },
+            responses: {
+              '200': { content: { 'application/json': { schema: { type: 'string' } } } },
+            },
           },
         },
       },
@@ -1540,7 +1581,9 @@ describe('coverage: resolveParamRef edge cases (lines 202-204)', () => {
           get: {
             operationId: 'listItems',
             parameters: [{ $ref: '#/components/parameters/PageParam' } as any],
-            responses: { '200': { content: { 'application/json': { schema: { type: 'string' } } } } },
+            responses: {
+              '200': { content: { 'application/json': { schema: { type: 'string' } } } },
+            },
           },
         },
       },
@@ -1565,7 +1608,9 @@ describe('coverage: getRequestBodyInfo with no content (line 334)', () => {
           post: {
             operationId: 'createItem',
             requestBody: { required: true } as any, // no content
-            responses: { '201': { content: { 'application/json': { schema: { type: 'string' } } } } },
+            responses: {
+              '201': { content: { 'application/json': { schema: { type: 'string' } } } },
+            },
           },
         },
       },
@@ -1600,7 +1645,9 @@ describe('coverage: detectBearerAuth with $ref security scheme (line 488)', () =
         '/items': {
           get: {
             operationId: 'listItems',
-            responses: { '200': { content: { 'application/json': { schema: { type: 'string' } } } } },
+            responses: {
+              '200': { content: { 'application/json': { schema: { type: 'string' } } } },
+            },
           },
         },
       },
@@ -1780,7 +1827,10 @@ describe('coverage: schema-enhanced mode edge cases (lines 421-431, 437-439, 446
             requestBody: {
               content: {
                 'multipart/form-data': {
-                  schema: { type: 'object', properties: { file: { type: 'string', format: 'binary' } } },
+                  schema: {
+                    type: 'object',
+                    properties: { file: { type: 'string', format: 'binary' } },
+                  },
                 },
                 // no application/json key
               },

@@ -32,7 +32,7 @@ function extractPathParamsFromPath(path: string): string[] {
 /** Resolve a parameter that may be a $ref */
 function resolveParam(
   p: ParameterObject | ReferenceObject,
-  spec: OpenAPIV3_1.Document,
+  spec: OpenAPIV3_1.Document
 ): ParameterObject | undefined {
   if (!isRef(p)) return p as ParameterObject
   // Resolve from components/parameters
@@ -40,7 +40,9 @@ function resolveParam(
   const name = refToName(refStr)
   const components = spec.components as OpenAPIV3_1.ComponentsObject | undefined
   if (components?.parameters === undefined) return undefined
-  const resolved = (components.parameters as Record<string, ParameterObject | ReferenceObject>)[name]
+  const resolved = (components.parameters as Record<string, ParameterObject | ReferenceObject>)[
+    name
+  ]
   if (resolved === undefined || isRef(resolved)) return undefined
   return resolved as ParameterObject
 }
@@ -74,8 +76,8 @@ function deriveServiceName(spec: OpenAPIV3_1.Document): string {
  */
 function sanitizeOperationId(id: string): string {
   const parts = id
-    .replace(/'/g, '')           // strip apostrophes without splitting ("user's" → "users")
-    .split(/[^a-zA-Z0-9]+/)     // split on any non-alphanumeric sequence
+    .replace(/'/g, '') // strip apostrophes without splitting ("user's" → "users")
+    .split(/[^a-zA-Z0-9]+/) // split on any non-alphanumeric sequence
     .filter(Boolean)
   if (parts.length === 0) return 'unknown'
   const [first = '', ...rest] = parts
@@ -139,7 +141,7 @@ interface QueryParam {
  */
 function normalizeParamName(name: string): string {
   return name
-    .replace(/\[\]$/, '')   // strip trailing []
+    .replace(/\[\]$/, '') // strip trailing []
     .replace(/'/g, '')
     .replace(/[^a-zA-Z0-9]+([a-zA-Z])/g, (_, char: string) => char.toUpperCase())
     .replace(/[^a-zA-Z0-9]+$/, '')
@@ -182,7 +184,9 @@ function getBodyInfo(operation: OperationObject): BodyInfo | undefined {
   if (isRef(requestBody)) return { typeName: undefined }
 
   const rb = requestBody as RequestBodyObject
-  const content = rb.content as Record<string, { schema?: OpenAPIV3_1.SchemaObject | ReferenceObject }> | undefined
+  const content = rb.content as
+    | Record<string, { schema?: OpenAPIV3_1.SchemaObject | ReferenceObject }>
+    | undefined
   if (content === undefined) return { typeName: undefined }
 
   const jsonContent = content['application/json']
@@ -203,7 +207,9 @@ interface ReturnInfo {
 }
 
 function getReturnInfo(operation: OperationObject): ReturnInfo {
-  const responses = operation.responses as Record<string, ResponseObject | ReferenceObject> | undefined
+  const responses = operation.responses as
+    | Record<string, ResponseObject | ReferenceObject>
+    | undefined
   if (responses === undefined) return { typeName: undefined, isArray: false, isVoid: true }
 
   // Check for 200 or 201 response first
@@ -213,7 +219,9 @@ function getReturnInfo(operation: OperationObject): ReturnInfo {
     if (isRef(response)) continue
 
     const resp = response as ResponseObject
-    const content = resp.content as Record<string, { schema?: OpenAPIV3_1.SchemaObject | ReferenceObject }> | undefined
+    const content = resp.content as
+      | Record<string, { schema?: OpenAPIV3_1.SchemaObject | ReferenceObject }>
+      | undefined
     if (content === undefined) continue
 
     const jsonContent = content['application/json']
@@ -221,14 +229,22 @@ function getReturnInfo(operation: OperationObject): ReturnInfo {
 
     const schema = jsonContent.schema
     if (isRef(schema)) {
-      return { typeName: refToName((schema as ReferenceObject).$ref), isArray: false, isVoid: false }
+      return {
+        typeName: refToName((schema as ReferenceObject).$ref),
+        isArray: false,
+        isVoid: false,
+      }
     }
 
     const s = schema as OpenAPIV3_1.SchemaObject
     if (s.type === 'array') {
       const items = s.items as OpenAPIV3_1.SchemaObject | ReferenceObject | undefined
       if (items !== undefined && isRef(items)) {
-        return { typeName: refToName((items as ReferenceObject).$ref), isArray: true, isVoid: false }
+        return {
+          typeName: refToName((items as ReferenceObject).$ref),
+          isArray: true,
+          isVoid: false,
+        }
       }
       return { typeName: undefined, isArray: true, isVoid: false }
     }

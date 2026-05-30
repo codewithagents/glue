@@ -23,7 +23,11 @@ function refToTypeName(ref: string): string {
 }
 
 /** Check whether a schema tree contains a $ref to the given schema name (self-reference). */
-function hasSelfRef(schema: SchemaObject | ReferenceObject, name: string, visited = new Set<SchemaObject | ReferenceObject>()): boolean {
+function hasSelfRef(
+  schema: SchemaObject | ReferenceObject,
+  name: string,
+  visited = new Set<SchemaObject | ReferenceObject>()
+): boolean {
   if (visited.has(schema)) return false
   visited.add(schema)
 
@@ -43,7 +47,9 @@ function hasSelfRef(schema: SchemaObject | ReferenceObject, name: string, visite
   }
 
   if (s.properties !== undefined) {
-    for (const propSchema of Object.values(s.properties as Record<string, SchemaObject | ReferenceObject>)) {
+    for (const propSchema of Object.values(
+      s.properties as Record<string, SchemaObject | ReferenceObject>
+    )) {
       if (hasSelfRef(propSchema, name, visited)) return true
     }
   }
@@ -54,7 +60,8 @@ function hasSelfRef(schema: SchemaObject | ReferenceObject, name: string, visite
   }
 
   if (s.additionalProperties !== undefined && typeof s.additionalProperties === 'object') {
-    if (hasSelfRef(s.additionalProperties as SchemaObject | ReferenceObject, name, visited)) return true
+    if (hasSelfRef(s.additionalProperties as SchemaObject | ReferenceObject, name, visited))
+      return true
   }
 
   return false
@@ -81,7 +88,8 @@ function applyStringConstraints(base: string, schema: SchemaObject): string {
   let s = base
   if (typeof schema.minLength === 'number') s += `.min(${schema.minLength})`
   if (typeof schema.maxLength === 'number') s += `.max(${schema.maxLength})`
-  if (typeof schema.pattern === 'string') s += `.regex(new RegExp(${JSON.stringify(schema.pattern)}))`
+  if (typeof schema.pattern === 'string')
+    s += `.regex(new RegExp(${JSON.stringify(schema.pattern)}))`
   const format = schema.format as string | undefined
   if (format === 'email') s += '.email()'
   else if (format === 'url') s += '.url()'
@@ -92,8 +100,12 @@ function applyStringConstraints(base: string, schema: SchemaObject): string {
 /** Chain OpenAPI numeric range constraints onto a base Zod number expression. */
 function applyNumberConstraints(base: string, schema: SchemaObject): string {
   let s = base
-  const min = schema.minimum ?? (typeof schema.exclusiveMinimum === 'number' ? schema.exclusiveMinimum : undefined)
-  const max = schema.maximum ?? (typeof schema.exclusiveMaximum === 'number' ? schema.exclusiveMaximum : undefined)
+  const min =
+    schema.minimum ??
+    (typeof schema.exclusiveMinimum === 'number' ? schema.exclusiveMinimum : undefined)
+  const max =
+    schema.maximum ??
+    (typeof schema.exclusiveMaximum === 'number' ? schema.exclusiveMaximum : undefined)
   if (typeof min === 'number') s += `.min(${min})`
   if (typeof max === 'number') s += `.max(${max})`
   return s
@@ -112,7 +124,8 @@ function schemaToZod(schema: SchemaObject | ReferenceObject): string {
     if (nonNull.length === 1) {
       let base = primitiveToZod(nonNull[0]!)
       if (nonNull[0] === 'string') base = applyStringConstraints(base, schema)
-      else if (nonNull[0] === 'number' || nonNull[0] === 'integer') base = applyNumberConstraints(base, schema)
+      else if (nonNull[0] === 'number' || nonNull[0] === 'integer')
+        base = applyNumberConstraints(base, schema)
       return isNullable ? `${base}.nullable()` : base
     }
     const parts = types.map((t) => (t === 'null' ? 'z.null()' : primitiveToZod(t)))
@@ -124,18 +137,22 @@ function schemaToZod(schema: SchemaObject | ReferenceObject): string {
   // Cast null values to string "null" — some specs mix null with string enums (technically invalid OpenAPI
   // but common in practice, e.g. GitHub's dismissed_reason: [null, "false positive", "won't fix"]).
   if (schema.enum !== undefined && schema.enum.length > 0 && schema.type === 'string') {
-    const vals = (schema.enum as (string | null)[]).map((v) => JSON.stringify(v ?? 'null')).join(', ')
+    const vals = (schema.enum as (string | null)[])
+      .map((v) => JSON.stringify(v ?? 'null'))
+      .join(', ')
     return `z.enum([${vals}])`
   }
 
   // Mixed/number/integer enum → z.union([z.literal(...), ...])
   // Must quote strings (JSON.stringify), leave numbers/null as-is.
   if (schema.enum !== undefined && schema.enum.length > 0) {
-    const literals = (schema.enum as unknown[]).map((v) => {
-      if (typeof v === 'string') return `z.literal(${JSON.stringify(v)})`
-      if (v === null) return `z.literal(null)`
-      return `z.literal(${String(v)})`
-    }).join(', ')
+    const literals = (schema.enum as unknown[])
+      .map((v) => {
+        if (typeof v === 'string') return `z.literal(${JSON.stringify(v)})`
+        if (v === null) return `z.literal(null)`
+        return `z.literal(${String(v)})`
+      })
+      .join(', ')
     return `z.union([${literals}])`
   }
 
@@ -237,7 +254,9 @@ function collectRefsInto(schema: SchemaObject | ReferenceObject, out: Set<string
   }
 
   if (schema.properties !== undefined) {
-    for (const propSchema of Object.values(schema.properties as Record<string, SchemaObject | ReferenceObject>)) {
+    for (const propSchema of Object.values(
+      schema.properties as Record<string, SchemaObject | ReferenceObject>
+    )) {
       collectRefsInto(propSchema, out)
     }
   }
@@ -245,7 +264,10 @@ function collectRefsInto(schema: SchemaObject | ReferenceObject, out: Set<string
   const items = (schema as unknown as ArraySchemaObject).items
   if (items !== undefined) collectRefsInto(items as SchemaObject | ReferenceObject, out)
 
-  if (schema.additionalProperties !== undefined && typeof schema.additionalProperties === 'object') {
+  if (
+    schema.additionalProperties !== undefined &&
+    typeof schema.additionalProperties === 'object'
+  ) {
     collectRefsInto(schema.additionalProperties as SchemaObject | ReferenceObject, out)
   }
 }
@@ -309,7 +331,11 @@ function topoSortSchemas(schemas: Record<string, SchemaObject | ReferenceObject>
   return { sorted: [...sorted, ...cyclic], cyclic }
 }
 
-function generateSchemaDeclaration(name: string, schema: SchemaObject | ReferenceObject, inCycle = false): string {
+function generateSchemaDeclaration(
+  name: string,
+  schema: SchemaObject | ReferenceObject,
+  inCycle = false
+): string {
   // Sanitize schema name to a valid TS identifier (e.g. 'Foo-bar' → 'FooBar')
   const safeName = toTypeName(name)
   const useLazy = inCycle || (!isRef(schema) && hasSelfRef(schema, safeName))

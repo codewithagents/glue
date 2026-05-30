@@ -122,7 +122,10 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "results": { "type": "array", "items": { "$ref": "#/components/schemas/Post" } },
+                    "results": {
+                      "type": "array",
+                      "items": { "$ref": "#/components/schemas/Post" }
+                    },
                     "total": { "type": "integer" }
                   }
                 }

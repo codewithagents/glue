@@ -5,11 +5,7 @@
   "vitest": {
     "configFile": "vitest.config.ts"
   },
-  "mutate": [
-    "src/**/*.ts",
-    "!src/**/__tests__/**",
-    "!src/**/*.d.ts"
-  ],
+  "mutate": ["src/**/*.ts", "!src/**/__tests__/**", "!src/**/*.d.ts"],
   "coverageAnalysis": "perTest",
   "thresholds": {
     "high": 80,

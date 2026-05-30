@@ -1,0 +1,7 @@
+**/dist/**
+**/generated/**
+**/node_modules/**
+**/test-results/**
+examples/specs/**
+**/*.md
+pnpm-lock.yaml

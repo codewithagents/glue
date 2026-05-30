@@ -37,7 +37,10 @@ function makeGetOp(opts: {
   let responseSchema: OpenAPIV3_1.SchemaObject | OpenAPIV3_1.ReferenceObject | undefined
   if (opts.responseRef !== undefined) {
     if (opts.responseArray) {
-      responseSchema = { type: 'array', items: { $ref: `#/components/schemas/${opts.responseRef}` } }
+      responseSchema = {
+        type: 'array',
+        items: { $ref: `#/components/schemas/${opts.responseRef}` },
+      }
     } else {
       responseSchema = { $ref: `#/components/schemas/${opts.responseRef}` }
     }
@@ -46,14 +49,15 @@ function makeGetOp(opts: {
   return {
     operationId: opts.operationId,
     parameters,
-    responses: responseSchema !== undefined
-      ? {
-          '200': {
-            description: 'ok',
-            content: { 'application/json': { schema: responseSchema } },
-          },
-        }
-      : { '200': { description: 'ok' } },
+    responses:
+      responseSchema !== undefined
+        ? {
+            '200': {
+              description: 'ok',
+              content: { 'application/json': { schema: responseSchema } },
+            },
+          }
+        : { '200': { description: 'ok' } },
   }
 }
 
@@ -63,33 +67,36 @@ function makePostOp(opts: {
   responseRef?: string
   responseStatus?: '200' | '201'
 }): OpenAPIV3_1.OperationObject {
-  const requestBody: OpenAPIV3_1.RequestBodyObject | undefined = opts.bodyRef !== undefined
-    ? {
-        required: true,
-        content: {
-          'application/json': {
-            schema: { $ref: `#/components/schemas/${opts.bodyRef}` },
+  const requestBody: OpenAPIV3_1.RequestBodyObject | undefined =
+    opts.bodyRef !== undefined
+      ? {
+          required: true,
+          content: {
+            'application/json': {
+              schema: { $ref: `#/components/schemas/${opts.bodyRef}` },
+            },
           },
-        },
-      }
-    : undefined
+        }
+      : undefined
 
   const status = opts.responseStatus ?? '201'
-  const responseSchema: OpenAPIV3_1.SchemaObject | OpenAPIV3_1.ReferenceObject | undefined = opts.responseRef !== undefined
-    ? { $ref: `#/components/schemas/${opts.responseRef}` }
-    : undefined
+  const responseSchema: OpenAPIV3_1.SchemaObject | OpenAPIV3_1.ReferenceObject | undefined =
+    opts.responseRef !== undefined
+      ? { $ref: `#/components/schemas/${opts.responseRef}` }
+      : undefined
 
   return {
     operationId: opts.operationId,
     requestBody,
-    responses: responseSchema !== undefined
-      ? {
-          [status]: {
-            description: 'created',
-            content: { 'application/json': { schema: responseSchema } },
-          },
-        }
-      : { [status]: { description: 'created' } },
+    responses:
+      responseSchema !== undefined
+        ? {
+            [status]: {
+              description: 'created',
+              content: { 'application/json': { schema: responseSchema } },
+            },
+          }
+        : { [status]: { description: 'created' } },
   }
 }
 
@@ -141,19 +148,31 @@ describe('generateService', () => {
   })
 
   it('GET with typed response reference produces correct return type', () => {
-    const spec = makeSpec({ '/pets': { get: makeGetOp({ operationId: 'listPets', responseRef: 'Pet', responseArray: true }) } })
+    const spec = makeSpec({
+      '/pets': {
+        get: makeGetOp({ operationId: 'listPets', responseRef: 'Pet', responseArray: true }),
+      },
+    })
     const { content } = generateService(spec)
     expect(content).toContain('listPets(): Promise<Pet[]>')
   })
 
   it('GET with single object response produces Promise<TypeName>', () => {
-    const spec = makeSpec({ '/pets/{id}': { get: makeGetOp({ operationId: 'getPet', pathParams: ['id'], responseRef: 'Pet' }) } })
+    const spec = makeSpec({
+      '/pets/{id}': {
+        get: makeGetOp({ operationId: 'getPet', pathParams: ['id'], responseRef: 'Pet' }),
+      },
+    })
     const { content } = generateService(spec)
     expect(content).toContain('getPet(id: string): Promise<Pet>')
   })
 
   it('imports types from ./models.js when response type is named', () => {
-    const spec = makeSpec({ '/pets': { get: makeGetOp({ operationId: 'listPets', responseRef: 'Pet', responseArray: true }) } })
+    const spec = makeSpec({
+      '/pets': {
+        get: makeGetOp({ operationId: 'listPets', responseRef: 'Pet', responseArray: true }),
+      },
+    })
     const { content } = generateService(spec)
     expect(content).toContain("import type { Pet } from './models.js'")
   })
@@ -224,7 +243,11 @@ describe('generateService', () => {
   it('POST with requestBody produces body param', () => {
     const spec = makeSpec({
       '/pets': {
-        post: makePostOp({ operationId: 'createPet', bodyRef: 'CreatePetRequest', responseRef: 'Pet' }),
+        post: makePostOp({
+          operationId: 'createPet',
+          bodyRef: 'CreatePetRequest',
+          responseRef: 'Pet',
+        }),
       },
     })
     const { content } = generateService(spec)
@@ -234,7 +257,11 @@ describe('generateService', () => {
   it('POST with body imports body type from models.js', () => {
     const spec = makeSpec({
       '/pets': {
-        post: makePostOp({ operationId: 'createPet', bodyRef: 'CreatePetRequest', responseRef: 'Pet' }),
+        post: makePostOp({
+          operationId: 'createPet',
+          bodyRef: 'CreatePetRequest',
+          responseRef: 'Pet',
+        }),
       },
     })
     const { content } = generateService(spec)
@@ -289,9 +316,16 @@ describe('generateService', () => {
           parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }],
           requestBody: {
             required: true,
-            content: { 'application/json': { schema: { $ref: '#/components/schemas/UpdatePetRequest' } } },
+            content: {
+              'application/json': { schema: { $ref: '#/components/schemas/UpdatePetRequest' } },
+            },
           },
-          responses: { '200': { description: 'ok', content: { 'application/json': { schema: { $ref: '#/components/schemas/Pet' } } } } },
+          responses: {
+            '200': {
+              description: 'ok',
+              content: { 'application/json': { schema: { $ref: '#/components/schemas/Pet' } } },
+            },
+          },
         },
       },
     })
@@ -328,7 +362,9 @@ describe('generateService', () => {
         '/jobs/{job-id}': {
           get: {
             operationId: 'getJob',
-            parameters: [{ name: 'job-id', in: 'path', required: true, schema: { type: 'string' } }],
+            parameters: [
+              { name: 'job-id', in: 'path', required: true, schema: { type: 'string' } },
+            ],
             responses: { '200': { description: 'ok' } },
           },
         },

@@ -20,7 +20,7 @@ afterEach(async () => {
 
 async function makeConfig(
   specPath: string,
-  extra: Record<string, unknown> = {},
+  extra: Record<string, unknown> = {}
 ): Promise<{ tmpDir: string; configPath: string; outDir: string; schemaPath: string }> {
   const dir = await mkdtemp(join(tmpdir(), 'openapi-gen-schema-test-'))
   tmpDir = dir
@@ -30,7 +30,7 @@ async function makeConfig(
   await writeFile(
     configPath,
     JSON.stringify({ input_openapi: specPath, output: outDir, input_schema: schemaPath, ...extra }),
-    'utf-8',
+    'utf-8'
   )
   return { tmpDir: dir, configPath, outDir, schemaPath }
 }
@@ -125,7 +125,7 @@ describe('schema-enhanced mode — drift detection', () => {
         'export const TaskSchema = z.object({ id: z.string(), title: z.string() })',
         // TagSchema and CreateTaskRequestSchema intentionally omitted → drift
       ].join('\n'),
-      'utf-8',
+      'utf-8'
     )
 
     const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})

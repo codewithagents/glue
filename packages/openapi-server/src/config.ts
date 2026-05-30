@@ -13,15 +13,33 @@ export interface ServerConfig {
 }
 
 const FORBIDDEN_OUTPUT_PREFIXES = [
-  '/etc', '/usr', '/bin', '/sbin', '/lib', '/lib64',
-  '/sys', '/proc', '/dev', '/boot', '/run',
-  'C:\\Windows', 'C:\\Program Files',
+  '/etc',
+  '/usr',
+  '/bin',
+  '/sbin',
+  '/lib',
+  '/lib64',
+  '/sys',
+  '/proc',
+  '/dev',
+  '/boot',
+  '/run',
+  'C:\\Windows',
+  'C:\\Program Files',
 ]
 
 const FORBIDDEN_INPUT_PREFIXES = [
-  '/etc', '/usr', '/bin', '/sbin', '/lib', '/lib64',
-  '/sys', '/proc', '/dev',
-  'C:\\Windows', 'C:\\Program Files',
+  '/etc',
+  '/usr',
+  '/bin',
+  '/sbin',
+  '/lib',
+  '/lib64',
+  '/sys',
+  '/proc',
+  '/dev',
+  'C:\\Windows',
+  'C:\\Program Files',
 ]
 
 export function validateConfigPath(configPath: string): void {
@@ -37,7 +55,7 @@ export function validateOutputPath(resolvedOutput: string): void {
     if (normalized === normalizedForbidden || normalized.startsWith(normalizedForbidden + '/')) {
       throw new Error(
         `Output path resolves to a system directory: "${resolvedOutput}". ` +
-        `This looks like a misconfiguration — please check your config file.`
+          `This looks like a misconfiguration — please check your config file.`
       )
     }
   }
@@ -50,7 +68,7 @@ export function validateInputPath(resolvedInput: string): void {
     if (normalized === normalizedForbidden || normalized.startsWith(normalizedForbidden + '/')) {
       throw new Error(
         `Input spec path resolves to a system directory: "${resolvedInput}". ` +
-        `This looks like a misconfiguration — please check your config file.`
+          `This looks like a misconfiguration — please check your config file.`
       )
     }
   }

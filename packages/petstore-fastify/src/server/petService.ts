@@ -8,7 +8,7 @@ export const petService: PetstoreService = {
   async listPets(params) {
     const all = Array.from(pets.values())
     if (params?.species) {
-      return all.filter(p => p.species.toLowerCase() === params.species!.toLowerCase())
+      return all.filter((p) => p.species.toLowerCase() === params.species!.toLowerCase())
     }
     return all
   },

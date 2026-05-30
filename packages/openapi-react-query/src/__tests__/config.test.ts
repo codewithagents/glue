@@ -84,7 +84,10 @@ describe('loadConfig', () => {
 
   it('accepts a config loaded via explicit configPath', async () => {
     const configFile = join(tmpDir, 'custom.config.json')
-    writeFileSync(configFile, JSON.stringify({ input_openapi: 'openapi.json', output: 'src/hooks' }))
+    writeFileSync(
+      configFile,
+      JSON.stringify({ input_openapi: 'openapi.json', output: 'src/hooks' })
+    )
     const config = await loadConfig(tmpDir, configFile)
     expect(config.input_openapi).toBe('openapi.json')
     expect(config.output).toBe('src/hooks')
@@ -92,7 +95,10 @@ describe('loadConfig', () => {
 
   it('rejects explicit configPath that is not .json', async () => {
     const configFile = join(tmpDir, 'config.ts')
-    writeFileSync(configFile, JSON.stringify({ input_openapi: 'openapi.json', output: 'src/hooks' }))
+    writeFileSync(
+      configFile,
+      JSON.stringify({ input_openapi: 'openapi.json', output: 'src/hooks' })
+    )
     await expect(loadConfig(tmpDir, configFile)).rejects.toThrow('Config file must be a .json file')
   })
 
@@ -117,22 +123,38 @@ describe('loadConfig', () => {
   })
 
   it('throws when an override entry is not an object', async () => {
-    writeConfig({ input_openapi: 'openapi.json', output: 'src/hooks', overrides: { pets: 'wrong' } })
+    writeConfig({
+      input_openapi: 'openapi.json',
+      output: 'src/hooks',
+      overrides: { pets: 'wrong' },
+    })
     await expect(loadConfig(tmpDir)).rejects.toThrow('"overrides.pets" must be an object')
   })
 
   it('throws when override stale_time is not a number', async () => {
-    writeConfig({ input_openapi: 'openapi.json', output: 'src/hooks', overrides: { pets: { stale_time: 'fast' } } })
+    writeConfig({
+      input_openapi: 'openapi.json',
+      output: 'src/hooks',
+      overrides: { pets: { stale_time: 'fast' } },
+    })
     await expect(loadConfig(tmpDir)).rejects.toThrow('"overrides.pets.stale_time" must be a number')
   })
 
   it('throws when override gc_time is not a number', async () => {
-    writeConfig({ input_openapi: 'openapi.json', output: 'src/hooks', overrides: { pets: { gc_time: true } } })
+    writeConfig({
+      input_openapi: 'openapi.json',
+      output: 'src/hooks',
+      overrides: { pets: { gc_time: true } },
+    })
     await expect(loadConfig(tmpDir)).rejects.toThrow('"overrides.pets.gc_time" must be a number')
   })
 
   it('loads valid overrides', async () => {
-    writeConfig({ input_openapi: 'openapi.json', output: 'src/hooks', overrides: { pets: { stale_time: 1000, gc_time: 5000 } } })
+    writeConfig({
+      input_openapi: 'openapi.json',
+      output: 'src/hooks',
+      overrides: { pets: { stale_time: 1000, gc_time: 5000 } },
+    })
     const config = await loadConfig(tmpDir)
     expect(config.overrides).toEqual({ pets: { stale_time: 1000, gc_time: 5000 } })
   })
@@ -141,11 +163,15 @@ describe('loadConfig', () => {
 describe('config security validation', () => {
   describe('validateConfigPath', () => {
     it('rejects non-.json config file extension', () => {
-      expect(() => validateConfigPath('/project/config.ts')).toThrow('Config file must be a .json file')
+      expect(() => validateConfigPath('/project/config.ts')).toThrow(
+        'Config file must be a .json file'
+      )
     })
 
     it('rejects .yaml extension', () => {
-      expect(() => validateConfigPath('/project/config.yaml')).toThrow('Config file must be a .json file')
+      expect(() => validateConfigPath('/project/config.yaml')).toThrow(
+        'Config file must be a .json file'
+      )
     })
 
     it('accepts .json extension', () => {
@@ -211,11 +237,15 @@ describe('config security validation', () => {
     })
 
     it('accepts GitHub Actions home runner output path', () => {
-      expect(() => validateOutputPath('/home/runner/work/my-repo/my-repo/src/generated')).not.toThrow()
+      expect(() =>
+        validateOutputPath('/home/runner/work/my-repo/my-repo/src/generated')
+      ).not.toThrow()
     })
 
     it('accepts GitLab runner build output path', () => {
-      expect(() => validateOutputPath('/var/lib/gitlab-runner/builds/project/src/generated')).not.toThrow()
+      expect(() =>
+        validateOutputPath('/var/lib/gitlab-runner/builds/project/src/generated')
+      ).not.toThrow()
     })
 
     it('accepts common CI workspace output path', () => {
@@ -249,7 +279,9 @@ describe('config security validation', () => {
     })
 
     it('accepts GitHub Actions home runner input path', () => {
-      expect(() => validateInputPath('/home/runner/work/my-repo/my-repo/spec/api.json')).not.toThrow()
+      expect(() =>
+        validateInputPath('/home/runner/work/my-repo/my-repo/spec/api.json')
+      ).not.toThrow()
     })
 
     it('accepts common CI workspace input path', () => {

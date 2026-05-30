@@ -1,2 +1,6 @@
-{ "input_openapi": "spec/api.json", "output": "generated/", "framework": "hono", "input_schema": "generated/schemas.ts" }
-
+{
+  "input_openapi": "spec/api.json",
+  "output": "generated/",
+  "framework": "hono",
+  "input_schema": "generated/schemas.ts"
+}

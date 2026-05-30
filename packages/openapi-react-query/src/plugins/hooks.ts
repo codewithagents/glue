@@ -102,13 +102,21 @@ interface OperationMeta {
   deprecated: boolean
 }
 
-function getBodyInfo(operation: OperationObject): { hasBody: boolean; bodyTypeName: string | undefined } {
-  const requestBody = operation.requestBody as OpenAPIV3_1.RequestBodyObject | ReferenceObject | undefined
+function getBodyInfo(operation: OperationObject): {
+  hasBody: boolean
+  bodyTypeName: string | undefined
+} {
+  const requestBody = operation.requestBody as
+    | OpenAPIV3_1.RequestBodyObject
+    | ReferenceObject
+    | undefined
   if (requestBody === undefined) return { hasBody: false, bodyTypeName: undefined }
   if (isRef(requestBody)) return { hasBody: true, bodyTypeName: undefined }
 
   const rb = requestBody as OpenAPIV3_1.RequestBodyObject
-  const content = rb.content as Record<string, { schema?: OpenAPIV3_1.SchemaObject | ReferenceObject }> | undefined
+  const content = rb.content as
+    | Record<string, { schema?: OpenAPIV3_1.SchemaObject | ReferenceObject }>
+    | undefined
   if (content === undefined) return { hasBody: true, bodyTypeName: undefined }
 
   // Check multipart first
@@ -137,8 +145,8 @@ function getBodyInfo(operation: OperationObject): { hasBody: boolean; bodyTypeNa
 // ── Key factory generation ─────────────────────────────────────────────────────
 
 interface KeyEntry {
-  key: string         // e.g. 'list' | 'detail' | operationId-derived
-  funcName: string    // function to use in key factory
+  key: string // e.g. 'list' | 'detail' | operationId-derived
+  funcName: string // function to use in key factory
   pathParams: string[]
   hasQueryParams: boolean
   hasRequiredQueryParams: boolean
@@ -160,32 +168,43 @@ function buildKeyFactory(resource: string, entries: KeyEntry[]): string {
     // and GET /items/{id}/usage), each gets a funcName-derived key instead of 'detail'.
     // Include the key name as a segment to prevent cache key collisions.
     // Single detail ops keep the canonical ['resource', id] shape (no breaking change).
-    const keySegment = entry.pathParams.length > 0 && entry.key !== 'detail' ? `'${entry.key}', ` : ''
+    const keySegment =
+      entry.pathParams.length > 0 && entry.key !== 'detail' ? `'${entry.key}', ` : ''
 
     if (entry.pathParams.length === 0 && entry.hasQueryParams) {
       // list: (params?) => ['resource', 'list', params]
-      lines.push(`  ${entry.key}: (${paramsArg}) => ['${resource}', '${entry.key}', params] as const,`)
+      lines.push(
+        `  ${entry.key}: (${paramsArg}) => ['${resource}', '${entry.key}', params] as const,`
+      )
     } else if (entry.pathParams.length === 0 && !entry.hasQueryParams) {
       // list with no params
       lines.push(`  ${entry.key}: () => ['${resource}', '${entry.key}'] as const,`)
     } else if (entry.pathParams.length === 1 && !entry.hasQueryParams) {
       // detail: (id) => ['resource', id]  or  getItemUsage: (id) => ['resource', 'getItemUsage', id]
       const param = entry.pathParams[0]!
-      lines.push(`  ${entry.key}: (${param}: string) => ['${resource}', ${keySegment}${param}] as const,`)
+      lines.push(
+        `  ${entry.key}: (${param}: string) => ['${resource}', ${keySegment}${param}] as const,`
+      )
     } else if (entry.pathParams.length === 1 && entry.hasQueryParams) {
       // detail with query params
       const param = entry.pathParams[0]!
-      lines.push(`  ${entry.key}: (${param}: string, ${paramsArg}) => ['${resource}', ${keySegment}${param}, params] as const,`)
+      lines.push(
+        `  ${entry.key}: (${param}: string, ${paramsArg}) => ['${resource}', ${keySegment}${param}, params] as const,`
+      )
     } else if (!entry.hasQueryParams) {
       // multiple path params, no query params
       const paramList = entry.pathParams.map((p) => `${p}: string`).join(', ')
       const paramValues = entry.pathParams.join(', ')
-      lines.push(`  ${entry.key}: (${paramList}) => ['${resource}', ${keySegment}${paramValues}] as const,`)
+      lines.push(
+        `  ${entry.key}: (${paramList}) => ['${resource}', ${keySegment}${paramValues}] as const,`
+      )
     } else {
       // multiple path params + query params
       const paramList = entry.pathParams.map((p) => `${p}: string`).join(', ')
       const paramValues = entry.pathParams.join(', ')
-      lines.push(`  ${entry.key}: (${paramList}, ${paramsArg}) => ['${resource}', ${keySegment}${paramValues}, params] as const,`)
+      lines.push(
+        `  ${entry.key}: (${paramList}, ${paramsArg}) => ['${resource}', ${keySegment}${paramValues}, params] as const,`
+      )
     }
   }
 
@@ -200,7 +219,7 @@ function buildQueryHook(
   keyFactoryName: string,
   keyEntry: KeyEntry,
   staleTime: number,
-  gcTime: number,
+  gcTime: number
 ): string {
   const lines: string[] = []
 
@@ -219,7 +238,9 @@ function buildQueryHook(
     const paramsToken = paramsRequired ? 'params' : 'params?'
     sigParts.push(`${paramsToken}: Parameters<typeof ${op.funcName}>[${pathParams.length}]`)
   }
-  sigParts.push(`options?: Omit<UseQueryOptions<Awaited<ReturnType<typeof ${op.funcName}>>, ApiError>, 'queryKey' | 'queryFn'>`)
+  sigParts.push(
+    `options?: Omit<UseQueryOptions<Awaited<ReturnType<typeof ${op.funcName}>>, ApiError>, 'queryKey' | 'queryFn'>`
+  )
 
   // Build queryKey call — use non-null assertions since enabled guard ensures non-null at runtime
   let queryKeyCall: string
@@ -279,7 +300,7 @@ function buildSuspenseQueryHook(
   keyFactoryName: string,
   keyEntry: KeyEntry,
   staleTime: number,
-  gcTime: number,
+  gcTime: number
 ): string {
   const lines: string[] = []
 
@@ -296,7 +317,9 @@ function buildSuspenseQueryHook(
     const paramsToken = paramsRequired ? 'params' : 'params?'
     sigParts.push(`${paramsToken}: Parameters<typeof ${op.funcName}>[${pathParams.length}]`)
   }
-  sigParts.push(`options?: Omit<UseSuspenseQueryOptions<Awaited<ReturnType<typeof ${op.funcName}>>, ApiError>, 'queryKey' | 'queryFn'>`)
+  sigParts.push(
+    `options?: Omit<UseSuspenseQueryOptions<Awaited<ReturnType<typeof ${op.funcName}>>, ApiError>, 'queryKey' | 'queryFn'>`
+  )
 
   // Build queryKey call
   let queryKeyCall: string
@@ -351,7 +374,7 @@ interface MutationInvalidateInfo {
 function buildMutationHook(
   op: OperationMeta,
   autoInvalidate: boolean,
-  invalidateInfo: MutationInvalidateInfo | undefined,
+  invalidateInfo: MutationInvalidateInfo | undefined
 ): string {
   const lines: string[] = []
   const { funcName, hookName, pathParams, hasBody, hasQueryParams } = op
@@ -427,7 +450,9 @@ function buildMutationHook(
     lines.push(`/** @deprecated */`)
   }
   lines.push(`export function ${hookName}(`)
-  lines.push(`  options?: Omit<UseMutationOptions<Awaited<ReturnType<typeof ${funcName}>>, ApiError, ${variablesType}>, 'mutationFn'>,`)
+  lines.push(
+    `  options?: Omit<UseMutationOptions<Awaited<ReturnType<typeof ${funcName}>>, ApiError, ${variablesType}>, 'mutationFn'>,`
+  )
   lines.push(`) {`)
 
   const shouldInvalidate = autoInvalidate && invalidateInfo !== undefined
@@ -435,7 +460,9 @@ function buildMutationHook(
     lines.push(`  const queryClient = useQueryClient()`)
   }
 
-  lines.push(`  return useMutation<Awaited<ReturnType<typeof ${funcName}>>, ApiError, ${variablesType}>({`)
+  lines.push(
+    `  return useMutation<Awaited<ReturnType<typeof ${funcName}>>, ApiError, ${variablesType}>({`
+  )
   lines.push(`    mutationFn: ${mutationFnBody},`)
   // Spread options first so caller can override mutationFn-unrelated options (e.g. retry, meta).
   // onSuccess must come AFTER the spread so the auto-invalidation logic always runs —
@@ -467,7 +494,9 @@ function buildMutationHook(
     }
     lines.push(`      queryClient.invalidateQueries({ queryKey: ${keyFactoryName}.all() })`)
     if (canInvalidateDetail) {
-      lines.push(`      queryClient.invalidateQueries({ queryKey: ${keyFactoryName}.${detailKeyName}(${detailIdRef}) })`)
+      lines.push(
+        `      queryClient.invalidateQueries({ queryKey: ${keyFactoryName}.${detailKeyName}(${detailIdRef}) })`
+      )
     }
     lines.push(`      options?.onSuccess?.(...args)`)
     lines.push(`    },`)
@@ -482,7 +511,9 @@ function buildMutationHook(
 // ── hasQueryParams detection ───────────────────────────────────────────────────
 
 function operationHasQueryParams(operation: OperationObject): boolean {
-  const params = operation.parameters as (OpenAPIV3_1.ParameterObject | ReferenceObject)[] | undefined
+  const params = operation.parameters as
+    | (OpenAPIV3_1.ParameterObject | ReferenceObject)[]
+    | undefined
   if (params === undefined) return false
   return params.some((p) => {
     if (isRef(p)) return false
@@ -509,16 +540,51 @@ function sanitizeOperationId(id: string): string {
     first.slice(1) +
     rest.map((p) => p.charAt(0).toUpperCase() + p.slice(1)).join('')
   if (/^[0-9]/.test(camel)) return `_${camel}`
-  const RESERVED = new Set(['break','case','catch','class','const','continue','debugger','default',
-    'delete','do','else','export','extends','finally','for','function','if','import','in',
-    'instanceof','let','new','return','static','super','switch','this','throw','try','typeof',
-    'var','void','while','with','yield'])
+  const RESERVED = new Set([
+    'break',
+    'case',
+    'catch',
+    'class',
+    'const',
+    'continue',
+    'debugger',
+    'default',
+    'delete',
+    'do',
+    'else',
+    'export',
+    'extends',
+    'finally',
+    'for',
+    'function',
+    'if',
+    'import',
+    'in',
+    'instanceof',
+    'let',
+    'new',
+    'return',
+    'static',
+    'super',
+    'switch',
+    'this',
+    'throw',
+    'try',
+    'typeof',
+    'var',
+    'void',
+    'while',
+    'with',
+    'yield',
+  ])
   return RESERVED.has(camel) ? `_${camel}` : camel
 }
 
 /** Returns true if any query parameter has required: true */
 function operationHasRequiredQueryParams(operation: OperationObject): boolean {
-  const params = operation.parameters as (OpenAPIV3_1.ParameterObject | ReferenceObject)[] | undefined
+  const params = operation.parameters as
+    | (OpenAPIV3_1.ParameterObject | ReferenceObject)[]
+    | undefined
   if (params === undefined) return false
   return params.some((p) => {
     if (isRef(p)) return false
@@ -531,7 +597,7 @@ function operationHasRequiredQueryParams(operation: OperationObject): boolean {
 
 export function generateHooks(
   spec: OpenAPIV3_1.Document,
-  options: HookGenOptions,
+  options: HookGenOptions
 ): { filename: string; content: string } {
   const { staleTime, gcTime, suspense = false, autoInvalidate = false } = options
   const paths = spec.paths as Record<string, Record<string, OperationObject>> | undefined
@@ -664,9 +730,13 @@ export function generateHooks(
     const resourceOverride = options.overrides?.[resource]
     const effectiveStaleTime = resourceOverride?.staleTime ?? staleTime
     const effectiveGcTime = resourceOverride?.gcTime ?? gcTime
-    queryHookBlocks.push(buildQueryHook(op, factoryName, keyEntry, effectiveStaleTime, effectiveGcTime))
+    queryHookBlocks.push(
+      buildQueryHook(op, factoryName, keyEntry, effectiveStaleTime, effectiveGcTime)
+    )
     if (suspense) {
-      queryHookBlocks.push(buildSuspenseQueryHook(op, factoryName, keyEntry, effectiveStaleTime, effectiveGcTime))
+      queryHookBlocks.push(
+        buildSuspenseQueryHook(op, factoryName, keyEntry, effectiveStaleTime, effectiveGcTime)
+      )
     }
   }
 

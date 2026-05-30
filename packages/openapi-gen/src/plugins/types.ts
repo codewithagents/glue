@@ -48,7 +48,7 @@ function schemaToTypeString(schema: SchemaObject | ReferenceObject): string {
     return schema.enum
       .map((v: unknown) => {
         if (v === null) return 'null'
-        if (typeof v === 'string') return JSON.stringify(v)  // double-quotes, handles apostrophes safely
+        if (typeof v === 'string') return JSON.stringify(v) // double-quotes, handles apostrophes safely
         return String(v)
       })
       .join(' | ')
@@ -56,23 +56,17 @@ function schemaToTypeString(schema: SchemaObject | ReferenceObject): string {
 
   // allOf
   if (schema.allOf !== undefined && schema.allOf.length > 0) {
-    return (schema.allOf as (SchemaObject | ReferenceObject)[])
-      .map(schemaToTypeString)
-      .join(' & ')
+    return (schema.allOf as (SchemaObject | ReferenceObject)[]).map(schemaToTypeString).join(' & ')
   }
 
   // anyOf
   if (schema.anyOf !== undefined && schema.anyOf.length > 0) {
-    return (schema.anyOf as (SchemaObject | ReferenceObject)[])
-      .map(schemaToTypeString)
-      .join(' | ')
+    return (schema.anyOf as (SchemaObject | ReferenceObject)[]).map(schemaToTypeString).join(' | ')
   }
 
   // oneOf
   if (schema.oneOf !== undefined && schema.oneOf.length > 0) {
-    return (schema.oneOf as (SchemaObject | ReferenceObject)[])
-      .map(schemaToTypeString)
-      .join(' | ')
+    return (schema.oneOf as (SchemaObject | ReferenceObject)[]).map(schemaToTypeString).join(' | ')
   }
 
   const type = schema.type as string | undefined
@@ -96,7 +90,9 @@ function schemaToTypeString(schema: SchemaObject | ReferenceObject): string {
       schema.additionalProperties !== true &&
       (schema.properties === undefined || Object.keys(schema.properties).length === 0)
     ) {
-      const valType = schemaToTypeString(schema.additionalProperties as SchemaObject | ReferenceObject)
+      const valType = schemaToTypeString(
+        schema.additionalProperties as SchemaObject | ReferenceObject
+      )
       return `Record<string, ${valType}>`
     }
     // inline object with properties
@@ -174,10 +170,7 @@ function isObjectSchema(schema: SchemaObject): boolean {
 }
 
 /** Feature 5: derive the discriminator literal value for a variant ref */
-function discriminatorLiteralFor(
-  ref: string,
-  mapping: Record<string, string> | undefined,
-): string {
+function discriminatorLiteralFor(ref: string, mapping: Record<string, string> | undefined): string {
   if (mapping !== undefined) {
     // Find the key whose value matches the ref
     for (const [key, val] of Object.entries(mapping)) {
@@ -196,7 +189,11 @@ interface TypesOptions {
   schemaImportPath?: string
 }
 
-function generateSchemaDeclaration(name: string, schema: SchemaObject | ReferenceObject, options?: TypesOptions): string {
+function generateSchemaDeclaration(
+  name: string,
+  schema: SchemaObject | ReferenceObject,
+  options?: TypesOptions
+): string {
   // Sanitize schema name to a valid TypeScript identifier (e.g. 'Foo-bar' → 'FooBar')
   const safeName = toTypeName(name)
 
@@ -214,10 +211,10 @@ function generateSchemaDeclaration(name: string, schema: SchemaObject | Referenc
   }
 
   if (isEnumSchema(schema)) {
-    const union = schema.enum!
-      .map((v: unknown) => {
+    const union = schema
+      .enum!.map((v: unknown) => {
         if (v === null) return 'null'
-        if (typeof v === 'string') return JSON.stringify(v)  // double-quotes, handles apostrophes safely
+        if (typeof v === 'string') return JSON.stringify(v) // double-quotes, handles apostrophes safely
         return String(v)
       })
       .join(' | ')
@@ -226,7 +223,7 @@ function generateSchemaDeclaration(name: string, schema: SchemaObject | Referenc
     // iterate valid values (e.g. to populate a <select>) without hardcoding them.
     // Mixed enums (string + number, or containing null) intentionally get no array.
     if (isStringEnum(schema)) {
-      const arr = (schema.enum as string[]).map(v => `'${v}'`).join(', ')
+      const arr = (schema.enum as string[]).map((v) => `'${v}'`).join(', ')
       return `${typeDecl}\nexport const ${safeName}Values = [${arr}] as const`
     }
     if (isNumericEnum(schema)) {
@@ -247,7 +244,9 @@ function generateSchemaDeclaration(name: string, schema: SchemaObject | Referenc
       schema.additionalProperties !== true &&
       (props === undefined || Object.keys(props).length === 0)
     ) {
-      const valType = schemaToTypeString(schema.additionalProperties as SchemaObject | ReferenceObject)
+      const valType = schemaToTypeString(
+        schema.additionalProperties as SchemaObject | ReferenceObject
+      )
       return `export type ${safeName} = Record<string, ${valType}>`
     }
 
@@ -269,7 +268,11 @@ function generateSchemaDeclaration(name: string, schema: SchemaObject | Referenc
   }
 
   // Feature 5: discriminated union via oneOf/anyOf + discriminator
-  const discriminator = (schema as SchemaObject & { discriminator?: { propertyName: string; mapping?: Record<string, string> } }).discriminator
+  const discriminator = (
+    schema as SchemaObject & {
+      discriminator?: { propertyName: string; mapping?: Record<string, string> }
+    }
+  ).discriminator
   const compositeVariants = schema.oneOf ?? schema.anyOf
   if (
     discriminator !== undefined &&
@@ -277,17 +280,16 @@ function generateSchemaDeclaration(name: string, schema: SchemaObject | Referenc
     compositeVariants.length > 0
   ) {
     const { propertyName, mapping } = discriminator
-    const variants = (compositeVariants as (SchemaObject | ReferenceObject)[])
-      .map((variant) => {
-        if (!isRef(variant)) {
-          // Inline schema in discriminated union — emit as plain variant
-          return schemaToTypeString(variant)
-        }
-        const ref = (variant as ReferenceObject).$ref
-        const typeName = refToTypeName(ref)
-        const literalValue = discriminatorLiteralFor(ref, mapping)
-        return `(${typeName} & { ${propertyName}: '${literalValue}' })`
-      })
+    const variants = (compositeVariants as (SchemaObject | ReferenceObject)[]).map((variant) => {
+      if (!isRef(variant)) {
+        // Inline schema in discriminated union — emit as plain variant
+        return schemaToTypeString(variant)
+      }
+      const ref = (variant as ReferenceObject).$ref
+      const typeName = refToTypeName(ref)
+      const literalValue = discriminatorLiteralFor(ref, mapping)
+      return `(${typeName} & { ${propertyName}: '${literalValue}' })`
+    })
     const lines = variants.map((v, i) => (i === 0 ? `  | ${v}` : `  | ${v}`))
     return `export type ${safeName} =\n${lines.join('\n')}`
   }

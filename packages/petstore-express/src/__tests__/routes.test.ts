@@ -18,9 +18,7 @@ describe('petstore-express routes', () => {
 
   it('POST /api/pets creates a pet and returns 201', async () => {
     const app = buildApp()
-    const res = await request(app)
-      .post('/api/pets')
-      .send({ name: 'Fluffy', species: 'cat' })
+    const res = await request(app).post('/api/pets').send({ name: 'Fluffy', species: 'cat' })
     expect(res.status).toBe(201)
     expect(res.body).toMatchObject({ name: 'Fluffy', species: 'cat' })
     expect(typeof res.body.id).toBe('string')

@@ -5,9 +5,7 @@
     "description": "Free weather API, no authentication required. https://open-meteo.com",
     "version": "1.0.0"
   },
-  "servers": [
-    { "url": "https://api.open-meteo.com" }
-  ],
+  "servers": [{ "url": "https://api.open-meteo.com" }],
   "paths": {
     "/v1/forecast": {
       "get": {

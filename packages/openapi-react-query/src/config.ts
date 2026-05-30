@@ -19,15 +19,33 @@ export interface ReactQueryConfig {
 }
 
 const FORBIDDEN_OUTPUT_PREFIXES = [
-  '/etc', '/usr', '/bin', '/sbin', '/lib', '/lib64',
-  '/sys', '/proc', '/dev', '/boot', '/run',
-  'C:\\Windows', 'C:\\Program Files',
+  '/etc',
+  '/usr',
+  '/bin',
+  '/sbin',
+  '/lib',
+  '/lib64',
+  '/sys',
+  '/proc',
+  '/dev',
+  '/boot',
+  '/run',
+  'C:\\Windows',
+  'C:\\Program Files',
 ]
 
 const FORBIDDEN_INPUT_PREFIXES = [
-  '/etc', '/usr', '/bin', '/sbin', '/lib', '/lib64',
-  '/sys', '/proc', '/dev',
-  'C:\\Windows', 'C:\\Program Files',
+  '/etc',
+  '/usr',
+  '/bin',
+  '/sbin',
+  '/lib',
+  '/lib64',
+  '/sys',
+  '/proc',
+  '/dev',
+  'C:\\Windows',
+  'C:\\Program Files',
 ]
 
 export function validateConfigPath(configPath: string): void {
@@ -44,7 +62,7 @@ export function validateOutputPath(resolvedOutput: string): void {
     if (normalized === normalizedForbidden || normalized.startsWith(normalizedForbidden + '/')) {
       throw new Error(
         `Output path resolves to a system directory: "${resolvedOutput}". ` +
-        `This looks like a misconfiguration — please check your config file.`
+          `This looks like a misconfiguration — please check your config file.`
       )
     }
   }
@@ -57,7 +75,7 @@ export function validateInputPath(resolvedInput: string): void {
     if (normalized === normalizedForbidden || normalized.startsWith(normalizedForbidden + '/')) {
       throw new Error(
         `Input spec path resolves to a system directory: "${resolvedInput}". ` +
-        `This looks like a misconfiguration — please check your config file.`
+          `This looks like a misconfiguration — please check your config file.`
       )
     }
   }
@@ -110,10 +128,16 @@ export async function loadConfig(cwd: string, configPath?: string): Promise<Reac
     throw new Error('"auto_invalidate" must be a boolean')
   }
   if (config['overrides'] !== undefined) {
-    if (typeof config['overrides'] !== 'object' || config['overrides'] === null || Array.isArray(config['overrides'])) {
+    if (
+      typeof config['overrides'] !== 'object' ||
+      config['overrides'] === null ||
+      Array.isArray(config['overrides'])
+    ) {
       throw new Error('"overrides" must be an object')
     }
-    for (const [resource, timing] of Object.entries(config['overrides'] as Record<string, unknown>)) {
+    for (const [resource, timing] of Object.entries(
+      config['overrides'] as Record<string, unknown>
+    )) {
       if (typeof timing !== 'object' || timing === null) {
         throw new Error(`"overrides.${resource}" must be an object`)
       }
@@ -139,7 +163,9 @@ export async function loadConfig(cwd: string, configPath?: string): Promise<Reac
     stale_time: config['stale_time'] as number | undefined,
     gc_time: config['gc_time'] as number | undefined,
     suspense: config['suspense'] as boolean | undefined,
-    overrides: config['overrides'] as Record<string, { stale_time?: number; gc_time?: number }> | undefined,
+    overrides: config['overrides'] as
+      | Record<string, { stale_time?: number; gc_time?: number }>
+      | undefined,
     auto_invalidate: config['auto_invalidate'] as boolean | undefined,
   }
 }

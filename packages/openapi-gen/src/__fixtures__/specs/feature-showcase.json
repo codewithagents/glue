@@ -12,13 +12,23 @@
       "get": {
         "operationId": "listItems",
         "parameters": [
-          { "name": "tags", "in": "query", "schema": { "type": "array", "items": { "type": "string" } } },
-          { "name": "status", "in": "query", "schema": { "type": "array", "items": { "type": "string" } } }
+          {
+            "name": "tags",
+            "in": "query",
+            "schema": { "type": "array", "items": { "type": "string" } }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "schema": { "type": "array", "items": { "type": "string" } }
+          }
         ],
         "responses": {
           "200": {
             "description": "ok",
-            "content": { "application/json": { "schema": { "type": "array", "items": { "type": "string" } } } }
+            "content": {
+              "application/json": { "schema": { "type": "array", "items": { "type": "string" } } }
+            }
           }
         }
       }
@@ -27,7 +37,12 @@
       "post": {
         "operationId": "handleStripeWebhook",
         "parameters": [
-          { "name": "X-Stripe-Signature", "in": "header", "required": true, "schema": { "type": "string" } }
+          {
+            "name": "X-Stripe-Signature",
+            "in": "header",
+            "required": true,
+            "schema": { "type": "string" }
+          }
         ],
         "requestBody": {
           "required": true,
@@ -57,7 +72,11 @@
         "responses": {
           "200": {
             "description": "ok",
-            "content": { "application/json": { "schema": { "type": "object", "properties": { "id": { "type": "string" } } } } }
+            "content": {
+              "application/json": {
+                "schema": { "type": "object", "properties": { "id": { "type": "string" } } }
+              }
+            }
           }
         }
       }

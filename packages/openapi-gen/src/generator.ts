@@ -32,7 +32,9 @@ export async function generate(cwd: string, configPath?: string): Promise<void> 
 
   // Phase 2: always generate client config, fetch client, and barrel index
   const cookieAuth = hasCookieAuth(spec)
-  generatedFiles.push(generateClientConfig(cookieAuth ? { defaultCredentials: 'include' } : undefined))
+  generatedFiles.push(
+    generateClientConfig(cookieAuth ? { defaultCredentials: 'include' } : undefined)
+  )
   generatedFiles.push(generateClient(spec))
   generatedFiles.push(generateIndexBarrel())
 
@@ -78,22 +80,36 @@ export async function generate(cwd: string, configPath?: string): Promise<void> 
       const specSchemaNames = Object.keys(spec.components?.schemas ?? {})
       for (const name of specSchemaNames) {
         if (!exportedSchemas.has(`${name}Schema`)) {
-          console.warn(`⚠  Drift: ${name}Schema is in the OpenAPI spec but not found in ${config.input_schema}. Run with --reset-schema to re-bootstrap.`)
+          console.warn(
+            `⚠  Drift: ${name}Schema is in the OpenAPI spec but not found in ${config.input_schema}. Run with --reset-schema to re-bootstrap.`
+          )
         }
       }
 
       // Compute relative import path for use in generated imports
       const relPath = relative(outputDir, schemaPath)
       // 'schemas.ts' -> './schemas.js', '../schemas.ts' -> '../schemas.js'
-      const schemaImportPath = (relPath.startsWith('.') ? '' : './') + relPath.replace(/\.ts$/, '.js')
+      const schemaImportPath =
+        (relPath.startsWith('.') ? '' : './') + relPath.replace(/\.ts$/, '.js')
 
       // Re-generate (overwrite) models.ts and client.ts with schema-enhanced versions
       const enhancedTypes = generateTypes(spec, { schemaNames: exportedSchemas, schemaImportPath })
-      const enhancedClient = generateClient(spec, { schemaNames: exportedSchemas, schemaImportPath })
+      const enhancedClient = generateClient(spec, {
+        schemaNames: exportedSchemas,
+        schemaImportPath,
+      })
       const enhancedTypesPath = join(outputDir, enhancedTypes.filename)
       const enhancedClientPath = join(outputDir, enhancedClient.filename)
-      await writeFile(enhancedTypesPath, await formatTs(enhancedTypes.content, enhancedTypesPath), 'utf-8')
-      await writeFile(enhancedClientPath, await formatTs(enhancedClient.content, enhancedClientPath), 'utf-8')
+      await writeFile(
+        enhancedTypesPath,
+        await formatTs(enhancedTypes.content, enhancedTypesPath),
+        'utf-8'
+      )
+      await writeFile(
+        enhancedClientPath,
+        await formatTs(enhancedClient.content, enhancedClientPath),
+        'utf-8'
+      )
       console.log(`  ✓ models.ts (schema-enhanced — types from z.infer)`)
       console.log(`  ✓ client.ts (schema-enhanced — Zod validation added)`)
     } else {

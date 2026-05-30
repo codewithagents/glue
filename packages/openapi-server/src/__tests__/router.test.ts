@@ -66,7 +66,9 @@ describe('generateRouter', () => {
           operationId: 'createPet',
           requestBody: {
             required: true,
-            content: { 'application/json': { schema: { $ref: '#/components/schemas/CreatePetRequest' } } },
+            content: {
+              'application/json': { schema: { $ref: '#/components/schemas/CreatePetRequest' } },
+            },
           },
           responses: { '201': { description: 'created' } },
         },
@@ -157,7 +159,9 @@ describe('generateRouter', () => {
           operationId: 'createPet',
           requestBody: {
             required: true,
-            content: { 'application/json': { schema: { $ref: '#/components/schemas/CreatePetRequest' } } },
+            content: {
+              'application/json': { schema: { $ref: '#/components/schemas/CreatePetRequest' } },
+            },
           },
           responses: { '201': { description: 'created' } },
         },
@@ -174,7 +178,9 @@ describe('generateRouter', () => {
           operationId: 'createPet',
           requestBody: {
             required: true,
-            content: { 'application/json': { schema: { $ref: '#/components/schemas/CreatePetRequest' } } },
+            content: {
+              'application/json': { schema: { $ref: '#/components/schemas/CreatePetRequest' } },
+            },
           },
           responses: { '201': { description: 'created' } },
         },
@@ -337,7 +343,9 @@ describe('generateRouter with schemaNames (Zod validation)', () => {
         operationId: 'createPet',
         requestBody: {
           required: true,
-          content: { 'application/json': { schema: { $ref: '#/components/schemas/CreatePetRequest' } } },
+          content: {
+            'application/json': { schema: { $ref: '#/components/schemas/CreatePetRequest' } },
+          },
         },
         responses: { '201': { description: 'created' } },
       },
@@ -403,7 +411,9 @@ describe('generateRouter with schemaNames (Zod validation)', () => {
       schemaNames: new Set(['CreatePetRequestSchema']),
       schemaImportPath: './schemas.js',
     })
-    expect(result.content).toContain("{ error: 'Invalid request body', issues: parseResult.error.issues }")
+    expect(result.content).toContain(
+      "{ error: 'Invalid request body', issues: parseResult.error.issues }"
+    )
     expect(result.content).toContain('422')
   })
 
@@ -414,7 +424,9 @@ describe('generateRouter with schemaNames (Zod validation)', () => {
           operationId: 'createPet',
           requestBody: {
             required: true,
-            content: { 'application/json': { schema: { $ref: '#/components/schemas/CreatePetRequest' } } },
+            content: {
+              'application/json': { schema: { $ref: '#/components/schemas/CreatePetRequest' } },
+            },
           },
           responses: { '201': { description: 'created' } },
         },
@@ -424,7 +436,9 @@ describe('generateRouter with schemaNames (Zod validation)', () => {
           operationId: 'createOwner',
           requestBody: {
             required: true,
-            content: { 'application/json': { schema: { $ref: '#/components/schemas/CreateOwnerRequest' } } },
+            content: {
+              'application/json': { schema: { $ref: '#/components/schemas/CreateOwnerRequest' } },
+            },
           },
           responses: { '201': { description: 'created' } },
         },
@@ -542,7 +556,7 @@ describe('coverage: deriveServiceName — spec with no title generates ApiServic
       },
     }
     const { content } = generateRouter(spec)
-    expect(content).toContain("import type { ApiService }")
+    expect(content).toContain('import type { ApiService }')
   })
 })
 
@@ -589,7 +603,9 @@ describe('coverage: schemaNames provided but operation has no body — typeName 
           operationId: 'createItem',
           requestBody: {
             required: true,
-            content: { 'application/json': { schema: { $ref: '#/components/schemas/CreateItemRequest' } } },
+            content: {
+              'application/json': { schema: { $ref: '#/components/schemas/CreateItemRequest' } },
+            },
           },
           responses: { '201': { description: 'created' } },
         },
@@ -665,7 +681,9 @@ describe('generateExpressRouter', () => {
           operationId: 'createPet',
           requestBody: {
             required: true,
-            content: { 'application/json': { schema: { $ref: '#/components/schemas/CreatePetRequest' } } },
+            content: {
+              'application/json': { schema: { $ref: '#/components/schemas/CreatePetRequest' } },
+            },
           },
           responses: { '201': { description: 'created' } },
         },
@@ -772,7 +790,9 @@ describe('generateExpressRouter', () => {
           operationId: 'createPet',
           requestBody: {
             required: true,
-            content: { 'application/json': { schema: { $ref: '#/components/schemas/CreatePetRequest' } } },
+            content: {
+              'application/json': { schema: { $ref: '#/components/schemas/CreatePetRequest' } },
+            },
           },
           responses: { '201': { description: 'created' } },
         },
@@ -789,7 +809,9 @@ describe('generateExpressRouter', () => {
           operationId: 'createPet',
           requestBody: {
             required: true,
-            content: { 'application/json': { schema: { $ref: '#/components/schemas/CreatePetRequest' } } },
+            content: {
+              'application/json': { schema: { $ref: '#/components/schemas/CreatePetRequest' } },
+            },
           },
           responses: { '201': { description: 'created' } },
         },
@@ -913,7 +935,7 @@ describe('generateFastifyRouter', () => {
       },
     })
     const result = generateFastifyRouter(spec)
-    expect(result.content).toContain("app.get")
+    expect(result.content).toContain('app.get')
     expect(result.content).toContain("'/pets'")
   })
 
@@ -924,14 +946,16 @@ describe('generateFastifyRouter', () => {
           operationId: 'createPet',
           requestBody: {
             required: true,
-            content: { 'application/json': { schema: { $ref: '#/components/schemas/CreatePetRequest' } } },
+            content: {
+              'application/json': { schema: { $ref: '#/components/schemas/CreatePetRequest' } },
+            },
           },
           responses: { '201': { description: 'created' } },
         },
       },
     })
     const result = generateFastifyRouter(spec)
-    expect(result.content).toContain("app.post")
+    expect(result.content).toContain('app.post')
     expect(result.content).toContain("'/pets'")
   })
 
@@ -946,7 +970,7 @@ describe('generateFastifyRouter', () => {
       },
     })
     const result = generateFastifyRouter(spec)
-    expect(result.content).toContain("app.delete")
+    expect(result.content).toContain('app.delete')
     expect(result.content).toContain("'/pets/:id'")
   })
 
@@ -1019,7 +1043,9 @@ describe('generateFastifyRouter', () => {
           operationId: 'createPet',
           requestBody: {
             required: true,
-            content: { 'application/json': { schema: { $ref: '#/components/schemas/CreatePetRequest' } } },
+            content: {
+              'application/json': { schema: { $ref: '#/components/schemas/CreatePetRequest' } },
+            },
           },
           responses: { '201': { description: 'created' } },
         },
@@ -1037,7 +1063,9 @@ describe('generateFastifyRouter', () => {
           operationId: 'createPet',
           requestBody: {
             required: true,
-            content: { 'application/json': { schema: { $ref: '#/components/schemas/CreatePetRequest' } } },
+            content: {
+              'application/json': { schema: { $ref: '#/components/schemas/CreatePetRequest' } },
+            },
           },
           responses: { '201': { description: 'created' } },
         },
@@ -1147,7 +1175,9 @@ describe('generateExpressRouter with schemaNames (Zod validation)', () => {
         operationId: 'createPet',
         requestBody: {
           required: true,
-          content: { 'application/json': { schema: { $ref: '#/components/schemas/CreatePetRequest' } } },
+          content: {
+            'application/json': { schema: { $ref: '#/components/schemas/CreatePetRequest' } },
+          },
         },
         responses: { '201': { description: 'created' } },
       },
@@ -1218,7 +1248,9 @@ describe('generateFastifyRouter with schemaNames (Zod validation)', () => {
         operationId: 'createPet',
         requestBody: {
           required: true,
-          content: { 'application/json': { schema: { $ref: '#/components/schemas/CreatePetRequest' } } },
+          content: {
+            'application/json': { schema: { $ref: '#/components/schemas/CreatePetRequest' } },
+          },
         },
         responses: { '201': { description: 'created' } },
       },

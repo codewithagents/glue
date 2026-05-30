@@ -98,7 +98,11 @@
       "get": {
         "operationId": "listOrders",
         "parameters": [
-          { "name": "status", "in": "query", "schema": { "$ref": "#/components/schemas/OrderStatus" } },
+          {
+            "name": "status",
+            "in": "query",
+            "schema": { "$ref": "#/components/schemas/OrderStatus" }
+          },
           { "name": "from", "in": "query", "schema": { "type": "string" } },
           { "name": "to", "in": "query", "schema": { "type": "string" } }
         ],

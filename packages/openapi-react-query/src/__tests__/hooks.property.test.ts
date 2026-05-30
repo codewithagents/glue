@@ -18,7 +18,16 @@ const arbQueryParam = fc.record({
 })
 
 /** Realistic resource names */
-const RESOURCES = ['items', 'tasks', 'users', 'projects', 'orders', 'reports', 'documents', 'records']
+const RESOURCES = [
+  'items',
+  'tasks',
+  'users',
+  'projects',
+  'orders',
+  'reports',
+  'documents',
+  'records',
+]
 
 /** Generates realistic path strings */
 const arbPath: fc.Arbitrary<string> = fc.oneof(
@@ -27,14 +36,20 @@ const arbPath: fc.Arbitrary<string> = fc.oneof(
   // /resources/{id} (1 path param)
   fc.tuple(fc.constantFrom(...RESOURCES), arbPathParam).map(([r, p]) => `/${r}/{${p}}`),
   // /resources/{p1}/sub/{p2} (2 path params)
-  fc.tuple(fc.constantFrom(...RESOURCES), arbPathParam, fc.constantFrom(...RESOURCES), arbPathParam).map(
-    ([r, p1, sub, p2]) => `/${r}/{${p1}}/${sub}/{${p2}}`,
-  ),
+  fc
+    .tuple(fc.constantFrom(...RESOURCES), arbPathParam, fc.constantFrom(...RESOURCES), arbPathParam)
+    .map(([r, p1, sub, p2]) => `/${r}/{${p1}}/${sub}/{${p2}}`)
 )
 
 type HttpMethod = 'get' | 'post' | 'put' | 'patch' | 'delete'
 
-const arbHttpMethod: fc.Arbitrary<HttpMethod> = fc.constantFrom('get', 'post', 'put', 'patch', 'delete')
+const arbHttpMethod: fc.Arbitrary<HttpMethod> = fc.constantFrom(
+  'get',
+  'post',
+  'put',
+  'patch',
+  'delete'
+)
 
 function extractPathParams(path: string): string[] {
   const matches = path.match(/\{([^}]+)\}/g)
@@ -53,7 +68,12 @@ interface ArbOp {
 
 /** Generates a single operation object */
 const arbOperation: fc.Arbitrary<ArbOp> = fc
-  .tuple(arbOperationId, arbHttpMethod, arbPath, fc.array(arbQueryParam, { minLength: 0, maxLength: 3 }))
+  .tuple(
+    arbOperationId,
+    arbHttpMethod,
+    arbPath,
+    fc.array(arbQueryParam, { minLength: 0, maxLength: 3 })
+  )
   .map(([operationId, method, path, queryParams]) => {
     const pathParams = extractPathParams(path)
     const hasBody = method === 'post' || method === 'put' || method === 'patch'
@@ -124,7 +144,7 @@ describe('property-based tests — generateHooks invariants', () => {
       fc.property(arbSpec, (spec) => {
         expect(() => generateHooks(spec, { staleTime: 0, gcTime: 0 })).not.toThrow()
       }),
-      { numRuns: 500 },
+      { numRuns: 500 }
     )
   })
 
@@ -142,7 +162,7 @@ describe('property-based tests — generateHooks invariants', () => {
           expect(content).toContain(`export function ${hookName}(`)
         }
       }),
-      { numRuns: 300 },
+      { numRuns: 300 }
     )
   })
 
@@ -162,7 +182,7 @@ describe('property-based tests — generateHooks invariants', () => {
           }
         }
       }),
-      { numRuns: 300 },
+      { numRuns: 300 }
     )
   })
 
@@ -174,14 +194,14 @@ describe('property-based tests — generateHooks invariants', () => {
     fc.assert(
       fc.property(arbSpec, (spec) => {
         const hasGet = Object.values(spec.paths ?? {}).some(
-          (p) => (p as Record<string, unknown>)?.['get'] !== undefined,
+          (p) => (p as Record<string, unknown>)?.['get'] !== undefined
         )
         if (!hasGet) return // skip specs with no GET
         const { content } = generateHooks(spec, { staleTime: 0, gcTime: 0 })
         // The key factory always includes an `all:` method definition
         expect(content).toContain('all:')
       }),
-      { numRuns: 300 },
+      { numRuns: 300 }
     )
   })
 
@@ -190,7 +210,7 @@ describe('property-based tests — generateHooks invariants', () => {
     fc.assert(
       fc.property(arbSpec, (spec) => {
         const { content } = generateHooks(spec, { staleTime: 0, gcTime: 0 })
-        for (const [path, pathItem] of Object.entries(spec.paths ?? {})) {
+        for (const [_path, pathItem] of Object.entries(spec.paths ?? {})) {
           const op = (pathItem as Record<string, unknown>)['get'] as
             | { operationId?: string; parameters?: Array<{ in: string }> }
             | undefined
@@ -201,7 +221,7 @@ describe('property-based tests — generateHooks invariants', () => {
           expect(content).toContain('&&')
         }
       }),
-      { numRuns: 200 },
+      { numRuns: 200 }
     )
   })
 
@@ -240,8 +260,7 @@ describe('property-based tests — generateHooks invariants', () => {
             if (!resourcesWithGets.has(firstSegment)) {
               // This mutation is on a resource with no GET → generator will still emit
               // `${factoryName}.all()` in the mutation hook, but the factory is never defined
-              const hookName =
-                'use' + op.operationId[0]!.toUpperCase() + op.operationId.slice(1)
+              const hookName = 'use' + op.operationId[0]!.toUpperCase() + op.operationId.slice(1)
               const hookStart = content.indexOf(`export function ${hookName}(`)
               if (hookStart === -1) continue
               const hookEnd = content.indexOf('\n}', hookStart) + 2
@@ -249,7 +268,9 @@ describe('property-based tests — generateHooks invariants', () => {
 
               // The generated hook will reference factoryName (e.g. itemKeys)
               // but that factory is never exported — check if the factory is defined
-              const camel = firstSegment.replace(/[-_](.)/g, (_: string, c: string) => c.toUpperCase())
+              const camel = firstSegment.replace(/[-_](.)/g, (_: string, c: string) =>
+                c.toUpperCase()
+              )
               const singular = camel.endsWith('s') ? camel.slice(0, -1) : camel
               const factoryName = `${singular}Keys`
 
@@ -261,7 +282,7 @@ describe('property-based tests — generateHooks invariants', () => {
           }
         }
       }),
-      { numRuns: 200 },
+      { numRuns: 200 }
     )
   })
 
@@ -272,7 +293,7 @@ describe('property-based tests — generateHooks invariants', () => {
         const { content } = generateHooks(spec, { staleTime: 0, gcTime: 0 })
         expect(content).toMatch(/^\/\/ (This file is auto-generated|Generated)/)
       }),
-      { numRuns: 200 },
+      { numRuns: 200 }
     )
   })
 
@@ -283,7 +304,7 @@ describe('property-based tests — generateHooks invariants', () => {
         const { filename } = generateHooks(spec, { staleTime: 0, gcTime: 0 })
         expect(filename).toBe('hooks.ts')
       }),
-      { numRuns: 100 },
+      { numRuns: 100 }
     )
   })
 })

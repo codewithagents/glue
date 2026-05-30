@@ -35,16 +35,14 @@ describe('toPropertyKey', () => {
     expect(toPropertyKey(input)).toBe(expected)
   })
 
-  it.each([
-    ['Content-Type'],
-    ['x-request-id'],
-    ['x-custom-header'],
-    ['has space'],
-  ])('quotes invalid identifier %s', (input) => {
-    const result = toPropertyKey(input)
-    expect(result.startsWith("'") || result.startsWith('"')).toBe(true)
-    expect(result).toContain(input.replace(/'/g, "\\'"))
-  })
+  it.each([['Content-Type'], ['x-request-id'], ['x-custom-header'], ['has space']])(
+    'quotes invalid identifier %s',
+    (input) => {
+      const result = toPropertyKey(input)
+      expect(result.startsWith("'") || result.startsWith('"')).toBe(true)
+      expect(result).toContain(input.replace(/'/g, "\\'"))
+    }
+  )
 
   it('quotes keys starting with a digit', () => {
     const result = toPropertyKey('123abc')

@@ -30,10 +30,7 @@
         "type": "object"
       },
       "NullableRef": {
-        "anyOf": [
-          { "$ref": "#/components/schemas/TreeNode" },
-          { "type": "null" }
-        ]
+        "anyOf": [{ "$ref": "#/components/schemas/TreeNode" }, { "type": "null" }]
       },
       "Circle": {
         "type": "object",
