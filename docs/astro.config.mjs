@@ -16,7 +16,7 @@ export default defineConfig({
   },
   integrations: [
     starlight({
-      title: 'Glue',
+      title: 'CodeWithAgents OpenAPI',
       description:
         'Generate types, a fetch client, React Query hooks, and Zod schemas from your OpenAPI spec, then map API errors straight to form fields.',
       head: [
@@ -28,7 +28,7 @@ export default defineConfig({
           tag: 'meta',
           attrs: {
             property: 'og:title',
-            content: 'Glue: typed and validated OpenAPI tooling for TypeScript',
+            content: 'CodeWithAgents OpenAPI: typed and validated OpenAPI tooling for TypeScript',
           },
         },
         {
@@ -54,7 +54,7 @@ export default defineConfig({
           tag: 'meta',
           attrs: {
             name: 'twitter:title',
-            content: 'Glue: typed and validated OpenAPI tooling for TypeScript',
+            content: 'CodeWithAgents OpenAPI: typed and validated OpenAPI tooling for TypeScript',
           },
         },
         {
@@ -75,7 +75,7 @@ export default defineConfig({
       ],
       logo: {
         src: './src/assets/logo-cairn.svg',
-        alt: 'Glue by CodeWithAgents',
+        alt: 'CodeWithAgents OpenAPI',
       },
       favicon: '/favicon.svg',
       social: [
