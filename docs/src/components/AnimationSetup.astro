@@ -1,0 +1,42 @@
+---
+// Interaction polish only.
+//
+// The on-load hero entrance and scroll-reveal fade/slide animations were
+// removed: they delayed content from being readable. All content now renders
+// immediately with no opacity/transform entrance.
+//
+// What remains here: a subtle card hover lift (not an entrance effect, does not
+// block reading). The pipeline "data flow" animation lives in
+// PipelineDiagram.astro and is a continuous stroke effect, not a fade.
+//
+// The `.reveal` wrappers in the page are now inert (no CSS targets them to hide
+// content); they are harmless and left in place.
+---
+
+<style is:global>
+  /* Card hover lift */
+  .sl-markdown-content .card,
+  starlight-card,
+  .card {
+    transition:
+      transform 0.18s ease,
+      box-shadow 0.18s ease;
+  }
+
+  .sl-markdown-content .card:hover,
+  starlight-card:hover,
+  .card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px -4px rgba(0, 0, 0, 0.18);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .sl-markdown-content .card:hover,
+    starlight-card:hover,
+    .card:hover {
+      transform: none;
+      box-shadow: none;
+      transition: none;
+    }
+  }
+</style>

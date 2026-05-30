@@ -1,12 +1,12 @@
 ---
 title: Introduction
-description: What Glue is, and the spec-to-UI pipeline mental model.
+description: What the toolchain does, and the spec-to-UI pipeline mental model.
 ---
 
 import { Card, CardGrid, Aside } from '@astrojs/starlight/components'
 import PipelineDiagram from '../../../components/PipelineDiagram.astro'
 
-Glue is a TypeScript OpenAPI toolchain that turns a spec into everything you need: types, a fetch client, React Query hooks, Zod schemas, a server-side service interface, and form error mapping. Every generated file compiles under `strict: true` with zero runtime wrapper dependencies. The pipeline is tested against 128 real-world specs (Stripe, GitHub, Spotify, OpenAI, and more) on every PR.
+A TypeScript OpenAPI toolchain that turns a spec into everything you need: types, a fetch client, React Query hooks, Zod schemas, a server-side service interface, and form error mapping. Every generated file compiles under `strict: true` with zero runtime wrapper dependencies. The pipeline is tested against 128 real-world specs (Stripe, GitHub, Spotify, OpenAI, and more) on every PR.
 
 ## The pipeline
 
@@ -27,9 +27,9 @@ Each package is independent. Use only the ones your project needs. They share on
 
 ## Who it is for
 
-Glue is built for TypeScript projects that want end-to-end type safety from an OpenAPI spec. It works with any HTTP framework on the server side and any React setup on the client. The generated output is plain TypeScript: no axios, no wrapper libraries, nothing added to your runtime bundle beyond what you already use.
+Built for TypeScript projects that want end-to-end type safety from an OpenAPI spec. It works with any HTTP framework on the server side and any React setup on the client. The generated output is plain TypeScript: no axios, no wrapper libraries, nothing added to your runtime bundle beyond what you already use.
 
-If your team maintains an OpenAPI spec, Glue turns it into a first-class TypeScript artifact at codegen time rather than leaving the gap between spec and code to manual effort.
+If your team maintains an OpenAPI spec, the toolchain turns it into a first-class TypeScript artifact at codegen time rather than leaving the gap between spec and code to manual effort.
 
 ## Prerequisites
 

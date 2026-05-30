@@ -1,116 +1,131 @@
 ---
-// PipelineDiagram - inline SVG of the Glue package pipeline.
+// PipelineDiagram - inline SVG of the package pipeline.
 // Inline SVG (not an <img>) so it can use Starlight CSS variables and render
 // correctly in both light and dark themes. viewBox + width:100% keeps it crisp
 // and scalable at any size.
+//
+// Animation: connectors animate a slow marching stroke-dashoffset (emerald)
+// to suggest data flowing through the pipeline. Fully disabled under
+// prefers-reduced-motion.
 ---
 
-<svg
-  class="pipeline-svg"
-  viewBox="0 0 600 470"
-  role="img"
-  aria-labelledby="pipeline-title pipeline-desc"
-  xmlns="http://www.w3.org/2000/svg"
->
-  <title id="pipeline-title">The Glue package pipeline</title>
-  <desc id="pipeline-desc">
-    An OpenAPI spec feeds openapi-gen, which produces TypeScript types, Zod schemas, and a fetch
-    client. The fetch client feeds openapi-react-query for React Query hooks and openapi-server for a
-    typed service interface and router. api-errors is a runtime package that maps any API error shape
-    to form field errors.
-  </desc>
+<div class="pipeline-panel">
+  <svg
+    class="pipeline-svg"
+    viewBox="0 0 600 470"
+    role="img"
+    aria-labelledby="pipeline-title pipeline-desc"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <title id="pipeline-title">The CodeWithAgents OpenAPI package pipeline</title>
+    <desc id="pipeline-desc">
+      An OpenAPI spec feeds openapi-gen, which produces TypeScript types, Zod schemas, and a fetch
+      client. The fetch client feeds openapi-react-query for React Query hooks and openapi-server for a
+      typed service interface and router. api-errors is a runtime package that maps any API error shape
+      to form field errors.
+    </desc>
 
-  <defs>
-    <marker
-      id="pipeline-arrow"
-      viewBox="0 0 10 10"
-      refX="8"
-      refY="5"
-      markerWidth="6"
-      markerHeight="6"
-      orient="auto-start-reverse"
-    >
-      <path d="M0,0 L10,5 L0,10 z" class="arrowhead" />
-    </marker>
-  </defs>
+    <defs>
+      <marker
+        id="pipeline-arrow"
+        viewBox="0 0 10 10"
+        refX="8"
+        refY="5"
+        markerWidth="6"
+        markerHeight="6"
+        orient="auto-start-reverse"
+      >
+        <path d="M0,0 L10,5 L0,10 z" class="arrowhead" />
+      </marker>
+    </defs>
 
-  {/* Connectors */}
-  <g class="conn" fill="none">
-    <path d="M300,60 V82" marker-end="url(#pipeline-arrow)" />
-    <path d="M300,128 V150" />
-    <path d="M90,150 H510" />
-    <path d="M110,150 V166" marker-end="url(#pipeline-arrow)" />
-    <path d="M300,150 V166" marker-end="url(#pipeline-arrow)" />
-    <path d="M490,150 V166" marker-end="url(#pipeline-arrow)" />
-    <path d="M490,226 V250" />
-    <path d="M300,250 H490" />
-    <path d="M300,250 V266" marker-end="url(#pipeline-arrow)" />
-    <path d="M490,250 V266" marker-end="url(#pipeline-arrow)" />
-  </g>
+    {/* Connectors - animated to suggest data flow */}
+    <g class="conn" fill="none">
+      <path class="flow-path" d="M300,60 V82" marker-end="url(#pipeline-arrow)" />
+      <path d="M300,128 V150" />
+      <path d="M90,150 H510" />
+      <path class="flow-path" d="M110,150 V166" marker-end="url(#pipeline-arrow)" />
+      <path class="flow-path" d="M300,150 V166" marker-end="url(#pipeline-arrow)" />
+      <path class="flow-path" d="M490,150 V166" marker-end="url(#pipeline-arrow)" />
+      <path d="M490,226 V250" />
+      <path d="M300,250 H490" />
+      <path class="flow-path" d="M300,250 V266" marker-end="url(#pipeline-arrow)" />
+      <path class="flow-path" d="M490,250 V266" marker-end="url(#pipeline-arrow)" />
+    </g>
 
-  {/* Row 1: source */}
-  <g>
-    <rect class="node node--accent" x="210" y="16" width="180" height="44" rx="8" />
-    <text class="title" x="300" y="43">OpenAPI spec</text>
-  </g>
+    {/* Row 1: source */}
+    <g>
+      <rect class="node node--accent" x="210" y="16" width="180" height="44" rx="8" />
+      <text class="title" x="300" y="43">OpenAPI spec</text>
+    </g>
 
-  {/* Row 2: generator */}
-  <g>
-    <rect class="node node--accent" x="185" y="84" width="230" height="44" rx="8" />
-    <text class="pkg" x="300" y="111">openapi-gen</text>
-  </g>
+    {/* Row 2: generator */}
+    <g>
+      <rect class="node node--accent" x="185" y="84" width="230" height="44" rx="8" />
+      <text class="pkg" x="300" y="111">openapi-gen</text>
+    </g>
 
-  {/* Row 3: three outputs */}
-  <g>
-    <rect class="node" x="30" y="170" width="160" height="56" rx="8" />
-    <text class="title" x="110" y="195">TypeScript types</text>
-    <text class="sub" x="110" y="213">models.ts</text>
-  </g>
-  <g>
-    <rect class="node" x="220" y="170" width="160" height="56" rx="8" />
-    <text class="title" x="300" y="195">Zod schemas</text>
-    <text class="sub" x="300" y="213">yours to extend</text>
-  </g>
-  <g>
-    <rect class="node node--accent" x="410" y="170" width="160" height="56" rx="8" />
-    <text class="title" x="490" y="195">Fetch client</text>
-    <text class="sub" x="490" y="213">client.ts</text>
-  </g>
+    {/* Row 3: three outputs */}
+    <g>
+      <rect class="node" x="30" y="170" width="160" height="56" rx="8" />
+      <text class="title" x="110" y="195">TypeScript types</text>
+      <text class="sub" x="110" y="213">models.ts</text>
+    </g>
+    <g>
+      <rect class="node" x="220" y="170" width="160" height="56" rx="8" />
+      <text class="title" x="300" y="195">Zod schemas</text>
+      <text class="sub" x="300" y="213">yours to extend</text>
+    </g>
+    <g>
+      <rect class="node node--accent" x="410" y="170" width="160" height="56" rx="8" />
+      <text class="title" x="490" y="195">Fetch client</text>
+      <text class="sub" x="490" y="213">client.ts</text>
+    </g>
 
-  {/* Row 4: two consumers of the fetch client */}
-  <g>
-    <rect class="node" x="215" y="270" width="170" height="56" rx="8" />
-    <text class="pkg" x="300" y="295">openapi-react-query</text>
-    <text class="sub" x="300" y="313">React Query v5 hooks</text>
-  </g>
-  <g>
-    <rect class="node" x="405" y="270" width="170" height="56" rx="8" />
-    <text class="pkg" x="490" y="295">openapi-server</text>
-    <text class="sub" x="490" y="313">service interface + router</text>
-  </g>
+    {/* Row 4: two consumers of the fetch client */}
+    <g>
+      <rect class="node" x="215" y="270" width="170" height="56" rx="8" />
+      <text class="pkg" x="300" y="295">openapi-react-query</text>
+      <text class="sub" x="300" y="313">React Query v5 hooks</text>
+    </g>
+    <g>
+      <rect class="node" x="405" y="270" width="170" height="56" rx="8" />
+      <text class="pkg" x="490" y="295">openapi-server</text>
+      <text class="sub" x="490" y="313">service interface + router</text>
+    </g>
 
-  {/* Divider */}
-  <line class="divider" x1="60" y1="362" x2="540" y2="362" />
+    {/* Divider */}
+    <line class="divider" x1="60" y1="362" x2="540" y2="362" />
 
-  {/* Standalone: api-errors */}
-  <g>
-    <rect class="node node--dashed" x="90" y="380" width="420" height="60" rx="8" />
-    <text class="pkg" x="300" y="406">api-errors</text>
-    <text class="sub" x="300" y="424">Runtime, no codegen. Maps any API error shape to form fields.</text>
-  </g>
-</svg>
+    {/* Standalone: api-errors (pink accent for the independent node) */}
+    <g>
+      <rect class="node node--pink" x="90" y="380" width="420" height="60" rx="8" />
+      <text class="pkg pkg--pink" x="300" y="406">api-errors</text>
+      <text class="sub" x="300" y="424">Runtime, no codegen. Maps any API error shape to form fields.</text>
+    </g>
+  </svg>
+</div>
 
 <style>
+  .pipeline-panel {
+    background: var(--sl-color-gray-7);
+    border: 1px solid var(--sl-color-gray-6);
+    border-radius: 12px;
+    padding: 1rem 0.5rem;
+    margin: 1.5rem 0;
+    overflow: hidden;
+  }
+
   .pipeline-svg {
     display: block;
     width: 100%;
     max-width: 600px;
     height: auto;
-    margin: 1.5rem auto;
+    margin: 0 auto;
   }
 
   .node {
-    fill: var(--sl-color-gray-7);
+    fill: var(--sl-color-gray-6);
     stroke: var(--sl-color-gray-5);
     stroke-width: 1.5;
   }
@@ -118,9 +133,13 @@
     fill: var(--sl-color-accent-low);
     stroke: var(--sl-color-accent);
   }
-  .node--dashed {
+  .node--pink {
     fill: none;
+    stroke: #ec4899;
     stroke-dasharray: 5 4;
+  }
+  :root[data-theme='dark'] .node--pink {
+    stroke: #f472b6;
   }
 
   .title {
@@ -143,6 +162,12 @@
     text-anchor: middle;
     font-family: var(--sl-font-mono);
   }
+  .pkg--pink {
+    fill: #be185d;
+  }
+  :root[data-theme='dark'] .pkg--pink {
+    fill: #f472b6;
+  }
 
   .conn {
     stroke: var(--sl-color-accent);
@@ -155,5 +180,30 @@
     stroke: var(--sl-color-gray-5);
     stroke-width: 1;
     stroke-dasharray: 4 4;
+  }
+
+  /* Flow animation: marching dashes along connector paths.
+     stroke-dasharray: dash gap. Animating dashoffset by -(dash+gap) creates
+     a continuous march in the path direction. Slow 3s loop keeps it subtle. */
+  .flow-path {
+    stroke-dasharray: 10 6;
+    animation: flow-march 2.8s linear infinite;
+  }
+
+  @keyframes flow-march {
+    from {
+      stroke-dashoffset: 0;
+    }
+    to {
+      stroke-dashoffset: -16;
+    }
+  }
+
+  /* Fully disable all motion for users who prefer reduced motion */
+  @media (prefers-reduced-motion: reduce) {
+    .flow-path {
+      animation: none;
+      stroke-dasharray: none;
+    }
   }
 </style>
