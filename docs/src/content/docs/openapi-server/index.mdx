@@ -12,15 +12,16 @@ import { PackageManagers } from 'starlight-package-managers'
 
 Running the generator produces up to two files in your output directory:
 
-| File         | Contents                                                                                                         |
-| ------------ | ---------------------------------------------------------------------------------------------------------------- |
-| `service.ts` | TypeScript interface with one typed `async` method per API operation. No framework imports.                      |
-| `router.ts`  | `createRouter(service)` factory, generated only when `framework` is set to `"hono"`, `"express"`, or `"fastify"` |
+| File         | Contents                                                                                        |
+| ------------ | ----------------------------------------------------------------------------------------------- |
+| `service.ts` | TypeScript interface with one typed `async` method per API operation. No framework imports.     |
+| `router.ts`  | Router factory, generated only when `framework` is set to `"hono"`, `"express"`, or `"fastify"` |
 
 Key guarantees:
 
 - **Framework-agnostic service interface.** `service.ts` has zero framework dependencies. The TypeScript compiler enforces the contract: add an endpoint in the spec and forget to implement it, and the build fails.
 - **Optional router scaffolding.** Choose `"hono"`, `"express"`, or `"fastify"` to get a ready-to-mount router as a starting point. Use `"none"` to wire the interface yourself with any framework.
+- **Supports GET, POST, PUT, PATCH, DELETE.** All five HTTP methods are generated when present in the spec.
 - **Zod validation at the boundary.** Point `input_schema` at the same Zod schema file you use with `@codewithagents/openapi-gen`. The generator adds `safeParse` calls to every route that receives a body, returning a structured `422` before the call ever reaches your service.
 - **Prettier-clean output.** Every generated file passes `prettier --check` with your project's own Prettier config.
 - **`strict: true`.** All output compiles cleanly with TypeScript strict mode.
@@ -33,6 +34,10 @@ Key guarantees:
 <Aside type="note">
   `@codewithagents/openapi-server` requires `@codewithagents/openapi-gen`. Run `openapi-gen` first
   so `models.ts` exists before `service.ts` imports from it.
+</Aside>
+
+<Aside type="note">
+  The generated service examples use `node:crypto` (`randomUUID`). Node.js 18 or later is required.
 </Aside>
 
 ## Minimal example
@@ -117,7 +122,7 @@ serve({ fetch: app.fetch, port: 3001 })
 
 ## Configuration
 
-The config file must be valid JSON. By default the generator looks for `openapi-server.config.json` in the current working directory. Use `--config <path>` to point at a different file.
+The config file must be valid JSON and must have a `.json` extension. By default the generator looks for `openapi-server.config.json` in the current working directory. Use `--config <path>` to point at a different file.
 
 ```bash
 npx openapi-server --config ./config/openapi-server.config.json
@@ -161,7 +166,7 @@ import type { CreatePetRequest, Pet } from './models.js'
 
 export interface PetstoreService {
   /** GET /pets */
-  listPets(params?: { species?: string }): Promise<Pet[]>
+  listPets(params?: { species?: string; limit?: number }): Promise<Pet[]>
   /** POST /pets */
   createPet(body: CreatePetRequest): Promise<Pet>
   /** GET /pets/{id} */
@@ -173,9 +178,14 @@ export interface PetstoreService {
 
 The interface is regenerated every time the spec changes. If you add an endpoint in the spec and forget to implement it, TypeScript will fail the build.
 
-### `router.ts` (Hono)
+**Method name derivation:** method names come from `operationId` in your spec (sanitized to camelCase). When `operationId` is absent, the generator falls back to a `verb + path` heuristic: `GET /pets/{id}` becomes `getPetsById`, `POST /users` becomes `createUsers`. Any leading `/api/v{n}/` prefix (for example `/api/v1/`) is stripped before this heuristic runs, so `/api/v1/pets/{id}` and `/pets/{id}` both produce `getPetsById`.
 
-When `"framework": "hono"`, the generator produces a `createRouter` factory that mounts every route on a Hono app and returns it:
+### `router.ts`
+
+<Tabs>
+<TabItem label="Hono">
+
+`createRouter(service)` returns a `Hono` instance. Mount it anywhere in your app:
 
 ```typescript
 // generated/router.ts  (auto-generated, framework: "hono")
@@ -190,6 +200,7 @@ export function createRouter(service: PetstoreService): Hono {
   app.get('/pets', async (c) => {
     const params = {
       species: c.req.query('species') ?? undefined,
+      limit: c.req.query('limit') !== undefined ? Number(c.req.query('limit')) : undefined,
     }
     return c.json(await service.listPets(params))
   })
@@ -212,12 +223,94 @@ export function createRouter(service: PetstoreService): Hono {
 }
 ```
 
+</TabItem>
+<TabItem label="Express">
+
+`createRouter(service)` returns an Express `Router`. Apply `express.json()` before mounting so `req.body` is populated:
+
+```typescript
+// generated/router.ts  (auto-generated, framework: "express")
+
+import { Router } from 'express'
+import type { Request, Response } from 'express'
+import type { CreatePetRequest } from './models.js'
+import type { PetstoreService } from './service.js'
+
+export function createRouter(service: PetstoreService): Router {
+  const router = Router()
+
+  router.get('/pets', async (req: Request, res: Response) => {
+    const params = {
+      species: req.query['species'] as string | undefined,
+      limit: Number(req.query['limit'] as string),
+    }
+    res.json(await service.listPets(params))
+  })
+
+  router.post('/pets', async (req: Request, res: Response) => {
+    const body = req.body as CreatePetRequest
+    res.status(201).json(await service.createPet(body))
+  })
+
+  router.get('/pets/:id', async (req: Request, res: Response) => {
+    res.json(await service.getPet(req.params['id']!))
+  })
+
+  router.delete('/pets/:id', async (req: Request, res: Response) => {
+    await service.deletePet(req.params['id']!)
+    res.status(204).end()
+  })
+
+  return router
+}
+```
+
+</TabItem>
+<TabItem label="Fastify">
+
+`createRouter(app, service)` registers routes directly onto a `FastifyInstance` and returns `void`. Use `fastify.register` to apply a path prefix:
+
+```typescript
+// generated/router.ts  (auto-generated, framework: "fastify")
+
+import type { FastifyInstance } from 'fastify'
+import type { CreatePetRequest } from './models.js'
+import type { PetstoreService } from './service.js'
+
+export function createRouter(app: FastifyInstance, service: PetstoreService): void {
+  app.get<{ Querystring: { species?: string; limit?: number } }>('/pets', async (req, reply) => {
+    const params = {
+      species: req.query.species,
+      limit: req.query.limit,
+    }
+    return service.listPets(params)
+  })
+
+  app.post<{ Body: CreatePetRequest }>('/pets', async (req, reply) => {
+    reply.status(201)
+    return service.createPet(req.body)
+  })
+
+  app.get<{ Params: { id: string } }>('/pets/:id', async (req, reply) => {
+    return service.getPet(req.params.id)
+  })
+
+  app.delete<{ Params: { id: string } }>('/pets/:id', async (req, reply) => {
+    await service.deletePet(req.params.id)
+    reply.status(204).send()
+  })
+}
+```
+
+</TabItem>
+</Tabs>
+
 The router handles:
 
-- Path params: `{id}` becomes `:id` (Hono style), extracted via `c.req.param()`
+- Path params: `{id}` becomes `:id`, extracted via the framework's native param accessor
 - Query params: extracted and typed (`string`, `number`, `boolean`)
-- Request bodies: parsed via `c.req.json<T>()` with the correct model type
-- Response status: `200` for GET, `201` for POST, `204` for DELETE, derived from your spec
+- Request bodies: parsed and cast to the correct model type
+- Response status: spec-driven. The generator reads your spec's response codes first (checking for `201`, then `204`, then `200`). When no explicit code is declared, it falls back to `204` for DELETE and `200` for all other methods.
 
 ## Usage examples
 
@@ -327,7 +420,7 @@ Point `input_schema` at the same `schemas.ts` you use with `@codewithagents/open
 
 ```typescript
 app.post('/pets', async (c) => {
-  const body = await c.req.json()
+  const body = await c.req.json<CreatePetRequest>()
   // Validate request body: returns 422 with Zod issues on failure
   const parseResult = CreatePetRequestSchema.safeParse(body)
   if (!parseResult.success) {
@@ -361,6 +454,170 @@ Invalid requests receive a structured `422` response:
 
 The generator runs in two passes: first it writes `router.ts` without any Zod imports, then it rewrites `router.ts` with `safeParse` calls for every route whose body type has a matching schema in `input_schema`. If the schema file does not exist yet at generation time, the second pass is skipped and validation is added on the next run.
 
+## Middleware and authentication
+
+The generated router is a plain framework object. Add any middleware before mounting it:
+
+<Tabs>
+<TabItem label="Hono">
+
+```typescript
+import { Hono } from 'hono'
+import { bearerAuth } from 'hono/bearer-auth'
+import { cors } from 'hono/cors'
+import { createRouter } from '../generated/router.js'
+import { petService } from './petService.js'
+
+const app = new Hono()
+
+// Auth and CORS apply to all /api routes
+app.use('/api/*', cors())
+app.use('/api/*', bearerAuth({ token: process.env.API_TOKEN! }))
+
+app.route('/api', createRouter(petService))
+```
+
+</TabItem>
+<TabItem label="Express">
+
+```typescript
+import express from 'express'
+import { createRouter } from '../generated/router.js'
+import { petService } from './petService.js'
+
+const app = express()
+
+app.use(express.json())
+
+// Auth middleware runs before the generated router
+app.use('/api', (req, res, next) => {
+  if (req.headers.authorization !== `Bearer ${process.env.API_TOKEN}`) {
+    return res.status(401).json({ error: 'Unauthorized' })
+  }
+  next()
+})
+
+app.use('/api', createRouter(petService))
+```
+
+</TabItem>
+<TabItem label="Fastify">
+
+```typescript
+import Fastify from 'fastify'
+import { createRouter } from '../generated/router.js'
+import { petService } from './petService.js'
+
+const app = Fastify()
+
+// Register auth as a scoped plugin before the routes
+app.register(
+  async (instance) => {
+    instance.addHook('onRequest', async (req, reply) => {
+      if (req.headers.authorization !== `Bearer ${process.env.API_TOKEN}`) {
+        return reply.status(401).send({ error: 'Unauthorized' })
+      }
+    })
+    createRouter(instance, petService)
+  },
+  { prefix: '/api' }
+)
+```
+
+</TabItem>
+</Tabs>
+
+## Error handling
+
+The generated router does **not** wrap service calls in `try/catch`. If your service method throws, the error propagates to the framework's own error handler, which typically returns `500`. Add a custom error handler to control the response shape:
+
+<Tabs>
+<TabItem label="Hono">
+
+```typescript
+import { Hono } from 'hono'
+import { createRouter } from '../generated/router.js'
+import { petService } from './petService.js'
+
+const app = new Hono()
+
+app.route('/api', createRouter(petService))
+
+app.onError((err, c) => {
+  console.error(err)
+  return c.json({ error: err.message }, 500)
+})
+```
+
+</TabItem>
+<TabItem label="Express">
+
+```typescript
+import express, { NextFunction, Request, Response } from 'express'
+import { createRouter } from '../generated/router.js'
+import { petService } from './petService.js'
+
+const app = express()
+
+app.use(express.json())
+app.use('/api', createRouter(petService))
+
+// Error middleware must have four parameters
+app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
+  console.error(err)
+  res.status(500).json({ error: err.message })
+})
+```
+
+</TabItem>
+<TabItem label="Fastify">
+
+```typescript
+import Fastify from 'fastify'
+import { createRouter } from '../generated/router.js'
+import { petService } from './petService.js'
+
+const app = Fastify()
+
+app.setErrorHandler((err, req, reply) => {
+  console.error(err)
+  reply.status(500).send({ error: err.message })
+})
+
+app.register(
+  async (instance) => {
+    createRouter(instance, petService)
+  },
+  { prefix: '/api' }
+)
+```
+
+</TabItem>
+</Tabs>
+
+## What is out of scope
+
+The generator intentionally omits several OpenAPI features. These are not validated or generated:
+
+| Feature                      | Status                                                                                                              |
+| ---------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| Response-body validation     | Not generated. Validate in your service if needed.                                                                  |
+| Request headers and cookies  | Not extracted or validated.                                                                                         |
+| Security scheme enforcement  | Not generated. Add auth middleware manually (see above).                                                            |
+| `multipart/form-data` bodies | Not generated. Wire file upload routes manually.                                                                    |
+| Path parameter validation    | Not generated. Path params are passed to your service as raw strings. Validate them in your service implementation. |
+
+## Troubleshooting
+
+**Requests are not validated; invalid bodies reach my service.**
+Check that `input_schema` is set in your config and the schema file exists. If the schema file is missing at generation time, the Zod pass is skipped and validation is not added. Also confirm that the schema name matches the convention: for a body type `CreatePetRequest`, the schema must be exported as `CreatePetRequestSchema`. A mismatch triggers a warning to stderr.
+
+**`Cannot find module './models.js'` at runtime.**
+`service.ts` imports from `models.ts` which is generated by `@codewithagents/openapi-gen`. Run `openapi-gen` before `openapi-server`. A combined script (`"generate": "openapi-gen && openapi-server"`) prevents this.
+
+**My service throws but the client sees `500` with no details.**
+The generated router does not catch errors. Add a framework error handler as shown in the [Error handling](#error-handling) section above.
+
 ## Works with
 
 <CardGrid>
@@ -376,7 +633,7 @@ The generator runs in two passes: first it writes `router.ts` without any Zod im
     [Learn more](/openapi-react-query)
 
   </Card>
-  <Card title="Form error mapping" icon="warning">
+  <Card title="Form error mapping" icon="puzzle">
     Add `@codewithagents/api-errors` to map API error responses from the generated client directly to form field errors.
 
     [Learn more](/api-errors)

@@ -72,19 +72,7 @@ function SignupForm() {
 
 **Without React Hook Form: use `extractFieldErrors` directly.**
 
-```typescript
-import { extractFieldErrors } from '@codewithagents/api-errors'
-
-try {
-  await submitData(payload)
-} catch (error) {
-  const fieldErrors = extractFieldErrors(error)
-  // [{ field: 'email', message: 'must not be blank' }, ...]
-  for (const { field, message } of fieldErrors) {
-    console.warn(`${field}: ${message}`)
-  }
-}
-```
+See the [framework-agnostic usage](#framework-agnostic-usage) section below for a fuller example with custom state management.
 
 ## API reference
 
@@ -108,6 +96,13 @@ function mapApiErrors(
 
 Calls `extractFieldErrors(error, options)` internally, then calls `setError` once per field with `type: 'server'`. The `setError` signature is compatible with React Hook Form's `UseFormSetError<T>`. No casting needed.
 
+<Aside type="caution">
+  When a backend returns multiple errors for the same field, `mapApiErrors` calls `setError`
+  multiple times for that field. React Hook Form keeps only the last message. If you need all
+  messages visible at once, use `extractFieldErrors` directly and group by field before calling
+  `setError`. See [multiple errors per field](#multiple-errors-per-field) below.
+</Aside>
+
 ### `MapApiErrorsOptions`
 
 ```typescript
@@ -128,12 +123,16 @@ interface MapApiErrorsOptions {
 
   /**
    * Restrict extraction to specific HTTP status codes.
-   * If the error carries a status code not in this list, returns [] immediately.
+   * If the error carries a detectable status code not in this list, returns [] immediately.
+   * If no status code can be detected on the error, the filter is bypassed and
+   * parsing proceeds normally.
    * Useful to avoid parsing 404 or 500 bodies as field errors.
    */
   statusCodes?: number[]
 }
 ```
+
+**`statusCodes` pass-through behaviour:** the filter only fires when a status code is found on the error object (`error.status` or `error.response.status`). If no status is present, parsing always proceeds regardless of the `statusCodes` list. This means a raw fetch body passed directly to `extractFieldErrors` is always parsed.
 
 ### `FieldError`
 
@@ -153,6 +152,8 @@ import type { FieldError, MapApiErrorsOptions } from '@codewithagents/api-errors
 ## Supported error formats
 
 The format is detected automatically. No configuration is required.
+
+Parsers are tried in a fixed order and the **first match wins**: a top-level flat array (when the body itself is an array) is handled first, then the RFC 7807 errors map, then the Spring Boot array, then a flat object, then the RFC 9457 `detail`. A body that contains both an `errors` map and a `detail` field uses the `errors` map; the `detail` field is ignored.
 
 ### RFC 7807 / RFC 9457 Problem Details (Spring Boot 3+)
 
@@ -200,6 +201,16 @@ Result: `[{ field: 'root', message: 'Email is already taken.' }]`
 }
 ```
 
+When an item has neither `defaultMessage` nor `message`, the message is set to `'Unknown error'`. Check for this sentinel if you need to localize or suppress it:
+
+```typescript
+const errors = extractFieldErrors(apiError)
+const mapped = errors.map((e) => ({
+  ...e,
+  message: e.message === 'Unknown error' ? t('errors.unknown') : e.message,
+}))
+```
+
 ### Flat object
 
 ```json
@@ -219,17 +230,28 @@ Result: `[{ field: 'root', message: 'Email is already taken.' }]`
 
 Before parsing, the following wrappers are stripped:
 
-| Wrapper shape                       | Detected by                                                                            |
-| ----------------------------------- | -------------------------------------------------------------------------------------- |
-| `{ status: number, body: unknown }` | `ApiError` from `@codewithagents/openapi-gen`                                          |
-| `{ response: { data: ... } }`       | Axios-style error objects                                                              |
-| `{ data: ... }`                     | Generic response wrappers (only when `field` and `errors` are absent at the top level) |
+| Wrapper shape                       | Detected by                                                                                                       |
+| ----------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| `{ status: number, body: unknown }` | `ApiError` from `@codewithagents/openapi-gen`                                                                     |
+| `{ response: { data: ... } }`       | Axios-style error objects                                                                                         |
+| `{ data: ... }`                     | Generic response wrappers (only when `data` is a plain object and `field` / `errors` are absent at the top level) |
+
+<Aside type="caution">
+  The `{ data: ... }` wrapper is only unwrapped when `data` is a plain object. If `data` is an
+  array, string, or any other non-object value, the wrapper is not stripped and parsing returns
+  `[]`. Pass the inner value directly if your wrapper does not match this shape.
+</Aside>
 
 ## Usage examples
 
 ### Typed React Hook Form form
 
 `mapApiErrors` accepts any `setError` matching `(field: string, error: { type: string; message: string }) => void`, which is exactly what React Hook Form's typed `UseFormSetError<T>` provides. No casting:
+
+<Aside type="note">
+  `mapApiErrors` and `UseFormSetError` require **React Hook Form v7+**. Earlier versions use a
+  different `setError` signature.
+</Aside>
 
 ```tsx
 import { useForm } from 'react-hook-form'
@@ -284,6 +306,25 @@ try {
 }
 ```
 
+**With React Query `useMutation`:**
+
+```typescript
+import { useMutation } from '@tanstack/react-query'
+import { useForm } from 'react-hook-form'
+import { mapApiErrors } from '@codewithagents/api-errors'
+
+function CreateTaskForm() {
+  const { handleSubmit, setError } = useForm<FormValues>()
+
+  const mutation = useMutation({
+    mutationFn: createTask,
+    onError: (error) => mapApiErrors(error, setError, { statusCodes: [422] }),
+  })
+
+  return <form onSubmit={handleSubmit((data) => mutation.mutate(data))}>...</form>
+}
+```
+
 ### With native `fetch`
 
 Pass the parsed response body directly to `extractFieldErrors` when not using a library that throws typed errors:
@@ -320,9 +361,16 @@ mapApiErrors(error, setError, {
 
 `transformField` is also applied to `fallbackField`, so the transform is consistent across all field names.
 
-### Multiple errors for the same field
+<Aside type="caution">
+  The regex above splits on every uppercase letter individually, so it works for simple camelCase
+  names but breaks on acronyms. For example, `ABCField` becomes `a.b.c.field` instead of
+  `abc.field`. Add special-case handling or a more precise regex if your API uses acronyms in field
+  names.
+</Aside>
 
-When a backend returns multiple errors for the same field, `extractFieldErrors` returns all of them. If you pass them directly to React Hook Form's `setError`, the last call wins and only the last message is displayed. To show all messages, group first:
+### Multiple errors per field
+
+When a backend returns multiple errors for the same field, `extractFieldErrors` returns all of them as separate entries. If you pass them directly to React Hook Form's `setError`, the last call wins and only the last message is displayed. To show all messages, group first:
 
 ```typescript
 import { extractFieldErrors } from '@codewithagents/api-errors'
@@ -338,10 +386,67 @@ for (const [field, errs] of grouped) {
 }
 ```
 
-<Aside type="tip">
-  `Map.groupBy` is available in modern runtimes (Node 21+, Chrome 117+). For older targets, use a
-  `reduce` loop or a utility library.
+<Aside type="note">
+  `Map.groupBy` requires Node 21+ or a modern browser (Chrome 117+, Safari 17.4+). For older
+  targets, replace it with a `reduce` accumulator or a utility like `lodash.groupBy`.
 </Aside>
+
+### Framework-agnostic usage
+
+`extractFieldErrors` works with any state management approach. Here is a realistic example with a custom form-state hook (no React Hook Form required):
+
+```typescript
+import { useState } from 'react'
+import { extractFieldErrors } from '@codewithagents/api-errors'
+
+type FieldErrors = Record<string, string>
+
+function useFormErrors() {
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({})
+
+  function applyApiError(error: unknown) {
+    const parsed = extractFieldErrors(error)
+    if (parsed.length === 0) return false
+    const next: FieldErrors = {}
+    for (const { field, message } of parsed) {
+      // Last message per field wins, consistent with RHF default behaviour
+      next[field] = message
+    }
+    setFieldErrors(next)
+    return true
+  }
+
+  function clearErrors() {
+    setFieldErrors({})
+  }
+
+  return { fieldErrors, applyApiError, clearErrors }
+}
+
+// Usage in a component:
+function SignupForm() {
+  const { fieldErrors, applyApiError } = useFormErrors()
+
+  async function handleSubmit(data: FormValues) {
+    try {
+      await api.post('/signup', data)
+    } catch (error) {
+      const handled = applyApiError(error)
+      if (!handled) {
+        // Unrecognized error shape: re-throw or show a generic banner
+        console.error('Unexpected error', error)
+      }
+    }
+  }
+
+  return (
+    <form onSubmit={...}>
+      <input name="email" />
+      {fieldErrors.email && <p>{fieldErrors.email}</p>}
+    </form>
+  )
+}
+```
 
 ## Works with
 

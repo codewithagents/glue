@@ -36,6 +36,11 @@ You also need `@codewithagents/openapi-gen` (the client generator this package b
 
 <PackageManagers pkg="@tanstack/react-query" />
 
+<Aside type="caution">
+  **React Query v5 is required.** The peer dependency is `@tanstack/react-query ^5.0.0`. Version 4
+  is not supported. React Query v5 itself requires **React 18 or later**.
+</Aside>
+
 ## Minimal example
 
 **1. Create `openapi-react-query.config.json` in your project root:**
@@ -94,8 +99,8 @@ npx openapi-react-query --config ./config/openapi-react-query.config.json
 ```
 
 <Aside type="note">
-  When `--config` is used, all relative paths inside the file resolve from the config file's
-  directory, not from the shell's working directory.
+  The `--config` path must end in `.json`. When `--config` is used, all relative paths inside the
+  file resolve from the config file's directory, not from the shell's working directory.
 </Aside>
 
 ### Options
@@ -243,39 +248,9 @@ export function useDeleteTask(
 
 ### `test-utils.ts`
 
-A testing helper file generated alongside `hooks.ts`. It exports two functions and has no new dependencies: everything it imports is already required by `@tanstack/react-query` and `react`.
+A testing helper file generated alongside `hooks.ts`. It exports `createTestQueryClient()` and `createWrapper()` with no new dependencies: everything it imports (`@tanstack/react-query`, `react`) is already a peer dependency you have installed.
 
-```ts
-// src/api/test-utils.ts  (auto-generated)
-
-// Creates a QueryClient pre-configured for testing:
-//   retry: false: tests should not retry on failure
-//   gcTime: 0: no garbage-collection delay between tests
-export function createTestQueryClient(): QueryClient { ... }
-
-// Returns a wrapper component that provides a QueryClientProvider.
-// Pass as the `wrapper` option to renderHook from @testing-library/react.
-export function createWrapper(
-  queryClient: QueryClient,
-): ({ children }: { children: ReactNode }) => ReactNode { ... }
-```
-
-Usage in a test:
-
-```ts
-import { renderHook, waitFor } from '@testing-library/react'
-import { createTestQueryClient, createWrapper } from './src/api/test-utils'
-import { useListTasks } from './src/api/hooks'
-
-it('fetches tasks', async () => {
-  const queryClient = createTestQueryClient()
-  const wrapper = createWrapper(queryClient)
-  const { result } = renderHook(() => useListTasks(), { wrapper })
-
-  await waitFor(() => expect(result.current.isSuccess).toBe(true))
-  expect(result.current.data?.items).toHaveLength(2)
-})
-```
+See [Testing your hooks](#testing-your-hooks) for full copy-pasteable examples.
 
 ## Usage examples
 
@@ -397,7 +372,22 @@ Invalidation scope:
 | `PUT` / `PATCH` | `resourceKeys.all()` + `resourceKeys.detail(id)` |
 | `DELETE`        | `resourceKeys.all()`                             |
 
-Your own `onSuccess` callback (if provided in `options`) is called after invalidation runs.
+<Aside type="note">
+  DELETE invalidates `all()` only. Because React Query uses prefix matching for cache invalidation,
+  this also evicts any `detail(id)` entries for that resource. Explicit detail invalidation is only
+  generated for `PUT` and `PATCH`, where the updated resource should be re-fetched by ID.
+</Aside>
+
+Your own `onSuccess` callback (if provided in `options`) is called **after** auto-invalidation runs. The generated `onSuccess` composes your callback rather than replacing it. The emitted object spreads `...options` first, then declares the `onSuccess` key immediately after, so the generated `onSuccess` intentionally overwrites any caller-provided `onSuccess` while still invoking it internally via `options?.onSuccess?.(...args)`:
+
+```ts
+// The generated mutation hook (simplified, auto_invalidate: true)
+// ...options is spread first; onSuccess follows it, overriding any onSuccess in options
+onSuccess: (...args) => {
+  queryClient.invalidateQueries({ queryKey: taskKeys.all() })
+  options?.onSuccess?.(...args) // your callback runs after invalidation
+}
+```
 
 <Aside type="tip">
   `auto_invalidate` only adds invalidation for resources that also have at least one GET operation
@@ -435,6 +425,261 @@ npx openapi-gen --config ./config/inventory.config.json
 npx openapi-react-query --config ./config/inventory.config.json
 ```
 
+## Key factory shapes in depth
+
+### Single-detail resources
+
+When a resource has exactly one GET with path parameters, the key factory uses the canonical `detail(id)` shape:
+
+```ts
+// Spec: GET /tasks/{id} only
+export const taskKeys = {
+  all: () => ['tasks'] as const,
+  list: (params?) => ['tasks', 'list', params] as const,
+  detail: (id: string) => ['tasks', id] as const,
+}
+```
+
+### Multi-detail resources
+
+When a resource has **more than one** GET with path parameters (e.g. `/items/{id}` and `/items/{id}/usage`), the key factory uses operation-name-derived segments to prevent cache key collisions:
+
+```ts
+// Spec: GET /items/{id}       operationId: getItemById
+//       GET /items/{id}/usage  operationId: getItemUsage
+export const itemKeys = {
+  all: () => ['items'] as const,
+  getItemById: (id: string) => ['items', 'getItemById', id] as const,
+  getItemUsage: (id: string) => ['items', 'getItemUsage', id] as const,
+}
+```
+
+Without the operation-name segment both keys would resolve to `['items', id]`, causing React Query to treat them as the same cache entry.
+
+<Aside type="note">
+  When multiple detail ops exist, the key factory does **not** have a `detail` key.
+  Auto-invalidation also skips per-detail invalidation for these resources (only `all()` is
+  invalidated), because there is no single unambiguous detail key to target.
+</Aside>
+
+### Required vs optional query params
+
+Query params become **required** (no `?`) in the generated hook signature when the spec marks any query parameter `required: true`. Optional params keep the `params?` form.
+
+```ts
+// Spec marks 'cursor' as required: true
+export function useListItems(
+  params: Parameters<typeof listItems>[0],  // required, no ?
+  options?: ...
+)
+```
+
+## Error handling
+
+Every generated hook types errors as `ApiError`. This class is generated by `@codewithagents/openapi-gen` into your `client.ts` output file:
+
+```ts
+export class ApiError extends Error {
+  constructor(
+    public readonly status: number,   // HTTP status code, e.g. 422
+    public readonly body: unknown,    // parsed JSON response body (or null)
+  ) { ... }
+}
+```
+
+### Handling errors in query hooks
+
+```tsx
+const { data, isError, error } = useGetTask(taskId)
+
+if (isError) {
+  // error is typed ApiError
+  console.error(error.status, error.body)
+  return <p>Failed to load task ({error.status})</p>
+}
+```
+
+### Handling errors in mutation hooks
+
+Pass an `onError` callback in `options`:
+
+```tsx
+const create = useCreateTask({
+  onError: (err) => {
+    // err is typed ApiError
+    console.error('Status:', err.status)
+    console.error('Body:', err.body)
+  },
+})
+```
+
+### Connecting to `@codewithagents/api-errors`
+
+`ApiError` is the direct input to [`@codewithagents/api-errors`](/api-errors), which maps backend validation errors to form field errors. Mutation errors are already typed correctly:
+
+```ts
+import { extractFieldErrors } from '@codewithagents/api-errors'
+
+const create = useCreateTask({
+  onError: (err) => {
+    // err is ApiError; pass directly to extractFieldErrors
+    const fieldErrors = extractFieldErrors(err, { statusCodes: [422] })
+    fieldErrors.forEach(({ field, message }) => form.setError(field, { message }))
+  },
+})
+```
+
+## Testing your hooks
+
+Glue generates `test-utils.ts` alongside `hooks.ts` to remove the boilerplate every hook test needs: a pre-configured `QueryClient` and a `QueryClientProvider` wrapper component. You import directly from the generated file, so there are no extra packages to install beyond your test runner and any mocking library you already use.
+
+| Export                       | What it does                                                                                              |
+| ---------------------------- | --------------------------------------------------------------------------------------------------------- |
+| `createTestQueryClient()`    | Returns a `QueryClient` with `retry: false` and `gcTime: 0`, the right defaults for deterministic tests   |
+| `createWrapper(queryClient)` | Returns a React component suitable for the `wrapper` option in `renderHook` from `@testing-library/react` |
+
+### Query hook test
+
+The example below uses [Vitest](https://vitest.dev/), [React Testing Library](https://testing-library.com/docs/react-testing-library/api/#renderhook), and [MSW](https://mswjs.io/) for HTTP mocking. Only the last two are new additions if you are not already using them.
+
+```ts
+// src/tasks/__tests__/useListTasks.test.ts
+import { renderHook, waitFor } from '@testing-library/react'
+import { http, HttpResponse } from 'msw'
+import { setupServer } from 'msw/node'
+import { createTestQueryClient, createWrapper } from '../api/test-utils'
+import { useListTasks } from '../api/hooks'
+import { configureClient } from '../api/client-config'
+
+const server = setupServer()
+beforeAll(() => server.listen({ onUnhandledRequest: 'error' }))
+afterEach(() => server.resetHandlers())
+afterAll(() => server.close())
+
+beforeEach(() => configureClient({ baseUrl: 'https://api.example.com' }))
+
+it('returns tasks on success', async () => {
+  server.use(
+    http.get('https://api.example.com/api/v1/tasks', () =>
+      HttpResponse.json({
+        items: [{ id: '1', title: 'Ship it', status: 'pending' }],
+        total: 1,
+      })
+    )
+  )
+
+  const queryClient = createTestQueryClient()
+  const wrapper = createWrapper(queryClient)
+  const { result } = renderHook(() => useListTasks(), { wrapper })
+
+  await waitFor(() => expect(result.current.isSuccess).toBe(true))
+  expect(result.current.data?.items).toHaveLength(1)
+  expect(result.current.data?.items[0]?.title).toBe('Ship it')
+})
+```
+
+### Mutation hook test
+
+```ts
+// src/tasks/__tests__/useCreateTask.test.ts
+import { act, renderHook, waitFor } from '@testing-library/react'
+import { http, HttpResponse } from 'msw'
+import { setupServer } from 'msw/node'
+import { createTestQueryClient, createWrapper } from '../api/test-utils'
+import { useCreateTask } from '../api/hooks'
+import { configureClient } from '../api/client-config'
+
+const server = setupServer()
+beforeAll(() => server.listen({ onUnhandledRequest: 'error' }))
+afterEach(() => server.resetHandlers())
+afterAll(() => server.close())
+
+beforeEach(() => configureClient({ baseUrl: 'https://api.example.com' }))
+
+it('creates a task and returns the new record', async () => {
+  const created = { id: 'new-1', title: 'New task', status: 'pending' }
+  server.use(
+    http.post('https://api.example.com/api/v1/tasks', () =>
+      HttpResponse.json(created, { status: 201 })
+    )
+  )
+
+  const queryClient = createTestQueryClient()
+  const wrapper = createWrapper(queryClient)
+  const { result } = renderHook(() => useCreateTask(), { wrapper })
+
+  await act(async () => {
+    result.current.mutate({ title: 'New task' })
+  })
+
+  await waitFor(() => expect(result.current.isSuccess).toBe(true))
+  expect(result.current.data?.id).toBe('new-1')
+})
+```
+
+<Aside type="tip">
+  Create a fresh `queryClient` per test using `createTestQueryClient()`. Sharing one instance across
+  tests causes stale-cache contamination and can produce flaky results.
+</Aside>
+
+## SSR and Next.js App Router
+
+The generated hooks are **client-side only**. They call React Query's `useQuery` and `useMutation`, which require a browser context and a `QueryClientProvider` in the component tree. They will not work in React Server Components.
+
+For SSR prefetching, use the exported key factories together with React Query's standard `HydrationBoundary` approach:
+
+```tsx
+// app/tasks/page.tsx  (Server Component)
+import { dehydrate, HydrationBoundary, QueryClient } from '@tanstack/react-query'
+import { listTasks } from '@/api/client'
+import { taskKeys } from '@/api/hooks'
+import TaskList from './TaskList'
+
+export default async function TasksPage() {
+  const queryClient = new QueryClient()
+
+  await queryClient.prefetchQuery({
+    queryKey: taskKeys.list(),
+    queryFn: () => listTasks(),
+  })
+  // If the endpoint has required query params, pass them to both taskKeys.list(params) and listTasks(params).
+
+  return (
+    <HydrationBoundary state={dehydrate(queryClient)}>
+      <TaskList />
+    </HydrationBoundary>
+  )
+}
+```
+
+```tsx
+// app/tasks/TaskList.tsx  ('use client')
+'use client'
+import { useListTasks } from '@/api/hooks'
+
+export default function TaskList() {
+  const { data } = useListTasks()
+  return (
+    <ul>
+      {data?.items.map((t) => (
+        <li key={t.id}>{t.title}</li>
+      ))}
+    </ul>
+  )
+}
+```
+
+The key factories ensure that the prefetched server data matches the key that the client-side hook will look up. See the [TanStack Query SSR docs](https://tanstack.com/query/v5/docs/framework/react/guides/advanced-ssr) for the full setup.
+
+## Deprecated operations
+
+When your spec marks an operation as `deprecated: true`, the generated hook gets a `/** @deprecated */` JSDoc comment. TypeScript and most IDEs will show a strikethrough at the call site:
+
+```ts
+/** @deprecated */
+export function useGetLegacyTask(id: string | undefined | null, options?: ...) { ... }
+```
+
 ## Works with
 
 <CardGrid>
@@ -457,3 +702,20 @@ npx openapi-react-query --config ./config/inventory.config.json
 
   </Card>
 </CardGrid>
+
+## Troubleshooting
+
+### Cache not invalidating after a mutation
+
+Check two things:
+
+1. `auto_invalidate` must be set to `true` in your config file.
+2. Auto-invalidation only fires for resources that have at least one GET operation in the spec. A mutation-only resource has no key factory, so no invalidation is generated.
+
+### Detail hook fires even with a nullish id
+
+The generated hook emits `enabled: id != null && (options?.enabled ?? true)` and then `...options`. Because `...options` is spread after the built-in `enabled` line, any `enabled` key you pass inside `options` overwrites the entire guard expression via the spread. Omit `enabled` from `options` (or pass `enabled: undefined`) to keep the null guard in effect.
+
+### Hooks do not work in React Server Components
+
+All generated hooks use `useQuery` or `useMutation` internally and require a browser context plus a `QueryClientProvider` ancestor. Add `'use client'` to the component file, or prefetch on the server using the key factories and `HydrationBoundary` (see [SSR and Next.js App Router](#ssr-and-nextjs-app-router) above).

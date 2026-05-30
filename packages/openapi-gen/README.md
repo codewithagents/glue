@@ -5,6 +5,8 @@
 [![codecov](https://codecov.io/gh/codewithagents/glue/graph/badge.svg?flag=openapi-gen)](https://codecov.io/gh/codewithagents/glue)
 [![CodeQL](https://github.com/codewithagents/glue/actions/workflows/codeql.yml/badge.svg)](https://github.com/codewithagents/glue/actions/workflows/codeql.yml)
 
+📖 **[Full documentation](https://glue.codewithagents.de/openapi-gen)**
+
 Generate TypeScript types, a typed native `fetch` client, and Zod validation from your OpenAPI spec. Zero runtime footprint. Part of a full-pipeline suite tested against 128 real-world specs.
 
 - **Tested against 128 real-world specs**: Stripe, GitHub, Spotify, OpenAI, Adyen, Twilio, Slack, Vercel, and more generate without errors on every PR. See the [`examples/`](../../examples/) directory.
@@ -205,6 +207,8 @@ Without this, you would pass config to every call manually. With it, bind once p
 
 ## Config reference
 
+See the [full configuration reference](https://glue.codewithagents.de/openapi-gen#configuration) in the docs for detailed field descriptions and the `--config` CLI flag.
+
 `openapi-gen.config.json`:
 
 ```json
@@ -220,6 +224,8 @@ Without this, you would pass config to every call manually. With it, bind once p
 ---
 
 ## Error handling
+
+See [error handling](https://glue.codewithagents.de/openapi-gen#error-handling) in the docs for narrowing `ApiError.body` and the global `onError` hook.
 
 Generated functions throw `ApiError` for non-2xx responses:
 
@@ -238,6 +244,8 @@ try {
 ---
 
 ## Zod validation (`input_schema`)
+
+See the [Zod validation](https://glue.codewithagents.de/openapi-gen#zod-validation-input_schema) section in the docs for the form-wizard pattern, drift detection behaviour, and Zod v4 requirements.
 
 Point `input_schema` at a user-owned Zod schema file and the generator upgrades its output:
 

@@ -346,17 +346,23 @@ export interface SwaggerPetstoreOpenAPI30Service {
 
 ---
 
-## Not the right fit if...
+## Is Glue for you?
 
-<Aside type="caution">
+<Aside type="tip" title="Reach for Glue when">
 
-These are genuine limitations. Read them before you invest time in Glue.
+- **You build in TypeScript** and want end-to-end type safety from a single spec.
+- **You want to own the generated code**, not call into a runtime black box.
+- **Your spec is large, real-world, or full of edge cases.** Glue is tested against 128 real-world specs (Stripe, GitHub, Spotify, OpenAI, and more) on every PR, so there is a strong chance your edge cases are already covered. The gnarlier your spec, the more that matters.
+- **You want validation and form-field error UX, not just static types.** Zod schemas plus `api-errors` carry correctness all the way from the spec to the UI.
+
+</Aside>
+
+<Aside type="note" title="Look elsewhere if">
 
 - **You need a non-TypeScript target.** Glue generates TypeScript only. Python, Go, Java, and other language clients are out of scope.
-- **You need OpenAPI 2.0 / Swagger.** Glue targets OpenAPI 3.x. OpenAPI 2.0 specs are not supported.
-- **You want a runtime SDK abstraction.** Glue generates code you own, not a runtime library you call into. There is no `GlueClient` class with retry logic, pagination helpers, or caching built in. If you want a managed HTTP client, look elsewhere.
-- **You need a GUI or hosted platform.** Glue is a CLI + npm packages. There is no hosted service, no dashboard, and no account.
-- **Your spec is OpenAPI 3.0.x and you hit edge cases.** 3.0.x is best-effort. 3.1.x is the primary target. Most 3.0.x specs work fine, but some edge cases may produce incorrect output.
+- **Your spec is OpenAPI 2.0 / Swagger.** Glue targets OpenAPI 3.x (3.1.x first-class, 3.0.x best-effort).
+- **You want a managed runtime SDK.** Glue generates code you own, not a library you call into, so there is no built-in retry, pagination, or caching layer.
+- **You need a hosted GUI or dashboard.** Glue is a CLI plus npm packages.
 
 </Aside>
 
