@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.4](https://github.com/codewithagents/openapi-ts/compare/api-errors-v1.0.3...api-errors-v1.0.4) (2026-05-30)
+
+
+### Bug Fixes
+
+* **api-errors:** add homepage and bugs metadata after repo rename ([#163](https://github.com/codewithagents/openapi-ts/issues/163)) ([5db2b7c](https://github.com/codewithagents/openapi-ts/commit/5db2b7c35aedb74b21faa7abc21e1b0f1640e474))
+
 ## [1.0.3](https://github.com/codewithagents/glue/compare/api-errors-v1.0.2...api-errors-v1.0.3) (2026-05-29)
 
 
