@@ -1,0 +1,643 @@
+---
+title: Full-stack tutorial
+description: End-to-end walkthrough of the petstore-hono demo, showing all four Glue packages composing into one typed full-stack application.
+---
+
+import { Tabs, TabItem, Aside, Card, CardGrid } from '@astrojs/starlight/components'
+
+This tutorial walks through the [`petstore-hono` demo](https://github.com/codewithagents/glue/tree/main/packages/petstore-hono), a complete runnable application that shows every `@codewithagents` package working together. One OpenAPI spec file drives TypeScript types, a fetch client, a Hono router with Zod validation, React Query hooks, and Playwright end-to-end tests. Nothing in `generated/` is written by hand.
+
+## What you will build
+
+A pet management app: list pets, add a pet (with server-side validation errors shown inline in the form), and delete a pet. The full round-trip looks like this:
+
+```
+Browser form -> POST /api/pets -> Hono router -> Zod safeParse
+  -> 422 { issues: [{ path: ["name"], message: "Name is required" }] }
+  -> React renders the error next to the name field
+```
+
+| Layer                        | File                       | Generated?                    |
+| ---------------------------- | -------------------------- | ----------------------------- |
+| TypeScript types             | `generated/models.ts`      | Yes, by `openapi-gen`         |
+| Fetch client                 | `generated/client.ts`      | Yes, by `openapi-gen`         |
+| Zod schemas                  | `generated/schemas.ts`     | Bootstrapped once, then yours |
+| Server interface             | `generated/service.ts`     | Yes, by `openapi-server`      |
+| Hono router + Zod validation | `generated/router.ts`      | Yes, by `openapi-server`      |
+| React Query hooks            | `generated/hooks.ts`       | Yes, by `openapi-react-query` |
+| Business logic               | `src/server/petService.ts` | You write this                |
+| React UI                     | `src/client/App.tsx`       | You write this                |
+
+**The key insight:** everything in `generated/` is disposable. Change `spec/api.json`, run `pnpm generate`, and the types, client, hooks, and router regenerate automatically. Your business logic in `src/` is untouched because it implements a stable TypeScript interface.
+
+## Quick start
+
+Prerequisites: Node.js 22+, pnpm 10+.
+
+```bash
+git clone https://github.com/codewithagents/glue.git
+cd glue
+pnpm install
+pnpm build
+cd packages/petstore-hono
+pnpm dev
+```
+
+This starts two servers concurrently:
+
+- **Vite** on `http://localhost:5173`: React frontend with hot reload
+- **Hono** on `http://localhost:3001`: API server (Vite proxies `/api` requests to it)
+
+Open `http://localhost:5173` and you will see a live pet management UI.
+
+---
+
+## 1. The OpenAPI spec
+
+Everything starts from `spec/api.json`. It is an OpenAPI 3.1 document describing four endpoints:
+
+```json
+{
+  "openapi": "3.1.0",
+  "info": { "title": "Petstore", "version": "1.0.0" },
+  "paths": {
+    "/pets": {
+      "get": {
+        "operationId": "listPets",
+        "parameters": [
+          { "name": "species", "in": "query", "required": false, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": { "type": "array", "items": { "$ref": "#/components/schemas/Pet" } }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "createPet",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": { "schema": { "$ref": "#/components/schemas/CreatePetRequest" } }
+          }
+        },
+        "responses": {
+          "201": {
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Pet" } } }
+          }
+        }
+      }
+    },
+    "/pets/{id}": {
+      "get": {
+        "operationId": "getPet",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": {
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Pet" } } }
+          }
+        }
+      },
+      "delete": {
+        "operationId": "deletePet",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": { "204": { "description": "Deleted" } }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Pet": {
+        "type": "object",
+        "required": ["id", "name", "species"],
+        "properties": {
+          "id": { "type": "string" },
+          "name": { "type": "string" },
+          "species": { "type": "string" }
+        }
+      },
+      "CreatePetRequest": {
+        "type": "object",
+        "required": ["name", "species"],
+        "properties": {
+          "name": { "type": "string" },
+          "species": { "type": "string" }
+        }
+      }
+    }
+  }
+}
+```
+
+This single file is the source of truth for every generated file in the project.
+
+## 2. Generate types, client, and Zod schemas
+
+The first generator to run is `openapi-gen`. It reads the spec and writes `models.ts`, `client.ts`, `client-config.ts`, `index.ts`, and (when `input_schema` points at an existing file) rewrites `models.ts` to derive types from your Zod schemas.
+
+**`openapi-gen.config.json`:**
+
+```json
+{
+  "input_openapi": "spec/api.json",
+  "output": "generated/",
+  "input_schema": "generated/schemas.ts"
+}
+```
+
+The `input_schema` field is the key. On the very first run, if `generated/schemas.ts` does not exist, `openapi-gen` bootstraps it with a plain `z.object()` for every schema in the spec, then never touches it again. The file is yours to extend.
+
+The petstore's `generated/schemas.ts` adds custom validation messages that were not in the spec:
+
+```typescript
+// generated/schemas.ts (bootstrapped by openapi-gen, then yours)
+import { z } from 'zod'
+
+export const PetSchema = z
+  .object({
+    id: z.string(),
+    name: z.string(),
+    species: z.string(),
+  })
+  .passthrough()
+
+export const CreatePetRequestSchema = z.object({
+  name: z.string().min(1, 'Name is required'),
+  species: z.string().min(1, 'Species is required'),
+})
+```
+
+The `.min(1, ...)` rules are business logic you own. They will surface as validation error messages on the client and on the server.
+
+After `openapi-gen` runs with Zod integration, `generated/models.ts` derives its types from the schemas rather than duplicating them:
+
+```typescript
+// generated/models.ts (auto-generated)
+import type { z } from 'zod'
+import type { PetSchema, CreatePetRequestSchema } from './schemas.js'
+
+export type Pet = z.infer<typeof PetSchema>
+export type CreatePetRequest = z.infer<typeof CreatePetRequestSchema>
+```
+
+The generated `client.ts` also calls `CreatePetRequestSchema.strip().parse(body)` before sending `POST /pets`, and `PetSchema.parse(await res.json())` after every response, so type drift between client and server is caught at runtime.
+
+<Aside type="note">
+  `openapi-gen` is a prerequisite for both `openapi-server` and `openapi-react-query`. Run it first
+  so `models.ts` exists before the other generators import from it.
+</Aside>
+
+## 3. Generate the server interface and Hono router
+
+`openapi-server` reads the same spec and writes two files: a plain TypeScript interface (`service.ts`) and a ready-to-mount Hono router (`router.ts`).
+
+**`openapi-server.config.json`:**
+
+```json
+{
+  "input_openapi": "spec/api.json",
+  "output": "generated/",
+  "framework": "hono",
+  "input_schema": "generated/schemas.ts"
+}
+```
+
+`framework: "hono"` tells the generator to produce a `createRouter` factory. `input_schema` points at the same `schemas.ts` as `openapi-gen`, so the router gets Zod validation wired in automatically.
+
+**Generated `generated/service.ts`:**
+
+```typescript
+// generated/service.ts (auto-generated)
+import type { CreatePetRequest, Pet } from './models.js'
+
+export interface PetstoreService {
+  /** GET /pets */
+  listPets(params?: { species?: string }): Promise<Pet[]>
+  /** POST /pets */
+  createPet(body: CreatePetRequest): Promise<Pet>
+  /** GET /pets/{id} */
+  getPet(id: string): Promise<Pet>
+  /** DELETE /pets/{id} */
+  deletePet(id: string): Promise<void>
+}
+```
+
+This interface is regenerated every time the spec changes. Add an endpoint and forget to implement it: TypeScript fails the build.
+
+**Generated `generated/router.ts` (with Zod validation):**
+
+```typescript
+// generated/router.ts (auto-generated)
+import { Hono } from 'hono'
+import type { CreatePetRequest } from './models.js'
+import type { PetstoreService } from './service.js'
+import { CreatePetRequestSchema } from './schemas.js'
+
+export function createRouter(service: PetstoreService): Hono {
+  const app = new Hono()
+
+  app.get('/pets', async (c) => {
+    const params = { species: c.req.query('species') ?? undefined }
+    return c.json(await service.listPets(params))
+  })
+
+  app.post('/pets', async (c) => {
+    const body = await c.req.json<CreatePetRequest>()
+    // Validate request body: returns 422 with Zod issues on failure
+    const parseResult = CreatePetRequestSchema.safeParse(body)
+    if (!parseResult.success) {
+      return c.json({ error: 'Invalid request body', issues: parseResult.error.issues }, 422)
+    }
+    const validatedBody = parseResult.data
+    return c.json(await service.createPet(validatedBody), 201)
+  })
+
+  app.get('/pets/:id', async (c) => {
+    return c.json(await service.getPet(c.req.param('id')))
+  })
+
+  app.delete('/pets/:id', async (c) => {
+    await service.deletePet(c.req.param('id'))
+    return new Response(null, { status: 204 })
+  })
+
+  return app
+}
+```
+
+The generator runs in two passes: first it writes `router.ts` without Zod imports, then it rewrites it with `safeParse` calls for every route whose body type has a matching schema in `input_schema`. The `POST /pets` route gets `CreatePetRequestSchema.safeParse` because `CreatePetRequestSchema` exists in `schemas.ts`. An invalid request gets a `422` with the Zod issue list before your service implementation is ever called.
+
+<Aside type="tip">
+  Hono is this demo's choice, not a requirement. The `service.ts` interface has zero framework
+  imports. You can wire the same interface to Express, Fastify, or any HTTP server you already use.
+  See the [openapi-server guide](/openapi-server) for Express and Fastify examples.
+</Aside>
+
+## 4. Implement the service
+
+Open `generated/service.ts` and create a file that satisfies the interface. The petstore uses an in-memory `Map`:
+
+```typescript
+// src/server/petService.ts (you write this)
+import { randomUUID } from 'node:crypto'
+import type { PetstoreService } from '../../generated/service.js'
+import type { Pet } from '../../generated/models.js'
+
+const pets = new Map<string, Pet>()
+
+export const petService: PetstoreService = {
+  async listPets(params) {
+    const all = Array.from(pets.values())
+    if (params?.species) {
+      return all.filter((p) => p.species.toLowerCase() === params.species!.toLowerCase())
+    }
+    return all
+  },
+  async createPet(body) {
+    const pet: Pet = { id: randomUUID(), ...body }
+    pets.set(pet.id, pet)
+    return pet
+  },
+  async getPet(id) {
+    const pet = pets.get(id)
+    if (!pet) throw new Error(`Pet ${id} not found`)
+    return pet
+  },
+  async deletePet(id) {
+    pets.delete(id)
+  },
+}
+
+/** Reset all pets (only used in dev/test environments) */
+export function resetPets(): void {
+  pets.clear()
+}
+```
+
+TypeScript enforces that every method matches the generated interface signature. If you add an operation to `spec/api.json` and run `pnpm generate`, `petService.ts` will produce a type error until you implement the new method.
+
+## 5. Wire the router and serve
+
+`src/server/index.ts` creates a Hono app, mounts the generated router at `/api`, and starts the server:
+
+```typescript
+// src/server/index.ts (you write this)
+import { serve } from '@hono/node-server'
+import { serveStatic } from '@hono/node-server/serve-static'
+import { Hono } from 'hono'
+import { createRouter } from '../../generated/router.js'
+import { petService, resetPets } from './petService.js'
+
+const app = new Hono()
+
+// Dev-only reset endpoint (used by Playwright tests before each test)
+if (process.env.NODE_ENV !== 'production') {
+  app.delete('/api/pets', (_c) => {
+    resetPets()
+    return new Response(null, { status: 204 })
+  })
+}
+
+const apiRouter = createRouter(petService)
+app.route('/api', apiRouter)
+
+// Serve built React app for everything else
+app.use('/*', serveStatic({ root: './dist' }))
+
+const port = Number(process.env.PORT ?? 3001)
+serve({ fetch: app.fetch, port })
+```
+
+`createRouter` returns a plain `Hono` instance. Mount it at any prefix, add middleware, or nest it inside a larger app.
+
+## 6. Generate React Query hooks
+
+The third generator writes `hooks.ts` and a `test-utils.ts` helper. It reads the spec and derives all types from the generated client functions, so there are no duplicate type declarations.
+
+**`openapi-react-query.config.json`:**
+
+```json
+{ "input_openapi": "spec/api.json", "output": "generated/", "stale_time": 0, "gc_time": 300000 }
+```
+
+After running `openapi-react-query`, `generated/hooks.ts` contains:
+
+- `useListPets(params?, options?)`: a `useQuery` hook; `params` are optional so omitting them fetches all pets
+- `useGetPet(id, options?)`: a detail `useQuery` hook, widened to `string | undefined | null` and `enabled: false` when nullish
+- `useCreatePet(options?)`: a `useMutation` hook
+- `useDeletePet(options?)`: a `useMutation` hook
+- `petKeys`: a structured key factory: `petKeys.all()`, `petKeys.list(params)`, `petKeys.detail(id)`
+
+The generated `petKeys` factory makes cache invalidation predictable:
+
+```typescript
+// generated/hooks.ts (auto-generated, excerpt)
+export const petKeys = {
+  all: () => ['pets'] as const,
+  list: (params?: Parameters<typeof listPets>[0]) => ['pets', 'list', params] as const,
+  detail: (id: string) => ['pets', id] as const,
+}
+```
+
+## 7. Use the hooks in React
+
+`src/client/App.tsx` uses the generated hooks directly. It calls `useListPets` for the list, `useCreatePet` and `useDeletePet` for mutations, and `queryClient.invalidateQueries` with `petKeys.all()` to refresh the list after writes:
+
+```tsx
+// src/client/App.tsx (you write this, excerpt)
+import { useQueryClient } from '@tanstack/react-query'
+import { useState } from 'react'
+import { ApiError } from '../../generated/client.js'
+import { petKeys, useCreatePet, useDeletePet, useListPets } from '../../generated/hooks.js'
+
+type ZodIssue = { path: (string | number)[]; message: string }
+
+function parseValidationErrors(error: unknown): { name?: string; species?: string } {
+  // Handle 422 from the server: Zod issues in the response body
+  if (error instanceof ApiError && error.status === 422) {
+    const body = error.body as { issues?: ZodIssue[] }
+    if (Array.isArray(body?.issues)) {
+      const errors: { name?: string; species?: string } = {}
+      for (const issue of body.issues) {
+        const field = issue.path[0]
+        if (field === 'name') errors.name = issue.message
+        if (field === 'species') errors.species = issue.message
+      }
+      return errors
+    }
+  }
+  return {}
+}
+
+export function App() {
+  const [name, setName] = useState('')
+  const [species, setSpecies] = useState('')
+  const [fieldErrors, setFieldErrors] = useState<{ name?: string; species?: string }>({})
+
+  const queryClient = useQueryClient()
+  const { data: pets = [], isLoading } = useListPets()
+
+  const createPet = useCreatePet({
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: petKeys.all() })
+      setName('')
+      setSpecies('')
+      setFieldErrors({})
+    },
+    onError: (error) => {
+      setFieldErrors(parseValidationErrors(error))
+    },
+  })
+
+  const deletePet = useDeletePet({
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: petKeys.all() })
+    },
+  })
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    createPet.mutate({ name: name.trim(), species: species.trim() })
+  }
+
+  return (
+    <main>
+      <h1>Petstore</h1>
+      <form onSubmit={handleSubmit}>
+        <div>
+          <input
+            data-testid="pet-name"
+            placeholder="Name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+          />
+          {fieldErrors.name && <span data-testid="pet-name-error">{fieldErrors.name}</span>}
+        </div>
+        <div>
+          <input
+            data-testid="pet-species"
+            placeholder="Species"
+            value={species}
+            onChange={(e) => setSpecies(e.target.value)}
+          />
+          {fieldErrors.species && (
+            <span data-testid="pet-species-error">{fieldErrors.species}</span>
+          )}
+        </div>
+        <button data-testid="add-pet" type="submit">
+          Add Pet
+        </button>
+      </form>
+
+      {!isLoading && pets.length === 0 && (
+        <p data-testid="empty-state">No pets yet. Add your first pet above!</p>
+      )}
+
+      <ul>
+        {pets.map((pet) => (
+          <li key={pet.id} data-testid="pet-row">
+            <span data-testid="pet-name-display">{pet.name}</span>
+            {' - '}
+            <span data-testid="pet-species-display">{pet.species}</span>
+            <button data-testid="delete-pet" onClick={() => deletePet.mutate(pet.id)}>
+              Delete
+            </button>
+          </li>
+        ))}
+      </ul>
+    </main>
+  )
+}
+```
+
+The `ApiError` class is generated by `openapi-gen` and thrown on every non-2xx response. It carries `status` (the HTTP status code) and `body` (the parsed JSON response). The `onError` callback in `useCreatePet` receives this error and extracts the Zod issue list from the `422` response body to drive per-field error display.
+
+<Aside type="tip">
+  The petstore handles error mapping inline. If you use React Hook Form and want a library that
+  normalizes many error formats automatically, `@codewithagents/api-errors` provides
+  `mapApiErrors(error, setError)` as a one-call drop-in. See the [api-errors guide](/api-errors) for
+  details.
+</Aside>
+
+## 8. Regenerating from spec
+
+The `package.json` generate script runs all three generators in the correct order:
+
+```json
+{
+  "scripts": {
+    "generate": "openapi-gen && openapi-server && openapi-react-query"
+  }
+}
+```
+
+Run it whenever you change `spec/api.json`:
+
+```bash
+pnpm generate
+```
+
+`generated/schemas.ts` is never overwritten. All other files in `generated/` are safe to delete and regenerate at any time.
+
+## 9. Run the Playwright tests
+
+The Playwright suite covers the full browser-to-server round-trip:
+
+```bash
+pnpm test:e2e
+```
+
+This runs `vite build` first, then starts the Hono server and runs six tests in Chromium. Each test resets server state via `DELETE /api/pets` before running, so tests are fully isolated:
+
+```typescript
+// e2e/pets.spec.ts (you write this)
+import { expect, test } from '@playwright/test'
+
+test.beforeEach(async ({ page, request }) => {
+  await request.delete('/api/pets')
+  await page.goto('/')
+})
+
+test('shows empty state on first load', async ({ page }) => {
+  await expect(page.getByTestId('empty-state')).toBeVisible()
+})
+
+test('can add a pet and see it in the list', async ({ page }) => {
+  await page.getByTestId('pet-name').fill('Buddy')
+  await page.getByTestId('pet-species').fill('Dog')
+  await page.getByTestId('add-pet').click()
+  await expect(page.getByTestId('pet-row')).toBeVisible()
+  await expect(page.getByTestId('pet-name-display').first()).toHaveText('Buddy')
+})
+
+test('can delete a pet', async ({ page }) => {
+  await page.getByTestId('pet-name').fill('Whiskers')
+  await page.getByTestId('pet-species').fill('Cat')
+  await page.getByTestId('add-pet').click()
+  await page.getByTestId('delete-pet').first().click()
+  await expect(page.getByTestId('empty-state')).toBeVisible()
+})
+
+test('shows validation errors when submitting empty fields', async ({ page }) => {
+  await page.getByTestId('add-pet').click()
+  await expect(page.getByTestId('pet-name-error')).toHaveText('Name is required')
+  await expect(page.getByTestId('pet-species-error')).toHaveText('Species is required')
+})
+```
+
+The validation error test is the full round-trip in action: the React form submits empty strings, the generated client calls `CreatePetRequestSchema.strip().parse(body)` before the request fires, that fails with a `ZodError`, the `onError` callback catches it, and the component renders the field-level error messages.
+
+These tests also run in CI as a separate parallel `E2E (Petstore)` job alongside the standard `Build, Lint & Test` job.
+
+---
+
+## File structure
+
+```
+spec/
+  api.json                       OpenAPI 3.1 spec: single source of truth
+
+generated/                       Auto-generated, safe to delete and re-run
+  models.ts                      TypeScript types (Pet, CreatePetRequest)
+  client.ts                      Typed fetch functions, ApiError class
+  client-config.ts               configureClient(): base URL and auth setup
+  index.ts                       Barrel re-export
+  service.ts                     PetstoreService interface
+  router.ts                      createRouter(service): Hono routes + Zod validation
+  hooks.ts                       useListPets, useGetPet, useCreatePet, useDeletePet
+  test-utils.ts                  createTestQueryClient(), createWrapper() for testing
+  schemas.ts                     User-owned: bootstrapped once, never overwritten
+
+src/
+  server/
+    petService.ts                Implements PetstoreService (in-memory Map)
+    index.ts                     Hono app: mounts router, serves React build
+  client/
+    App.tsx                      React UI: uses generated hooks
+
+e2e/
+  pets.spec.ts                   Playwright tests (browser to Hono to Zod to React)
+
+openapi-gen.config.json          Generator config (client-side files + schemas bootstrap)
+openapi-server.config.json       Generator config (server interface + Hono router + Zod)
+openapi-react-query.config.json  Generator config (React Query hooks)
+```
+
+---
+
+## Where to go next
+
+<CardGrid>
+  <Card title="Types and fetch client" icon="seti:typescript">
+    Full reference for `@codewithagents/openapi-gen`: all config options, Zod integration, SSR server client, and more.
+
+    [openapi-gen guide](/openapi-gen)
+
+  </Card>
+  <Card title="Server interface" icon="laptop">
+    Full reference for `@codewithagents/openapi-server`: Express and Fastify support, framework-agnostic mode, and Zod validation details.
+
+    [openapi-server guide](/openapi-server)
+
+  </Card>
+  <Card title="React Query hooks" icon="seti:react">
+    Full reference for `@codewithagents/openapi-react-query`: suspense variants, auto-invalidate, per-resource cache tuning, and test utilities.
+
+    [openapi-react-query guide](/openapi-react-query)
+
+  </Card>
+  <Card title="Form error mapping" icon="warning">
+    `@codewithagents/api-errors` normalizes every common server error format and wires it to React Hook Form in one call.
+
+    [api-errors guide](/api-errors)
+
+  </Card>
+</CardGrid>

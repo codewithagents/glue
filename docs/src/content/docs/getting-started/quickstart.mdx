@@ -1,0 +1,118 @@
+---
+title: Quickstart
+description: Go from an OpenAPI spec to a working typed fetch client in minutes.
+---
+
+import { Steps, Card, CardGrid, Aside } from '@astrojs/starlight/components'
+import { PackageManagers } from 'starlight-package-managers'
+
+This guide walks you through installing `@codewithagents/openapi-gen` and generating a typed fetch client from an OpenAPI spec. It takes about five minutes.
+
+<Steps>
+
+1.  **Install**
+
+    <PackageManagers pkg="@codewithagents/openapi-gen" dev />
+
+2.  **Add a config file**
+
+    Create `openapi-gen.config.json` in your project root:
+
+    ```json
+    {
+      "input_openapi": "./openapi.json",
+      "output": "./src/api"
+    }
+    ```
+
+    Point `input_openapi` at your spec file (JSON or YAML). The `output` directory is created if it does not exist.
+
+    The two required fields:
+
+    | Field           | Description                                  |
+    | --------------- | -------------------------------------------- |
+    | `input_openapi` | Path to your OpenAPI 3.x spec (JSON or YAML) |
+    | `output`        | Directory to write the generated files       |
+
+    Optional fields let you set a default `baseUrl`, enable Zod schemas (`input_schema`), or generate a server-side client factory (`server_client: true`). See the [full options reference](/openapi-gen#options).
+
+3.  **Run the generator**
+
+    ```bash
+    npx openapi-gen
+    ```
+
+    This writes the following files to `./src/api/`:
+
+    | File               | Contents                                                                     |
+    | ------------------ | ---------------------------------------------------------------------------- |
+    | `models.ts`        | TypeScript interfaces for every schema in `components.schemas`               |
+    | `client.ts`        | One typed `async function` per API operation, using native `fetch`           |
+    | `client-config.ts` | `configureClient()` and `getConfig()`: set base URL and auth once at startup |
+    | `index.ts`         | Barrel re-export of all three files above                                    |
+
+4.  **Use the generated client**
+
+    Call `configureClient` once at app startup, then import typed functions anywhere:
+
+    ```typescript
+    import { configureClient } from './src/api'
+    import { listTasks, createTask, ApiError } from './src/api'
+
+    // Call once at app startup (e.g. main.ts or App.tsx)
+    configureClient({
+      baseUrl: 'https://api.example.com',
+      token: () => getAccessToken(), // sync or async, called per request
+    })
+
+    // Every function is fully typed: parameters, return type, and error shape
+    const page = await listTasks({ status: 'pending', page: 1 })
+
+    try {
+      const task = await createTask({ title: 'Ship it' })
+      console.log(task.id)
+    } catch (err) {
+      if (err instanceof ApiError) {
+        console.error(err.status, err.body)
+      }
+    }
+    ```
+
+    <Aside type="note">
+      Function and type names are derived directly from your spec's operation IDs and schema names.
+      A `GET /tasks` operation with `operationId: listTasks` becomes `async function
+      listTasks(...)`.
+    </Aside>
+
+</Steps>
+
+## What next?
+
+You have a fully typed fetch client. Layer in hooks, a server interface, or error mapping as your project grows:
+
+<CardGrid>
+  <Card title="React Query hooks" icon="seti:react">
+    Generate `useQuery` and `useMutation` hooks on top of this client.
+
+    [openapi-react-query guide](/openapi-react-query)
+
+  </Card>
+  <Card title="Server interface" icon="laptop">
+    Generate a typed service interface and optional Hono, Express, or Fastify router.
+
+    [openapi-server guide](/openapi-server)
+
+  </Card>
+  <Card title="Form error mapping" icon="warning">
+    Map `ApiError` responses from mutation hooks directly to form field errors.
+
+    [api-errors guide](/api-errors)
+
+  </Card>
+  <Card title="Full-stack tutorial" icon="document">
+    See all four packages working together in the Petstore demo.
+
+    [Full-stack tutorial](/tutorial/full-stack)
+
+  </Card>
+</CardGrid>
