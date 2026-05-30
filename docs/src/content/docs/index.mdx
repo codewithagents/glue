@@ -1,0 +1,38 @@
+---
+title: Glue
+description: Generate types, a fetch client, React Query hooks, and Zod schemas from your OpenAPI spec, then map API errors straight to form fields.
+template: splash
+hero:
+  title: Typed and validated, from OpenAPI spec to your UI
+  tagline: Generate types, a fetch client, React Query hooks, and Zod schemas from your OpenAPI spec, then map API errors straight to form fields. Framework-agnostic, OpenAPI 3.1 first, and proven against 128 real-world specs in CI.
+  actions:
+    - text: Get Started
+      link: /getting-started
+      icon: right-arrow
+      variant: primary
+    - text: View on GitHub
+      link: https://github.com/codewithagents/glue
+      icon: external
+      variant: secondary
+---
+
+import { Card, CardGrid } from '@astrojs/starlight/components';
+
+<CardGrid>
+  <Card title="@codewithagents/openapi-gen" icon="puzzle">
+    Types, fetch client, and Zod from your OpenAPI spec.
+    [Learn more](/openapi-gen)
+  </Card>
+  <Card title="@codewithagents/openapi-react-query" icon="seti:react">
+    React Query v5 hooks, generated.
+    [Learn more](/openapi-react-query)
+  </Card>
+  <Card title="@codewithagents/openapi-server" icon="laptop">
+    Typed service interface and optional Hono router.
+    [Learn more](/openapi-server)
+  </Card>
+  <Card title="@codewithagents/api-errors" icon="warning">
+    Map API errors to form field errors.
+    [Learn more](/api-errors)
+  </Card>
+</CardGrid>

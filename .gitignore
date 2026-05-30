@@ -8,3 +8,4 @@ coverage/
 reports/mutation/
 examples/generated-rq/
 examples/generated-server/
+.astro/

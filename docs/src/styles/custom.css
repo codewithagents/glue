@@ -1,0 +1,40 @@
+/* Glue docs brand overrides for Starlight.
+   Primary: Emerald (#10b981), Accent: Pink (#ec4899).
+   Maps onto Starlight CSS custom properties for both light and dark themes. */
+
+:root {
+  /* Accent color: Emerald for links, active states, and CTAs */
+  --sl-color-accent-low: #d1fae5;
+  --sl-color-accent: #10b981;
+  --sl-color-accent-high: #065f46;
+
+  /* Text on accent backgrounds */
+  --sl-color-white: #ffffff;
+
+  /* Subtle pink highlight for badges and secondary emphasis */
+  --sl-color-text-accent: #10b981;
+}
+
+:root[data-theme='dark'] {
+  /* Dark theme: shift accent toward lighter emerald so it reads on dark surfaces */
+  --sl-color-accent-low: #022c22;
+  --sl-color-accent: #34d399;
+  --sl-color-accent-high: #a7f3d0;
+
+  --sl-color-text-accent: #34d399;
+}
+
+/* Use the pink accent sparingly on "badge" style elements */
+.sl-badge.tip,
+.badge.tip {
+  background-color: #fce7f3;
+  color: #be185d;
+  border-color: #f9a8d4;
+}
+
+:root[data-theme='dark'] .sl-badge.tip,
+:root[data-theme='dark'] .badge.tip {
+  background-color: #4a0d2a;
+  color: #f472b6;
+  border-color: #831843;
+}
