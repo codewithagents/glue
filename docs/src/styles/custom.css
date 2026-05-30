@@ -71,3 +71,115 @@
   color: var(--sl-color-accent-high);
   text-decoration: underline;
 }
+
+/* =========================================================
+   SECTION DIVIDERS: branded emerald eyebrow treatment
+   Replaces plain <hr> gray rules so sections have identity.
+   ========================================================= */
+
+/* Horizontal rules on the splash page get an emerald gradient accent */
+.sl-markdown-content hr {
+  border: none;
+  height: 2px;
+  background: linear-gradient(
+    to right,
+    transparent,
+    var(--sl-color-accent) 30%,
+    var(--sl-color-accent) 70%,
+    transparent
+  );
+  opacity: 0.35;
+  margin: 2.5rem 0;
+}
+
+/* Section headings (h2) get a subtle emerald top-border accent */
+.sl-markdown-content h2 {
+  padding-top: 0.75rem;
+  border-top: 2px solid var(--sl-color-accent);
+  border-image: linear-gradient(
+      to right,
+      var(--sl-color-accent),
+      var(--sl-color-accent-low) 60%,
+      transparent
+    )
+    1;
+  margin-top: 2.5rem;
+}
+
+/* =========================================================
+   PACKAGE CARD GRID: tighter 2x2 with monospace npm scope
+   Visually distinct from the Why-Glue and Get-started grids.
+   ========================================================= */
+
+.package-grid .card sl-markdown-content h3,
+.package-grid sl-card [data-card-title] {
+  font-family: var(--sl-font-mono);
+  font-size: 0.85rem;
+}
+
+/* Target the first CardGrid on the splash page (package grid) */
+.sl-markdown-content .card-grid:first-of-type {
+  --sl-card-border: 1px solid var(--sl-color-accent);
+}
+
+/* Why-Glue card grid: neutral, slightly warmer background */
+.why-glue-grid .card,
+.why-glue-grid starlight-card {
+  background: var(--sl-color-gray-7);
+}
+
+/* Get-started CTA area: pink accent border on cards */
+.get-started-grid .card,
+.get-started-grid starlight-card {
+  border-color: #ec4899 !important;
+}
+:root[data-theme='dark'] .get-started-grid .card,
+:root[data-theme='dark'] .get-started-grid starlight-card {
+  border-color: #f472b6 !important;
+}
+
+/* =========================================================
+   CARD HOVER LIFT (base CSS, enhanced by AnimationSetup.astro)
+   Transition is set here so it applies even without JS.
+   ========================================================= */
+.sl-markdown-content starlight-card,
+.sl-markdown-content .card {
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .sl-markdown-content starlight-card:hover,
+  .sl-markdown-content .card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px -4px rgba(0, 0, 0, 0.16);
+  }
+}
+
+/* =========================================================
+   PILLAR CARDS: the three "Why Glue" lead cards
+   Slightly larger, with an emerald left-border accent.
+   ========================================================= */
+.why-pillar {
+  border-left: 3px solid var(--sl-color-accent) !important;
+  background: var(--sl-color-accent-low) !important;
+}
+
+:root[data-theme='dark'] .why-pillar {
+  background: var(--sl-color-accent-low) !important;
+}
+
+/* =========================================================
+   GET STARTED CTA area: pink deliberate accent
+   The final section uses pink to create a visual endpoint.
+   ========================================================= */
+.cta-section {
+  border-top: 2px solid #ec4899;
+  padding-top: 1rem;
+  margin-top: 0.5rem;
+}
+
+:root[data-theme='dark'] .cta-section {
+  border-top-color: #f472b6;
+}
