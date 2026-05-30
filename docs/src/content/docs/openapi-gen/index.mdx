@@ -1,0 +1,342 @@
+---
+title: Types and fetch client
+description: Generate TypeScript types, a native fetch client, and Zod schemas from your OpenAPI spec with @codewithagents/openapi-gen.
+---
+
+import { Card, CardGrid, Tabs, TabItem, Aside, Code } from '@astrojs/starlight/components';
+import { PackageManagers } from 'starlight-package-managers';
+
+`@codewithagents/openapi-gen` reads your OpenAPI 3.x spec and writes a fully typed native `fetch` client, TypeScript interfaces, and optional Zod schemas into your project. Every generated file passes `prettier --check` and TypeScript `strict: true` out of the box, with zero runtime dependencies beyond `fetch`. The package is tested against 128 real-world specs (Stripe, GitHub, Spotify, OpenAI, and more) on every PR.
+
+## Overview
+
+Running the generator produces up to five files in your output directory:
+
+| File | Contents |
+|---|---|
+| `models.ts` | TypeScript interfaces and union types for every schema in `components.schemas` |
+| `client.ts` | One typed `async function` per API operation, using native `fetch` |
+| `client-config.ts` | `configureClient()` and `getConfig()`: set base URL, auth, and headers once at startup |
+| `index.ts` | Barrel re-export of all three files above |
+| `server.ts` | `createServerClient()` factory (generated only when `server_client: true`) |
+
+Key guarantees:
+
+- **Zero runtime footprint.** The generated client uses only `fetch`. No axios, no wrapper libraries.
+- **Prettier-clean.** Every file passes `prettier --check` with your project's own Prettier config.
+- **`strict: true`.** All output compiles cleanly with TypeScript strict mode.
+- **SSR-safe.** Every generated function accepts an optional per-request config override. No global singleton mutation, safe for concurrent server requests.
+- **OpenAPI 3.1.x** is the primary target (including 3.1.1). OpenAPI 3.0.x is best-effort. Full support for `$ref`, `allOf`, `anyOf`, `oneOf`, and `nullable`.
+
+## Install
+
+<PackageManagers pkg="@codewithagents/openapi-gen" dev />
+
+## Minimal example
+
+**1. Create `openapi-gen.config.json` in your project root:**
+
+```json
+{
+  "input_openapi": "./openapi.json",
+  "output": "./src/api"
+}
+```
+
+**2. Run the generator:**
+
+```bash
+npx openapi-gen
+```
+
+**3. Import from the generated barrel:**
+
+```typescript
+import { configureClient } from './src/api';
+import { listTasks, createTask, ApiError } from './src/api';
+
+// Call once at app startup
+configureClient({
+  baseUrl: 'https://api.example.com',
+  token: () => getAccessToken(),
+});
+
+// Every function is fully typed
+const page = await listTasks({ status: 'pending', page: 1 });
+
+try {
+  const task = await createTask({ title: 'Ship it' });
+  console.log(task.id);
+} catch (err) {
+  if (err instanceof ApiError) {
+    console.error(err.status, err.body);
+  }
+}
+```
+
+## Configuration
+
+The config file must be valid JSON. By default the generator looks for `openapi-gen.config.json` in the current working directory. Use `--config <path>` to point at a different file.
+
+```bash
+npx openapi-gen --config ./config/openapi-gen.config.json
+```
+
+<Aside type="note">
+When `--config` is used, all relative paths inside the file resolve from the config file's directory, not from the shell's working directory.
+</Aside>
+
+### Options
+
+| Field | Type | Required | Default | Description |
+|---|---|---|---|---|
+| `input_openapi` | `string` | Yes | — | Path to your OpenAPI spec (JSON or YAML) |
+| `output` | `string` | Yes | — | Directory to write the generated files |
+| `input_schema` | `string` | No | — | Path to a user-owned Zod schema file. Bootstrapped on first run if the file does not exist; never overwritten after that |
+| `baseUrl` | `string` | No | `""` | Default base URL embedded in the generated `client-config.ts` |
+| `server_client` | `boolean` | No | `false` | When `true`, also generates `server.ts` with a `createServerClient()` factory |
+
+**Full config example:**
+
+```json
+{
+  "input_openapi": "./openapi.json",
+  "output": "./src/api",
+  "input_schema": "./src/api/schemas.ts",
+  "baseUrl": "https://api.example.com",
+  "server_client": true
+}
+```
+
+## Generated files in depth
+
+### `client-config.ts`
+
+The generated `ClientConfig` interface covers auth, credentials, and global error handling:
+
+```typescript
+// src/api/client-config.ts  (auto-generated)
+export interface ClientConfig {
+  baseUrl: string;
+  token?: string | (() => string | Promise<string>);
+  credentials?: RequestCredentials;
+  headers?: Record<string, string>;
+  onError?: (err: Error) => void;
+}
+
+export function configureClient(config: ClientConfig): void { ... }
+export function getConfig(): Readonly<ClientConfig> { ... }
+```
+
+Call `configureClient` once at startup. The `token` field accepts a string or an async function, called per request, so JWT refresh flows work automatically.
+
+### `models.ts`
+
+Each schema in `components.schemas` becomes a TypeScript interface or type alias. String enums also produce a `const` array for runtime iteration:
+
+```typescript
+// src/api/models.ts  (auto-generated)
+export type TaskStatus = "pending" | "in_progress" | "done";
+export const TaskStatusValues = ["pending", "in_progress", "done"] as const;
+
+export interface Task {
+  id: string;
+  title: string;
+  description?: string | null;
+  status: TaskStatus;
+  priority?: number;
+  assigneeEmail?: string | null;
+  createdAt: string; /* date-time */
+}
+
+export interface CreateTaskRequest {
+  title: string;
+  description?: string | null;
+  priority?: number;
+  assigneeEmail?: string | null;
+}
+```
+
+### `client.ts`
+
+One typed `async function` per operation. Query parameters, path parameters, and request bodies are all typed. Each function accepts an optional `config` override as its final parameter:
+
+```typescript
+// src/api/client.ts  (auto-generated)
+export async function listTasks(
+  params?: {
+    status?: "pending" | "in_progress" | "done";
+    page?: number;
+    pageSize?: number;
+  },
+  config?: Partial<ClientConfig>,
+): Promise<TaskPage> { ... }
+
+export async function createTask(
+  body: CreateTaskRequest,
+  config?: Partial<ClientConfig>,
+): Promise<Task> { ... }
+```
+
+## Usage examples
+
+### Bearer token auth
+
+```typescript
+import { configureClient } from './src/api';
+
+configureClient({
+  baseUrl: 'https://api.example.com',
+  token: () => getAccessToken(),   // sync or async, called per request
+  credentials: 'omit',
+});
+```
+
+### Cookie-based auth
+
+```typescript
+configureClient({
+  baseUrl: 'https://api.example.com',
+  credentials: 'include',          // sends HttpOnly cookies automatically
+});
+```
+
+### SSR with per-request config override
+
+Every generated function merges a `config` override into the global config for that single call. No singleton mutation, safe for concurrent server requests:
+
+```typescript
+// app/tasks/page.tsx  (Next.js Server Component)
+import { listTasks } from '@/api/client';
+import { getServerSession } from 'next-auth';
+
+export default async function TasksPage() {
+  const session = await getServerSession();
+
+  const page = await listTasks(
+    { status: 'pending' },
+    {
+      baseUrl: process.env.API_URL,   // absolute URL required on server
+      token: session.accessToken,
+      credentials: 'omit',
+    },
+  );
+
+  return <TaskList tasks={page.items} />;
+}
+```
+
+### Server client factory (`server_client: true`)
+
+When `server_client: true` is set in config, the generator also writes `server.ts`. It exports `createServerClient()`, which pre-binds a per-request `ClientConfig` to every function so you only pass auth headers once per request:
+
+```typescript
+// src/api/server.ts  (auto-generated)
+export function createServerClient(config: Partial<ClientConfig>) {
+  return {
+    listTasks: (params?: Parameters<typeof listTasks>[0]) => listTasks(params, config),
+    createTask: (body: Parameters<typeof createTask>[0]) => createTask(body, config),
+    getTask: (id: Parameters<typeof getTask>[0]) => getTask(id, config),
+    // ... all operations
+  };
+}
+```
+
+Usage in a Next.js App Router page:
+
+```typescript
+// app/tasks/page.tsx
+import { createServerClient } from '@/api/server';
+
+export default async function TasksPage() {
+  const session = await getServerSession();
+  const api = createServerClient({
+    baseUrl: process.env.API_URL,
+    token: session.accessToken,
+  });
+
+  const page = await api.listTasks({ status: 'pending' });
+  const task = await api.getTask('featured-id');
+
+  return <TaskList tasks={page.items} featured={task} />;
+}
+```
+
+### Zod validation (`input_schema`)
+
+Point `input_schema` at a file path and the generator bootstraps a Zod schema file on first run. The file is never overwritten, you own it. Re-running the generator updates `models.ts` to use `z.infer<>` types and adds runtime validation to `client.ts`.
+
+**Step 1: add `input_schema` to config**
+
+```json
+{
+  "input_openapi": "./openapi.json",
+  "output": "./src/api",
+  "input_schema": "./src/api/schemas.ts"
+}
+```
+
+**Step 2: run the generator once** to bootstrap `schemas.ts`. Then edit it freely:
+
+```typescript
+// src/api/schemas.ts  (bootstrapped, then yours)
+import { z } from 'zod';
+
+export const TaskSchema = z.object({
+  id: z.string(),
+  title: z.string(),
+  status: z.enum(['pending', 'in_progress', 'done']),
+}).passthrough();   // forward-compatible: unknown server fields are preserved
+
+export const CreateTaskRequestSchema = z.object({
+  title: z.string().min(1, 'Title is required'),
+});
+```
+
+**Step 3: re-run the generator.** `models.ts` switches to `z.infer<>` types, `client.ts` adds parse calls:
+
+```typescript
+// models.ts  (regenerated with Zod integration)
+import type { z } from 'zod';
+import type { TaskSchema, CreateTaskRequestSchema } from './schemas.js';
+
+export type Task = z.infer<typeof TaskSchema>;
+export type CreateTaskRequest = z.infer<typeof CreateTaskRequestSchema>;
+```
+
+```typescript
+// client.ts  (regenerated with Zod integration)
+export async function createTask(body: CreateTaskRequest): Promise<Task> {
+  const validatedBody = CreateTaskRequestSchema.strip().parse(body);  // strips UI-only fields
+  const res = await _request('POST', '/api/v1/tasks', { body: validatedBody }, config);
+  return TaskSchema.parse(await res.json());                          // throws ZodError on bad response
+}
+```
+
+<Aside type="tip">
+The `.strip()` call before sending removes any UI-only fields you added to the schema for forms or multi-step wizards, so they never reach the API.
+</Aside>
+
+<Aside type="note">
+If a schema exists in `schemas.ts` but has no matching component in the spec (or vice versa), the generator prints a drift warning to stderr. Your build still succeeds; the warning is advisory.
+</Aside>
+
+## Works with
+
+<CardGrid>
+  <Card title="React Query hooks" icon="seti:react">
+    Add `@codewithagents/openapi-react-query` to generate typed `useQuery` and `useMutation` hooks on top of the client this package produces.
+
+    [Learn more](/openapi-react-query)
+  </Card>
+  <Card title="Server interface" icon="laptop">
+    Add `@codewithagents/openapi-server` to generate a typed service interface and optional Hono router from the same spec.
+
+    [Learn more](/openapi-server)
+  </Card>
+  <Card title="Form error mapping" icon="warning">
+    Add `@codewithagents/api-errors` to map `ApiError` responses from the generated client directly to form field errors.
+
+    [Learn more](/api-errors)
+  </Card>
+</CardGrid>
