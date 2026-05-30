@@ -1,0 +1,415 @@
+---
+title: React Query hooks
+description: Generate typed React Query v5 hooks from your OpenAPI spec with @codewithagents/openapi-react-query.
+---
+
+import { Card, CardGrid, Tabs, TabItem, Aside } from '@astrojs/starlight/components';
+import { PackageManagers } from 'starlight-package-managers';
+
+`@codewithagents/openapi-react-query` reads your OpenAPI 3.x spec and writes a fully typed `hooks.ts` file alongside the client that [`@codewithagents/openapi-gen`](/openapi-gen) produces. Every GET endpoint becomes a `useQuery` hook, every write operation becomes a `useMutation` hook. The package runs on top of [React Query v5](https://tanstack.com/query/v5) and derives all types directly from the generated client: no duplicate type declarations, no maintenance.
+
+## Overview
+
+Running the generator produces two files in your output directory:
+
+| File | Contents |
+|---|---|
+| `hooks.ts` | One typed `useQuery` hook per GET, one `useMutation` per POST/PUT/PATCH/DELETE, and a structured key factory per resource |
+| `test-utils.ts` | `createTestQueryClient()` and `createWrapper()` helpers: drop-in boilerplate eliminators for your test suites |
+
+Key guarantees:
+
+- **One hook per operation.** Every GET maps to a `useQuery` variant; every write maps to a `useMutation`. Types are derived directly from the generated client: `Awaited<ReturnType<typeof fn>>` for data, `Parameters<typeof fn>[N]` for variables.
+- **Smart detail hooks.** Path-parameter hooks widen the parameter type to `string | undefined | null` and set `enabled: false` automatically when the value is nullish. No `enabled: !!id` at every call site.
+- **Key factories included.** Every resource gets a structured `resourceKeys` object: `all()`, `list(params)`, `detail(id)`. Use these directly with `queryClient.invalidateQueries` for consistent cache management.
+- **Auto-invalidate on mutation.** Set `auto_invalidate: true` and mutation hooks call `queryClient.invalidateQueries` on success with no boilerplate at the call site.
+- **Suspense variants.** Set `suspense: true` to generate a `useSuspense*` hook alongside every query hook. Data is never `undefined` inside a Suspense boundary.
+- **Prettier-clean output.** Every generated file passes `prettier --check` with your project's own config.
+
+## Install
+
+<PackageManagers pkg="@codewithagents/openapi-react-query" dev />
+
+You also need `@codewithagents/openapi-gen` (the client generator this package builds on) and `@tanstack/react-query` as a runtime peer dependency:
+
+<PackageManagers pkg="@codewithagents/openapi-gen" dev />
+
+<PackageManagers pkg="@tanstack/react-query" />
+
+## Minimal example
+
+**1. Create `openapi-react-query.config.json` in your project root:**
+
+```json
+{
+  "input_openapi": "./openapi.json",
+  "output": "./src/api"
+}
+```
+
+**2. Run both generators (`openapi-gen` first):**
+
+```bash
+npx openapi-gen
+npx openapi-react-query
+```
+
+Or wire them together in `package.json`:
+
+```json
+{
+  "scripts": {
+    "generate": "openapi-gen && openapi-react-query"
+  }
+}
+```
+
+**3. Import from the generated hooks file:**
+
+```tsx
+import { useListTasks, useCreateTask } from './src/api/hooks';
+
+function TaskList() {
+  const { data, isLoading } = useListTasks({ status: 'open' });
+  const create = useCreateTask();
+
+  if (isLoading) return <Spinner />;
+  return (
+    <>
+      {data?.items.map(task => <Task key={task.id} task={task} />)}
+      <button onClick={() => create.mutate({ title: 'New task' })}>Add</button>
+    </>
+  );
+}
+```
+
+## Configuration
+
+The config file must be valid JSON. By default the generator looks for `openapi-react-query.config.json` in the current working directory. Use `--config <path>` to point at a different file:
+
+```bash
+npx openapi-react-query --config ./config/openapi-react-query.config.json
+```
+
+<Aside type="note">
+When `--config` is used, all relative paths inside the file resolve from the config file's directory, not from the shell's working directory.
+</Aside>
+
+### Options
+
+| Field | Type | Required | Default | Description |
+|---|---|---|---|---|
+| `input_openapi` | `string` | Yes | n/a | Path to your OpenAPI spec (JSON or YAML) |
+| `output` | `string` | Yes | n/a | Directory to write generated files (should match your `openapi-gen` output) |
+| `stale_time` | `number` | No | `0` | `staleTime` in ms applied to all `useQuery` hooks |
+| `gc_time` | `number` | No | `300000` | `gcTime` in ms applied to all `useQuery` hooks |
+| `suspense` | `boolean` | No | `false` | When `true`, generates a `useSuspense*` variant alongside every query hook |
+| `auto_invalidate` | `boolean` | No | `false` | When `true`, mutation hooks auto-invalidate related resource queries on success |
+| `overrides` | `object` | No | none | Per-resource cache timing overrides (see [Per-resource cache timing](#per-resource-cache-timing)) |
+
+**Full config example:**
+
+```json
+{
+  "input_openapi": "./openapi.json",
+  "output": "./src/api",
+  "stale_time": 30000,
+  "gc_time": 300000,
+  "suspense": true,
+  "auto_invalidate": true,
+  "overrides": {
+    "platforms": { "stale_time": 86400000 },
+    "settings": { "stale_time": 5000, "gc_time": 60000 }
+  }
+}
+```
+
+## Generated files in depth
+
+### `hooks.ts`
+
+The main output file. For a spec with a `/tasks` resource the generated file contains three sections.
+
+**Key factory**: one per resource, used for consistent cache invalidation:
+
+```ts
+// src/api/hooks.ts  (auto-generated)
+export const taskKeys = {
+  all: () => ['tasks'] as const,
+  list: (params?: Parameters<typeof listTasks>[0]) => ['tasks', 'list', params] as const,
+  detail: (id: string) => ['tasks', id] as const,
+}
+```
+
+**Query hooks**: one per GET operation:
+
+```ts
+// List hook: params are optional, passed directly to the query key and fetch function
+export function useListTasks(
+  params?: Parameters<typeof listTasks>[0],
+  options?: Omit<UseQueryOptions<Awaited<ReturnType<typeof listTasks>>, ApiError>, 'queryKey' | 'queryFn'>,
+) {
+  return useQuery<Awaited<ReturnType<typeof listTasks>>, ApiError>({
+    queryKey: taskKeys.list(params),
+    queryFn: () => listTasks(params),
+    staleTime: 30000,
+    gcTime: 300000,
+    ...options,
+  })
+}
+
+// Detail hook: id widened to allow undefined/null, auto-disabled until id is set
+export function useGetTask(
+  id: string | undefined | null,
+  options?: Omit<UseQueryOptions<Awaited<ReturnType<typeof getTask>>, ApiError>, 'queryKey' | 'queryFn'>,
+) {
+  return useQuery<Awaited<ReturnType<typeof getTask>>, ApiError>({
+    queryKey: taskKeys.detail(id!),
+    queryFn: () => getTask(id!),
+    staleTime: 30000,
+    gcTime: 300000,
+    enabled: id != null && (options?.enabled ?? true),
+    ...options,
+  })
+}
+```
+
+**Mutation hooks**: one per POST/PUT/PATCH/DELETE:
+
+```ts
+export function useCreateTask(
+  options?: Omit<UseMutationOptions<Awaited<ReturnType<typeof createTask>>, ApiError, Parameters<typeof createTask>[0]>, 'mutationFn'>,
+) {
+  return useMutation<Awaited<ReturnType<typeof createTask>>, ApiError, Parameters<typeof createTask>[0]>({
+    mutationFn: (vars) => createTask(vars),
+    ...options,
+  })
+}
+
+// Update/patch: variables are destructured into { id, body } to match the client signature
+export function useUpdateTask(
+  options?: Omit<UseMutationOptions<Awaited<ReturnType<typeof updateTask>>, ApiError, { id: string; body: Parameters<typeof updateTask>[1] }>, 'mutationFn'>,
+) {
+  return useMutation<Awaited<ReturnType<typeof updateTask>>, ApiError, { id: string; body: Parameters<typeof updateTask>[1] }>({
+    mutationFn: ({ id, body }) => updateTask(id, body),
+    ...options,
+  })
+}
+
+// Delete with a single path param: variables type is 'string' directly
+export function useDeleteTask(
+  options?: Omit<UseMutationOptions<Awaited<ReturnType<typeof deleteTask>>, ApiError, string>, 'mutationFn'>,
+) {
+  return useMutation<Awaited<ReturnType<typeof deleteTask>>, ApiError, string>({
+    mutationFn: (id) => deleteTask(id),
+    ...options,
+  })
+}
+```
+
+### `test-utils.ts`
+
+A testing helper file generated alongside `hooks.ts`. It exports two functions and has no new dependencies: everything it imports is already required by `@tanstack/react-query` and `react`.
+
+```ts
+// src/api/test-utils.ts  (auto-generated)
+
+// Creates a QueryClient pre-configured for testing:
+//   retry: false: tests should not retry on failure
+//   gcTime: 0: no garbage-collection delay between tests
+export function createTestQueryClient(): QueryClient { ... }
+
+// Returns a wrapper component that provides a QueryClientProvider.
+// Pass as the `wrapper` option to renderHook from @testing-library/react.
+export function createWrapper(
+  queryClient: QueryClient,
+): ({ children }: { children: ReactNode }) => ReactNode { ... }
+```
+
+Usage in a test:
+
+```ts
+import { renderHook, waitFor } from '@testing-library/react';
+import { createTestQueryClient, createWrapper } from './src/api/test-utils';
+import { useListTasks } from './src/api/hooks';
+
+it('fetches tasks', async () => {
+  const queryClient = createTestQueryClient();
+  const wrapper = createWrapper(queryClient);
+  const { result } = renderHook(() => useListTasks(), { wrapper });
+
+  await waitFor(() => expect(result.current.isSuccess).toBe(true));
+  expect(result.current.data?.items).toHaveLength(2);
+});
+```
+
+## Usage examples
+
+### Query hook with optional filter params
+
+```tsx
+import { useListTasks } from './src/api/hooks';
+
+function TaskBoard() {
+  // params are optional; omitting them fetches all tasks
+  const { data, isLoading, isError, error } = useListTasks({ status: 'pending', page: 1 });
+
+  if (isLoading) return <Spinner />;
+  if (isError) return <p>Error: {error.message}</p>;
+
+  return (
+    <ul>
+      {data?.items.map(task => <li key={task.id}>{task.title}</li>)}
+    </ul>
+  );
+}
+```
+
+### Detail hook with auto-disable
+
+The path-parameter hook (`useGetTask`) widens `id` to `string | undefined | null` and sets `enabled: false` automatically when the value is nullish. No `enabled: !!id` required at the call site:
+
+```tsx
+import { useGetTask } from './src/api/hooks';
+
+function TaskDetail({ taskId }: { taskId: string | null }) {
+  // Hook does not fire while taskId is null; no boilerplate needed
+  const { data, isLoading } = useGetTask(taskId);
+
+  if (isLoading) return <Spinner />;
+  return <h2>{data?.title}</h2>;
+}
+```
+
+### Mutation hook
+
+```tsx
+import { useCreateTask } from './src/api/hooks';
+
+function CreateTaskForm() {
+  const create = useCreateTask({
+    onSuccess: (task) => {
+      console.log('Created task', task.id);
+    },
+    onError: (err) => {
+      console.error(err.status, err.body);
+    },
+  });
+
+  return (
+    <form onSubmit={(e) => {
+      e.preventDefault();
+      create.mutate({ title: 'New task' });
+    }}>
+      <button type="submit" disabled={create.isPending}>Add</button>
+    </form>
+  );
+}
+```
+
+### Suspense variant
+
+When `suspense: true` is set in config, a `useSuspense*` hook is generated alongside every query hook. The data type is never `undefined` inside a Suspense boundary:
+
+```tsx
+import { Suspense } from 'react';
+import { useSuspenseGetTask } from './src/api/hooks';
+
+function TaskDetail({ taskId }: { taskId: string }) {
+  // data is guaranteed non-undefined: parent must wrap in <Suspense>
+  const { data } = useSuspenseGetTask(taskId);
+  return <h2>{data.title}</h2>;
+}
+
+function TaskPage({ taskId }: { taskId: string }) {
+  return (
+    <Suspense fallback={<Spinner />}>
+      <TaskDetail taskId={taskId} />
+    </Suspense>
+  );
+}
+```
+
+<Aside type="note">
+Suspense hooks require a non-nullish path parameter. They do not support the `enabled` option and do not widen the parameter type. Wrap the parent in a `<Suspense>` boundary and a React error boundary for production use.
+</Aside>
+
+### Auto-invalidate on mutation success
+
+Set `auto_invalidate: true` in config and mutation hooks automatically call `queryClient.invalidateQueries` on success. No `useQueryClient` boilerplate at the call site:
+
+```ts
+// With auto_invalidate: true in config
+const create = useCreateTask();
+create.mutate({ title: 'New task' });
+// taskKeys.all() is invalidated automatically on success
+
+const update = useUpdateTask();
+update.mutate({ id: 'task-1', body: { title: 'Updated' } });
+// taskKeys.all() AND taskKeys.detail('task-1') are both invalidated on success
+```
+
+Invalidation scope:
+
+| HTTP method | Queries invalidated |
+|---|---|
+| `POST` | `resourceKeys.all()` |
+| `PUT` / `PATCH` | `resourceKeys.all()` + `resourceKeys.detail(id)` |
+| `DELETE` | `resourceKeys.all()` |
+
+Your own `onSuccess` callback (if provided in `options`) is called after invalidation runs.
+
+<Aside type="tip">
+`auto_invalidate` only adds invalidation for resources that also have at least one GET operation in the spec. Mutation-only resources are unaffected.
+</Aside>
+
+### Per-resource cache timing
+
+Use `overrides` in config to set different `staleTime` and `gcTime` per resource. The key is the first static path segment (e.g. `tasks` for `/api/v1/tasks/{id}`):
+
+```json
+{
+  "input_openapi": "./openapi.json",
+  "output": "./src/api",
+  "stale_time": 30000,
+  "gc_time": 300000,
+  "overrides": {
+    "platforms": { "stale_time": 86400000 },
+    "settings": { "stale_time": 5000, "gc_time": 60000 }
+  }
+}
+```
+
+Non-overridden resources use the global `stale_time` and `gc_time` values.
+
+### Multiple specs
+
+Use `--config` to point at different config files per vendor API. Both generators accept the same flag and resolve relative paths from the config file's directory:
+
+```bash
+npx openapi-gen --config ./config/payments.config.json
+npx openapi-react-query --config ./config/payments.config.json
+
+npx openapi-gen --config ./config/inventory.config.json
+npx openapi-react-query --config ./config/inventory.config.json
+```
+
+## Works with
+
+<CardGrid>
+  <Card title="Types and fetch client" icon="seti:typescript">
+    `@codewithagents/openapi-gen` generates the typed fetch client and models that these hooks wrap. Run it first.
+
+    [Learn more](/openapi-gen)
+  </Card>
+  <Card title="Server interface" icon="laptop">
+    `@codewithagents/openapi-server` generates a typed service interface and optional router from the same spec.
+
+    [Learn more](/openapi-server)
+  </Card>
+  <Card title="Form error mapping" icon="warning">
+    `@codewithagents/api-errors` maps `ApiError` responses from mutation hooks directly to form field errors.
+
+    [Learn more](/api-errors)
+  </Card>
+</CardGrid>

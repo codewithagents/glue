@@ -1,0 +1,375 @@
+---
+title: Server interface
+description: Generate a typed service interface and optional Hono, Express, or Fastify router from your OpenAPI spec with @codewithagents/openapi-server.
+---
+
+import { Card, CardGrid, Tabs, TabItem, Aside } from '@astrojs/starlight/components';
+import { PackageManagers } from 'starlight-package-managers';
+
+`@codewithagents/openapi-server` reads your OpenAPI 3.x spec and writes a typed service interface into your project. The interface is plain TypeScript with no framework imports: implement it however you want and wire it to Hono, Express, Fastify, or any router you already use. Set `"framework": "hono"` (or `"express"` / `"fastify"`) and the generator also scaffolds a ready-to-mount router, with optional Zod validation at the boundary so invalid requests never reach your service implementation.
+
+## Overview
+
+Running the generator produces up to two files in your output directory:
+
+| File | Contents |
+|---|---|
+| `service.ts` | TypeScript interface with one typed `async` method per API operation. No framework imports. |
+| `router.ts` | `createRouter(service)` factory, generated only when `framework` is set to `"hono"`, `"express"`, or `"fastify"` |
+
+Key guarantees:
+
+- **Framework-agnostic service interface.** `service.ts` has zero framework dependencies. The TypeScript compiler enforces the contract: add an endpoint in the spec and forget to implement it, and the build fails.
+- **Optional router scaffolding.** Choose `"hono"`, `"express"`, or `"fastify"` to get a ready-to-mount router as a starting point. Use `"none"` to wire the interface yourself with any framework.
+- **Zod validation at the boundary.** Point `input_schema` at the same Zod schema file you use with `@codewithagents/openapi-gen`. The generator adds `safeParse` calls to every route that receives a body, returning a structured `422` before the call ever reaches your service.
+- **Prettier-clean output.** Every generated file passes `prettier --check` with your project's own Prettier config.
+- **`strict: true`.** All output compiles cleanly with TypeScript strict mode.
+- **OpenAPI 3.1.x** is the primary target (including 3.1.1). OpenAPI 3.0.x is best-effort. Full support for `$ref`, `allOf`, `anyOf`, `oneOf`, and `nullable`.
+
+## Install
+
+<PackageManagers pkg="@codewithagents/openapi-server" dev />
+
+<Aside type="note">
+`@codewithagents/openapi-server` requires `@codewithagents/openapi-gen`. Run `openapi-gen` first so `models.ts` exists before `service.ts` imports from it.
+</Aside>
+
+## Minimal example
+
+**1. Create `openapi-server.config.json` in your project root:**
+
+```json
+{
+  "input_openapi": "./spec/api.json",
+  "output": "./generated",
+  "framework": "hono"
+}
+```
+
+**2. Run both generators:**
+
+```bash
+npx openapi-gen && npx openapi-server
+```
+
+Or add a combined script to `package.json`:
+
+```json
+{
+  "scripts": {
+    "generate": "openapi-gen && openapi-server"
+  }
+}
+```
+
+**3. Implement the generated service interface:**
+
+```typescript
+// src/server/petService.ts
+import { randomUUID } from 'node:crypto'
+import type { PetstoreService } from '../generated/service.js'
+import type { Pet } from '../generated/models.js'
+
+const pets = new Map<string, Pet>()
+
+export const petService: PetstoreService = {
+  async listPets(params) {
+    const all = Array.from(pets.values())
+    if (params?.species) {
+      return all.filter(p => p.species.toLowerCase() === params.species!.toLowerCase())
+    }
+    return all
+  },
+  async createPet(body) {
+    const pet: Pet = { id: randomUUID(), ...body }
+    pets.set(pet.id, pet)
+    return pet
+  },
+  async getPet(id) {
+    const pet = pets.get(id)
+    if (!pet) throw new Error(`Pet ${id} not found`)
+    return pet
+  },
+  async deletePet(id) {
+    pets.delete(id)
+  },
+}
+```
+
+**4. Mount the generated router and serve:**
+
+```typescript
+// src/server/index.ts
+import { serve } from '@hono/node-server'
+import { Hono } from 'hono'
+import { createRouter } from '../generated/router.js'
+import { petService } from './petService.js'
+
+const app = new Hono()
+
+// Mount API routes at /api
+const apiRouter = createRouter(petService)
+app.route('/api', apiRouter)
+
+serve({ fetch: app.fetch, port: 3001 })
+```
+
+## Configuration
+
+The config file must be valid JSON. By default the generator looks for `openapi-server.config.json` in the current working directory. Use `--config <path>` to point at a different file.
+
+```bash
+npx openapi-server --config ./config/openapi-server.config.json
+```
+
+<Aside type="note">
+When `--config` is used, all relative paths inside the file resolve from the config file's directory, not from the shell's working directory.
+</Aside>
+
+### Options
+
+| Field | Type | Required | Default | Description |
+|---|---|---|---|---|
+| `input_openapi` | `string` | Yes | n/a | Path to your OpenAPI spec (JSON or YAML) |
+| `output` | `string` | Yes | n/a | Directory to write the generated files |
+| `framework` | `"hono" \| "express" \| "fastify" \| "none"` | No | `"none"` | Router framework to generate. Use `"none"` to generate only `service.ts` |
+| `input_schema` | `string` | No | n/a | Path to user-owned Zod schema file. Enables server-side request validation (never overwritten) |
+
+**Full config example:**
+
+```json
+{
+  "input_openapi": "./spec/api.json",
+  "output": "./generated",
+  "framework": "hono",
+  "input_schema": "./generated/schemas.ts"
+}
+```
+
+## Generated files in depth
+
+### `service.ts`
+
+Given a petstore spec (`GET /pets`, `POST /pets`, `GET /pets/{id}`, `DELETE /pets/{id}`), the generator produces a plain TypeScript interface with no framework dependencies:
+
+```typescript
+// generated/service.ts  (auto-generated)
+
+import type { CreatePetRequest, Pet } from './models.js'
+
+export interface PetstoreService {
+  /** GET /pets */
+  listPets(params?: { species?: string }): Promise<Pet[]>
+  /** POST /pets */
+  createPet(body: CreatePetRequest): Promise<Pet>
+  /** GET /pets/{id} */
+  getPet(id: string): Promise<Pet>
+  /** DELETE /pets/{id} */
+  deletePet(id: string): Promise<void>
+}
+```
+
+The interface is regenerated every time the spec changes. If you add an endpoint in the spec and forget to implement it, TypeScript will fail the build.
+
+### `router.ts` (Hono)
+
+When `"framework": "hono"`, the generator produces a `createRouter` factory that mounts every route on a Hono app and returns it:
+
+```typescript
+// generated/router.ts  (auto-generated, framework: "hono")
+
+import { Hono } from 'hono'
+import type { CreatePetRequest } from './models.js'
+import type { PetstoreService } from './service.js'
+
+export function createRouter(service: PetstoreService): Hono {
+  const app = new Hono()
+
+  app.get('/pets', async (c) => {
+    const params = {
+      species: c.req.query('species') ?? undefined
+    }
+    return c.json(await service.listPets(params))
+  })
+
+  app.post('/pets', async (c) => {
+    const body = await c.req.json<CreatePetRequest>()
+    return c.json(await service.createPet(body), 201)
+  })
+
+  app.get('/pets/:id', async (c) => {
+    return c.json(await service.getPet(c.req.param('id')))
+  })
+
+  app.delete('/pets/:id', async (c) => {
+    await service.deletePet(c.req.param('id'))
+    return new Response(null, { status: 204 })
+  })
+
+  return app
+}
+```
+
+The router handles:
+
+- Path params: `{id}` becomes `:id` (Hono style), extracted via `c.req.param()`
+- Query params: extracted and typed (`string`, `number`, `boolean`)
+- Request bodies: parsed via `c.req.json<T>()` with the correct model type
+- Response status: `200` for GET, `201` for POST, `204` for DELETE, derived from your spec
+
+## Usage examples
+
+### Hono: mounting at a prefix
+
+`createRouter` returns a plain `Hono` instance. Mount it at any path prefix, add middleware, or nest it inside a larger app:
+
+```typescript
+// src/server/index.ts
+import { serve } from '@hono/node-server'
+import { Hono } from 'hono'
+import { createRouter } from '../generated/router.js'
+import { petService } from './petService.js'
+
+const app = new Hono()
+
+app.route('/api', createRouter(petService))
+
+serve({ fetch: app.fetch, port: 3001 })
+```
+
+### Express and Fastify
+
+<Tabs>
+<TabItem label="Express">
+
+Set `"framework": "express"` and the generator produces a `createRouter` that returns an Express `Router`. Apply `express.json()` middleware before mounting so `req.body` is populated:
+
+```typescript
+// src/server/index.ts
+import express from 'express'
+import { createRouter } from '../generated/router.js'
+import { petService } from './petService.js'
+
+const app = express()
+
+app.use(express.json())
+app.use('/api', createRouter(petService))
+
+app.listen(3001)
+```
+
+</TabItem>
+<TabItem label="Fastify">
+
+Set `"framework": "fastify"` and the generator produces a `createRouter` that registers routes directly onto a `FastifyInstance` (it returns `void`, not a new instance). Use `fastify.register` with a prefix:
+
+```typescript
+// src/server/index.ts
+import Fastify from 'fastify'
+import { createRouter } from '../generated/router.js'
+import { petService } from './petService.js'
+
+const fastify = Fastify()
+
+fastify.register(async (instance) => {
+  createRouter(instance, petService)
+}, { prefix: '/api' })
+
+fastify.listen({ port: 3001 })
+```
+
+</TabItem>
+</Tabs>
+
+### Framework-agnostic: `"framework": "none"`
+
+Use `"none"` when you want to own the routing layer entirely. The generator produces only `service.ts` and adds no runtime dependencies:
+
+```json
+{
+  "input_openapi": "./spec/api.json",
+  "output": "./generated",
+  "framework": "none"
+}
+```
+
+Implement the interface and wire it to any router manually:
+
+```typescript
+import { createServer } from 'node:http'
+import type { PetstoreService } from '../generated/service.js'
+import { petService } from './petService.js'
+
+// Wire PetstoreService however you like: vanilla http, Koa, Bun, Deno, or anything else.
+```
+
+### Zod validation (`input_schema`)
+
+Point `input_schema` at the same `schemas.ts` you use with `@codewithagents/openapi-gen`. The generator adds `safeParse` calls to every route that receives a request body. Invalid requests get a structured `422` response and never reach your service implementation.
+
+**Config:**
+
+```json
+{
+  "input_openapi": "./spec/api.json",
+  "output": "./generated",
+  "framework": "hono",
+  "input_schema": "./generated/schemas.ts"
+}
+```
+
+**Generated router with validation (two-pass output):**
+
+```typescript
+app.post('/pets', async (c) => {
+  const body = await c.req.json()
+  // Validate request body: returns 422 with Zod issues on failure
+  const parseResult = CreatePetRequestSchema.safeParse(body)
+  if (!parseResult.success) {
+    return c.json({ error: 'Invalid request body', issues: parseResult.error.issues }, 422)
+  }
+  const validatedBody = parseResult.data
+  return c.json(await service.createPet(validatedBody), 201)
+})
+```
+
+Invalid requests receive a structured `422` response:
+
+```json
+{
+  "error": "Invalid request body",
+  "issues": [
+    { "code": "too_small", "path": ["name"], "message": "Name is required" }
+  ]
+}
+```
+
+<Aside type="tip">
+The schema naming convention is `${TypeName}Schema`. For a request body type `CreatePetRequest`, the generator looks for `CreatePetRequestSchema` in the schema file. Unmatched schemas trigger a warning to stderr; builds still succeed.
+</Aside>
+
+<Aside type="note">
+**Same schemas, both sides of the wire.** `@codewithagents/openapi-gen` validates outgoing requests in the browser. `@codewithagents/openapi-server` validates incoming requests on the server. One `schemas.ts`, one source of truth.
+</Aside>
+
+The generator runs in two passes: first it writes `router.ts` without any Zod imports, then it rewrites `router.ts` with `safeParse` calls for every route whose body type has a matching schema in `input_schema`. If the schema file does not exist yet at generation time, the second pass is skipped and validation is added on the next run.
+
+## Works with
+
+<CardGrid>
+  <Card title="Types and fetch client" icon="seti:typescript">
+    `@codewithagents/openapi-gen` generates the `models.ts` that `service.ts` imports from. Run both generators together against the same spec.
+
+    [Learn more](/openapi-gen)
+  </Card>
+  <Card title="React Query hooks" icon="seti:react">
+    Add `@codewithagents/openapi-react-query` to generate typed `useQuery` and `useMutation` hooks for the same spec your server implements.
+
+    [Learn more](/openapi-react-query)
+  </Card>
+  <Card title="Form error mapping" icon="warning">
+    Add `@codewithagents/api-errors` to map API error responses from the generated client directly to form field errors.
+
+    [Learn more](/api-errors)
+  </Card>
+</CardGrid>
