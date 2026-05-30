@@ -2,12 +2,17 @@
  * Convert a string to PascalCase, handling invalid identifier characters.
  */
 export function toTypeName(name: string): string {
-  const result = name
-    .replace(/[^a-zA-Z0-9]+(.)/g, (_, char: string) => char.toUpperCase())
-    .replace(/[^a-zA-Z0-9]+$/, '') // strip trailing non-alphanumeric (e.g. trailing '}' from '{type}' in paths)
-    .replace(/^[^a-zA-Z_$]/, '_')
-    .replace(/^(.)/, (_, char: string) => char.toUpperCase())
-  return result.length > 0 ? result : '_'
+  // Split on non-alphanumeric sequences (avoids polynomial ReDoS from [^x]+y patterns).
+  const parts = name.split(/[^a-zA-Z0-9]+/).filter(Boolean)
+  if (parts.length === 0) return '_'
+  const joined = parts
+    .map((part, i) => (i === 0 ? part : part[0].toUpperCase() + part.slice(1)))
+    .join('')
+  const prefixed = /^[^a-zA-Z_$]/.test(joined) ? `_${joined}` : joined
+  const titled = prefixed.replace(/^(.)/, (_, char: string) => char.toUpperCase())
+  // Final sanitization: strip any chars that aren't valid in a JS identifier.
+  const safe = titled.replace(/[^a-zA-Z0-9_$]/g, '')
+  return safe.length > 0 ? safe : '_'
 }
 
 /**
