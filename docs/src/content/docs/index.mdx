@@ -28,6 +28,7 @@ import {
   Aside,
   LinkButton,
 } from '@astrojs/starlight/components'
+import PipelineDiagram from '../../components/PipelineDiagram.astro'
 
 <CardGrid>
   <Card title="@codewithagents/openapi-gen" icon="puzzle">
@@ -50,29 +51,7 @@ import {
 
 Each package is independent, but they compose. A single OpenAPI spec drives everything from server contract to form field error UX.
 
-```
-OpenAPI spec
-     |
-     v
- openapi-gen ──────────────┬──────────────────────────────────────────────────┐
-     |                     |                                                  |
-     v                     v                                                  v
-TypeScript types        Zod schemas (user-owned, extendable)           Fetch client
-                                                                             |
-                                                           ┌─────────────────┤
-                                                           |                 |
-                                                           v                 v
-                                               openapi-react-query    openapi-server
-                                                           |                 |
-                                                           v                 v
-                                               React Query v5 hooks   Service interface
-                                                                       + optional router
-
-api-errors (runtime, no codegen needed)
-     |
-     v
-Form field error mapping from any API error shape
-```
+<PipelineDiagram />
 
 One source of truth. When the spec changes, re-run the generators and the compiler tells you exactly what broke.
 
