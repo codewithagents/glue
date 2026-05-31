@@ -5,7 +5,7 @@ description: End-to-end walkthrough of the petstore-hono demo, showing all four 
 
 import { Tabs, TabItem, Aside, Card, CardGrid } from '@astrojs/starlight/components'
 
-This tutorial walks through the [`petstore-hono` demo](https://github.com/codewithagents/openapi-ts/tree/main/packages/petstore-hono), a complete runnable application that shows every `@codewithagents` package working together. One OpenAPI spec file drives TypeScript types, a fetch client, a Hono router with Zod validation, React Query hooks, and Playwright end-to-end tests. Nothing in `generated/` is written by hand.
+This tutorial walks through the [`petstore-hono` demo](https://github.com/codewithagents/openapi-zod-ts/tree/main/packages/petstore-hono), a complete runnable application that shows every `@codewithagents` package working together. One OpenAPI spec file drives TypeScript types, a fetch client, a Hono router with Zod validation, React Query hooks, and Playwright end-to-end tests. Nothing in `generated/` is written by hand.
 
 ## What you will build
 
@@ -35,8 +35,8 @@ Browser form -> POST /api/pets -> Hono router -> Zod safeParse
 Prerequisites: Node.js 22+, pnpm 10+.
 
 ```bash
-git clone https://github.com/codewithagents/openapi-ts.git
-cd openapi-ts
+git clone https://github.com/codewithagents/openapi-zod-ts.git
+cd openapi-zod-ts
 pnpm install
 pnpm build
 cd packages/petstore-hono

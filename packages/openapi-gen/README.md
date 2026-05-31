@@ -1,9 +1,9 @@
 # @codewithagents/openapi-gen
 
 [![npm](https://img.shields.io/npm/v/@codewithagents/openapi-gen.svg)](https://npmjs.com/package/@codewithagents/openapi-gen)
-[![CI](https://github.com/codewithagents/openapi-ts/actions/workflows/ci.yml/badge.svg)](https://github.com/codewithagents/openapi-ts/actions/workflows/ci.yml)
-[![codecov](https://codecov.io/gh/codewithagents/openapi-ts/graph/badge.svg?flag=openapi-gen)](https://codecov.io/gh/codewithagents/openapi-ts)
-[![CodeQL](https://github.com/codewithagents/openapi-ts/actions/workflows/codeql.yml/badge.svg)](https://github.com/codewithagents/openapi-ts/actions/workflows/codeql.yml)
+[![CI](https://github.com/codewithagents/openapi-zod-ts/actions/workflows/ci.yml/badge.svg)](https://github.com/codewithagents/openapi-zod-ts/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/codewithagents/openapi-zod-ts/graph/badge.svg?flag=openapi-gen)](https://codecov.io/gh/codewithagents/openapi-zod-ts)
+[![CodeQL](https://github.com/codewithagents/openapi-zod-ts/actions/workflows/codeql.yml/badge.svg)](https://github.com/codewithagents/openapi-zod-ts/actions/workflows/codeql.yml)
 
 📖 **[Full documentation](https://openapi.codewithagents.de/openapi-gen)**
 
@@ -31,7 +31,7 @@ It is also the foundation of a full pipeline. Combine it with [`@codewithagents/
 | [`@codewithagents/openapi-server`](https://npmjs.com/package/@codewithagents/openapi-server) | Framework-agnostic service interface + optional Hono router |
 | [`@codewithagents/api-errors`](https://npmjs.com/package/@codewithagents/api-errors) | Maps API error responses to form field errors |
 
-See the [petstore demo](https://github.com/codewithagents/openapi-ts/tree/main/packages/petstore-hono) for a full-stack example using all four packages.
+See the [petstore demo](https://github.com/codewithagents/openapi-zod-ts/tree/main/packages/petstore-hono) for a full-stack example using all four packages.
 
 ---
 
@@ -320,4 +320,4 @@ These packages work together, all driven from the same OpenAPI 3.x spec:
 | [`@codewithagents/openapi-server`](https://www.npmjs.com/package/@codewithagents/openapi-server) | Framework-agnostic service interface + optional Hono router |
 | [`@codewithagents/api-errors`](https://www.npmjs.com/package/@codewithagents/api-errors) | Maps API error responses to form field errors |
 
-See the [petstore demo](https://github.com/codewithagents/openapi-ts/tree/main/packages/petstore-hono) for a full-stack example using all four packages together.
+See the [petstore demo](https://github.com/codewithagents/openapi-zod-ts/tree/main/packages/petstore-hono) for a full-stack example using all four packages together.

@@ -1,9 +1,9 @@
 # @codewithagents/openapi-react-query
 
 [![npm](https://img.shields.io/npm/v/@codewithagents/openapi-react-query.svg)](https://npmjs.com/package/@codewithagents/openapi-react-query)
-[![CI](https://github.com/codewithagents/openapi-ts/actions/workflows/ci.yml/badge.svg)](https://github.com/codewithagents/openapi-ts/actions/workflows/ci.yml)
-[![codecov](https://codecov.io/gh/codewithagents/openapi-ts/graph/badge.svg?flag=openapi-react-query)](https://codecov.io/gh/codewithagents/openapi-ts)
-[![CodeQL](https://github.com/codewithagents/openapi-ts/actions/workflows/codeql.yml/badge.svg)](https://github.com/codewithagents/openapi-ts/actions/workflows/codeql.yml)
+[![CI](https://github.com/codewithagents/openapi-zod-ts/actions/workflows/ci.yml/badge.svg)](https://github.com/codewithagents/openapi-zod-ts/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/codewithagents/openapi-zod-ts/graph/badge.svg?flag=openapi-react-query)](https://codecov.io/gh/codewithagents/openapi-zod-ts)
+[![CodeQL](https://github.com/codewithagents/openapi-zod-ts/actions/workflows/codeql.yml/badge.svg)](https://github.com/codewithagents/openapi-zod-ts/actions/workflows/codeql.yml)
 
 📖 **[Full documentation](https://openapi.codewithagents.de/openapi-react-query)**
 
@@ -16,7 +16,7 @@ Generate typed [React Query v5](https://tanstack.com/query/v5) hooks from an Ope
 - **Suspense variants**: set `suspense: true` to generate `useSuspense*` hooks alongside every query hook.
 - **Prettier-clean output**: every generated file passes `prettier --check` out of the box.
 
-Works alongside [`@codewithagents/openapi-gen`](https://www.npmjs.com/package/@codewithagents/openapi-gen) which generates the underlying typed fetch client. All generated files are committed without running a formatter. See the [petstore demo](https://github.com/codewithagents/openapi-ts/tree/main/packages/petstore-hono) for a full-stack example combining all four packages.
+Works alongside [`@codewithagents/openapi-gen`](https://www.npmjs.com/package/@codewithagents/openapi-gen) which generates the underlying typed fetch client. All generated files are committed without running a formatter. See the [petstore demo](https://github.com/codewithagents/openapi-zod-ts/tree/main/packages/petstore-hono) for a full-stack example combining all four packages.
 
 ## Install
 

@@ -1,6 +1,6 @@
 ---
 name: add-package
-description: Step-by-step guide to add a new publishable package to the codewithagents/openapi-ts monorepo and get its 0.1.0 on npm.
+description: Step-by-step guide to add a new publishable package to the codewithagents/openapi-zod-ts monorepo and get its 0.1.0 on npm.
 allowed-tools: Read, Bash, Edit, Write
 ---
 
@@ -51,7 +51,7 @@ packages/<name>/
     "lint": "tsc -p tsconfig.build.json --noEmit"
   },
   "license": "MIT",
-  "repository": { "type": "git", "url": "https://github.com/codewithagents/openapi-ts" },
+  "repository": { "type": "git", "url": "https://github.com/codewithagents/openapi-zod-ts" },
   "publishConfig": { "access": "public" }
 }
 ```
@@ -176,7 +176,7 @@ Check it landed: `npm info @codewithagents/<name>`
 3. Choose **GitHub Actions**
 4. Fill in:
    - **Repository owner**: `codewithagents`
-   - **Repository name**: `openapi-ts`
+   - **Repository name**: `openapi-zod-ts`
    - **Workflow filename**: `release.yml`
    - **Environment** (optional): leave blank unless the job uses one
 5. Save
