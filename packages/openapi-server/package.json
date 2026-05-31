@@ -52,6 +52,11 @@
     "type": "git",
     "url": "https://github.com/codewithagents/openapi-zod-ts"
   },
+  "homepage": "https://openapi.codewithagents.de/openapi-server",
+  "bugs": {
+    "url": "https://github.com/codewithagents/openapi-zod-ts/issues"
+  },
+  "author": "CodeWithAgents (https://codewithagents.de)",
   "publishConfig": {
     "access": "public"
   }
