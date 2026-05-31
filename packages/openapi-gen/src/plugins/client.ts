@@ -95,18 +95,35 @@ function queryParamType(schema: SchemaObject | ReferenceObject | undefined): str
   }
   // String enum → union literal type (e.g. 'active' | 'inactive')
   if (s.type === 'string' && Array.isArray(s.enum) && s.enum.length > 0) {
-    return (s.enum as string[]).map((v) => `'${v}'`).join(' | ')
+    return (s.enum as string[]).map((v) => JSON.stringify(v)).join(' | ')
   }
   return primitiveToTs(s.type as string | undefined)
+}
+
+/**
+ * Escape static text for safe embedding inside a template literal.
+ * Escapes backticks, `${` interpolation starts, and backslashes.
+ */
+function escapeTemplateLiteralText(text: string): string {
+  return text.replace(/\\/g, '\\\\').replace(/`/g, '\\`').replace(/\$\{/g, '\\${')
 }
 
 /** Convert a path like /api/v1/tasks/{id} to a template literal string with encodeURIComponent calls */
 function pathToUrlExpression(path: string): string {
   // Replace {param} with ${encodeURIComponent(sanitizedParam)}
   // Sanitize param names like 'change-set-id' → 'changeSetId' for valid TS identifiers
-  return path.replace(/\{([^}]+)\}/g, (_match, paramName: string) => {
-    return `\${encodeURIComponent(${sanitizeOperationId(paramName)})}`
-  })
+  // Static segments are escaped so backticks, ${, and backslashes in spec paths cannot break out.
+  return path
+    .split(/\{([^}]+)\}/)
+    .map((segment, index) => {
+      if (index % 2 === 0) {
+        // Static path segment — escape for template literal embedding
+        return escapeTemplateLiteralText(segment)
+      }
+      // Parameter name segment
+      return `\${encodeURIComponent(${sanitizeOperationId(segment)})}`
+    })
+    .join('')
 }
 
 /**
@@ -360,6 +377,21 @@ function headerNameToCamelCase(headerName: string): string {
     .join('')
 }
 
+/**
+ * Convert a header name to a safe JS identifier.
+ * Uses `headerNameToCamelCase` as the primary conversion (preserves existing public API
+ * for standard `X-Foo-Bar` headers) then strips any remaining non-identifier characters
+ * that could appear in unusual header names (e.g. apostrophes in "User's-Token").
+ */
+function safeHeaderIdentifier(headerName: string): string {
+  const camel = headerNameToCamelCase(headerName)
+  // Strip any characters that are not valid in a JS identifier (keeps letters, digits, $, _)
+  const stripped = camel.replace(/[^a-zA-Z0-9_$]/g, '')
+  // Ensure the result doesn't start with a digit
+  if (/^[0-9]/.test(stripped)) return `_${stripped}`
+  return stripped.length > 0 ? stripped : '_'
+}
+
 function getHeaderParams(
   pathItem: PathItemObject,
   operation: OperationObject,
@@ -368,7 +400,7 @@ function getHeaderParams(
   return mergeParams(pathItem, operation, spec)
     .filter((p) => p.in === 'header' && p.name.length > 0) // skip params with empty names
     .map((p) => ({
-      name: headerNameToCamelCase(p.name),
+      name: safeHeaderIdentifier(p.name),
       headerName: p.name,
       required: p.required === true,
       type: queryParamType(p.schema as SchemaObject | ReferenceObject | undefined),
@@ -744,8 +776,8 @@ function generateFunctionCode(
 
   // Build URL path arg (template literal when path params present, plain string otherwise)
   const urlExpression = pathToUrlExpression(path)
-  const hasPathParams = urlExpression !== path
-  const pathArg = hasPathParams ? '`' + urlExpression + '`' : `'${path}'`
+  const hasPathParams = path.includes('{')
+  const pathArg = hasPathParams ? '`' + urlExpression + '`' : JSON.stringify(path)
 
   // URLSearchParams (query params) — still built in caller, passed to helper
   if (queryParams.length > 0) {
@@ -793,7 +825,7 @@ function generateFunctionCode(
     const spreadParts = headerParams
       .map(
         (hp) =>
-          `    ...(params?.${hp.name} != null ? { '${hp.headerName}': params.${hp.name} } : {}),`
+          `    ...(params?.${hp.name} != null ? { ${JSON.stringify(hp.headerName)}: params.${hp.name} } : {}),`
       )
       .join('\n')
     lines.push(`  const extraHeaders: Record<string, string> = {`)

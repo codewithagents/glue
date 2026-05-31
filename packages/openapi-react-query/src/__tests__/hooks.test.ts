@@ -39,7 +39,7 @@ describe('generateHooks — task-hooks.json fixture', () => {
 
   it('generates taskKeys factory with all(), list(), and detail() entries', () => {
     expect(content).toContain('export const taskKeys')
-    expect(content).toContain("all: () => ['tasks'] as const")
+    expect(content).toContain('all: () => ["tasks"] as const')
     expect(content).toContain('list:')
     expect(content).toContain('detail:')
   })
@@ -260,7 +260,7 @@ describe('generateHooks — Bug #53: key factory includes query params when oper
   it('key factory detail entry includes params value in tuple', () => {
     const { content } = generateHooks(specWithPathAndQueryParams, { staleTime: 0, gcTime: 0 })
     // Key tuple should include params
-    expect(content).toContain("['templates', uuid, params]")
+    expect(content).toContain('["templates", uuid, params]')
   })
 
   it('hook calls key factory with both path and query params', () => {
@@ -1589,12 +1589,12 @@ describe('Bug #105: cache key collision when multiple GET ops share same path pa
   })
 
   it('getItemById key includes operation name as distinguishing segment', () => {
-    // Must be ['items', 'getItemById', id] — not ['items', id] which would collide
-    expect(multiDetailResult).toContain("'items', 'getItemById', id")
+    // Must be ["items", 'getItemById', id] — not ["items", id] which would collide
+    expect(multiDetailResult).toContain(`"items", 'getItemById', id`)
   })
 
   it('getItemUsage key includes operation name as distinguishing segment', () => {
-    expect(multiDetailResult).toContain("'items', 'getItemUsage', id")
+    expect(multiDetailResult).toContain(`"items", 'getItemUsage', id`)
   })
 
   it('the two key arrays are structurally distinct (no collision)', () => {
@@ -1620,10 +1620,10 @@ describe('Bug #105: cache key collision when multiple GET ops share same path pa
       },
     }
     const { content: result } = generateHooks(specSingleDetail, { staleTime: 0, gcTime: 0 })
-    // Single detail op → 'detail' key → ['items', id] unchanged
+    // Single detail op → 'detail' key → ["items", id] unchanged
     expect(result).toContain('detail:')
-    expect(result).toContain("'items', id")
-    expect(result).not.toContain("'items', 'detail', id")
+    expect(result).toContain(`"items", id`)
+    expect(result).not.toContain(`"items", 'detail', id`)
   })
 })
 
