@@ -1,5 +1,13 @@
 # Changelog
 
+## [4.3.2](https://github.com/codewithagents/openapi-zod-ts/compare/openapi-gen-v4.3.1...openapi-gen-v4.3.2) (2026-05-31)
+
+
+### Bug Fixes
+
+* **security:** bound schema nesting depth to prevent recursion DoS ([#172](https://github.com/codewithagents/openapi-zod-ts/issues/172)) ([a7dc2a6](https://github.com/codewithagents/openapi-zod-ts/commit/a7dc2a6363a306eedca9e9f2e0f9b4a597dbba7b))
+* **security:** escape spec-derived strings in generated code ([#169](https://github.com/codewithagents/openapi-zod-ts/issues/169)) ([35f232d](https://github.com/codewithagents/openapi-zod-ts/commit/35f232dbb6b4baaea652a87f44bbd9f4e2f3046c))
+
 ## [4.3.1](https://github.com/codewithagents/openapi-zod-ts/compare/openapi-gen-v4.3.0...openapi-gen-v4.3.1) (2026-05-31)
 
 
