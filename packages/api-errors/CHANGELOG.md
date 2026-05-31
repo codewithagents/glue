@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.5](https://github.com/codewithagents/openapi-zod-ts/compare/api-errors-v1.0.4...api-errors-v1.0.5) (2026-05-31)
+
+
+### Bug Fixes
+
+* add consistent package metadata (homepage, bugs, author) across all packages ([#166](https://github.com/codewithagents/openapi-zod-ts/issues/166)) ([dc2c1d3](https://github.com/codewithagents/openapi-zod-ts/commit/dc2c1d327e87dabbe07450a1664ba6158aff82de))
+
 ## [1.0.4](https://github.com/codewithagents/openapi-ts/compare/api-errors-v1.0.3...api-errors-v1.0.4) (2026-05-30)
 
 
