@@ -16,7 +16,7 @@
   },
   "devDependencies": {
     "@types/express": "^5.0.0",
-    "@types/supertest": "^6.0.0",
+    "@types/supertest": "^7.0.0",
     "supertest": "^7.0.0",
     "tsx": "^4.0.0",
     "typescript": "catalog:",

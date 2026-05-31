@@ -20,7 +20,7 @@
     "@types/node": "catalog:",
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",
-    "jsdom": "^26.0.0",
+    "jsdom": "^29.0.0",
     "msw": "^2.14.6",
     "react": "catalog:",
     "react-dom": "catalog:",
