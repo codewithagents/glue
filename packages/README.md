@@ -1,6 +1,6 @@
 # packages
 
-This directory contains all packages in the `@codewithagents/openapi-ts` monorepo.
+This directory contains all packages in the `@codewithagents/openapi-zod-ts` monorepo.
 
 ## Published packages
 

@@ -1,4 +1,4 @@
-# codewithagents/openapi-ts monorepo
+# codewithagents/openapi-zod-ts monorepo
 
 ## Stack
 - **pnpm** workspace (`packageManager: pnpm@10.30.3`) — never use npm/yarn at root

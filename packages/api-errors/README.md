@@ -1,9 +1,9 @@
 # @codewithagents/api-errors
 
 [![npm](https://img.shields.io/npm/v/@codewithagents/api-errors.svg)](https://npmjs.com/package/@codewithagents/api-errors)
-[![CI](https://github.com/codewithagents/openapi-ts/actions/workflows/ci.yml/badge.svg)](https://github.com/codewithagents/openapi-ts/actions/workflows/ci.yml)
-[![codecov](https://codecov.io/gh/codewithagents/openapi-ts/graph/badge.svg?flag=api-errors)](https://codecov.io/gh/codewithagents/openapi-ts)
-[![CodeQL](https://github.com/codewithagents/openapi-ts/actions/workflows/codeql.yml/badge.svg)](https://github.com/codewithagents/openapi-ts/actions/workflows/codeql.yml)
+[![CI](https://github.com/codewithagents/openapi-zod-ts/actions/workflows/ci.yml/badge.svg)](https://github.com/codewithagents/openapi-zod-ts/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/codewithagents/openapi-zod-ts/graph/badge.svg?flag=api-errors)](https://codecov.io/gh/codewithagents/openapi-zod-ts)
+[![CodeQL](https://github.com/codewithagents/openapi-zod-ts/actions/workflows/codeql.yml/badge.svg)](https://github.com/codewithagents/openapi-zod-ts/actions/workflows/codeql.yml)
 
 📖 **[Full documentation](https://openapi.codewithagents.de/api-errors)**
 
