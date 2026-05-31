@@ -56,12 +56,12 @@ export async function getTasks(params: {
   if (params?.page != null) searchParams.set('page', String(params.page))
   if (params?.status != null) searchParams.set('status', String(params.status))
   if (params?.done != null) searchParams.set('done', String(params.done))
-  const res = await _request('GET', '/api/v1/tasks', { searchParams }, config)
+  const res = await _request('GET', "/api/v1/tasks", { searchParams }, config)
   return res.json()
 }
 
 export async function createTask(body: CreateTaskRequest, config?: Partial<ClientConfig>): Promise<Task> {
-  const res = await _request('POST', '/api/v1/tasks', { body }, config)
+  const res = await _request('POST', "/api/v1/tasks", { body }, config)
   return res.json()
 }
 

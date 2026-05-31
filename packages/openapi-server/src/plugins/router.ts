@@ -286,7 +286,7 @@ function collectOperations(spec: OpenAPIV3_1.Document): RouteOperation[] {
 // fallow-ignore-next-line complexity
 function buildRouteHandler(op: RouteOperation, indent: string, schemaNames?: Set<string>): string {
   const lines: string[] = []
-  lines.push(`${indent}app.${op.httpMethod}('${op.honoPath}', async (c) => {`)
+  lines.push(`${indent}app.${op.httpMethod}(${JSON.stringify(op.honoPath)}, async (c) => {`)
 
   // Query params extraction
   if (op.queryParams.length > 0) {
@@ -328,7 +328,7 @@ function buildRouteHandler(op: RouteOperation, indent: string, schemaNames?: Set
   // Build service call args
   const serviceArgs: string[] = []
   for (const p of op.pathParams) {
-    serviceArgs.push(`c.req.param('${p}')`)
+    serviceArgs.push(`c.req.param(${JSON.stringify(p)})`)
   }
   if (op.bodyInfo !== undefined) {
     serviceArgs.push(bodyVarName)
@@ -370,7 +370,7 @@ function buildExpressRouteHandler(
 ): string {
   const lines: string[] = []
   lines.push(
-    `${indent}router.${op.httpMethod}('${op.honoPath}', async (req: Request, res: Response) => {`
+    `${indent}router.${op.httpMethod}(${JSON.stringify(op.honoPath)}, async (req: Request, res: Response) => {`
   )
 
   // Query params extraction
@@ -547,7 +547,9 @@ function buildFastifyRouteHandler(
   }
 
   const generic = genericParts.length > 0 ? `<{ ${genericParts.join('; ')} }>` : ''
-  lines.push(`${indent}app.${op.httpMethod}${generic}('${op.honoPath}', async (req, reply) => {`)
+  lines.push(
+    `${indent}app.${op.httpMethod}${generic}(${JSON.stringify(op.honoPath)}, async (req, reply) => {`
+  )
 
   // Query params extraction
   if (op.queryParams.length > 0) {

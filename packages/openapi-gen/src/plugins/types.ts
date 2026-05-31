@@ -223,7 +223,7 @@ function generateSchemaDeclaration(
     // iterate valid values (e.g. to populate a <select>) without hardcoding them.
     // Mixed enums (string + number, or containing null) intentionally get no array.
     if (isStringEnum(schema)) {
-      const arr = (schema.enum as string[]).map((v) => `'${v}'`).join(', ')
+      const arr = (schema.enum as string[]).map((v) => JSON.stringify(v)).join(', ')
       return `${typeDecl}\nexport const ${safeName}Values = [${arr}] as const`
     }
     if (isNumericEnum(schema)) {
