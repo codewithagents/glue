@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.5.1](https://github.com/codewithagents/openapi-zod-ts/compare/openapi-react-query-v3.5.0...openapi-react-query-v3.5.1) (2026-05-31)
+
+
+### Bug Fixes
+
+* add consistent package metadata (homepage, bugs, author) across all packages ([#166](https://github.com/codewithagents/openapi-zod-ts/issues/166)) ([dc2c1d3](https://github.com/codewithagents/openapi-zod-ts/commit/dc2c1d327e87dabbe07450a1664ba6158aff82de))
+
 ## [3.5.0](https://github.com/codewithagents/openapi-ts/compare/openapi-react-query-v3.4.0...openapi-react-query-v3.5.0) (2026-05-30)
 
 
