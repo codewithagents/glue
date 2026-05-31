@@ -1,7 +1,7 @@
 {
   "name": "@codewithagents/openapi-gen",
   "version": "4.3.0",
-  "description": "Generate TypeScript models, native fetch client and Zod schemas from OpenAPI 3.1 — zero runtime footprint",
+  "description": "Generate TypeScript models, native fetch client and Zod schemas from OpenAPI 3.1, zero runtime footprint",
   "type": "module",
   "bin": {
     "openapi-gen": "./dist/cli.cjs"
@@ -56,6 +56,11 @@
     "type": "git",
     "url": "https://github.com/codewithagents/openapi-zod-ts"
   },
+  "homepage": "https://openapi.codewithagents.de/openapi-gen",
+  "bugs": {
+    "url": "https://github.com/codewithagents/openapi-zod-ts/issues"
+  },
+  "author": "CodeWithAgents (https://codewithagents.de)",
   "publishConfig": {
     "access": "public"
   }

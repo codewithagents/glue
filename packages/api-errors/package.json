@@ -39,6 +39,7 @@
   "bugs": {
     "url": "https://github.com/codewithagents/openapi-zod-ts/issues"
   },
+  "author": "CodeWithAgents (https://codewithagents.de)",
   "devDependencies": {
     "@vitest/coverage-v8": "catalog:",
     "typescript": "catalog:",
