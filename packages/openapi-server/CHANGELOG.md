@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.2](https://github.com/codewithagents/openapi-zod-ts/compare/openapi-server-v1.3.1...openapi-server-v1.3.2) (2026-05-31)
+
+
+### Bug Fixes
+
+* **security:** escape spec-derived strings in generated code ([#169](https://github.com/codewithagents/openapi-zod-ts/issues/169)) ([35f232d](https://github.com/codewithagents/openapi-zod-ts/commit/35f232dbb6b4baaea652a87f44bbd9f4e2f3046c))
+
 ## [1.3.1](https://github.com/codewithagents/openapi-zod-ts/compare/openapi-server-v1.3.0...openapi-server-v1.3.1) (2026-05-31)
 
 

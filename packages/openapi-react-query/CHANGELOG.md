@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.5.2](https://github.com/codewithagents/openapi-zod-ts/compare/openapi-react-query-v3.5.1...openapi-react-query-v3.5.2) (2026-05-31)
+
+
+### Bug Fixes
+
+* **security:** escape spec-derived strings in generated code ([#169](https://github.com/codewithagents/openapi-zod-ts/issues/169)) ([35f232d](https://github.com/codewithagents/openapi-zod-ts/commit/35f232dbb6b4baaea652a87f44bbd9f4e2f3046c))
+
 ## [3.5.1](https://github.com/codewithagents/openapi-zod-ts/compare/openapi-react-query-v3.5.0...openapi-react-query-v3.5.1) (2026-05-31)
 
 
