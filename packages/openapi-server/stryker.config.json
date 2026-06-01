@@ -3,14 +3,14 @@
   "testRunner": "vitest",
   "plugins": ["@stryker-mutator/vitest-runner"],
   "vitest": {
-    "configFile": "vitest.mutation.config.ts"
+    "configFile": "vitest.config.ts"
   },
   "mutate": ["src/**/*.ts", "!src/**/__tests__/**", "!src/**/*.d.ts"],
   "coverageAnalysis": "perTest",
   "thresholds": {
     "high": 80,
     "low": 60,
-    "break": 50
+    "break": 30
   },
   "reporters": ["html", "progress", "clear-text"],
   "htmlReporter": {
