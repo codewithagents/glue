@@ -866,6 +866,31 @@ function emitErrorCheckAndReturn(lines: string[]): void {
   lines.push(`}`)
 }
 
+/** Emits the fetch override and url/init variable setup at the start of a fetch call block. */
+function emitFetchSetup(lines: string[]): void {
+  lines.push(`  const fetch = _configFetch ?? globalThis.fetch`)
+  lines.push(`  let _url = url`)
+}
+
+/** Emits the onRequest interceptor call that may mutate url and init. */
+function emitOnRequestBlock(lines: string[]): void {
+  lines.push(`  if (onRequest) {`)
+  lines.push(`    const _or = await onRequest({ url: _url, init: _init })`)
+  lines.push(`    if (_or) {`)
+  lines.push(`      if (_or.url !== undefined) _url = _or.url`)
+  lines.push(`      if (_or.init !== undefined) _init = { ..._init, ..._or.init }`)
+  lines.push(`    }`)
+  lines.push(`  }`)
+}
+
+/** Emits the signal/timeout combining logic and the final fetch call. */
+function emitSignalAndFetch(lines: string[]): void {
+  lines.push(`  const _rawSignal = opts.signal ?? _cfgSignal`)
+  lines.push(`  const _resolvedSignal = _buildSignal(_rawSignal, timeout)`)
+  lines.push(`  if (_resolvedSignal !== undefined) _init = { ..._init, signal: _resolvedSignal }`)
+  lines.push(`  const res = await fetch(_url, _init)`)
+}
+
 /** Emits the Content-Type header line inside a headers block for JSON or form-urlencoded body. */
 function emitContentTypeHeader(lines: string[], hasFormUrlencoded: boolean): void {
   if (hasFormUrlencoded) {
@@ -900,7 +925,14 @@ function buildConfigFields(
   if (hasApiKey) fields.push('apiKey')
   if (hasBasic) fields.push('basicAuth')
   if (hasCookieAuth) fields.push('credentials')
-  fields.push('headers', 'onError')
+  fields.push(
+    'headers',
+    'onError',
+    'signal: _cfgSignal',
+    'timeout',
+    'onRequest',
+    'fetch: _configFetch'
+  )
   return fields
 }
 
@@ -922,13 +954,15 @@ function emitRequestFunction(
   lines.push(`    body?: unknown`)
   if (features.hasFormUrlencoded) lines.push(`    bodyEncoding?: 'json' | 'form'`)
   if (features.hasHeaderParams) lines.push(`    extraHeaders?: Record<string, string>`)
+  lines.push(`    signal?: AbortSignal`)
   lines.push(`  },`)
   lines.push(`  config?: Partial<ClientConfig>,`)
   lines.push(`): Promise<_FetchResponse> {`)
   lines.push(`  const { ${configFields.join(', ')} } = { ...getConfig(), ...config }`)
   emitCredentialResolution(lines, hasToken, hasBasic, hasApiKey)
   emitUrlBuilding(lines, auth.apiKeyQueryNames, 'opts.searchParams')
-  lines.push(`  const res = await fetch(url, {`)
+  emitFetchSetup(lines)
+  lines.push(`  let _init: RequestInit = {`)
   lines.push(`    method,`)
   if (features.hasCookieAuth) lines.push(`    credentials,`)
   lines.push(`    headers: {`)
@@ -938,7 +972,9 @@ function emitRequestFunction(
   if (features.hasHeaderParams) lines.push(`      ...opts.extraHeaders,`)
   lines.push(`    },`)
   emitBodyField(lines, features.hasFormUrlencoded)
-  lines.push(`  })`)
+  lines.push(`  }`)
+  emitOnRequestBlock(lines)
+  emitSignalAndFetch(lines)
   emitErrorCheckAndReturn(lines)
 }
 
@@ -959,13 +995,15 @@ function emitRequestFormFunction(
   lines.push(`  opts: {`)
   lines.push(`    searchParams?: URLSearchParams`)
   if (features.hasHeaderParams) lines.push(`    extraHeaders?: Record<string, string>`)
+  lines.push(`    signal?: AbortSignal`)
   lines.push(`  },`)
   lines.push(`  config?: Partial<ClientConfig>,`)
   lines.push(`): Promise<_FetchResponse> {`)
   lines.push(`  const { ${configFields.join(', ')} } = { ...getConfig(), ...config }`)
   emitCredentialResolution(lines, hasToken, hasBasic, hasApiKey)
   emitUrlBuilding(lines, auth.apiKeyQueryNames, 'opts.searchParams')
-  lines.push(`  const res = await fetch(url, {`)
+  emitFetchSetup(lines)
+  lines.push(`  let _init: RequestInit = {`)
   lines.push(`    method,`)
   if (features.hasCookieAuth) lines.push(`    credentials,`)
   lines.push(`    headers: {`)
@@ -974,7 +1012,9 @@ function emitRequestFormFunction(
   if (features.hasHeaderParams) lines.push(`      ...opts.extraHeaders,`)
   lines.push(`    },`)
   lines.push(`    body: formData,`)
-  lines.push(`  })`)
+  lines.push(`  }`)
+  emitOnRequestBlock(lines)
+  emitSignalAndFetch(lines)
   emitErrorCheckAndReturn(lines)
 }
 
@@ -987,6 +1027,26 @@ function emitRequestFormFunction(
  * Both helpers are feature-conditional: code for auth, credentials, and extraHeaders is only
  * emitted when the spec actually declares those features, keeping the bundle lean for simple APIs.
  */
+/** Emits the _buildSignal private helper that combines a user signal with a timeout. */
+function emitBuildSignalHelper(lines: string[]): void {
+  lines.push(`function _buildSignal(`)
+  lines.push(`  signal: AbortSignal | undefined,`)
+  lines.push(`  timeout: number | undefined,`)
+  lines.push(`): AbortSignal | undefined {`)
+  lines.push(`  if (timeout === undefined) return signal`)
+  lines.push(`  const _ts = AbortSignal.timeout(timeout)`)
+  lines.push(`  if (signal === undefined) return _ts`)
+  lines.push(`  if (typeof AbortSignal.any === 'function') return AbortSignal.any([signal, _ts])`)
+  lines.push(`  const _ctrl = new AbortController()`)
+  lines.push(
+    `  const _abort = (s: AbortSignal) => () => { if (!_ctrl.signal.aborted) _ctrl.abort(s.reason) }`
+  )
+  lines.push(`  signal.addEventListener('abort', _abort(signal), { once: true })`)
+  lines.push(`  _ts.addEventListener('abort', _abort(_ts), { once: true })`)
+  lines.push(`  return _ctrl.signal`)
+  lines.push(`}`)
+}
+
 function generateRequestHelpers(features: HelperFeatures): string {
   const auth = features.authSchemes
   const hasToken = needsTokenField(auth)
@@ -997,6 +1057,8 @@ function generateRequestHelpers(features: HelperFeatures): string {
   const lines: string[] = []
   // Private type alias avoids shadowing when a spec defines a schema named 'Response'.
   lines.push(`type _FetchResponse = Awaited<ReturnType<typeof fetch>>`)
+  lines.push(``)
+  emitBuildSignalHelper(lines)
   lines.push(``)
   emitRequestFunction(lines, features, configFields, hasToken, hasBasic, hasApiKey)
   if (features.hasMultipart) {
@@ -1403,11 +1465,14 @@ export function generateClient(spec: OpenAPIV3_1.Document, options?: ClientOptio
 
   lines.push('')
 
-  // ApiError class
-  lines.push(`export class ApiError extends Error {`)
+  // ApiError class — generic so callers can type-narrow caught errors.
+  // Default type params (number, unknown) preserve full back-compat.
+  lines.push(
+    `export class ApiError<Status extends number = number, Body = unknown> extends Error {`
+  )
   lines.push(`  constructor(`)
-  lines.push(`    public readonly status: number,`)
-  lines.push(`    public readonly body: unknown,`)
+  lines.push(`    public readonly status: Status,`)
+  lines.push(`    public readonly body: Body,`)
   lines.push(`  ) {`)
   lines.push(`    super(\`API error \${status}\`)`)
   lines.push(`    this.name = 'ApiError'`)
