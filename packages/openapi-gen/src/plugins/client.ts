@@ -111,12 +111,28 @@ function escapeTemplateLiteralText(text: string): string {
   return text.replace(/\\/g, '\\\\').replace(/`/g, '\\`').replace(/\$\{/g, '\\${')
 }
 
+/**
+ * Strip the query-string portion from an OpenAPI path string, if any.
+ * Some malformed specs embed query parameters directly in the path key,
+ * e.g. "/search/articles?query={query}". The generator handles query params
+ * via URLSearchParams; the embedded literal query string must be dropped so
+ * it does not appear as a verbatim fragment in the generated URL template.
+ */
+function stripPathQueryString(path: string): string {
+  const qIndex = path.indexOf('?')
+  return qIndex === -1 ? path : path.slice(0, qIndex)
+}
+
 /** Convert a path like /api/v1/tasks/{id} to a template literal string with encodeURIComponent calls */
 function pathToUrlExpression(path: string): string {
+  // Strip any embedded query string before processing path params.
+  // Some specs (e.g. /uploads?convert={convert}) embed query params in the path key;
+  // those are handled separately via URLSearchParams.
+  const cleanPath = stripPathQueryString(path)
   // Replace {param} with ${encodeURIComponent(sanitizedParam)}
   // Sanitize param names like 'change-set-id' → 'changeSetId' for valid TS identifiers
   // Static segments are escaped so backticks, ${, and backslashes in spec paths cannot break out.
-  return path
+  return cleanPath
     .split(/\{([^}]+)\}/)
     .map((segment, index) => {
       if (index % 2 === 0) {
@@ -1407,12 +1423,15 @@ export function generateClient(spec: OpenAPIV3_1.Document, options?: ClientOptio
         // never inline type expressions (e.g. "Record<string, unknown>") or primitives.
         // Both JSON and form-urlencoded bodies may reference a named schema type that
         // must be imported from ./models.js (e.g. a $ref schema used as the form body).
-        if (
-          bodyInfo !== undefined &&
-          (bodyInfo.kind === 'json' || bodyInfo.kind === 'form') &&
-          isImportableType(bodyInfo.typeName)
-        ) {
-          collectedTypeNames.add(bodyInfo.typeName)
+        if (bodyInfo !== undefined && (bodyInfo.kind === 'json' || bodyInfo.kind === 'form')) {
+          // Strip a trailing "[]" suffix so array-body types like "WannabeEnvVar[]"
+          // still contribute their base name "WannabeEnvVar" to the import list.
+          const bodyBaseName = bodyInfo.typeName.endsWith('[]')
+            ? bodyInfo.typeName.slice(0, -2)
+            : bodyInfo.typeName
+          if (isImportableType(bodyBaseName)) {
+            collectedTypeNames.add(bodyBaseName)
+          }
         }
         if (!returnType.isVoid && isImportableType(returnType.typeName)) {
           collectedTypeNames.add(returnType.typeName)

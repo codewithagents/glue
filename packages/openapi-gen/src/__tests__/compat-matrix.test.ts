@@ -56,17 +56,19 @@ const KNOWN_TYPECHECK_FAILURES = new Set<string>([
   //   box        - TS2304 form-body types now imported + Blob for multipart binary
   //   pinecone   - fetch collision (operation renamed to fetch_2)
   //
-  // Unresolved / misnamed nested type references (#220):
-  'brex', // TS2305 models.ts missing 'Company'/'Schema'
-  'digitalocean', // TS2305 missing 'Items'/'Schema'/'_0'
-  'clevercloud', // TS2304 cannot find 'WannabeEnvVar'
-  'clicksend', // TS2304 cannot find 'convert'
-  'codat_accounting', // TS2304 'accountId'/'Currency'
-  'codat_banking', // TS2304 'AccountBalanceAmounts' etc.
-  'dnd5e', // TS2304 cannot find 'Items'
-  'jira', // TS2304 cannot find 'EntityPropertyDetails'
-  'linode', // TS2304/TS2305 'Filesystem'/'AllowList'/'Rules'
-  'medium', // TS2304 cannot find 'query'
+  // Partially resolved by #220 (clevercloud, clicksend, codat_banking, jira,
+  // medium now emit + reference nested/inline types consistently and were removed).
+  //
+  // Remaining: non-component path-based $ref resolution (#220 tail). These specs
+  // reference inline schemas via pointers like #/paths/~1.../schema/properties/x
+  // whose last-segment names (Company/Schema/_0/Items/...) are never emitted as
+  // declarations. Resolving non-component pointer $refs needs a resolver
+  // enhancement, disproportionate for this pass - tracked in #220.
+  'brex', // TS2305 path-$ref 'Company'/'Schema' not emitted
+  'digitalocean', // TS2305 path-$ref 'Items'/'Schema'/'_0' not emitted
+  'codat_accounting', // TS2304 path-$ref 'accountId'/'Currency' not emitted
+  'dnd5e', // TS2304 path-$ref 'Items' not emitted
+  'linode', // TS2304/TS2305 path-$ref 'Filesystem'/'AllowList'/'Rules' not emitted
 ])
 
 type SpecCase = { name: string; specPath: string }

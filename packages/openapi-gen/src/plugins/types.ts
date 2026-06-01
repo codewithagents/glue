@@ -428,6 +428,46 @@ function buildModelsHeader(
   ]
 }
 
+/**
+ * Collect sub-schemas from the `definitions` / `$defs` blocks that some specs
+ * embed inside a component schema object (e.g. `#/components/schemas/Account/definitions/accountRef`).
+ * These sub-schemas are referenced by other schemas via their last-segment name but are never
+ * emitted as top-level types unless we surface them here.
+ *
+ * Rules:
+ *  - Only the `definitions` and `$defs` keywords are supported (JSON Schema conventions).
+ *  - The candidate PascalCase name must not collide with an existing top-level schema name.
+ *    If it does, the sub-schema is skipped (the top-level type already satisfies the reference).
+ *  - Names are deduped: when two parents expose a sub-def that sanitizes to the same identifier
+ *    the second one is skipped (they are expected to be structurally identical cross-references).
+ */
+function collectSubDefinitions(
+  schemas: Record<string, SchemaObject | ReferenceObject>
+): Map<string, SchemaObject | ReferenceObject> {
+  const topLevelNames = new Set(Object.keys(schemas).map((n) => toTypeName(n)))
+  const collected = new Map<string, SchemaObject | ReferenceObject>()
+
+  for (const parentSchema of Object.values(schemas)) {
+    if (isRef(parentSchema)) continue
+    const s = parentSchema as SchemaObject & {
+      definitions?: Record<string, SchemaObject | ReferenceObject>
+      $defs?: Record<string, SchemaObject | ReferenceObject>
+    }
+    const defs: Record<string, SchemaObject | ReferenceObject> = {
+      ...(s.definitions ?? {}),
+      ...(s.$defs ?? {}),
+    }
+    for (const [defName, defSchema] of Object.entries(defs)) {
+      const safeName = toTypeName(defName)
+      // Skip if the PascalCase name collides with a top-level schema or was already collected.
+      if (topLevelNames.has(safeName) || collected.has(safeName)) continue
+      collected.set(safeName, defSchema)
+    }
+  }
+
+  return collected
+}
+
 export function generateTypes(spec: OpenAPIV3_1.Document, options?: TypesOptions): GeneratedFile {
   const schemas = spec.components?.schemas as
     | Record<string, SchemaObject | ReferenceObject>
@@ -442,6 +482,19 @@ export function generateTypes(spec: OpenAPIV3_1.Document, options?: TypesOptions
   if (schemas !== undefined) {
     for (const [name, schema] of Object.entries(schemas)) {
       lines.push(generateSchemaDeclaration(name, schema, options, renameMap))
+      lines.push('')
+    }
+
+    // Emit sub-definitions from definitions/$defs blocks inside component schemas.
+    // These are referenced by other schemas via their last-segment PascalCase name
+    // (e.g. #/components/schemas/Account/definitions/accountRef -> AccountRef) but are
+    // not emitted by the top-level loop above.
+    const subDefs = collectSubDefinitions(schemas)
+    for (const [safeName, defSchema] of subDefs) {
+      // Sub-defs are already sanitized; pass the safe name directly by faking a
+      // 1-entry rename map so generateSchemaDeclaration picks it up.
+      const subRenameMap = new Map([[safeName, safeName]])
+      lines.push(generateSchemaDeclaration(safeName, defSchema, options, subRenameMap))
       lines.push('')
     }
   }
