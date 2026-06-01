@@ -591,8 +591,9 @@ describe('feature-showcase fixture', () => {
   })
 
   it('header param is forwarded to fetch headers', () => {
-    // JSON.stringify now produces double-quoted keys; property name xStripeSignature unchanged
-    expect(content).toContain('"X-Stripe-Signature": params.xStripeSignature')
+    // Non-string header values are coerced with String() to satisfy Record<string, string>.
+    // JSON.stringify produces double-quoted keys; property name xStripeSignature unchanged.
+    expect(content).toContain('"X-Stripe-Signature": String(params.xStripeSignature)')
   })
 
   // Feature 3: Cookie auth — generateClientConfig with defaultCredentials: 'include'

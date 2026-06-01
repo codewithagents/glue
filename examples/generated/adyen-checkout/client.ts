@@ -202,7 +202,7 @@ export async function postApplePaySessions(
   config?: Partial<ClientConfig>
 ): Promise<ApplePaySessionResponse> {
   const extraHeaders: Record<string, string> = {
-    ...(params?.idempotencyKey != null ? { 'Idempotency-Key': params.idempotencyKey } : {}),
+    ...(params?.idempotencyKey != null ? { 'Idempotency-Key': String(params.idempotencyKey) } : {}),
   }
   ApplePaySessionRequestSchema.parse(body)
   const res = await _request('POST', '/applePay/sessions', { body, extraHeaders }, config)
@@ -224,7 +224,7 @@ export async function postCancels(
   config?: Partial<ClientConfig>
 ): Promise<StandalonePaymentCancelResponse> {
   const extraHeaders: Record<string, string> = {
-    ...(params?.idempotencyKey != null ? { 'Idempotency-Key': params.idempotencyKey } : {}),
+    ...(params?.idempotencyKey != null ? { 'Idempotency-Key': String(params.idempotencyKey) } : {}),
   }
   StandalonePaymentCancelRequestSchema.parse(body)
   const res = await _request('POST', '/cancels', { body, extraHeaders }, config)
@@ -239,7 +239,7 @@ export async function postCardDetails(
   config?: Partial<ClientConfig>
 ): Promise<CardDetailsResponse> {
   const extraHeaders: Record<string, string> = {
-    ...(params?.idempotencyKey != null ? { 'Idempotency-Key': params.idempotencyKey } : {}),
+    ...(params?.idempotencyKey != null ? { 'Idempotency-Key': String(params.idempotencyKey) } : {}),
   }
   CardDetailsRequestSchema.parse(body)
   const res = await _request('POST', '/cardDetails', { body, extraHeaders }, config)
@@ -261,7 +261,7 @@ export async function postDonationCampaigns(
   config?: Partial<ClientConfig>
 ): Promise<DonationCampaignsResponse> {
   const extraHeaders: Record<string, string> = {
-    ...(params?.idempotencyKey != null ? { 'Idempotency-Key': params.idempotencyKey } : {}),
+    ...(params?.idempotencyKey != null ? { 'Idempotency-Key': String(params.idempotencyKey) } : {}),
   }
   DonationCampaignsRequestSchema.parse(body)
   const res = await _request('POST', '/donationCampaigns', { body, extraHeaders }, config)
@@ -283,7 +283,7 @@ export async function postDonations(
   config?: Partial<ClientConfig>
 ): Promise<DonationPaymentResponse> {
   const extraHeaders: Record<string, string> = {
-    ...(params?.idempotencyKey != null ? { 'Idempotency-Key': params.idempotencyKey } : {}),
+    ...(params?.idempotencyKey != null ? { 'Idempotency-Key': String(params.idempotencyKey) } : {}),
   }
   DonationPaymentRequestSchema.parse(body)
   const res = await _request('POST', '/donations', { body, extraHeaders }, config)
@@ -298,7 +298,7 @@ export async function postForward(
   config?: Partial<ClientConfig>
 ): Promise<CheckoutForwardResponse> {
   const extraHeaders: Record<string, string> = {
-    ...(params?.idempotencyKey != null ? { 'Idempotency-Key': params.idempotencyKey } : {}),
+    ...(params?.idempotencyKey != null ? { 'Idempotency-Key': String(params.idempotencyKey) } : {}),
   }
   CheckoutForwardRequestSchema.parse(body)
   const res = await _request('POST', '/forward', { body, extraHeaders }, config)
@@ -320,7 +320,7 @@ export async function postOrders(
   config?: Partial<ClientConfig>
 ): Promise<CreateOrderResponse> {
   const extraHeaders: Record<string, string> = {
-    ...(params?.idempotencyKey != null ? { 'Idempotency-Key': params.idempotencyKey } : {}),
+    ...(params?.idempotencyKey != null ? { 'Idempotency-Key': String(params.idempotencyKey) } : {}),
   }
   CreateOrderRequestSchema.parse(body)
   const res = await _request('POST', '/orders', { body, extraHeaders }, config)
@@ -342,7 +342,7 @@ export async function postOrdersCancel(
   config?: Partial<ClientConfig>
 ): Promise<CancelOrderResponse> {
   const extraHeaders: Record<string, string> = {
-    ...(params?.idempotencyKey != null ? { 'Idempotency-Key': params.idempotencyKey } : {}),
+    ...(params?.idempotencyKey != null ? { 'Idempotency-Key': String(params.idempotencyKey) } : {}),
   }
   CancelOrderRequestSchema.parse(body)
   const res = await _request('POST', '/orders/cancel', { body, extraHeaders }, config)
@@ -365,7 +365,7 @@ export async function postOriginKeys(
   config?: Partial<ClientConfig>
 ): Promise<UtilityResponse> {
   const extraHeaders: Record<string, string> = {
-    ...(params?.idempotencyKey != null ? { 'Idempotency-Key': params.idempotencyKey } : {}),
+    ...(params?.idempotencyKey != null ? { 'Idempotency-Key': String(params.idempotencyKey) } : {}),
   }
   UtilityRequestSchema.parse(body)
   const res = await _request('POST', '/originKeys', { body, extraHeaders }, config)
@@ -387,7 +387,7 @@ export async function postPaymentLinks(
   config?: Partial<ClientConfig>
 ): Promise<PaymentLinkResponse> {
   const extraHeaders: Record<string, string> = {
-    ...(params?.idempotencyKey != null ? { 'Idempotency-Key': params.idempotencyKey } : {}),
+    ...(params?.idempotencyKey != null ? { 'Idempotency-Key': String(params.idempotencyKey) } : {}),
   }
   PaymentLinkRequestSchema.parse(body)
   const res = await _request('POST', '/paymentLinks', { body, extraHeaders }, config)
@@ -446,7 +446,7 @@ export async function postPaymentMethods(
   config?: Partial<ClientConfig>
 ): Promise<PaymentMethodsResponse> {
   const extraHeaders: Record<string, string> = {
-    ...(params?.idempotencyKey != null ? { 'Idempotency-Key': params.idempotencyKey } : {}),
+    ...(params?.idempotencyKey != null ? { 'Idempotency-Key': String(params.idempotencyKey) } : {}),
   }
   PaymentMethodsRequestSchema.parse(body)
   const res = await _request('POST', '/paymentMethods', { body, extraHeaders }, config)
@@ -468,7 +468,7 @@ export async function postPaymentMethodsBalance(
   config?: Partial<ClientConfig>
 ): Promise<BalanceCheckResponse> {
   const extraHeaders: Record<string, string> = {
-    ...(params?.idempotencyKey != null ? { 'Idempotency-Key': params.idempotencyKey } : {}),
+    ...(params?.idempotencyKey != null ? { 'Idempotency-Key': String(params.idempotencyKey) } : {}),
   }
   BalanceCheckRequestSchema.parse(body)
   const res = await _request('POST', '/paymentMethods/balance', { body, extraHeaders }, config)
@@ -490,7 +490,7 @@ export async function postPayments(
   config?: Partial<ClientConfig>
 ): Promise<PaymentResponse> {
   const extraHeaders: Record<string, string> = {
-    ...(params?.idempotencyKey != null ? { 'Idempotency-Key': params.idempotencyKey } : {}),
+    ...(params?.idempotencyKey != null ? { 'Idempotency-Key': String(params.idempotencyKey) } : {}),
   }
   PaymentRequestSchema.parse(body)
   const res = await _request('POST', '/payments', { body, extraHeaders }, config)
@@ -512,7 +512,7 @@ export async function postPaymentsDetails(
   config?: Partial<ClientConfig>
 ): Promise<PaymentDetailsResponse> {
   const extraHeaders: Record<string, string> = {
-    ...(params?.idempotencyKey != null ? { 'Idempotency-Key': params.idempotencyKey } : {}),
+    ...(params?.idempotencyKey != null ? { 'Idempotency-Key': String(params.idempotencyKey) } : {}),
   }
   PaymentDetailsRequestSchema.parse(body)
   const res = await _request('POST', '/payments/details', { body, extraHeaders }, config)
@@ -535,7 +535,7 @@ export async function postPaymentsPaymentPspReferenceAmountUpdates(
   config?: Partial<ClientConfig>
 ): Promise<PaymentAmountUpdateResponse> {
   const extraHeaders: Record<string, string> = {
-    ...(params?.idempotencyKey != null ? { 'Idempotency-Key': params.idempotencyKey } : {}),
+    ...(params?.idempotencyKey != null ? { 'Idempotency-Key': String(params.idempotencyKey) } : {}),
   }
   PaymentAmountUpdateRequestSchema.parse(body)
   const res = await _request(
@@ -563,7 +563,7 @@ export async function postPaymentsPaymentPspReferenceCancels(
   config?: Partial<ClientConfig>
 ): Promise<PaymentCancelResponse> {
   const extraHeaders: Record<string, string> = {
-    ...(params?.idempotencyKey != null ? { 'Idempotency-Key': params.idempotencyKey } : {}),
+    ...(params?.idempotencyKey != null ? { 'Idempotency-Key': String(params.idempotencyKey) } : {}),
   }
   PaymentCancelRequestSchema.parse(body)
   const res = await _request(
@@ -591,7 +591,7 @@ export async function postPaymentsPaymentPspReferenceCaptures(
   config?: Partial<ClientConfig>
 ): Promise<PaymentCaptureResponse> {
   const extraHeaders: Record<string, string> = {
-    ...(params?.idempotencyKey != null ? { 'Idempotency-Key': params.idempotencyKey } : {}),
+    ...(params?.idempotencyKey != null ? { 'Idempotency-Key': String(params.idempotencyKey) } : {}),
   }
   PaymentCaptureRequestSchema.parse(body)
   const res = await _request(
@@ -619,7 +619,7 @@ export async function postPaymentsPaymentPspReferenceRefunds(
   config?: Partial<ClientConfig>
 ): Promise<PaymentRefundResponse> {
   const extraHeaders: Record<string, string> = {
-    ...(params?.idempotencyKey != null ? { 'Idempotency-Key': params.idempotencyKey } : {}),
+    ...(params?.idempotencyKey != null ? { 'Idempotency-Key': String(params.idempotencyKey) } : {}),
   }
   PaymentRefundRequestSchema.parse(body)
   const res = await _request(
@@ -647,7 +647,7 @@ export async function postPaymentsPaymentPspReferenceReversals(
   config?: Partial<ClientConfig>
 ): Promise<PaymentReversalResponse> {
   const extraHeaders: Record<string, string> = {
-    ...(params?.idempotencyKey != null ? { 'Idempotency-Key': params.idempotencyKey } : {}),
+    ...(params?.idempotencyKey != null ? { 'Idempotency-Key': String(params.idempotencyKey) } : {}),
   }
   PaymentReversalRequestSchema.parse(body)
   const res = await _request(
@@ -674,7 +674,7 @@ export async function postPaypalUpdateOrder(
   config?: Partial<ClientConfig>
 ): Promise<PaypalUpdateOrderResponse> {
   const extraHeaders: Record<string, string> = {
-    ...(params?.idempotencyKey != null ? { 'Idempotency-Key': params.idempotencyKey } : {}),
+    ...(params?.idempotencyKey != null ? { 'Idempotency-Key': String(params.idempotencyKey) } : {}),
   }
   PaypalUpdateOrderRequestSchema.parse(body)
   const res = await _request('POST', '/paypal/updateOrder', { body, extraHeaders }, config)
@@ -689,7 +689,7 @@ export async function postSessions(
   config?: Partial<ClientConfig>
 ): Promise<CreateCheckoutSessionResponse> {
   const extraHeaders: Record<string, string> = {
-    ...(params?.idempotencyKey != null ? { 'Idempotency-Key': params.idempotencyKey } : {}),
+    ...(params?.idempotencyKey != null ? { 'Idempotency-Key': String(params.idempotencyKey) } : {}),
   }
   CreateCheckoutSessionRequestSchema.parse(body)
   const res = await _request('POST', '/sessions', { body, extraHeaders }, config)
@@ -738,7 +738,7 @@ export async function postStoredPaymentMethods(
   config?: Partial<ClientConfig>
 ): Promise<StoredPaymentMethodResource> {
   const extraHeaders: Record<string, string> = {
-    ...(params?.idempotencyKey != null ? { 'Idempotency-Key': params.idempotencyKey } : {}),
+    ...(params?.idempotencyKey != null ? { 'Idempotency-Key': String(params.idempotencyKey) } : {}),
   }
   StoredPaymentMethodRequestSchema.parse(body)
   const res = await _request('POST', '/storedPaymentMethods', { body, extraHeaders }, config)

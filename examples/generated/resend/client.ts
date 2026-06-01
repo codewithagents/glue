@@ -323,7 +323,7 @@ export async function createEmails(
   config?: Partial<ClientConfig>
 ): Promise<SendEmailResponse> {
   const extraHeaders: Record<string, string> = {
-    ...(params?.idempotencyKey != null ? { 'Idempotency-Key': params.idempotencyKey } : {}),
+    ...(params?.idempotencyKey != null ? { 'Idempotency-Key': String(params.idempotencyKey) } : {}),
   }
   SendEmailRequestSchema.parse(body)
   const res = await _request('POST', '/emails', { body, extraHeaders }, config)
@@ -362,7 +362,7 @@ export async function createEmailsBatch(
   config?: Partial<ClientConfig>
 ): Promise<CreateBatchEmailsResponse> {
   const extraHeaders: Record<string, string> = {
-    ...(params?.idempotencyKey != null ? { 'Idempotency-Key': params.idempotencyKey } : {}),
+    ...(params?.idempotencyKey != null ? { 'Idempotency-Key': String(params.idempotencyKey) } : {}),
   }
   const res = await _request('POST', '/emails/batch', { body, extraHeaders }, config)
   return CreateBatchEmailsResponseSchema.parse(await res.json())

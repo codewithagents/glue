@@ -1187,11 +1187,13 @@ function generateFunctionCode(
   }
 
   // Header params → extraHeaders object (preserves the same conditional spread pattern)
+  // HTTP headers are strings on the wire, so non-string param types (number, boolean,
+  // string-literal unions) are coerced with String() to satisfy Record<string, string>.
   if (headerParams.length > 0) {
     const spreadParts = headerParams
       .map(
         (hp) =>
-          `    ...(params?.${hp.name} != null ? { ${JSON.stringify(hp.headerName)}: params.${hp.name} } : {}),`
+          `    ...(params?.${hp.name} != null ? { ${JSON.stringify(hp.headerName)}: String(params.${hp.name}) } : {}),`
       )
       .join('\n')
     lines.push(`  const extraHeaders: Record<string, string> = {`)

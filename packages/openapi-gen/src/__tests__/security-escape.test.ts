@@ -300,8 +300,9 @@ describe('SECURITY: generateClient — header name injection prevention', () => 
     const { content } = generateClient(spec)
     // Property name must be xStripeSignature (not changed by security fix)
     expect(content).toContain('xStripeSignature: string')
-    // Key is now double-quoted (only quote style changed)
-    expect(content).toContain('"X-Stripe-Signature": params.xStripeSignature')
+    // The header key must remain the literal string "X-Stripe-Signature" (security: no injection via header name).
+    // Values are coerced with String() to satisfy Record<string, string>.
+    expect(content).toContain('"X-Stripe-Signature": String(params.xStripeSignature)')
   })
 })
 

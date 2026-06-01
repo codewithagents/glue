@@ -159,7 +159,7 @@ export async function deletePet(
   config?: Partial<ClientConfig>
 ): Promise<void> {
   const extraHeaders: Record<string, string> = {
-    ...(params?.api_key != null ? { api_key: params.api_key } : {}),
+    ...(params?.api_key != null ? { api_key: String(params.api_key) } : {}),
   }
   await _request('DELETE', `/pet/${encodeURIComponent(petId)}`, { extraHeaders }, config)
 }

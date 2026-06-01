@@ -67,11 +67,6 @@ const KNOWN_TYPECHECK_FAILURES = new Set<string>([
   'jira', // TS2304 cannot find 'EntityPropertyDetails'
   'linode', // TS2304/TS2305 'Filesystem'/'AllowList'/'Rules'
   'medium', // TS2304 cannot find 'query'
-  //
-  // Typed header maps not assignable to Record<string, string> (#221):
-  'aws_s3', // TS2322 literal/number header values vs Record<string,string>
-  'here_tracking', // TS2322 numeric header value vs Record<string,string>
-  'vercel', // TS2322 numeric/literal header values vs Record<string,string>
 ])
 
 type SpecCase = { name: string; specPath: string }
