@@ -60,6 +60,8 @@ npm install -D @codewithagents/openapi-gen
 
 ```bash
 npx openapi-gen
+# or override input/output without a config file:
+npx openapi-gen --input ./openapi.yaml --output ./src/api
 ```
 
 **3. Files appear in `./src/api/`:**
@@ -205,21 +207,83 @@ Without this, you would pass config to every call manually. With it, bind once p
 
 ---
 
+## CLI flags
+
+```
+Usage: openapi-gen [options]
+
+Options:
+  --config <path>   Path to config file (default: openapi-gen.config.json in cwd)
+                    Supports .json, .js, .mjs, and .cjs config files
+  --input <path>    Path to OpenAPI spec file (overrides config input_openapi)
+  --output <dir>    Output directory (overrides config output)
+  --watch           Re-run generation on spec file changes (Ctrl-C to exit)
+  --help, -h        Show this help message
+  --version, -v     Show version number
+```
+
+**`--input` and `--output`** resolve relative paths from your shell's working directory. When both are provided, no config file is needed at all:
+
+```bash
+npx openapi-gen --input ./openapi.yaml --output ./src/api
+```
+
+They can also be combined with `--config` to selectively override a config field:
+
+```bash
+npx openapi-gen --config ./openapi-gen.config.json --input ./v2/openapi.yaml
+```
+
+**`--watch`** keeps the process running and re-generates whenever the spec file changes. Uses Node's built-in `fs.watch` with a 100ms debounce. Press Ctrl-C to exit:
+
+```bash
+npx openapi-gen --watch
+npx openapi-gen --input ./openapi.yaml --output ./src/api --watch
+```
+
+---
+
 ## Config reference
 
-See the [full configuration reference](https://openapi.codewithagents.de/openapi-gen#configuration) in the docs for detailed field descriptions and the `--config` CLI flag.
+See the [full configuration reference](https://openapi.codewithagents.de/openapi-gen#configuration) in the docs for detailed field descriptions.
+
+### JSON config (default)
 
 `openapi-gen.config.json`:
 
 ```json
 {
-  "input_openapi": "./openapi.json",    // required
-  "output": "./src/api",                // required
-  "input_schema": "./src/api/zod.ts",   // optional: Zod bootstrap file (write-once, never overwritten)
-  "baseUrl": "https://api.example.com", // optional: sets default base URL in generated client-config
-  "server_client": false                // optional: generate server.ts factory (default: false)
+  "input_openapi": "./openapi.json",    
+  "output": "./src/api",                
+  "input_schema": "./src/api/zod.ts",   
+  "baseUrl": "https://api.example.com", 
+  "server_client": false                
 }
 ```
+
+### JS/ESM config
+
+Config files can also be `.js`, `.mjs`, or `.cjs`. The default export is loaded as the config object. Use the `defineConfig` helper for full TypeScript autocomplete:
+
+```js
+// openapi-gen.config.mjs
+import { defineConfig } from '@codewithagents/openapi-gen'
+
+export default defineConfig({
+  input_openapi: './openapi.yaml',
+  output: './src/api',
+  baseUrl: 'https://api.example.com',
+  server_client: true,
+})
+```
+
+Then run with:
+
+```bash
+npx openapi-gen --config ./openapi-gen.config.mjs
+```
+
+The `defineConfig` helper is a typed identity function. It adds no runtime behavior and exists solely to give editors full autocompletion on config fields.
 
 ---
 
