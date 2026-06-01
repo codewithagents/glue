@@ -81,4 +81,153 @@ describe('parseCliArgs', () => {
       }
     })
   })
+
+  describe('--input', () => {
+    it('resolves --input path relative to cwd', () => {
+      const result = parseCliArgs([...baseArgv, '--input', 'openapi.json'], fakeCwd)
+      expect(result.action).toBe('run')
+      if (result.action === 'run') {
+        expect(result.inputOverride).toBe(resolve(fakeCwd, 'openapi.json'))
+      }
+    })
+
+    it('resolves absolute --input path unchanged', () => {
+      const result = parseCliArgs([...baseArgv, '--input', '/abs/openapi.json'], fakeCwd)
+      expect(result.action).toBe('run')
+      if (result.action === 'run') {
+        expect(result.inputOverride).toBe('/abs/openapi.json')
+      }
+    })
+
+    it('returns error when --input has no value', () => {
+      const result = parseCliArgs([...baseArgv, '--input'], fakeCwd)
+      expect(result.action).toBe('error')
+    })
+
+    it('returns error when --input is followed by another flag', () => {
+      const result = parseCliArgs([...baseArgv, '--input', '--output'], fakeCwd)
+      expect(result.action).toBe('error')
+    })
+
+    it('error message mentions --input requirement', () => {
+      const result = parseCliArgs([...baseArgv, '--input'], fakeCwd)
+      if (result.action === 'error') {
+        expect(result.message).toContain('--input requires a file path argument')
+      }
+    })
+
+    it('inputOverride is undefined when --input not given', () => {
+      const result = parseCliArgs([...baseArgv], fakeCwd)
+      expect(result.action).toBe('run')
+      if (result.action === 'run') {
+        expect(result.inputOverride).toBeUndefined()
+      }
+    })
+  })
+
+  describe('--output', () => {
+    it('resolves --output path relative to cwd', () => {
+      const result = parseCliArgs([...baseArgv, '--output', 'src/api'], fakeCwd)
+      expect(result.action).toBe('run')
+      if (result.action === 'run') {
+        expect(result.outputOverride).toBe(resolve(fakeCwd, 'src/api'))
+      }
+    })
+
+    it('resolves absolute --output path unchanged', () => {
+      const result = parseCliArgs([...baseArgv, '--output', '/abs/output'], fakeCwd)
+      expect(result.action).toBe('run')
+      if (result.action === 'run') {
+        expect(result.outputOverride).toBe('/abs/output')
+      }
+    })
+
+    it('returns error when --output has no value', () => {
+      const result = parseCliArgs([...baseArgv, '--output'], fakeCwd)
+      expect(result.action).toBe('error')
+    })
+
+    it('returns error when --output is followed by another flag', () => {
+      const result = parseCliArgs([...baseArgv, '--output', '--watch'], fakeCwd)
+      expect(result.action).toBe('error')
+    })
+
+    it('error message mentions --output requirement', () => {
+      const result = parseCliArgs([...baseArgv, '--output'], fakeCwd)
+      if (result.action === 'error') {
+        expect(result.message).toContain('--output requires a directory path argument')
+      }
+    })
+
+    it('outputOverride is undefined when --output not given', () => {
+      const result = parseCliArgs([...baseArgv], fakeCwd)
+      expect(result.action).toBe('run')
+      if (result.action === 'run') {
+        expect(result.outputOverride).toBeUndefined()
+      }
+    })
+  })
+
+  describe('--input and --output combined', () => {
+    it('resolves both overrides when given together', () => {
+      const result = parseCliArgs(
+        [...baseArgv, '--input', 'spec.json', '--output', 'out/'],
+        fakeCwd
+      )
+      expect(result.action).toBe('run')
+      if (result.action === 'run') {
+        expect(result.inputOverride).toBe(resolve(fakeCwd, 'spec.json'))
+        expect(result.outputOverride).toBe(resolve(fakeCwd, 'out/'))
+        expect(result.configFile).toBeUndefined()
+      }
+    })
+
+    it('can combine --input/--output with --config', () => {
+      const result = parseCliArgs(
+        [...baseArgv, '--config', 'openapi-gen.config.json', '--input', 'alt.yaml'],
+        fakeCwd
+      )
+      expect(result.action).toBe('run')
+      if (result.action === 'run') {
+        expect(result.configFile).toBeDefined()
+        expect(result.inputOverride).toBe(resolve(fakeCwd, 'alt.yaml'))
+      }
+    })
+  })
+
+  describe('--watch', () => {
+    it('sets watch to true when --watch is given', () => {
+      const result = parseCliArgs([...baseArgv, '--watch'], fakeCwd)
+      expect(result.action).toBe('run')
+      if (result.action === 'run') {
+        expect(result.watch).toBe(true)
+      }
+    })
+
+    it('sets watch to false when --watch is not given', () => {
+      const result = parseCliArgs([...baseArgv], fakeCwd)
+      expect(result.action).toBe('run')
+      if (result.action === 'run') {
+        expect(result.watch).toBe(false)
+      }
+    })
+
+    it('combines --watch with --input and --output', () => {
+      const result = parseCliArgs(
+        [...baseArgv, '--watch', '--input', 'spec.json', '--output', 'out/'],
+        fakeCwd
+      )
+      expect(result.action).toBe('run')
+      if (result.action === 'run') {
+        expect(result.watch).toBe(true)
+        expect(result.inputOverride).toBe(resolve(fakeCwd, 'spec.json'))
+        expect(result.outputOverride).toBe(resolve(fakeCwd, 'out/'))
+      }
+    })
+
+    it('short-circuits --help before --watch', () => {
+      const result = parseCliArgs([...baseArgv, '--help', '--watch'], fakeCwd)
+      expect(result).toEqual({ action: 'help' })
+    })
+  })
 })
