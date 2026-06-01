@@ -12,10 +12,15 @@ type ResponseObject = OpenAPIV3_1.ResponseObject
 const SUPPORTED_METHODS = ['get', 'post', 'put', 'patch', 'delete'] as const
 type _SupportedMethod = (typeof SUPPORTED_METHODS)[number]
 
-function refToTypeName(ref: string): string {
+function refToTypeName(ref: string, renameMap?: Map<string, string>): string {
   // '#/components/schemas/Foo' -> 'Foo' (sanitized to a valid TS identifier)
   const parts = ref.split('/')
-  return toTypeName(parts[parts.length - 1]!)
+  const raw = parts[parts.length - 1]!
+  if (renameMap !== undefined) {
+    const renamed = renameMap.get(raw)
+    if (renamed !== undefined) return renamed
+  }
+  return toTypeName(raw)
 }
 
 function isRef(obj: unknown): obj is ReferenceObject {
