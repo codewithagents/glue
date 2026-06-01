@@ -54,9 +54,18 @@ function schemaToTypeString(schema: SchemaObject | ReferenceObject): string {
       .join(' | ')
   }
 
-  // allOf
+  // allOf: intersect all members, then merge in any sibling properties/required
   if (schema.allOf !== undefined && schema.allOf.length > 0) {
-    return (schema.allOf as (SchemaObject | ReferenceObject)[]).map(schemaToTypeString).join(' & ')
+    const parts = (schema.allOf as (SchemaObject | ReferenceObject)[]).map(schemaToTypeString)
+    // Sibling properties live outside the allOf array and must be included as an extra member
+    const siblingProps = schema.properties as
+      | Record<string, SchemaObject | ReferenceObject>
+      | undefined
+    if (siblingProps !== undefined && Object.keys(siblingProps).length > 0) {
+      parts.push(inlineObjectType(schema))
+    }
+    if (parts.length === 1) return parts[0]!
+    return parts.join(' & ')
   }
 
   // anyOf
@@ -162,8 +171,14 @@ function isStringEnum(schema: SchemaObject): boolean {
 }
 
 function isObjectSchema(schema: SchemaObject): boolean {
-  // Has allOf/anyOf/oneOf - treated as type alias
-  if (schema.allOf !== undefined || schema.anyOf !== undefined || schema.oneOf !== undefined) {
+  // allOf with sibling properties/required is object-like: the sibling props/required apply to
+  // the merged result, so schema-enhanced mode should defer to z.infer<> for it.
+  if (schema.allOf !== undefined) {
+    const siblingProps = schema.properties as Record<string, unknown> | undefined
+    return siblingProps !== undefined && Object.keys(siblingProps).length > 0
+  }
+  // anyOf/oneOf without allOf are treated as type aliases
+  if (schema.anyOf !== undefined || schema.oneOf !== undefined) {
     return false
   }
   return schema.type === 'object' || schema.properties !== undefined
@@ -231,6 +246,14 @@ function generateSchemaDeclaration(
       return `${typeDecl}\nexport const ${safeName}Values = [${arr}] as const`
     }
     return typeDecl
+  }
+
+  // allOf with sibling properties: emit as merged type alias, not an interface.
+  // Generating an interface here would only capture the sibling properties and silently
+  // drop the allOf base types. schemaToTypeString handles the merge correctly.
+  if (schema.allOf !== undefined && schema.allOf.length > 0) {
+    const typeStr = schemaToTypeString(schema)
+    return `export type ${safeName} = ${typeStr}`
   }
 
   if (isObjectSchema(schema)) {

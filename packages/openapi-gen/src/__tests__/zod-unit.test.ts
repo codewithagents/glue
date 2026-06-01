@@ -221,6 +221,47 @@ describe('composition types', () => {
     expect(out).toContain('ASchema.and(BSchema)')
   })
 
+  it('allOf with sibling properties merges siblings into the .and() chain', () => {
+    // The sibling properties outside allOf were previously dropped entirely.
+    // They must now appear as an extra z.object() member in the intersection.
+    const out = gen({
+      Base: { type: 'object', properties: { id: { type: 'string' } }, required: ['id'] },
+      Extended: {
+        allOf: [{ $ref: '#/components/schemas/Base' }],
+        properties: { extra: { type: 'number' } },
+        required: ['extra'],
+      },
+    })
+    // Must chain onto the base ref schema
+    expect(out).toContain('BaseSchema.and(')
+    // Sibling properties must appear inside a z.object()
+    expect(out).toContain('z.object(')
+    // Sibling required field must have no .optional()
+    expect(out).toMatch(/extra:\s*z\.number\(\)(?!\.optional)/)
+  })
+
+  it('base + extension pattern: required sibling props survive in zod output', () => {
+    // Common base+extension pattern where extension adds required and optional fields.
+    const out = gen({
+      Animal: {
+        type: 'object',
+        properties: { name: { type: 'string' } },
+        required: ['name'],
+      },
+      Dog: {
+        allOf: [{ $ref: '#/components/schemas/Animal' }],
+        properties: { breed: { type: 'string' }, age: { type: 'number' } },
+        required: ['breed'],
+      },
+    })
+    // Base schema preserved in chain
+    expect(out).toContain('AnimalSchema.and(')
+    // Required sibling field has no .optional()
+    expect(out).toMatch(/breed:\s*z\.string\(\)(?!\.optional)/)
+    // Optional sibling field has .optional()
+    expect(out).toContain('age: z.number().optional()')
+  })
+
   it('anyOf → z.union([...])', () => {
     const out = gen({
       A: { type: 'object', properties: { a: { type: 'string' } } },
