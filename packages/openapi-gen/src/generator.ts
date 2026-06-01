@@ -1,6 +1,6 @@
 import { access, mkdir, readFile, writeFile } from 'node:fs/promises'
 import { join, relative, resolve } from 'node:path'
-import { loadConfig } from './config.js'
+import { loadConfig, type Config } from './config.js'
 import { parseSpec } from './parser.js'
 import { generateTypes } from './plugins/types.js'
 import { generateClientConfig } from './plugins/client-config.js'
@@ -9,19 +9,67 @@ import { generateZodSchemas } from './plugins/zod.js'
 import { generateIndexBarrel } from './plugins/index-barrel.js'
 import { generateServer } from './plugins/server.js'
 
+/** Options accepted by generate(). */
+export interface GenerateOptions {
+  /** Path to config file. */
+  configPath?: string
+  /** Overrides config.input_openapi — resolved from shell CWD before this call. */
+  inputOverride?: string
+  /** Overrides config.output — resolved from shell CWD before this call. */
+  outputOverride?: string
+}
+
 async function formatTs(content: string, filePath: string): Promise<string> {
   const { format, resolveConfig } = await import('prettier')
   const config = await resolveConfig(filePath)
   return format(content, { ...config, parser: 'typescript' })
 }
 
-// fallow-ignore-next-line complexity
-export async function generate(cwd: string, configPath?: string): Promise<void> {
-  console.log('Loading config...')
-  const config = await loadConfig(cwd, configPath)
+/** Apply --input/--output overrides to an already-loaded config. */
+function applyOverrides(config: Config, opts: GenerateOptions): Config {
+  const result = { ...config }
+  if (opts.inputOverride !== undefined) {
+    result.input_openapi = opts.inputOverride
+  }
+  if (opts.outputOverride !== undefined) {
+    result.output = opts.outputOverride
+  }
+  return result
+}
 
-  const inputPath = resolve(cwd, config.input_openapi)
-  const outputDir = resolve(cwd, config.output)
+// fallow-ignore-next-line complexity
+export async function generate(cwd: string, opts?: GenerateOptions | string): Promise<void> {
+  // Back-compat: accept a plain configPath string as second arg (old call sites).
+  const options: GenerateOptions =
+    typeof opts === 'string' ? { configPath: opts } : (opts ?? {})
+
+  console.log('Loading config...')
+
+  // When --input AND --output are both provided we can skip loading a config file entirely.
+  const skipConfig =
+    options.inputOverride !== undefined &&
+    options.outputOverride !== undefined &&
+    options.configPath === undefined
+
+  let config: Config
+  if (skipConfig) {
+    config = {
+      input_openapi: options.inputOverride as string,
+      output: options.outputOverride as string,
+    }
+  } else {
+    config = applyOverrides(await loadConfig(cwd, options.configPath), options)
+  }
+
+  // When overrides supply absolute paths, resolve them directly; otherwise resolve from cwd.
+  const inputPath =
+    options.inputOverride !== undefined
+      ? options.inputOverride
+      : resolve(cwd, config.input_openapi)
+  const outputDir =
+    options.outputOverride !== undefined
+      ? options.outputOverride
+      : resolve(cwd, config.output)
 
   console.log(`Parsing spec: ${inputPath}`)
   const spec = await parseSpec(inputPath)
