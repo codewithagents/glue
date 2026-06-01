@@ -280,17 +280,19 @@ export async function downloadFileByID(
   itemUuid: string,
   fileUuid: string,
   config?: Partial<ClientConfig>
-): Promise<void> {
-  await _request(
+): Promise<Blob> {
+  const res = await _request(
     'GET',
     `/vaults/${encodeURIComponent(vaultUuid)}/items/${encodeURIComponent(itemUuid)}/files/${encodeURIComponent(fileUuid)}/content`,
     {},
     config
   )
+  return res.blob()
 }
 
-export async function getHeartbeat(config?: Partial<ClientConfig>): Promise<void> {
-  await _request('GET', '/heartbeat', {}, config)
+export async function getHeartbeat(config?: Partial<ClientConfig>): Promise<string> {
+  const res = await _request('GET', '/heartbeat', {}, config)
+  return res.text()
 }
 
 export async function getServerHealth(
@@ -300,6 +302,7 @@ export async function getServerHealth(
   return res.json()
 }
 
-export async function getPrometheusMetrics(config?: Partial<ClientConfig>): Promise<void> {
-  await _request('GET', '/metrics', {}, config)
+export async function getPrometheusMetrics(config?: Partial<ClientConfig>): Promise<string> {
+  const res = await _request('GET', '/metrics', {}, config)
+  return res.text()
 }

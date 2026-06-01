@@ -331,8 +331,9 @@ export async function deleteAssistant(
 export async function createSpeech(
   body: CreateSpeechRequest,
   config?: Partial<ClientConfig>
-): Promise<void> {
-  await _request('POST', '/audio/speech', { body }, config)
+): Promise<Blob> {
+  const res = await _request('POST', '/audio/speech', { body }, config)
+  return res.blob()
 }
 
 export async function createTranscription(config?: Partial<ClientConfig>): Promise<unknown> {
@@ -2663,8 +2664,9 @@ export async function unassignProjectUserRole(
   return res.json()
 }
 
-export async function createRealtimeCall(config?: Partial<ClientConfig>): Promise<void> {
-  await _request('POST', '/realtime/calls', {}, config)
+export async function createRealtimeCall(config?: Partial<ClientConfig>): Promise<Blob> {
+  const res = await _request('POST', '/realtime/calls', {}, config)
+  return res.blob()
 }
 
 export async function acceptRealtimeCall(
