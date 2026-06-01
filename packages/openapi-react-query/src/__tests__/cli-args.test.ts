@@ -7,37 +7,23 @@ const fakeCwd = '/project'
 const baseArgv = ['/usr/bin/node', '/project/dist/cli.js']
 
 describe('parseCliArgs', () => {
-  describe('--help / -h', () => {
-    it('returns help action for --help', () => {
-      const result = parseCliArgs([...baseArgv, '--help'], fakeCwd)
-      expect(result).toEqual({ action: 'help' })
+  describe.each([
+    { flag: '--help', short: '-h', action: 'help' as const },
+    { flag: '--version', short: '-v', action: 'version' as const },
+  ])('$flag / $short', ({ flag, short, action }) => {
+    it(`returns ${action} action for ${flag}`, () => {
+      const result = parseCliArgs([...baseArgv, flag], fakeCwd)
+      expect(result).toEqual({ action })
     })
 
-    it('returns help action for -h', () => {
-      const result = parseCliArgs([...baseArgv, '-h'], fakeCwd)
-      expect(result).toEqual({ action: 'help' })
+    it(`returns ${action} action for ${short}`, () => {
+      const result = parseCliArgs([...baseArgv, short], fakeCwd)
+      expect(result).toEqual({ action })
     })
 
-    it('short-circuits --help before --config', () => {
-      const result = parseCliArgs([...baseArgv, '--help', '--config', 'foo.json'], fakeCwd)
-      expect(result).toEqual({ action: 'help' })
-    })
-  })
-
-  describe('--version / -v', () => {
-    it('returns version action for --version', () => {
-      const result = parseCliArgs([...baseArgv, '--version'], fakeCwd)
-      expect(result).toEqual({ action: 'version' })
-    })
-
-    it('returns version action for -v', () => {
-      const result = parseCliArgs([...baseArgv, '-v'], fakeCwd)
-      expect(result).toEqual({ action: 'version' })
-    })
-
-    it('short-circuits --version before --config', () => {
-      const result = parseCliArgs([...baseArgv, '--version', '--config', 'foo.json'], fakeCwd)
-      expect(result).toEqual({ action: 'version' })
+    it(`short-circuits ${flag} before --config`, () => {
+      const result = parseCliArgs([...baseArgv, flag, '--config', 'foo.json'], fakeCwd)
+      expect(result).toEqual({ action })
     })
   })
 
