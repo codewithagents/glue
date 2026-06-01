@@ -2,7 +2,13 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 import { mkdtempSync, writeFileSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { loadConfig, validateConfigPath, validateOutputPath, validateInputPath } from '../config.js'
+import {
+  loadConfig,
+  validateConfigPath,
+  validateOutputPath,
+  validateInputPath,
+  defineConfig,
+} from '../config.js'
 
 describe('loadConfig', () => {
   let tmpDir: string
@@ -95,24 +101,22 @@ describe('loadConfig', () => {
     expect(config.output).toBe('src/api')
   })
 
-  it('rejects explicit configPath that is not .json', async () => {
+  it('rejects explicit configPath that is not a supported extension', async () => {
     const configFile = join(tmpDir, 'config.ts')
     writeFileSync(configFile, JSON.stringify({ input_openapi: 'openapi.json', output: 'src/api' }))
-    await expect(loadConfig(tmpDir, configFile)).rejects.toThrow('Config file must be a .json file')
+    await expect(loadConfig(tmpDir, configFile)).rejects.toThrow('Config file must be a .json')
   })
 })
 
 describe('config security validation', () => {
   describe('validateConfigPath', () => {
-    it('rejects non-.json config file extension', () => {
-      expect(() => validateConfigPath('/project/config.ts')).toThrow(
-        'Config file must be a .json file'
-      )
+    it('rejects non-supported config file extension (.ts)', () => {
+      expect(() => validateConfigPath('/project/config.ts')).toThrow('Config file must be a .json')
     })
 
     it('rejects .yaml extension', () => {
       expect(() => validateConfigPath('/project/config.yaml')).toThrow(
-        'Config file must be a .json file'
+        'Config file must be a .json'
       )
     })
 
@@ -122,6 +126,18 @@ describe('config security validation', () => {
 
     it('accepts nested .json path', () => {
       expect(() => validateConfigPath('/Users/someone/project/my-tool.config.json')).not.toThrow()
+    })
+
+    it('accepts .js extension', () => {
+      expect(() => validateConfigPath('/project/openapi-gen.config.js')).not.toThrow()
+    })
+
+    it('accepts .mjs extension', () => {
+      expect(() => validateConfigPath('/project/openapi-gen.config.mjs')).not.toThrow()
+    })
+
+    it('accepts .cjs extension', () => {
+      expect(() => validateConfigPath('/project/openapi-gen.config.cjs')).not.toThrow()
     })
   })
 
@@ -229,5 +245,110 @@ describe('config security validation', () => {
     it('accepts common CI workspace input path', () => {
       expect(() => validateInputPath('/workspace/project/spec/openapi.json')).not.toThrow()
     })
+  })
+})
+
+describe('defineConfig', () => {
+  it('returns the same config object it receives', () => {
+    const input = { input_openapi: './openapi.json', output: './src/api' }
+    const result = defineConfig(input)
+    expect(result).toBe(input)
+  })
+
+  it('preserves all config fields', () => {
+    const input = {
+      input_openapi: './openapi.json',
+      output: './src/api',
+      input_schema: './schemas.ts',
+      baseUrl: 'https://api.example.com',
+      server_client: true,
+    }
+    const result = defineConfig(input)
+    expect(result).toEqual(input)
+  })
+
+  it('is a pure identity function', () => {
+    const input = { input_openapi: 'spec.yaml', output: 'out' }
+    expect(defineConfig(input)).toStrictEqual(input)
+  })
+})
+
+describe('loadConfig JS files', () => {
+  let tmpDir: string
+
+  beforeEach(() => {
+    tmpDir = mkdtempSync(join(tmpdir(), 'openapi-gen-js-config-'))
+  })
+
+  afterEach(() => {
+    rmSync(tmpDir, { recursive: true, force: true })
+  })
+
+  it('loads a .mjs config with default export', async () => {
+    const configPath = join(tmpDir, 'openapi-gen.config.mjs')
+    writeFileSync(
+      configPath,
+      `export default { input_openapi: 'openapi.json', output: 'src/api' }\n`
+    )
+    const config = await loadConfig(tmpDir, configPath)
+    expect(config.input_openapi).toBe('openapi.json')
+    expect(config.output).toBe('src/api')
+  })
+
+  it('loads a .js config with default export', async () => {
+    const configPath = join(tmpDir, 'openapi-gen.config.js')
+    writeFileSync(
+      configPath,
+      `export default { input_openapi: 'openapi.json', output: 'src/generated' }\n`
+    )
+    const config = await loadConfig(tmpDir, configPath)
+    expect(config.input_openapi).toBe('openapi.json')
+    expect(config.output).toBe('src/generated')
+  })
+
+  it('loads a .mjs config with all optional fields', async () => {
+    const configPath = join(tmpDir, 'openapi-gen.config.mjs')
+    writeFileSync(
+      configPath,
+      [
+        'export default {',
+        "  input_openapi: 'spec.yaml',",
+        "  output: 'out',",
+        "  input_schema: 'schemas.ts',",
+        "  baseUrl: 'https://api.example.com',",
+        '  server_client: true,',
+        '}',
+      ].join('\n')
+    )
+    const config = await loadConfig(tmpDir, configPath)
+    expect(config.input_openapi).toBe('spec.yaml')
+    expect(config.output).toBe('out')
+    expect(config.input_schema).toBe('schemas.ts')
+    expect(config.baseUrl).toBe('https://api.example.com')
+    expect(config.server_client).toBe(true)
+  })
+
+  it('throws when JS config default export is missing required input_openapi', async () => {
+    const configPath = join(tmpDir, 'openapi-gen.config.mjs')
+    writeFileSync(configPath, `export default { output: 'src/api' }\n`)
+    await expect(loadConfig(tmpDir, configPath)).rejects.toThrow('input_openapi')
+  })
+
+  it('throws when JS config default export is missing required output', async () => {
+    const configPath = join(tmpDir, 'openapi-gen.config.mjs')
+    writeFileSync(configPath, `export default { input_openapi: 'spec.json' }\n`)
+    await expect(loadConfig(tmpDir, configPath)).rejects.toThrow('output')
+  })
+
+  it('throws when JS config file has a syntax error', async () => {
+    const configPath = join(tmpDir, 'openapi-gen.config.mjs')
+    writeFileSync(configPath, `export default { this is not valid JS }}\n`)
+    await expect(loadConfig(tmpDir, configPath)).rejects.toThrow('Failed to load JS config file')
+  })
+
+  it('rejects .ts extension (TypeScript config not supported)', async () => {
+    const configPath = join(tmpDir, 'openapi-gen.config.ts')
+    writeFileSync(configPath, `export default { input_openapi: 'spec.json', output: 'out' }\n`)
+    await expect(loadConfig(tmpDir, configPath)).rejects.toThrow('Config file must be a .json')
   })
 })
