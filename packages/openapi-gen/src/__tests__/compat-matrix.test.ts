@@ -7,7 +7,7 @@ import { execSync } from 'node:child_process'
 import { createRequire } from 'node:module'
 import { parseSpec } from '../parser.js'
 import { generateTypes } from '../plugins/types.js'
-import { generateClient } from '../plugins/client.js'
+import { generateClient, detectAuthSchemes, hasCookieAuth } from '../plugins/client.js'
 import { generateClientConfig } from '../plugins/client-config.js'
 import { generateZodSchemas } from '../plugins/zod.js'
 
@@ -43,11 +43,41 @@ describe.each(cases)('compat — $name', ({ specPath }) => {
 //
 // To update: reproduce locally, adjust the set, add a one-line reason comment.
 // ---------------------------------------------------------------------------
-const KNOWN_TYPECHECK_FAILURES = new Set([
-  // TS1005 "',' expected" -- generator emits `[object Object]` literal for
-  // additionalProperties schemas whose value is an inline schema object rather
-  // than a $ref, producing invalid TypeScript syntax in models.ts.
-  'docker',
+const KNOWN_TYPECHECK_FAILURES = new Set<string>([
+  // NOTE: until the docker enum + client-config harness fixes in this change,
+  // docker's syntax error (TS1005) aborted tsc's parse phase and MASKED the
+  // semantic errors below for every other spec, so the gate gave false
+  // confidence. With the gate now functional, these are the real, pre-existing
+  // generator type-correctness gaps, tracked as follow-up issues:
+  //
+  // Generated-helper / reserved-name collisions (#218):
+  'airflow', // TS2440 'getConfig' import conflicts with a generated local
+  'configcat', // TS2440 'getConfig' collision (+ cascade)
+  'box', // TS2769/TS2304 - operation name collision + unresolved name
+  'pinecone', // TS2345/TS2339 - spec redefines FetchRequest/FetchResponse names
+  //
+  // Duplicate identifier generation (#219):
+  'aws_sns', // TS2300 duplicate 'String'/'Endpoint'
+  'bbc', // TS2300 duplicate 'DateRange'
+  'snyk', // TS2300 duplicate 'AggregatedProjectIssues'/'DepGraph'
+  'twilio', // TS2300 duplicate 'StartTime'
+  //
+  // Unresolved / misnamed nested type references (#220):
+  'brex', // TS2305 models.ts missing 'Company'/'Schema'
+  'digitalocean', // TS2305 missing 'Items'/'Schema'/'_0'
+  'clevercloud', // TS2304 cannot find 'WannabeEnvVar'
+  'clicksend', // TS2304 cannot find 'convert'
+  'codat_accounting', // TS2304 'accountId'/'Currency'
+  'codat_banking', // TS2304 'AccountBalanceAmounts' etc.
+  'dnd5e', // TS2304 cannot find 'Items'
+  'jira', // TS2304 cannot find 'EntityPropertyDetails'
+  'linode', // TS2304/TS2305 'Filesystem'/'AllowList'/'Rules'
+  'medium', // TS2304 cannot find 'query'
+  //
+  // Typed header maps not assignable to Record<string, string> (#221):
+  'aws_s3', // TS2322 literal/number header values vs Record<string,string>
+  'here_tracking', // TS2322 numeric header value vs Record<string,string>
+  'vercel', // TS2322 numeric/literal header values vs Record<string,string>
 ])
 
 type SpecCase = { name: string; specPath: string }
@@ -58,7 +88,17 @@ async function generateSpecsToDir(outputDir: string, specCases: SpecCase[]): Pro
     const specDir = join(outputDir, name)
     mkdirSync(specDir, { recursive: true })
     writeFileSync(join(specDir, 'models.ts'), generateTypes(spec).content, 'utf-8')
-    writeFileSync(join(specDir, 'client-config.ts'), generateClientConfig().content, 'utf-8')
+    // Mirror generator.ts: client-config must be generated with the spec's auth
+    // schemes so its ClientConfig type matches the config fields client.ts uses.
+    const authSchemes = detectAuthSchemes(spec)
+    const configOptions = hasCookieAuth(spec)
+      ? { defaultCredentials: 'include', authSchemes }
+      : { authSchemes }
+    writeFileSync(
+      join(specDir, 'client-config.ts'),
+      generateClientConfig(configOptions).content,
+      'utf-8'
+    )
     writeFileSync(join(specDir, 'client.ts'), generateClient(spec).content, 'utf-8')
   }
 }
