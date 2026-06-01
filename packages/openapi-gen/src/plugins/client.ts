@@ -395,21 +395,38 @@ function getReturnType(
 
 function resolveParamRef(
   p: ParameterObject | ReferenceObject,
-  spec: OpenAPIV3_1.Document
+  spec: OpenAPIV3_1.Document,
+  visited?: Set<string>
 ): ParameterObject | null {
   if (!isRef(p)) return p as ParameterObject
   const ref = (p as ReferenceObject).$ref
-  // Only support local component refs: #/components/parameters/Name
+
+  // Guard against ref cycles (a parameter ref that resolves back to itself).
+  const visitedSet = visited ?? new Set<string>()
+  if (visitedSet.has(ref)) return null
+  visitedSet.add(ref)
+
+  // Local component ref: #/components/parameters/Name
   const match = /^#\/components\/parameters\/(.+)$/.exec(ref)
-  if (match === null) return null
-  const name = match[1]!
-  const params = spec.components?.parameters as
-    | Record<string, ParameterObject | ReferenceObject>
-    | undefined
-  if (params === undefined) return null
-  const resolved = params[name]
-  if (resolved === undefined || isRef(resolved)) return null
-  return resolved as ParameterObject
+  if (match !== null) {
+    const name = match[1]!
+    const params = spec.components?.parameters as
+      | Record<string, ParameterObject | ReferenceObject>
+      | undefined
+    const resolved = params?.[name]
+    if (resolved === undefined) return null
+    // The target may itself be a ref (chained), so resolve recursively.
+    return resolveParamRef(resolved, spec, visitedSet)
+  }
+
+  // Deep / non-component parameter ref, e.g.
+  // #/paths/~1.../get/parameters/0 (one operation reusing another's param).
+  // resolveParamRef only handled component refs, so these were dropped and the
+  // path placeholder was emitted without a matching signature param (TS2304).
+  // Resolve the JSON pointer and recurse in case the target is another ref.
+  const target = resolveJsonPointer(spec, ref) as ParameterObject | ReferenceObject | undefined
+  if (target === undefined) return null
+  return resolveParamRef(target, spec, visitedSet)
 }
 
 type PathItemObject = OpenAPIV3_1.PathItemObject
@@ -628,7 +645,7 @@ function getRequestBodyInfo(
   const jsonContent = content['application/json']
   if (jsonContent !== undefined && jsonContent.schema !== undefined) {
     const schema = jsonContent.schema
-    return { typeName: inlineSchemaToTs(schema), kind: 'json' }
+    return { typeName: inlineSchemaToTs(schema, spec), kind: 'json' }
   }
 
   // Fall back to application/x-www-form-urlencoded
@@ -636,7 +653,7 @@ function getRequestBodyInfo(
   if (formContent === undefined || formContent.schema === undefined) return undefined
 
   const formSchema = formContent.schema
-  return { typeName: inlineSchemaToTs(formSchema), kind: 'form' }
+  return { typeName: inlineSchemaToTs(formSchema, spec), kind: 'form' }
 }
 
 /** Feature 4: Collect non-2xx error responses that have a JSON $ref schema and return @throws tags */
@@ -1453,8 +1470,8 @@ export function generateClient(spec: OpenAPIV3_1.Document, options?: ClientOptio
         const pathParams = getPathParams(pathItem, operation, spec)
         const queryParams = getQueryParams(pathItem, operation, spec)
         const headerParams = getHeaderParams(pathItem, operation, spec)
-        const bodyInfo = getRequestBodyInfo(operation)
-        const returnType = getReturnType(operation)
+        const bodyInfo = getRequestBodyInfo(operation, spec)
+        const returnType = getReturnType(operation, spec)
         const deprecated = operation.deprecated === true
         const throwsTags = getThrowsTags(operation)
 
