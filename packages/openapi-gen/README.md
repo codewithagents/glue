@@ -107,6 +107,27 @@ export async function getTasks(
 ): Promise<Task[]> { ... }
 ```
 
+### readOnly / writeOnly variants
+
+When a schema marks properties `readOnly` (server-set, e.g. `id`, `createdAt`) or `writeOnly` (input-only, e.g. `password`), the response and request shapes genuinely differ. openapi-gen splits them, but only for schemas that actually use those flags:
+
+- The base type (e.g. `User`) is the response shape and omits `writeOnly` properties.
+- A `UserWritable` variant is emitted for the request shape and omits `readOnly` properties.
+- Operation request bodies referencing such a schema automatically use the `Writable` variant.
+
+Schemas without any `readOnly`/`writeOnly` properties are left as a single type, so output stays minimal.
+
+```typescript
+export interface User {           // response shape (no writeOnly)
+  id: string                      // readOnly
+  name: string
+}
+export interface UserWritable {   // request shape (no readOnly)
+  name: string
+  password: string                // writeOnly
+}
+```
+
 ---
 
 ## Auth configuration
