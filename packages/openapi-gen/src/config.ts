@@ -5,7 +5,7 @@ import { pathToFileURL } from 'node:url'
 export interface Config {
   /** Path to the OpenAPI 3.1 spec file (JSON or YAML) */
   input_openapi: string
-  /** Path to user-owned Zod schema file (.ts). Optional — bootstrapped on first run if absent. */
+  /** Path to user-owned Zod schema file (.ts). Optional. Bootstrapped on first run if absent. */
   input_schema?: string
   /** Directory to write generated files */
   output: string
@@ -67,9 +67,7 @@ export function validateConfigPath(configPath: string): void {
   const isJson = configPath.endsWith('.json')
   const isJs = isJsConfigPath(configPath)
   if (!isJson && !isJs) {
-    throw new Error(
-      `Config file must be a .json, .js, .mjs, or .cjs file, got: ${configPath}`
-    )
+    throw new Error(`Config file must be a .json, .js, .mjs, or .cjs file, got: ${configPath}`)
   }
 }
 
@@ -80,7 +78,7 @@ export function validateOutputPath(resolvedOutput: string): void {
     if (normalized === normalizedForbidden || normalized.startsWith(normalizedForbidden + '/')) {
       throw new Error(
         `Output path resolves to a system directory: "${resolvedOutput}". ` +
-          `This looks like a misconfiguration — please check your config file.`
+          `This looks like a misconfiguration. Please check your config file.`
       )
     }
   }
@@ -93,7 +91,7 @@ export function validateInputPath(resolvedInput: string): void {
     if (normalized === normalizedForbidden || normalized.startsWith(normalizedForbidden + '/')) {
       throw new Error(
         `Input spec path resolves to a system directory: "${resolvedInput}". ` +
-          `This looks like a misconfiguration — please check your config file.`
+          `This looks like a misconfiguration. Please check your config file.`
       )
     }
   }

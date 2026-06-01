@@ -33,9 +33,9 @@ if (parsed.action === 'help') {
 }
 
 if (parsed.action === 'version') {
-  const pkg = JSON.parse(
-    readFileSync(join(__dirname, '../package.json'), 'utf-8')
-  ) as { version: string }
+  const pkg = JSON.parse(readFileSync(join(__dirname, '../package.json'), 'utf-8')) as {
+    version: string
+  }
   console.log(pkg.version)
   process.exit(0)
 }
@@ -87,7 +87,7 @@ if (!watchMode) {
           clearTimeout(debounceTimer)
         }
         debounceTimer = setTimeout(() => {
-          console.log(`\n[watch] Change detected in ${watchPath} — regenerating...`)
+          console.log(`\n[watch] Change detected in ${watchPath}, regenerating...`)
           runGenerate().catch((err: Error) => {
             console.error(`Error: ${err.message}`)
           })

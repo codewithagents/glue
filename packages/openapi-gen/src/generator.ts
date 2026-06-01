@@ -13,9 +13,9 @@ import { generateServer } from './plugins/server.js'
 export interface GenerateOptions {
   /** Path to config file. */
   configPath?: string
-  /** Overrides config.input_openapi — resolved from shell CWD before this call. */
+  /** Overrides config.input_openapi. Resolved from shell CWD before this call. */
   inputOverride?: string
-  /** Overrides config.output — resolved from shell CWD before this call. */
+  /** Overrides config.output. Resolved from shell CWD before this call. */
   outputOverride?: string
 }
 
@@ -40,8 +40,7 @@ function applyOverrides(config: Config, opts: GenerateOptions): Config {
 // fallow-ignore-next-line complexity
 export async function generate(cwd: string, opts?: GenerateOptions | string): Promise<void> {
   // Back-compat: accept a plain configPath string as second arg (old call sites).
-  const options: GenerateOptions =
-    typeof opts === 'string' ? { configPath: opts } : (opts ?? {})
+  const options: GenerateOptions = typeof opts === 'string' ? { configPath: opts } : (opts ?? {})
 
   console.log('Loading config...')
 
@@ -63,13 +62,9 @@ export async function generate(cwd: string, opts?: GenerateOptions | string): Pr
 
   // When overrides supply absolute paths, resolve them directly; otherwise resolve from cwd.
   const inputPath =
-    options.inputOverride !== undefined
-      ? options.inputOverride
-      : resolve(cwd, config.input_openapi)
+    options.inputOverride !== undefined ? options.inputOverride : resolve(cwd, config.input_openapi)
   const outputDir =
-    options.outputOverride !== undefined
-      ? options.outputOverride
-      : resolve(cwd, config.output)
+    options.outputOverride !== undefined ? options.outputOverride : resolve(cwd, config.output)
 
   console.log(`Parsing spec: ${inputPath}`)
   const spec = await parseSpec(inputPath)
@@ -107,7 +102,7 @@ export async function generate(cwd: string, opts?: GenerateOptions | string): Pr
     console.log(`  ✓ ${serverFile.filename}`)
   }
 
-  // Phase 4: Zod schema bootstrap — write once, never overwrite
+  // Phase 4: Zod schema bootstrap. Write once, never overwrite.
   if (config.input_schema !== undefined) {
     const schemaPath = resolve(cwd, config.input_schema)
     let schemaExists = false
@@ -115,20 +110,20 @@ export async function generate(cwd: string, opts?: GenerateOptions | string): Pr
       await access(schemaPath)
       schemaExists = true
     } catch {
-      // file does not exist — bootstrap it
+      // file does not exist, bootstrap it
     }
 
     if (schemaExists) {
-      console.log(`Skipping ${config.input_schema} — already exists (edit freely, it's yours).`)
+      console.log(`Skipping ${config.input_schema}: already exists (edit freely, it's yours).`)
 
-      // Phase 5: Schema-enhanced generation — re-generate models.ts and client.ts with Zod integration
+      // Phase 5: Schema-enhanced generation. Re-generate models.ts and client.ts with Zod integration.
       const content = await readFile(schemaPath, 'utf-8')
       const exportedSchemas = new Set<string>()
       for (const match of content.matchAll(/^export\s+const\s+(\w+Schema)\b/gm)) {
         exportedSchemas.add(match[1]!)
       }
 
-      // Drift detection — warn to stderr for missing schemas
+      // Drift detection: warn to stderr for missing schemas.
       const specSchemaNames = Object.keys(spec.components?.schemas ?? {})
       for (const name of specSchemaNames) {
         if (!exportedSchemas.has(`${name}Schema`)) {
@@ -162,12 +157,12 @@ export async function generate(cwd: string, opts?: GenerateOptions | string): Pr
         await formatTs(enhancedClient.content, enhancedClientPath),
         'utf-8'
       )
-      console.log(`  ✓ models.ts (schema-enhanced — types from z.infer)`)
-      console.log(`  ✓ client.ts (schema-enhanced — Zod validation added)`)
+      console.log(`  ✓ models.ts (schema-enhanced, types from z.infer)`)
+      console.log(`  ✓ client.ts (schema-enhanced, Zod validation added)`)
     } else {
       const zodFile = generateZodSchemas(spec)
       await writeFile(schemaPath, zodFile.content, 'utf-8')
-      console.log(`  ✓ ${config.input_schema} (bootstrapped — edit freely, won't be overwritten)`)
+      console.log(`  ✓ ${config.input_schema} (bootstrapped: edit freely, won't be overwritten)`)
     }
   }
 
