@@ -92,14 +92,6 @@ export function readShapeProperties(schema: SchemaObject): PropMap {
 }
 
 /**
- * Filter a schema's direct properties for the write (request) shape: excludes readOnly props.
- * For allOf schemas use effectiveWriteProperties instead.
- */
-export function writeShapeProperties(schema: SchemaObject): PropMap {
-  return filterProps(schema.properties as PropMap | undefined, 'readOnly')
-}
-
-/**
  * Return the schema's allOf array with writeOnly properties removed from inline (non-$ref)
  * members. $ref members are kept unchanged. Used to rebuild the read-shape type for allOf schemas.
  */

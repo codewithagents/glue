@@ -109,13 +109,66 @@ export type Attachment = z.infer<typeof AttachmentSchema>
 
 export type BankAccountInfo = z.infer<typeof BankAccountInfoSchema>
 
+export interface BankAccountInfoWritable {
+  accountIdentification?:
+    | AULocalAccountIdentification
+    | CALocalAccountIdentification
+    | CZLocalAccountIdentification
+    | DKLocalAccountIdentification
+    | HKLocalAccountIdentification
+    | HULocalAccountIdentification
+    | IbanAccountIdentification
+    | NOLocalAccountIdentification
+    | NZLocalAccountIdentification
+    | NumberAndBicAccountIdentification
+    | PLLocalAccountIdentification
+    | SELocalAccountIdentification
+    | SGLocalAccountIdentification
+    | UKLocalAccountIdentification
+    | USLocalAccountIdentification
+  accountType?: string
+  bankName?: string
+  countryCode?: string
+}
+
 export type BirthData = z.infer<typeof BirthDataSchema>
 
 export type BusinessLine = z.infer<typeof BusinessLineSchema>
 
+export interface BusinessLineWritable {
+  capability?: 'receivePayments' | 'receiveFromPlatformPayments' | 'issueBankAccount'
+  industryCode: string
+  legalEntityId: string
+  problems?: CapabilityProblem[]
+  salesChannels?: string[]
+  service: 'paymentProcessing' | 'banking'
+  sourceOfFunds?: SourceOfFunds
+  webData?: WebData[]
+  webDataExemption?: WebDataExemption
+}
+
 export type BusinessLineInfo = z.infer<typeof BusinessLineInfoSchema>
 
+export interface BusinessLineInfoWritable {
+  capability?: 'receivePayments' | 'receiveFromPlatformPayments' | 'issueBankAccount'
+  industryCode: string
+  legalEntityId: string
+  salesChannels?: string[]
+  service: 'paymentProcessing' | 'banking'
+  sourceOfFunds?: SourceOfFunds
+  webData?: WebData[]
+  webDataExemption?: WebDataExemption
+}
+
 export type BusinessLineInfoUpdate = z.infer<typeof BusinessLineInfoUpdateSchema>
+
+export interface BusinessLineInfoUpdateWritable {
+  industryCode?: string
+  salesChannels?: string[]
+  sourceOfFunds?: SourceOfFunds
+  webData?: WebData[]
+  webDataExemption?: WebDataExemption
+}
 
 export type BusinessLines = z.infer<typeof BusinessLinesSchema>
 
@@ -150,6 +203,38 @@ export type DKLocalAccountIdentification = z.infer<typeof DKLocalAccountIdentifi
 export type DataReviewConfirmationResponse = z.infer<typeof DataReviewConfirmationResponseSchema>
 
 export type Document = z.infer<typeof DocumentSchema>
+
+export interface DocumentWritable {
+  attachment?: Attachment
+  attachments?: Attachment[]
+  description: string
+  expiryDate?: string
+  fileName?: string
+  issuerCountry?: string
+  issuerState?: string
+  number?: string
+  owner?: OwnerEntity
+  type:
+    | 'bankStatement'
+    | 'driversLicense'
+    | 'identityCard'
+    | 'nationalIdNumber'
+    | 'passport'
+    | 'proofOfAddress'
+    | 'proofOfNationalIdNumber'
+    | 'proofOfResidency'
+    | 'registrationDocument'
+    | 'vatDocument'
+    | 'proofOfOrganizationTaxInfo'
+    | 'proofOfIndividualTaxId'
+    | 'proofOfOwnership'
+    | 'proofOfSignatory'
+    | 'liveSelfie'
+    | 'proofOfIndustry'
+    | 'constitutionalDocument'
+    | 'proofOfFundingOrWealthSource'
+    | 'proofOfRelationship'
+}
 
 export type DocumentPage = z.infer<typeof DocumentPageSchema>
 
@@ -197,9 +282,62 @@ export type Individual = z.infer<typeof IndividualSchema>
 
 export type LegalEntity = z.infer<typeof LegalEntitySchema>
 
+export interface LegalEntityWritable {
+  capabilities?: Record<string, LegalEntityCapability>
+  documentDetails?: DocumentReference[]
+  documents?: EntityReference[]
+  entityAssociations?: LegalEntityAssociation[]
+  individual?: Individual
+  organization?: Organization
+  problems?: CapabilityProblem[]
+  reference?: string
+  soleProprietorship?: SoleProprietorship
+  trust?: Trust
+  type?:
+    | 'individual'
+    | 'organization'
+    | 'soleProprietorship'
+    | 'trust'
+    | 'unincorporatedPartnership'
+  unincorporatedPartnership?: UnincorporatedPartnership
+  verificationPlan?: string
+}
+
 export type LegalEntityAssociation = z.infer<typeof LegalEntityAssociationSchema>
 
+export interface LegalEntityAssociationWritable {
+  jobTitle?: string
+  legalEntityId: string
+  nominee?: boolean
+  relationship?: string
+  settlorExemptionReason?: string[]
+  type:
+    | 'definedBeneficiary'
+    | 'director'
+    | 'immediateParentCompany'
+    | 'legalRepresentative'
+    | 'pciSignatory'
+    | 'protector'
+    | 'secondaryPartner'
+    | 'secondaryTrustee'
+    | 'settlor'
+    | 'signatory'
+    | 'soleProprietorship'
+    | 'trust'
+    | 'trustOwnership'
+    | 'uboThroughControl'
+    | 'uboThroughOwnership'
+    | 'ultimateParentCompany'
+    | 'undefinedBeneficiary'
+    | 'unincorporatedPartnership'
+}
+
 export type LegalEntityCapability = z.infer<typeof LegalEntityCapabilitySchema>
+
+export interface LegalEntityCapabilityWritable {
+  allowedSettings?: CapabilitySettings
+  requestedSettings?: CapabilitySettings
+}
 
 export type LegalEntityInfo = z.infer<typeof LegalEntityInfoSchema>
 
@@ -239,6 +377,11 @@ export type PciSigningResponse = z.infer<typeof PciSigningResponseSchema>
 
 export type PhoneNumber = z.infer<typeof PhoneNumberSchema>
 
+export interface PhoneNumberWritable {
+  number: string
+  type?: string
+}
+
 export type RemediatingAction = z.infer<typeof RemediatingActionSchema>
 
 export type SELocalAccountIdentification = z.infer<typeof SELocalAccountIdentificationSchema>
@@ -259,6 +402,8 @@ export type StockData = z.infer<typeof StockDataSchema>
 
 export type SupportingEntityCapability = z.infer<typeof SupportingEntityCapabilitySchema>
 
+export interface SupportingEntityCapabilityWritable {}
+
 export type TaxInformation = z.infer<typeof TaxInformationSchema>
 
 export type TaxReportingClassification = z.infer<typeof TaxReportingClassificationSchema>
@@ -267,9 +412,24 @@ export type TermsOfServiceAcceptanceInfo = z.infer<typeof TermsOfServiceAcceptan
 
 export type TransferInstrument = z.infer<typeof TransferInstrumentSchema>
 
+export interface TransferInstrumentWritable {
+  bankAccount: BankAccountInfo
+  capabilities?: Record<string, SupportingEntityCapability>
+  documentDetails?: DocumentReference[]
+  legalEntityId: string
+  problems?: CapabilityProblem[]
+  type: 'bankAccount' | 'recurringDetail'
+}
+
 export type TransferInstrumentInfo = z.infer<typeof TransferInstrumentInfoSchema>
 
 export type TransferInstrumentReference = z.infer<typeof TransferInstrumentReferenceSchema>
+
+export interface TransferInstrumentReferenceWritable {
+  accountIdentifier: string
+  id: string
+  realLastFour?: string
+}
 
 export type Trust = z.infer<typeof TrustSchema>
 
@@ -279,9 +439,29 @@ export type USLocalAccountIdentification = z.infer<typeof USLocalAccountIdentifi
 
 export type UndefinedBeneficiary = z.infer<typeof UndefinedBeneficiarySchema>
 
+export interface UndefinedBeneficiaryWritable {
+  description?: string
+}
+
 export type UnincorporatedPartnership = z.infer<typeof UnincorporatedPartnershipSchema>
 
+export interface UnincorporatedPartnershipWritable {
+  countryOfGoverningLaw: string
+  dateOfIncorporation?: string
+  description?: string
+  doingBusinessAs?: string
+  name: string
+  principalPlaceOfBusiness?: Address
+  registeredAddress: Address
+  registrationNumber?: string
+  taxInformation?: TaxInformation[]
+  vatAbsenceReason?: 'industryExemption' | 'belowTaxThreshold'
+  vatNumber?: string
+}
+
 export type VerificationDeadline = z.infer<typeof VerificationDeadlineSchema>
+
+export interface VerificationDeadlineWritable {}
 
 export type VerificationError = z.infer<typeof VerificationErrorSchema>
 
@@ -290,5 +470,9 @@ export type VerificationErrorRecursive = z.infer<typeof VerificationErrorRecursi
 export type VerificationErrors = z.infer<typeof VerificationErrorsSchema>
 
 export type WebData = z.infer<typeof WebDataSchema>
+
+export interface WebDataWritable {
+  webAddress?: string
+}
 
 export type WebDataExemption = z.infer<typeof WebDataExemptionSchema>
