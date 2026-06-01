@@ -4,8 +4,8 @@ import type {
   AcceptTermsOfServiceRequest,
   AcceptTermsOfServiceResponse,
   BusinessLine,
-  BusinessLineInfo,
-  BusinessLineInfoUpdate,
+  BusinessLineInfoUpdateWritable,
+  BusinessLineInfoWritable,
   BusinessLines,
   CalculatePciStatusRequest,
   CalculatePciStatusResponse,
@@ -13,6 +13,7 @@ import type {
   CheckTaxElectronicDeliveryConsentResponse,
   DataReviewConfirmationResponse,
   Document,
+  DocumentWritable,
   GeneratePciDescriptionRequest,
   GeneratePciDescriptionResponse,
   GetAcceptedTermsOfServiceDocumentResponse,
@@ -170,7 +171,7 @@ async function _request(
  * @throws {ApiError<500, ServiceError>}
  */
 export async function postBusinessLines(
-  body: BusinessLineInfo,
+  body: BusinessLineInfoWritable,
   config?: Partial<ClientConfig>
 ): Promise<BusinessLine> {
   BusinessLineInfoSchema.parse(body)
@@ -202,7 +203,7 @@ export async function getBusinessLinesId(
  */
 export async function patchBusinessLinesId(
   id: string,
-  body: BusinessLineInfoUpdate,
+  body: BusinessLineInfoUpdateWritable,
   config?: Partial<ClientConfig>
 ): Promise<BusinessLine> {
   BusinessLineInfoUpdateSchema.parse(body)
@@ -232,7 +233,7 @@ export async function deleteBusinessLinesId(
  * @throws {ApiError<500, ServiceError>}
  */
 export async function postDocuments(
-  body: Document,
+  body: DocumentWritable,
   params?: {
     xRequestedVerificationCode?: string
   },
@@ -282,7 +283,7 @@ export async function getDocumentsId(
  */
 export async function patchDocumentsId(
   id: string,
-  body: Document,
+  body: DocumentWritable,
   params?: {
     xRequestedVerificationCode?: string
   },
