@@ -10,6 +10,10 @@
     ".": {
       "import": "./dist/index.js",
       "types": "./dist/index.d.ts"
+    },
+    "./config-core": {
+      "import": "./dist/config-core.js",
+      "types": "./dist/config-core.d.ts"
     }
   },
   "files": [
