@@ -7,7 +7,164 @@ import type { OpenAPIV3_1 } from 'openapi-types'
  * Issue #182: duplicate operationIds or paths that derive the same identifier
  * would both emit `export async function <sameName>`, causing a TS duplicate-
  * identifier error or silent shadowing.
+ *
+ * Issue #218: spec-derived operation names must not collide with client-internal
+ * identifiers (getConfig, fetch, ApiError, etc.) that are defined or imported at
+ * file scope in the generated output.
  */
+
+// ---------------------------------------------------------------------------
+// Reserved / client-internal name collision tests (#218)
+// ---------------------------------------------------------------------------
+
+describe('client-internal name collision: getConfig (#218)', () => {
+  // airflow / configcat pattern: spec has operationId 'get_config' or 'get-config'
+  // which sanitizes to 'getConfig', colliding with the imported helper.
+  it('operation named getConfig gets a numeric suffix', () => {
+    const spec: OpenAPIV3_1.Document = {
+      openapi: '3.1.0',
+      info: { title: 'Fictional Config API', version: '1' },
+      paths: {
+        '/config': {
+          get: {
+            operationId: 'get_config',
+            responses: {
+              '200': {
+                description: 'ok',
+                content: { 'application/json': { schema: { type: 'object' } } },
+              },
+            },
+          },
+        },
+      },
+    }
+
+    const { content } = generateClient(spec)
+
+    // The generated function must NOT be named 'getConfig' (that name is taken by the import).
+    expect(content).not.toContain('export async function getConfig(')
+    // It must receive a suffix.
+    expect(content).toContain('export async function getConfig_2(')
+    // The imported helper must still be present.
+    expect(content).toContain("import { getConfig, type ClientConfig } from './client-config.js'")
+  })
+
+  it('operation named get-config (kebab) also gets a suffix', () => {
+    const spec: OpenAPIV3_1.Document = {
+      openapi: '3.1.0',
+      info: { title: 'Fictional Config API', version: '1' },
+      paths: {
+        '/cfg': {
+          get: {
+            operationId: 'get-config',
+            responses: { '200': { description: 'ok' } },
+          },
+        },
+      },
+    }
+
+    const { content } = generateClient(spec)
+
+    expect(content).not.toContain('export async function getConfig(')
+    expect(content).toContain('export async function getConfig_2(')
+  })
+})
+
+describe('client-internal name collision: fetch (#218)', () => {
+  // pinecone pattern: spec has an operation whose sanitized name is 'fetch',
+  // which would shadow the global fetch() used inside the _request helper and
+  // break the _FetchResponse type alias.
+  it('operation named fetch gets a numeric suffix', () => {
+    const spec: OpenAPIV3_1.Document = {
+      openapi: '3.1.0',
+      info: { title: 'Fictional Vector API', version: '1' },
+      paths: {
+        '/vectors/fetch': {
+          get: {
+            operationId: 'fetch',
+            requestBody: {
+              content: {
+                'application/json': {
+                  schema: { $ref: '#/components/schemas/FetchRequest' },
+                },
+              },
+            },
+            responses: {
+              '200': {
+                description: 'ok',
+                content: {
+                  'application/json': { schema: { $ref: '#/components/schemas/FetchResponse' } },
+                },
+              },
+            },
+          },
+        },
+      },
+      components: {
+        schemas: {
+          FetchRequest: {
+            type: 'object',
+            properties: { ids: { type: 'array', items: { type: 'string' } } },
+          },
+          FetchResponse: {
+            type: 'object',
+            properties: { vectors: { type: 'object' } },
+          },
+        },
+      },
+    }
+
+    const { content } = generateClient(spec)
+
+    // The generated operation function must not be named 'fetch' (shadows the global).
+    expect(content).not.toContain('export async function fetch(')
+    // It must receive a suffix.
+    expect(content).toContain('export async function fetch_2(')
+    // The _FetchResponse type alias must still use the global fetch, not the local one.
+    expect(content).toContain('type _FetchResponse = Awaited<ReturnType<typeof fetch>>')
+    // Schema types from models must still be imported.
+    expect(content).toContain('FetchRequest')
+    expect(content).toContain('FetchResponse')
+  })
+})
+
+describe('client-internal name collision: multiple reserved names (#218)', () => {
+  it('all reserved names (getConfig, fetch, ApiError, etc.) are pre-seeded so specs cannot collide', () => {
+    // Verify that operations producing getConfig and fetch each receive suffixes.
+    // Both names are reserved because they are used at file scope in the generated output.
+    const spec: OpenAPIV3_1.Document = {
+      openapi: '3.1.0',
+      info: { title: 'Fictional Multi-Reserved API', version: '1' },
+      paths: {
+        '/config': {
+          get: {
+            operationId: 'getConfig',
+            responses: { '200': { description: 'ok' } },
+          },
+        },
+        '/fetch': {
+          get: {
+            operationId: 'fetch',
+            responses: { '200': { description: 'ok' } },
+          },
+        },
+      },
+    }
+
+    const { content } = generateClient(spec)
+
+    // Neither reserved name should appear as a generated function.
+    expect(content).not.toContain('export async function getConfig(')
+    expect(content).not.toContain('export async function fetch(')
+    // Both must receive suffixes.
+    expect(content).toContain('export async function getConfig_2(')
+    expect(content).toContain('export async function fetch_2(')
+    // The imported helper and the type alias must still reference the originals.
+    expect(content).toContain("import { getConfig, type ClientConfig } from './client-config.js'")
+    expect(content).toContain('type _FetchResponse = Awaited<ReturnType<typeof fetch>>')
+  })
+})
+
 describe('client name-collision deduplication', () => {
   it('two operationIds that sanitize to the same identifier get distinct names', () => {
     // "users.list" and "users-list" both sanitize to "usersList".

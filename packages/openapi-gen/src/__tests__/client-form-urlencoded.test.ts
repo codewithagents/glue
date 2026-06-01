@@ -113,3 +113,94 @@ describe('JSON-only specs keep the original _request helper (no form plumbing)',
     expect(out).toContain(`{ 'Content-Type': 'application/json' }`)
   })
 })
+
+// ---------------------------------------------------------------------------
+// Form-urlencoded body with a $ref schema must be imported (#218)
+// box pattern: operations like post_oauth2_revoke use application/x-www-form-urlencoded
+// with a $ref schema body. The type must appear in the import statement so that
+// the generated function compiles (TS2304 fix).
+// ---------------------------------------------------------------------------
+
+const refFormSpec: OpenAPIV3_1.Document = {
+  openapi: '3.1.0',
+  info: { title: 'Fictional OAuth API', version: '1' },
+  paths: {
+    '/oauth2/revoke': {
+      post: {
+        operationId: 'postOauth2Revoke',
+        requestBody: {
+          required: true,
+          content: {
+            'application/x-www-form-urlencoded': {
+              schema: { $ref: '#/components/schemas/RevokeRequest' },
+            },
+          },
+        },
+        responses: { '200': { description: 'ok' } },
+      },
+    },
+    '/oauth2/token': {
+      post: {
+        operationId: 'postOauth2Token',
+        requestBody: {
+          required: true,
+          content: {
+            'application/x-www-form-urlencoded': {
+              schema: { $ref: '#/components/schemas/TokenRequest' },
+            },
+          },
+        },
+        responses: {
+          '200': {
+            description: 'ok',
+            content: {
+              'application/json': { schema: { $ref: '#/components/schemas/TokenResponse' } },
+            },
+          },
+        },
+      },
+    },
+  },
+  components: {
+    schemas: {
+      RevokeRequest: {
+        type: 'object',
+        properties: { token: { type: 'string' }, clientId: { type: 'string' } },
+        required: ['token'],
+      },
+      TokenRequest: {
+        type: 'object',
+        properties: { grantType: { type: 'string' }, code: { type: 'string' } },
+        required: ['grantType'],
+      },
+      TokenResponse: {
+        type: 'object',
+        properties: { accessToken: { type: 'string' } },
+      },
+    },
+  },
+}
+
+describe('form-urlencoded body with $ref schema imports the type (#218)', () => {
+  const out = generateClient(refFormSpec).content
+
+  it('imports the $ref schema type used as the form body', () => {
+    // RevokeRequest and TokenRequest are form-urlencoded body types.
+    // They must appear in the models import so the body parameter compiles.
+    expect(out).toContain('RevokeRequest')
+    expect(out).toContain('TokenRequest')
+    const importLine = out.split('\n').find((l) => l.startsWith('import type {'))
+    expect(importLine).toBeDefined()
+    expect(importLine).toContain('RevokeRequest')
+    expect(importLine).toContain('TokenRequest')
+  })
+
+  it('uses the $ref type name in the function body parameter', () => {
+    expect(out).toContain('postOauth2Revoke(body: RevokeRequest')
+    expect(out).toContain('postOauth2Token(body: TokenRequest')
+  })
+
+  it('emits form encoding for both operations', () => {
+    expect(out).toContain("bodyEncoding: 'form'")
+  })
+})

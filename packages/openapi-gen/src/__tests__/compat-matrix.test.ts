@@ -50,11 +50,11 @@ const KNOWN_TYPECHECK_FAILURES = new Set<string>([
   // confidence. With the gate now functional, these are the real, pre-existing
   // generator type-correctness gaps, tracked as follow-up issues:
   //
-  // Generated-helper / reserved-name collisions (#218):
-  'airflow', // TS2440 'getConfig' import conflicts with a generated local
-  'configcat', // TS2440 'getConfig' collision (+ cascade)
-  'box', // TS2769/TS2304 - operation name collision + unresolved name
-  'pinecone', // TS2345/TS2339 - spec redefines FetchRequest/FetchResponse names
+  // Resolved by #218 (removed from allowlist):
+  //   airflow    - TS2440 getConfig collision (operation renamed to getConfig_2)
+  //   configcat  - TS2440 getConfig collision (operation renamed to getConfig_2)
+  //   box        - TS2304 form-body types now imported + Blob for multipart binary
+  //   pinecone   - fetch collision (operation renamed to fetch_2)
   //
   // Unresolved / misnamed nested type references (#220):
   'brex', // TS2305 models.ts missing 'Company'/'Schema'
