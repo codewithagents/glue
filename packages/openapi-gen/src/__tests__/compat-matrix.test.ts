@@ -56,19 +56,11 @@ const KNOWN_TYPECHECK_FAILURES = new Set<string>([
   //   box        - TS2304 form-body types now imported + Blob for multipart binary
   //   pinecone   - fetch collision (operation renamed to fetch_2)
   //
-  // Partially resolved by #220 (clevercloud, clicksend, codat_banking, jira,
-  // medium now emit + reference nested/inline types consistently and were removed).
-  //
-  // Remaining: non-component path-based $ref resolution (#220 tail). These specs
-  // reference inline schemas via pointers like #/paths/~1.../schema/properties/x
-  // whose last-segment names (Company/Schema/_0/Items/...) are never emitted as
-  // declarations. Resolving non-component pointer $refs needs a resolver
-  // enhancement, disproportionate for this pass - tracked in #220.
-  'brex', // TS2305 path-$ref 'Company'/'Schema' not emitted
-  'digitalocean', // TS2305 path-$ref 'Items'/'Schema'/'_0' not emitted
-  'codat_accounting', // TS2304 path-$ref 'accountId'/'Currency' not emitted
-  'dnd5e', // TS2304 path-$ref 'Items' not emitted
-  'linode', // TS2304/TS2305 path-$ref 'Filesystem'/'AllowList'/'Rules' not emitted
+  // Fully resolved by #220: non-component path-based $ref resolution. Deep refs
+  // (pointers like #/paths/~1.../schema/properties/x and #/components/schemas/
+  // Foo/properties/bar) whose last-segment names were never emitted as
+  // declarations are now resolved via resolveJsonPointer and inlined. The
+  // allowlist is intentionally empty: every matrix spec must typecheck.
 ])
 
 type SpecCase = { name: string; specPath: string }
