@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.0](https://github.com/codewithagents/openapi-zod-ts/compare/api-errors-v1.0.6...api-errors-v1.1.0) (2026-06-01)
+
+
+### Features
+
+* **api-errors:** support violations/invalid-params/JSON:API/Laravel shapes + matched signal, global errors, message resolver ([#187](https://github.com/codewithagents/openapi-zod-ts/issues/187)) ([#226](https://github.com/codewithagents/openapi-zod-ts/issues/226)) ([2af2cb1](https://github.com/codewithagents/openapi-zod-ts/commit/2af2cb16cbccc90046c2077d176fe1b5a2944e76))
+
 ## [1.0.6](https://github.com/codewithagents/openapi-zod-ts/compare/api-errors-v1.0.5...api-errors-v1.0.6) (2026-05-31)
 
 

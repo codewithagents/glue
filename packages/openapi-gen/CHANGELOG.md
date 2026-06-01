@@ -1,5 +1,14 @@
 # Changelog
 
+## [4.6.1](https://github.com/codewithagents/openapi-zod-ts/compare/openapi-gen-v4.6.0...openapi-gen-v4.6.1) (2026-06-01)
+
+
+### Bug Fixes
+
+* **openapi-gen:** coerce non-string header values to string in generated client ([#221](https://github.com/codewithagents/openapi-zod-ts/issues/221)) ([#230](https://github.com/codewithagents/openapi-zod-ts/issues/230)) ([665d777](https://github.com/codewithagents/openapi-zod-ts/commit/665d7776c0fc99f303150328a0bb0e40076c6d4e))
+* **openapi-gen:** de-duplicate colliding generated type & param identifiers ([#219](https://github.com/codewithagents/openapi-zod-ts/issues/219)) ([#229](https://github.com/codewithagents/openapi-zod-ts/issues/229)) ([f740caf](https://github.com/codewithagents/openapi-zod-ts/commit/f740cafc5cbb9fa03955ab536688bd181586f32b))
+* **openapi-gen:** protect client-internal names from spec collisions + import form-body types ([#218](https://github.com/codewithagents/openapi-zod-ts/issues/218)) ([#231](https://github.com/codewithagents/openapi-zod-ts/issues/231)) ([f4defe0](https://github.com/codewithagents/openapi-zod-ts/commit/f4defe0683075e4d012753bb8aec24f6a4cdd989))
+
 ## [4.6.0](https://github.com/codewithagents/openapi-zod-ts/compare/openapi-gen-v4.5.0...openapi-gen-v4.6.0) (2026-06-01)
 
 
