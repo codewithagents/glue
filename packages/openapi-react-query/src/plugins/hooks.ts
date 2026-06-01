@@ -212,6 +212,114 @@ function buildKeyFactory(resource: string, entries: KeyEntry[]): string {
   return lines.join('\n')
 }
 
+// ── queryOptions factory generation ───────────────────────────────────────────
+
+/**
+ * Derives the factory function name for a GET operation.
+ * e.g. funcName "listTasks" -> "listTasksQueryOptions"
+ */
+function queryOptionsFuncName(funcName: string): string {
+  return `${funcName}QueryOptions`
+}
+
+/**
+ * Builds the queryKey call string used in both the factory and the hooks.
+ * Path params are assumed to already be non-null (the hook widens them and
+ * applies an enabled guard, but the factory receives plain non-null strings).
+ */
+function buildQueryKeyCall(
+  keyFactoryName: string,
+  keyEntry: KeyEntry,
+  pathParams: string[],
+  hasQueryParams: boolean,
+  nonNullPathParams: boolean
+): string {
+  const suffix = nonNullPathParams ? '!' : ''
+
+  if (pathParams.length === 0 && hasQueryParams) {
+    return `${keyFactoryName}.${keyEntry.key}(params)`
+  }
+  if (pathParams.length === 0 && !hasQueryParams) {
+    return `${keyFactoryName}.${keyEntry.key}()`
+  }
+  if (pathParams.length === 1 && !hasQueryParams) {
+    return `${keyFactoryName}.${keyEntry.key}(${pathParams[0]}${suffix})`
+  }
+  if (pathParams.length === 1 && hasQueryParams) {
+    return `${keyFactoryName}.${keyEntry.key}(${pathParams[0]}${suffix}, params)`
+  }
+  if (!hasQueryParams) {
+    const paramValues = pathParams.map((p) => `${p}${suffix}`).join(', ')
+    return `${keyFactoryName}.${keyEntry.key}(${paramValues})`
+  }
+  // multiple path params + query params
+  const paramValues = pathParams.map((p) => `${p}${suffix}`).join(', ')
+  return `${keyFactoryName}.${keyEntry.key}(${paramValues}, params)`
+}
+
+/**
+ * Generates a plain queryOptions(...) factory for a GET operation.
+ * The factory is suitable for use in RSC / server-side prefetching:
+ *   await queryClient.prefetchQuery(listTasksQueryOptions(params))
+ */
+function buildQueryOptionsFactory(
+  op: OperationMeta,
+  keyFactoryName: string,
+  keyEntry: KeyEntry,
+  staleTime: number,
+  gcTime: number
+): string {
+  const lines: string[] = []
+
+  const hasQueryParams = keyEntry.hasQueryParams
+  const paramsRequired = keyEntry.hasRequiredQueryParams
+  const pathParams = op.pathParams
+
+  // Build parameter list (path params are plain strings here, no nullish widening)
+  const sigParts: string[] = []
+  for (const p of pathParams) {
+    sigParts.push(`${p}: string`)
+  }
+  if (hasQueryParams) {
+    const paramsToken = paramsRequired ? 'params' : 'params?'
+    sigParts.push(`${paramsToken}: Parameters<typeof ${op.funcName}>[${pathParams.length}]`)
+  }
+  sigParts.push(
+    `options?: Omit<UseQueryOptions<Awaited<ReturnType<typeof ${op.funcName}>>, ApiError>, 'queryKey' | 'queryFn'>`
+  )
+
+  const queryKeyCall = buildQueryKeyCall(
+    keyFactoryName,
+    keyEntry,
+    pathParams,
+    hasQueryParams,
+    false
+  )
+
+  const queryFnArgs: string[] = [...pathParams]
+  if (hasQueryParams) queryFnArgs.push('params')
+  const queryFnCall = `${op.funcName}(${queryFnArgs.join(', ')})`
+
+  const factoryName = queryOptionsFuncName(op.funcName)
+
+  if (op.deprecated) {
+    lines.push(`/** @deprecated */`)
+  }
+  lines.push(`export function ${factoryName}(`)
+  lines.push(`  ${sigParts.join(',\n  ')},`)
+  lines.push(`) {`)
+  lines.push(`  return queryOptions<Awaited<ReturnType<typeof ${op.funcName}>>, ApiError>({`)
+  lines.push(`    queryKey: ${queryKeyCall},`)
+  lines.push(`    queryFn: () => ${queryFnCall},`)
+  lines.push(`    staleTime: ${staleTime},`)
+  lines.push(`    gcTime: ${gcTime},`)
+  lines.push(`    ...options,`)
+  lines.push(`  })`)
+  lines.push(`}`)
+
+  return lines.join('\n')
+}
+
 // ── Query hook generation ──────────────────────────────────────────────────────
 
 function buildQueryHook(
@@ -242,26 +350,8 @@ function buildQueryHook(
     `options?: Omit<UseQueryOptions<Awaited<ReturnType<typeof ${op.funcName}>>, ApiError>, 'queryKey' | 'queryFn'>`
   )
 
-  // Build queryKey call — use non-null assertions since enabled guard ensures non-null at runtime
-  let queryKeyCall: string
-  if (pathParams.length === 0 && hasQueryParams) {
-    queryKeyCall = `${keyFactoryName}.${keyEntry.key}(params)`
-  } else if (pathParams.length === 0 && !hasQueryParams) {
-    queryKeyCall = `${keyFactoryName}.${keyEntry.key}()`
-  } else if (pathParams.length === 1 && !hasQueryParams) {
-    queryKeyCall = `${keyFactoryName}.${keyEntry.key}(${pathParams[0]}!)`
-  } else if (pathParams.length === 1 && hasQueryParams) {
-    // path param + query params
-    queryKeyCall = `${keyFactoryName}.${keyEntry.key}(${pathParams[0]}!, params)`
-  } else if (!hasQueryParams) {
-    // multiple path params, no query params
-    const paramValues = pathParams.map((p) => `${p}!`).join(', ')
-    queryKeyCall = `${keyFactoryName}.${keyEntry.key}(${paramValues})`
-  } else {
-    // multiple path params + query params
-    const paramValues = pathParams.map((p) => `${p}!`).join(', ')
-    queryKeyCall = `${keyFactoryName}.${keyEntry.key}(${paramValues}, params)`
-  }
+  // Build queryKey call (with non-null assertions for path params, since hook has enabled guard)
+  const queryKeyCall = buildQueryKeyCall(keyFactoryName, keyEntry, pathParams, hasQueryParams, true)
 
   // Build queryFn call — use non-null assertions
   let queryFnArgs: string[] = pathParams.map((p) => `${p}!`)
@@ -321,23 +411,14 @@ function buildSuspenseQueryHook(
     `options?: Omit<UseSuspenseQueryOptions<Awaited<ReturnType<typeof ${op.funcName}>>, ApiError>, 'queryKey' | 'queryFn'>`
   )
 
-  // Build queryKey call
-  let queryKeyCall: string
-  if (pathParams.length === 0 && hasQueryParams) {
-    queryKeyCall = `${keyFactoryName}.${keyEntry.key}(params)`
-  } else if (pathParams.length === 0 && !hasQueryParams) {
-    queryKeyCall = `${keyFactoryName}.${keyEntry.key}()`
-  } else if (pathParams.length === 1 && !hasQueryParams) {
-    queryKeyCall = `${keyFactoryName}.${keyEntry.key}(${pathParams[0]})`
-  } else if (pathParams.length === 1 && hasQueryParams) {
-    queryKeyCall = `${keyFactoryName}.${keyEntry.key}(${pathParams[0]}, params)`
-  } else if (!hasQueryParams) {
-    const paramValues = pathParams.join(', ')
-    queryKeyCall = `${keyFactoryName}.${keyEntry.key}(${paramValues})`
-  } else {
-    const paramValues = pathParams.join(', ')
-    queryKeyCall = `${keyFactoryName}.${keyEntry.key}(${paramValues}, params)`
-  }
+  // Build queryKey call (no non-null assertions — suspense params are always required strings)
+  const queryKeyCall = buildQueryKeyCall(
+    keyFactoryName,
+    keyEntry,
+    pathParams,
+    hasQueryParams,
+    false
+  )
 
   // Build queryFn call
   const queryFnArgs: string[] = [...pathParams]
@@ -744,7 +825,8 @@ export function generateHooks(
     keyFactoryBlocks.push(buildKeyFactory(resource, entries))
   }
 
-  // Build query hooks (and suspense variants if enabled)
+  // Build queryOptions factories and query hooks (and suspense variants if enabled)
+  const queryOptionsBlocks: string[] = []
   const queryHookBlocks: string[] = []
   for (const op of getOps) {
     const info = opToKeyInfo.get(op.funcName)
@@ -754,6 +836,9 @@ export function generateHooks(
     const resourceOverride = options.overrides?.[resource]
     const effectiveStaleTime = resourceOverride?.staleTime ?? staleTime
     const effectiveGcTime = resourceOverride?.gcTime ?? gcTime
+    queryOptionsBlocks.push(
+      buildQueryOptionsFactory(op, factoryName, keyEntry, effectiveStaleTime, effectiveGcTime)
+    )
     queryHookBlocks.push(
       buildQueryHook(op, factoryName, keyEntry, effectiveStaleTime, effectiveGcTime)
     )
@@ -792,11 +877,13 @@ export function generateHooks(
   }
 
   // Determine which react-query exports to import
+  const needsQueryOptions = getOps.length > 0
   const needsUseQuery = getOps.length > 0
   const needsUseMutation = mutationOps.length > 0
   const needsUseSuspenseQuery = suspense && getOps.length > 0
   const needsUseQueryClient = autoInvalidate && needsUseMutation
   const rqImports: string[] = []
+  if (needsQueryOptions) rqImports.push('queryOptions')
   if (needsUseQuery) rqImports.push('useQuery', 'type UseQueryOptions')
   if (needsUseSuspenseQuery) rqImports.push('useSuspenseQuery', 'type UseSuspenseQueryOptions')
   if (needsUseMutation) rqImports.push('useMutation', 'type UseMutationOptions')
@@ -823,6 +910,13 @@ export function generateHooks(
     lines.push('// ── Query key factories ──────────────────────────────────────')
     lines.push('')
     lines.push(keyFactoryBlocks.join('\n\n'))
+    lines.push('')
+  }
+
+  if (queryOptionsBlocks.length > 0) {
+    lines.push('// ── Query options factories ──────────────────────────────────')
+    lines.push('')
+    lines.push(queryOptionsBlocks.join('\n\n'))
     lines.push('')
   }
 
