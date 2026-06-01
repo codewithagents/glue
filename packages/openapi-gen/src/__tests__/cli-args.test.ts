@@ -34,6 +34,7 @@ describe('parseCliArgs', () => {
         action: 'run',
         configFile: resolve(fakeCwd, 'config.json'),
         cwd: dirname(resolve(fakeCwd, 'config.json')),
+        watch: false,
       })
     })
 
@@ -43,6 +44,7 @@ describe('parseCliArgs', () => {
         action: 'run',
         configFile: '/abs/path/config.json',
         cwd: '/abs/path',
+        watch: false,
       })
     })
 
@@ -68,7 +70,7 @@ describe('parseCliArgs', () => {
   describe('bare invocation (no flags)', () => {
     it('returns run action with cwd and no configFile when no args given', () => {
       const result = parseCliArgs([...baseArgv], fakeCwd)
-      expect(result).toEqual({ action: 'run', cwd: fakeCwd })
+      expect(result).toEqual({ action: 'run', cwd: fakeCwd, watch: false })
     })
 
     it('configFile is undefined when no --config flag', () => {

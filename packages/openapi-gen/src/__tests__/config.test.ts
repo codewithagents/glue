@@ -95,24 +95,22 @@ describe('loadConfig', () => {
     expect(config.output).toBe('src/api')
   })
 
-  it('rejects explicit configPath that is not .json', async () => {
+  it('rejects explicit configPath that is not a supported extension', async () => {
     const configFile = join(tmpDir, 'config.ts')
     writeFileSync(configFile, JSON.stringify({ input_openapi: 'openapi.json', output: 'src/api' }))
-    await expect(loadConfig(tmpDir, configFile)).rejects.toThrow('Config file must be a .json file')
+    await expect(loadConfig(tmpDir, configFile)).rejects.toThrow('Config file must be a .json')
   })
 })
 
 describe('config security validation', () => {
   describe('validateConfigPath', () => {
-    it('rejects non-.json config file extension', () => {
-      expect(() => validateConfigPath('/project/config.ts')).toThrow(
-        'Config file must be a .json file'
-      )
+    it('rejects non-supported config file extension (.ts)', () => {
+      expect(() => validateConfigPath('/project/config.ts')).toThrow('Config file must be a .json')
     })
 
     it('rejects .yaml extension', () => {
       expect(() => validateConfigPath('/project/config.yaml')).toThrow(
-        'Config file must be a .json file'
+        'Config file must be a .json'
       )
     })
 
@@ -122,6 +120,18 @@ describe('config security validation', () => {
 
     it('accepts nested .json path', () => {
       expect(() => validateConfigPath('/Users/someone/project/my-tool.config.json')).not.toThrow()
+    })
+
+    it('accepts .js extension', () => {
+      expect(() => validateConfigPath('/project/openapi-gen.config.js')).not.toThrow()
+    })
+
+    it('accepts .mjs extension', () => {
+      expect(() => validateConfigPath('/project/openapi-gen.config.mjs')).not.toThrow()
+    })
+
+    it('accepts .cjs extension', () => {
+      expect(() => validateConfigPath('/project/openapi-gen.config.cjs')).not.toThrow()
     })
   })
 
