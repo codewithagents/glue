@@ -167,7 +167,7 @@ export async function createTask(
 }
 
 export async function uploadTaskAttachment(
-  body: { file: File | Blob; label?: string },
+  body: { file: Blob; label?: string },
   config?: Partial<ClientConfig>
 ): Promise<Task> {
   const formData = new FormData()

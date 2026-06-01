@@ -538,7 +538,11 @@ function getRequestBodyInfo(operation: OperationObject): RequestBodyInfo | undef
             const fs = fieldSchema as SchemaObject
             if (fs.format === 'binary') {
               isBinary = true
-              tsType = 'File | Blob'
+              // Use Blob (not File | Blob): Blob is a safe global that is never
+              // shadowed by spec-defined schema names. DOM File extends Blob, so
+              // callers can still pass File objects. Using File directly risks a
+              // collision when the spec defines a schema also named "File" (e.g. box).
+              tsType = 'Blob'
             } else {
               tsType = primitiveToTs(fs.type as string | undefined)
             }
@@ -1337,7 +1341,31 @@ export function generateClient(spec: OpenAPIV3_1.Document, options?: ClientOptio
   let hasHeaderParamEndpoints = false
   let hasAnyEndpoints = false
   const functionBlocks: string[] = []
-  const usedFuncNames = new Set<string>()
+
+  // Pre-seed used names with client-internal identifiers so that spec-derived
+  // operation names cannot collide with them. Any spec operation whose sanitized
+  // name matches a reserved identifier will receive a numeric suffix (_2, _3…).
+  //
+  // Reserved because they are defined/imported at file scope in the generated output:
+  //   getConfig   - imported from ./client-config.js, called inside every request helper
+  //   fetch       - global built-in used in _request; typeof fetch drives _FetchResponse
+  //   ApiError    - exported class defined in the same file
+  //   ClientConfig - re-exported type from ./client-config.js
+  //   _request    - private helper (underscore prefix, included for completeness)
+  //   _requestForm - private helper
+  //   _buildSignal - private helper
+  //   _FetchResponse - private type alias
+  const CLIENT_INTERNAL_NAMES = new Set([
+    'getConfig',
+    'fetch',
+    'ApiError',
+    'ClientConfig',
+    '_request',
+    '_requestForm',
+    '_buildSignal',
+    '_FetchResponse',
+  ])
+  const usedFuncNames = new Set<string>(CLIENT_INTERNAL_NAMES)
 
   if (paths !== undefined) {
     for (const [path, pathItem] of Object.entries(paths)) {
@@ -1377,9 +1405,11 @@ export function generateClient(spec: OpenAPIV3_1.Document, options?: ClientOptio
 
         // Collect type names for import — only simple schema identifiers (e.g. "Task"),
         // never inline type expressions (e.g. "Record<string, unknown>") or primitives.
+        // Both JSON and form-urlencoded bodies may reference a named schema type that
+        // must be imported from ./models.js (e.g. a $ref schema used as the form body).
         if (
           bodyInfo !== undefined &&
-          bodyInfo.kind === 'json' &&
+          (bodyInfo.kind === 'json' || bodyInfo.kind === 'form') &&
           isImportableType(bodyInfo.typeName)
         ) {
           collectedTypeNames.add(bodyInfo.typeName)
