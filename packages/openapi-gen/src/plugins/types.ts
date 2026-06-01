@@ -5,6 +5,8 @@ import {
   buildWritableVariantMap,
   readShapeProperties,
   writeShapeProperties,
+  filterAllOfMembersForRead,
+  effectiveWriteProperties,
 } from '../utils/writable-variants.js'
 
 export interface GeneratedFile {
@@ -367,6 +369,32 @@ function generateSchemaDeclaration(
   // Generating an interface here would only capture the sibling properties and silently
   // drop the allOf base types. schemaToTypeString handles the merge correctly.
   if (schema.allOf !== undefined && schema.allOf.length > 0) {
+    const writableName = writableVariantMap?.get(name)
+    if (writableName !== undefined) {
+      // Read shape: rebuild allOf with writeOnly properties removed from inline members.
+      const filteredMembers = filterAllOfMembersForRead(schema)
+      const readSchema: SchemaObject = { ...schema, allOf: filteredMembers }
+      const readTypeStr = schemaToTypeString(readSchema, renameMap, spec)
+      const readDecl = `export type ${safeName} = ${readTypeStr}`
+
+      // Write shape: flat interface with all effective write-shape properties.
+      // XWritable is always a plain TS interface (never z.infer).
+      const { props: writeProps, required: writeRequired } = effectiveWriteProperties(schema)
+      const writePropLines: string[] = []
+      for (const [key, propSchema] of Object.entries(writeProps)) {
+        const optional = !writeRequired.has(key)
+        const propKey = toPropertyKey(key)
+        const typStr = schemaToTypeString(propSchema, renameMap, spec)
+        const comment = isRef(propSchema) ? '' : formatComment(propSchema as SchemaObject)
+        writePropLines.push(`  ${propKey}${optional ? '?' : ''}: ${typStr}${comment}`)
+      }
+      const writableDecl =
+        writePropLines.length === 0
+          ? `export interface ${writableName} {}`
+          : `export interface ${writableName} {\n${writePropLines.join('\n')}\n}`
+
+      return `${readDecl}\n\n${writableDecl}`
+    }
     const typeStr = schemaToTypeString(schema, renameMap, spec)
     return `export type ${safeName} = ${typeStr}`
   }

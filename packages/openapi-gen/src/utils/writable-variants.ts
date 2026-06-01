@@ -62,8 +62,9 @@ function collectEffectiveProperties(
 function schemaHasSplitProperties(schema: SchemaObject | ReferenceObject): boolean {
   const props = collectEffectiveProperties(schema)
   return props.some(
-    (p) => (p.schema as SchemaObject & { readOnly?: boolean; writeOnly?: boolean }).readOnly === true ||
-    (p.schema as SchemaObject & { readOnly?: boolean; writeOnly?: boolean }).writeOnly === true
+    (p) =>
+      (p.schema as SchemaObject & { readOnly?: boolean; writeOnly?: boolean }).readOnly === true ||
+      (p.schema as SchemaObject & { readOnly?: boolean; writeOnly?: boolean }).writeOnly === true
   )
 }
 
@@ -100,8 +101,10 @@ export function buildWritableVariantMap(spec: OpenAPIV3_1.Document): Map<string,
 }
 
 /**
- * Filter a schema's properties for the read (response) shape.
+ * Filter a schema's direct properties for the read (response) shape.
  * Excludes properties where writeOnly === true.
+ * Use for plain object schemas (no allOf). For allOf schemas use
+ * filterAllOfMembersForRead / effectiveWriteProperties instead.
  */
 export function readShapeProperties(
   schema: SchemaObject
@@ -120,8 +123,10 @@ export function readShapeProperties(
 }
 
 /**
- * Filter a schema's properties for the write (request) shape.
+ * Filter a schema's direct properties for the write (request) shape.
  * Excludes properties where readOnly === true.
+ * Use for plain object schemas (no allOf). For allOf schemas use
+ * effectiveWriteProperties instead.
  */
 export function writeShapeProperties(
   schema: SchemaObject
@@ -137,4 +142,89 @@ export function writeShapeProperties(
     filtered[key] = propSchema
   }
   return filtered
+}
+
+/**
+ * Return a copy of the schema's allOf array with writeOnly properties removed
+ * from any inline (non-$ref) members. $ref members are kept unchanged.
+ * Used to rebuild the read-shape type string for allOf schemas.
+ */
+export function filterAllOfMembersForRead(
+  schema: SchemaObject
+): Array<SchemaObject | ReferenceObject> {
+  const allOf = schema.allOf as (SchemaObject | ReferenceObject)[] | undefined
+  if (allOf === undefined) return []
+  return allOf.map((member) => {
+    if (isRef(member)) return member
+    const m = member as SchemaObject
+    const memberProps = m.properties as Record<string, SchemaObject | ReferenceObject> | undefined
+    if (memberProps === undefined) return m
+    // Filter out writeOnly props from the inline member
+    const filtered: Record<string, SchemaObject | ReferenceObject> = {}
+    for (const [key, propSchema] of Object.entries(memberProps)) {
+      if (!isRef(propSchema)) {
+        const s = propSchema as SchemaObject & { writeOnly?: boolean }
+        if (s.writeOnly === true) continue
+      }
+      filtered[key] = propSchema
+    }
+    return { ...m, properties: filtered } as SchemaObject
+  })
+}
+
+/**
+ * Collect all effective write-shape properties for a schema.
+ * Covers direct properties PLUS inline allOf member properties, excluding readOnly ones.
+ * Returns a flat ordered map suitable for emitting a plain interface.
+ * Required is computed per-source: direct schema.required + per-allOf-member required.
+ */
+export function effectiveWriteProperties(schema: SchemaObject): {
+  props: Record<string, SchemaObject | ReferenceObject>
+  required: Set<string>
+} {
+  const result: Record<string, SchemaObject | ReferenceObject> = {}
+  const requiredSet = new Set<string>()
+
+  // Direct required + properties
+  const directReq = schema.required as string[] | undefined
+  if (directReq !== undefined) {
+    for (const r of directReq) requiredSet.add(r)
+  }
+  const directProps = schema.properties as
+    | Record<string, SchemaObject | ReferenceObject>
+    | undefined
+  if (directProps !== undefined) {
+    for (const [key, propSchema] of Object.entries(directProps)) {
+      if (!isRef(propSchema)) {
+        const s = propSchema as SchemaObject & { readOnly?: boolean }
+        if (s.readOnly === true) continue
+      }
+      result[key] = propSchema
+    }
+  }
+
+  // allOf inline member required + properties
+  const allOf = schema.allOf as (SchemaObject | ReferenceObject)[] | undefined
+  if (allOf !== undefined) {
+    for (const member of allOf) {
+      if (isRef(member)) continue
+      const m = member as SchemaObject
+      const memberReq = m.required as string[] | undefined
+      if (memberReq !== undefined) {
+        for (const r of memberReq) requiredSet.add(r)
+      }
+      const memberProps = m.properties as Record<string, SchemaObject | ReferenceObject> | undefined
+      if (memberProps !== undefined) {
+        for (const [key, propSchema] of Object.entries(memberProps)) {
+          if (!isRef(propSchema)) {
+            const s = propSchema as SchemaObject & { readOnly?: boolean }
+            if (s.readOnly === true) continue
+          }
+          result[key] = propSchema
+        }
+      }
+    }
+  }
+
+  return { props: result, required: requiredSet }
 }
