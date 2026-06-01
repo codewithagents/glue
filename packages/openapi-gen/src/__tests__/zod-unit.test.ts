@@ -813,3 +813,76 @@ describe('prefixItems -> z.tuple()', () => {
     expect(out).toContain('z.tuple([PointSchema, PointSchema])')
   })
 })
+
+describe('additionalProperties handling in zod', () => {
+  it('additionalProperties as inline primitive schema -> z.record(z.string(), z.string())', () => {
+    const out = genSingle('Labels', { type: 'object', additionalProperties: { type: 'string' } })
+    expect(out).toContain('z.record(z.string(), z.string())')
+    expect(out).not.toContain('[object Object]')
+  })
+
+  it('additionalProperties as inline array schema -> z.record(z.string(), z.array(...))', () => {
+    // Reproduces the docker PortMap bug: additionalProperties is an inline array schema with a $ref
+    const out = gen({
+      PortBinding: { type: 'object', properties: { HostPort: { type: 'string' } } },
+      PortMap: {
+        type: 'object',
+        additionalProperties: {
+          type: 'array',
+          items: { $ref: '#/components/schemas/PortBinding' },
+        },
+      },
+    })
+    expect(out).toContain('z.record(z.string(), z.array(PortBindingSchema))')
+    expect(out).not.toContain('[object Object]')
+  })
+
+  it('additionalProperties as $ref -> z.record(z.string(), ContainerSchema)', () => {
+    const out = gen({
+      Container: { type: 'object', properties: { id: { type: 'string' } } },
+      ContainerMap: {
+        type: 'object',
+        additionalProperties: { $ref: '#/components/schemas/Container' },
+      },
+    })
+    expect(out).toContain('z.record(z.string(), ContainerSchema)')
+    expect(out).not.toContain('[object Object]')
+  })
+
+  it('additionalProperties: true -> z.record(z.string(), z.unknown())', () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const out = genSingle('Loose', { type: 'object', additionalProperties: true } as any)
+    expect(out).toContain('z.record(z.string(), z.unknown())')
+  })
+
+  it('additionalProperties: false -> .strict() on object schema', () => {
+    const out = genSingle('Strict', {
+      type: 'object',
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      additionalProperties: false as any,
+      properties: { id: { type: 'string' } },
+    })
+    expect(out).toContain('.strict()')
+    // The file header comment always mentions .passthrough(); assert the schema
+    // body (non-comment lines) does not use it for an additionalProperties:false schema.
+    const body = out
+      .split('\n')
+      .filter((l) => !l.trim().startsWith('//'))
+      .join('\n')
+    expect(body).not.toContain('.passthrough()')
+  })
+
+  it('inline additionalProperties with object-enum values -> z.record containing z.unknown not [object Object]', () => {
+    // Reproduces the docker ContainerConfig.ExposedPorts bug:
+    // additionalProperties has enum: [{}] (empty object). String({}) was emitting [object Object].
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const out = genSingle('ExposedPorts', {
+      type: 'object',
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      additionalProperties: { type: 'object', enum: [{}] } as any,
+    })
+    expect(out).not.toContain('[object Object]')
+    // Non-primitive enum values widen to z.unknown(), present in the record value expression
+    expect(out).toContain('z.unknown()')
+  })
+})

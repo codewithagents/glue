@@ -210,12 +210,15 @@ function schemaToZod(schema: SchemaObject | ReferenceObject): string {
 
   // Mixed/number/integer enum -> z.union([z.literal(...), ...])
   // Must quote strings (JSON.stringify), leave numbers/null as-is.
+  // Non-primitive values (objects, arrays) cannot be expressed as Zod literals,
+  // so they are widened to z.unknown() to avoid emitting invalid syntax like z.literal([object Object]).
   if (schema.enum !== undefined && schema.enum.length > 0) {
     const literals = (schema.enum as unknown[])
       .map((v) => {
         if (typeof v === 'string') return `z.literal(${JSON.stringify(v)})`
         if (v === null) return `z.literal(null)`
-        return `z.literal(${String(v)})`
+        if (typeof v === 'number' || typeof v === 'boolean') return `z.literal(${String(v)})`
+        return 'z.unknown()' // object or array enum value - no valid Zod literal representation
       })
       .join(', ')
     return applyDefault(`z.union([${literals}])`, schema)

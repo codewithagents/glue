@@ -53,12 +53,15 @@ function schemaToTypeString(schema: SchemaObject | ReferenceObject): string {
   }
 
   // enum - handles string, integer, number, mixed (null values rendered as "null" literal)
+  // Non-primitive enum values (objects, arrays) cannot be expressed as TS literal types,
+  // so they are widened to 'unknown' to avoid emitting invalid syntax like [object Object].
   if (schema.enum !== undefined && schema.enum.length > 0) {
     return schema.enum
       .map((v: unknown) => {
         if (v === null) return 'null'
         if (typeof v === 'string') return JSON.stringify(v) // double-quotes, handles apostrophes safely
-        return String(v)
+        if (typeof v === 'number' || typeof v === 'boolean') return String(v)
+        return 'unknown' // object or array enum value - no valid TS literal representation
       })
       .join(' | ')
   }

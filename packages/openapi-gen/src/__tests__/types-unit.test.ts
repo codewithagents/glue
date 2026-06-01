@@ -606,3 +606,87 @@ describe('prefixItems -> TS tuple type', () => {
     expect(out).toContain('[string, ...number[]]')
   })
 })
+
+describe('additionalProperties handling in types', () => {
+  it('additionalProperties as inline primitive schema -> Record<string, string>', () => {
+    const out = genSingle('Labels', { type: 'object', additionalProperties: { type: 'string' } })
+    expect(out).toContain('Record<string, string>')
+    expect(out).not.toContain('[object Object]')
+  })
+
+  it('additionalProperties as inline array schema -> Record<string, T[]>', () => {
+    // Reproduces the docker PortMap bug: additionalProperties is an inline array schema with a $ref
+    const spec: OpenAPIV3_1.Document = {
+      openapi: '3.1.0',
+      info: { title: 'T', version: '1' },
+      paths: {},
+      components: {
+        schemas: {
+          PortBinding: { type: 'object', properties: { HostPort: { type: 'string' } } },
+          PortMap: {
+            type: 'object',
+            additionalProperties: {
+              type: 'array',
+              items: { $ref: '#/components/schemas/PortBinding' },
+            },
+          },
+        },
+      },
+    }
+    const out = generateTypes(spec).content
+    expect(out).toContain('Record<string, PortBinding[]>')
+    expect(out).not.toContain('[object Object]')
+  })
+
+  it('additionalProperties as $ref -> Record<string, RefType>', () => {
+    const spec: OpenAPIV3_1.Document = {
+      openapi: '3.1.0',
+      info: { title: 'T', version: '1' },
+      paths: {},
+      components: {
+        schemas: {
+          Container: { type: 'object', properties: { id: { type: 'string' } } },
+          ContainerMap: {
+            type: 'object',
+            additionalProperties: { $ref: '#/components/schemas/Container' },
+          },
+        },
+      },
+    }
+    const out = generateTypes(spec).content
+    expect(out).toContain('Record<string, Container>')
+    expect(out).not.toContain('[object Object]')
+  })
+
+  it('additionalProperties: true -> Record<string, unknown>', () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const out = genSingle('Loose', { type: 'object', additionalProperties: true } as any)
+    expect(out).toContain('Record<string, unknown>')
+  })
+
+  it('additionalProperties: false -> interface with no extra index signature (strict object)', () => {
+    const out = genSingle('Strict', {
+      type: 'object',
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      additionalProperties: false as any,
+      properties: { id: { type: 'string' } },
+    })
+    // Named property is present; no spurious [key: string] index signature for false
+    expect(out).toContain('id?:')
+    expect(out).not.toContain('[key:')
+  })
+
+  it('inline additionalProperties with object-enum values -> Record<string, unknown> not [object Object]', () => {
+    // Reproduces the docker ContainerConfig.ExposedPorts bug:
+    // additionalProperties has enum: [{}] (empty object). String({}) was emitting [object Object].
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const out = genSingle('ExposedPorts', {
+      type: 'object',
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      additionalProperties: { type: 'object', enum: [{}] } as any,
+    })
+    expect(out).not.toContain('[object Object]')
+    // Non-primitive enum values widen to unknown, so the Record value becomes unknown
+    expect(out).toContain('unknown')
+  })
+})
