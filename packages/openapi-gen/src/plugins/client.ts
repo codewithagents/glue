@@ -1059,6 +1059,25 @@ export function hasCookieAuth(spec: OpenAPIV3_1.Document): boolean {
   )
 }
 
+/**
+ * Returns a name that is unique within the provided set.
+ * If the candidate already exists, appends _2, _3, ... until a free slot is found.
+ * The chosen name is added to the set before returning.
+ */
+function uniquifyName(candidate: string, used: Set<string>): string {
+  if (!used.has(candidate)) {
+    used.add(candidate)
+    return candidate
+  }
+  let counter = 2
+  while (used.has(`${candidate}_${counter}`)) {
+    counter++
+  }
+  const unique = `${candidate}_${counter}`
+  used.add(unique)
+  return unique
+}
+
 export function generateClient(spec: OpenAPIV3_1.Document, options?: ClientOptions): GeneratedFile {
   const paths = spec.paths as Record<string, Record<string, OperationObject>> | undefined
 
@@ -1070,6 +1089,7 @@ export function generateClient(spec: OpenAPIV3_1.Document, options?: ClientOptio
   let hasHeaderParamEndpoints = false
   let hasAnyEndpoints = false
   const functionBlocks: string[] = []
+  const usedFuncNames = new Set<string>()
 
   if (paths !== undefined) {
     for (const [path, pathItem] of Object.entries(paths)) {
@@ -1079,13 +1099,14 @@ export function generateClient(spec: OpenAPIV3_1.Document, options?: ClientOptio
 
         hasAnyEndpoints = true
 
-        // Derive function name
+        // Derive function name and ensure it is unique across all operations.
         let funcName: string
         if (operation.operationId !== undefined) {
           funcName = sanitizeOperationId(operation.operationId)
         } else {
           funcName = deriveOperationName(method, path)
         }
+        funcName = uniquifyName(funcName, usedFuncNames)
 
         const pathParams = getPathParams(pathItem, operation, spec)
         const queryParams = getQueryParams(pathItem, operation, spec)
