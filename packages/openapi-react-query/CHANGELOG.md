@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.8.0](https://github.com/codewithagents/openapi-zod-ts/compare/openapi-react-query-v3.7.0...openapi-react-query-v3.8.0) (2026-06-01)
+
+
+### Features
+
+* **config:** shared config-core + JS config support for react-query/server ([#238](https://github.com/codewithagents/openapi-zod-ts/issues/238)) ([#239](https://github.com/codewithagents/openapi-zod-ts/issues/239)) ([b4559a9](https://github.com/codewithagents/openapi-zod-ts/commit/b4559a96bef3396dbd24ddfec0e2799ee93c7d9d))
+
 ## [3.7.0](https://github.com/codewithagents/openapi-zod-ts/compare/openapi-react-query-v3.6.1...openapi-react-query-v3.7.0) (2026-06-01)
 
 

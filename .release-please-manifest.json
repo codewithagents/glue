@@ -1,6 +1,6 @@
 {
   "packages/api-errors": "1.1.0",
-  "packages/openapi-gen": "4.7.0",
-  "packages/openapi-react-query": "3.7.0",
-  "packages/openapi-server": "1.4.0"
+  "packages/openapi-gen": "4.8.0",
+  "packages/openapi-react-query": "3.8.0",
+  "packages/openapi-server": "1.5.0"
 }
