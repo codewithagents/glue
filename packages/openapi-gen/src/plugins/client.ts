@@ -86,6 +86,14 @@ function queryParamType(schema: SchemaObject | ReferenceObject | undefined): str
   if (schema === undefined) return 'string'
   if (isRef(schema)) return 'string'
   const s = schema as SchemaObject
+  // 3.1 null-union form, e.g. type: ['string', 'null'] (a nullable query param).
+  // A query value is always serialized as a string, so render the underlying
+  // non-null primitive and drop the null member.
+  if (Array.isArray(s.type)) {
+    const nonNull = (s.type as string[]).filter((t) => t !== 'null')
+    if (nonNull.length === 1) return primitiveToTs(nonNull[0])
+    return 'string'
+  }
   if (s.type === 'array') {
     const items = (s as OpenAPIV3_1.ArraySchemaObject).items as SchemaObject | undefined
     if (items !== undefined && (items.type === 'integer' || items.type === 'number')) {
