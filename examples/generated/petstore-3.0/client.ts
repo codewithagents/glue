@@ -27,17 +27,19 @@ async function _request(
   },
   config?: Partial<ClientConfig>
 ): Promise<_FetchResponse> {
-  const { baseUrl, token, headers, onError } = { ...getConfig(), ...config }
+  const { baseUrl, token, apiKey, headers, onError } = { ...getConfig(), ...config }
+  const resolvedToken = typeof token === 'function' ? await token() : token
+  const resolvedApiKey = typeof apiKey === 'function' ? await apiKey() : apiKey
   const base = baseUrl ? baseUrl.replace(/\/$/, '') : ''
   const qs = opts.searchParams?.toString() ?? ''
   const url = qs ? `${base}${path}?${qs}` : `${base}${path}`
-  const resolvedToken = typeof token === 'function' ? await token() : token
   const res = await fetch(url, {
     method,
     headers: {
       ...(opts.body !== undefined ? { 'Content-Type': 'application/json' } : {}),
       ...headers,
       ...(resolvedToken ? { Authorization: `Bearer ${resolvedToken}` } : {}),
+      ...(resolvedApiKey ? { api_key: resolvedApiKey } : {}),
       ...opts.extraHeaders,
     },
     ...(opts.body !== undefined ? { body: JSON.stringify(opts.body) } : {}),

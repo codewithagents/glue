@@ -236,10 +236,10 @@ async function _request(
   config?: Partial<ClientConfig>
 ): Promise<_FetchResponse> {
   const { baseUrl, token, headers, onError } = { ...getConfig(), ...config }
+  const resolvedToken = typeof token === 'function' ? await token() : token
   const base = baseUrl ? baseUrl.replace(/\/$/, '') : ''
   const qs = opts.searchParams?.toString() ?? ''
   const url = qs ? `${base}${path}?${qs}` : `${base}${path}`
-  const resolvedToken = typeof token === 'function' ? await token() : token
   const res = await fetch(url, {
     method,
     headers: {
