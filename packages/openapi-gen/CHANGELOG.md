@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.8.0](https://github.com/codewithagents/openapi-zod-ts/compare/openapi-gen-v4.7.0...openapi-gen-v4.8.0) (2026-06-01)
+
+
+### Features
+
+* **config:** shared config-core + JS config support for react-query/server ([#238](https://github.com/codewithagents/openapi-zod-ts/issues/238)) ([#239](https://github.com/codewithagents/openapi-zod-ts/issues/239)) ([b4559a9](https://github.com/codewithagents/openapi-zod-ts/commit/b4559a96bef3396dbd24ddfec0e2799ee93c7d9d))
+
 ## [4.7.0](https://github.com/codewithagents/openapi-zod-ts/compare/openapi-gen-v4.6.1...openapi-gen-v4.7.0) (2026-06-01)
 
 
