@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.6.1](https://github.com/codewithagents/openapi-zod-ts/compare/openapi-react-query-v3.6.0...openapi-react-query-v3.6.1) (2026-06-01)
+
+
+### Bug Fixes
+
+* **openapi-gen:** de-duplicate colliding generated function names ([#182](https://github.com/codewithagents/openapi-zod-ts/issues/182)) ([#206](https://github.com/codewithagents/openapi-zod-ts/issues/206)) ([858d53c](https://github.com/codewithagents/openapi-zod-ts/commit/858d53c4b07d245d81c0e8c282149ac60987c8bf))
+
 ## [3.6.0](https://github.com/codewithagents/openapi-zod-ts/compare/openapi-react-query-v3.5.2...openapi-react-query-v3.6.0) (2026-06-01)
 
 

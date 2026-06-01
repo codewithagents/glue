@@ -1,5 +1,19 @@
 # Changelog
 
+## [4.5.0](https://github.com/codewithagents/openapi-zod-ts/compare/openapi-gen-v4.4.0...openapi-gen-v4.5.0) (2026-06-01)
+
+
+### Features
+
+* **openapi-gen:** handle int64/bigint, zod v4 validators, default/const/strict/tuple keywords ([#185](https://github.com/codewithagents/openapi-zod-ts/issues/185)) ([#210](https://github.com/codewithagents/openapi-zod-ts/issues/210)) ([78c6922](https://github.com/codewithagents/openapi-zod-ts/commit/78c6922ac6ff68d60a76ec8e23f6d7a86157a392))
+
+
+### Bug Fixes
+
+* **openapi-gen:** de-duplicate colliding generated function names ([#182](https://github.com/codewithagents/openapi-zod-ts/issues/182)) ([#206](https://github.com/codewithagents/openapi-zod-ts/issues/206)) ([858d53c](https://github.com/codewithagents/openapi-zod-ts/commit/858d53c4b07d245d81c0e8c282149ac60987c8bf))
+* **openapi-gen:** merge allOf siblings and required arrays ([#184](https://github.com/codewithagents/openapi-zod-ts/issues/184)) ([#207](https://github.com/codewithagents/openapi-zod-ts/issues/207)) ([ede8dc4](https://github.com/codewithagents/openapi-zod-ts/commit/ede8dc4f979c4f2232d0268b639658bcadf5331a))
+* **openapi-gen:** support apiKey header/query and basic auth schemes ([#183](https://github.com/codewithagents/openapi-zod-ts/issues/183)) ([#213](https://github.com/codewithagents/openapi-zod-ts/issues/213)) ([7ca44ec](https://github.com/codewithagents/openapi-zod-ts/commit/7ca44ec72ebd39b8ec48c112bd1dd52ca8fce07d))
+
 ## [4.4.0](https://github.com/codewithagents/openapi-zod-ts/compare/openapi-gen-v4.3.2...openapi-gen-v4.4.0) (2026-06-01)
 
 
