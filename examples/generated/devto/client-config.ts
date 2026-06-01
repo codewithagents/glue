@@ -9,6 +9,11 @@ export interface ClientConfig {
    */
   token?: string | (() => string | Promise<string>)
   /**
+   * API key or a function that returns one.
+   * Sent as header 'api-key' on every request.
+   */
+  apiKey?: string | (() => string | Promise<string>)
+  /**
    * Fetch credentials mode. Use 'include' for cookie-based auth.
    * Defaults to 'same-origin'.
    */
@@ -16,7 +21,7 @@ export interface ClientConfig {
   /** Additional headers sent with every request */
   headers?: Record<string, string>
   /**
-   * Global error hook — called with every non-2xx response error before it is
+   * Global error hook called with every non-2xx response error before it is
    * thrown. Use for logging, monitoring, or triggering auth refresh flows.
    *
    * @example

@@ -9,6 +9,20 @@ export interface ClientConfig {
    */
   token?: string | (() => string | Promise<string>)
   /**
+   * HTTP Basic credentials or a function that returns them.
+   * When provided, adds `Authorization: Basic <base64(username:password)>` to every request.
+   */
+  basicAuth?:
+    | { username: string; password: string }
+    | (() =>
+        | { username: string; password: string }
+        | Promise<{ username: string; password: string }>)
+  /**
+   * API key or a function that returns one.
+   * Sent as header 'X-API-Key' on every request.
+   */
+  apiKey?: string | (() => string | Promise<string>)
+  /**
    * Fetch credentials mode. Use 'include' for cookie-based auth.
    * Defaults to 'same-origin'.
    */
@@ -16,7 +30,7 @@ export interface ClientConfig {
   /** Additional headers sent with every request */
   headers?: Record<string, string>
   /**
-   * Global error hook — called with every non-2xx response error before it is
+   * Global error hook called with every non-2xx response error before it is
    * thrown. Use for logging, monitoring, or triggering auth refresh flows.
    *
    * @example

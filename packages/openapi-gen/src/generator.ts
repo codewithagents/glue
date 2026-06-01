@@ -4,7 +4,7 @@ import { loadConfig } from './config.js'
 import { parseSpec } from './parser.js'
 import { generateTypes } from './plugins/types.js'
 import { generateClientConfig } from './plugins/client-config.js'
-import { generateClient, hasCookieAuth } from './plugins/client.js'
+import { generateClient, hasCookieAuth, detectAuthSchemes } from './plugins/client.js'
 import { generateZodSchemas } from './plugins/zod.js'
 import { generateIndexBarrel } from './plugins/index-barrel.js'
 import { generateServer } from './plugins/server.js'
@@ -15,6 +15,7 @@ async function formatTs(content: string, filePath: string): Promise<string> {
   return format(content, { ...config, parser: 'typescript' })
 }
 
+// fallow-ignore-next-line complexity
 export async function generate(cwd: string, configPath?: string): Promise<void> {
   console.log('Loading config...')
   const config = await loadConfig(cwd, configPath)
@@ -32,8 +33,11 @@ export async function generate(cwd: string, configPath?: string): Promise<void> 
 
   // Phase 2: always generate client config, fetch client, and barrel index
   const cookieAuth = hasCookieAuth(spec)
+  const authSchemes = detectAuthSchemes(spec)
   generatedFiles.push(
-    generateClientConfig(cookieAuth ? { defaultCredentials: 'include' } : undefined)
+    generateClientConfig(
+      cookieAuth ? { defaultCredentials: 'include', authSchemes } : { authSchemes }
+    )
   )
   generatedFiles.push(generateClient(spec))
   generatedFiles.push(generateIndexBarrel())

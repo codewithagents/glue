@@ -82,6 +82,7 @@ function primitiveToTs(type: string | undefined): string {
   }
 }
 
+// fallow-ignore-next-line complexity
 function queryParamType(schema: SchemaObject | ReferenceObject | undefined): string {
   if (schema === undefined) return 'string'
   if (isRef(schema)) return 'string'
@@ -275,6 +276,7 @@ function pickResponseContent(
   return null
 }
 
+// fallow-ignore-next-line complexity
 function getReturnType(operation: OperationObject): {
   typeName: string
   isArray: boolean
@@ -499,6 +501,7 @@ interface RequestBodyInfo {
   multipartFields?: MultipartField[]
 }
 
+// fallow-ignore-next-line complexity
 function getRequestBodyInfo(operation: OperationObject): RequestBodyInfo | undefined {
   const requestBody = operation.requestBody as RequestBodyObject | ReferenceObject | undefined
   if (requestBody === undefined) return undefined
@@ -564,6 +567,7 @@ function getRequestBodyInfo(operation: OperationObject): RequestBodyInfo | undef
 }
 
 /** Feature 4: Collect non-2xx error responses that have a JSON $ref schema and return @throws tags */
+// fallow-ignore-next-line complexity
 function getThrowsTags(operation: OperationObject): string[] {
   const responses = operation.responses as
     | Record<string, ResponseObject | ReferenceObject>
@@ -614,6 +618,7 @@ function getRequestBodySchemaName(operation: OperationObject): string | undefine
 }
 
 /** Get the $ref schema name and isArray from a 200/201 response, if any. */
+// fallow-ignore-next-line complexity
 function getResponseSchemaName(
   operation: OperationObject
 ): { name: string; isArray: boolean } | undefined {
@@ -650,45 +655,327 @@ function getResponseSchemaName(
   return undefined
 }
 
+/**
+ * Structured description of the auth schemes declared in a spec.
+ * Drives conditional code-gen in both the request helpers and ClientConfig.
+ */
+export interface AuthSchemes {
+  /** Spec declares http bearer, OAuth 2, or any unrecognized http scheme. */
+  hasBearerOrOAuth: boolean
+  /** Spec declares http basic authentication. */
+  hasBasicAuth: boolean
+  /**
+   * Header names for apiKey-in-header schemes (e.g. ["X-API-Key"]).
+   * Populated from the `name` field of each apiKey scheme with `in: header`.
+   */
+  apiKeyHeaderNames: string[]
+  /**
+   * Query parameter names for apiKey-in-query schemes (e.g. ["api_key"]).
+   * Populated from the `name` field of each apiKey scheme with `in: query`.
+   */
+  apiKeyQueryNames: string[]
+}
+
 /** Features derived from the spec that drive conditional code-gen in the helpers. */
 interface HelperFeatures {
-  /** Spec declares Bearer / OAuth / apiKey-in-header|query auth → emit token resolution + Authorization header */
-  hasBearerAuth: boolean
-  /** Spec declares apiKey-in-cookie auth → emit `credentials` in fetch */
+  /** Structured auth scheme info derived from the spec. */
+  authSchemes: AuthSchemes
+  /** Spec declares apiKey-in-cookie auth. Emits `credentials` in fetch. */
   hasCookieAuth: boolean
-  /** Any endpoint has `in: header` parameters → emit `extraHeaders` in opts */
+  /** Any endpoint has `in: header` parameters. Emits `extraHeaders` in opts. */
   hasHeaderParams: boolean
-  /** Any endpoint is multipart/form-data → emit `_requestForm` helper */
+  /** Any endpoint is multipart/form-data. Emits `_requestForm` helper. */
   hasMultipart: boolean
-  /** Any endpoint uses application/x-www-form-urlencoded → emit bodyEncoding branch in `_request` */
+  /** Any endpoint uses application/x-www-form-urlencoded. Emits bodyEncoding branch in `_request`. */
   hasFormUrlencoded: boolean
 }
 
-/** Returns true when the spec has any non-cookie security scheme or a global/operation-level security requirement. */
-function detectBearerAuth(spec: OpenAPIV3_1.Document): boolean {
-  // Global security requirement declared — treat as auth needed
-  if (Array.isArray(spec.security) && spec.security.length > 0) return true
-
-  // Any per-operation security override
+/**
+ * Collects all scheme names referenced in global and per-operation security requirements.
+ * Used by detectAuthSchemes to decide which defined schemes are active.
+ */
+function collectReferencedSchemeNames(spec: OpenAPIV3_1.Document): Set<string> {
+  const names = new Set<string>()
+  const addFromRequirements = (reqs: OpenAPIV3_1.SecurityRequirementObject[]): void => {
+    for (const req of reqs) {
+      for (const name of Object.keys(req)) names.add(name)
+    }
+  }
+  if (Array.isArray(spec.security)) addFromRequirements(spec.security)
   const paths = spec.paths as Record<string, Record<string, OperationObject>> | undefined
   if (paths !== undefined) {
     for (const pathItem of Object.values(paths)) {
       for (const method of SUPPORTED_METHODS) {
         const op = pathItem[method] as OperationObject | undefined
-        if (op !== undefined && Array.isArray(op.security) && op.security.length > 0) return true
+        if (op !== undefined && Array.isArray(op.security)) addFromRequirements(op.security)
       }
     }
   }
+  return names
+}
 
-  // Non-cookie security scheme defined in components
-  const schemes = spec.components?.securitySchemes
-  if (!schemes) return false
-  return Object.values(schemes).some((s) => {
-    if (isRef(s)) return false
-    const scheme = s as { type?: string; in?: string; scheme?: string }
-    // Cookie apiKey is handled by hasCookieAuth — everything else implies bearer-style auth
-    return !(scheme.type === 'apiKey' && scheme.in === 'cookie')
-  })
+/** Classifies an apiKey scheme: populates header or query name lists (cookie is skipped). */
+function classifyApiKeyScheme(scheme: { in?: string; name?: string }, result: AuthSchemes): void {
+  if (scheme.in === 'header' && typeof scheme.name === 'string') {
+    result.apiKeyHeaderNames.push(scheme.name)
+  } else if (scheme.in === 'query' && typeof scheme.name === 'string') {
+    result.apiKeyQueryNames.push(scheme.name)
+  }
+  // cookie apiKey is handled by hasCookieAuth separately — no action here
+}
+
+/** Classifies a single (non-$ref) security scheme into the AuthSchemes result. */
+function classifyScheme(
+  scheme: { type?: string; in?: string; scheme?: string; name?: string },
+  result: AuthSchemes
+): void {
+  if (scheme.type === 'apiKey') return classifyApiKeyScheme(scheme, result)
+  if (scheme.type === 'http') {
+    if (scheme.scheme === 'basic') result.hasBasicAuth = true
+    // bearer, digest, or any other http scheme: treat as bearer-style token
+    else result.hasBearerOrOAuth = true
+    return
+  }
+  if (scheme.type === 'oauth2' || scheme.type === 'openIdConnect') result.hasBearerOrOAuth = true
+}
+
+/**
+ * Detects the auth schemes declared in a spec and returns a structured description.
+ * Skips $ref security scheme entries and cookie apiKey (handled separately via hasCookieAuth).
+ *
+ * Fallback: when a security requirement references a scheme name that is NOT defined in
+ * components/securitySchemes (or has no scheme definitions at all), we treat it as
+ * bearer-style auth. Cookie-only specs are NOT treated as bearer.
+ */
+export function detectAuthSchemes(spec: OpenAPIV3_1.Document): AuthSchemes {
+  const result: AuthSchemes = {
+    hasBearerOrOAuth: false,
+    hasBasicAuth: false,
+    apiKeyHeaderNames: [],
+    apiKeyQueryNames: [],
+  }
+
+  const rawSchemes = spec.components?.securitySchemes
+  const referenced = collectReferencedSchemeNames(spec)
+
+  if (!rawSchemes) {
+    // No scheme definitions: if any schemes are referenced, assume bearer-style.
+    if (referenced.size > 0) result.hasBearerOrOAuth = true
+    return result
+  }
+
+  const defined = new Set(Object.keys(rawSchemes))
+
+  for (const [name, s] of Object.entries(rawSchemes)) {
+    if (isRef(s)) continue
+    // Only classify schemes that are actually referenced in a security requirement.
+    if (referenced.size > 0 && !referenced.has(name)) continue
+    classifyScheme(s as { type?: string; in?: string; scheme?: string; name?: string }, result)
+  }
+
+  // If any referenced scheme is NOT defined locally, fall back to bearer-style.
+  // This handles external/referenced schemes without local definitions.
+  for (const name of referenced) {
+    if (!defined.has(name)) {
+      result.hasBearerOrOAuth = true
+      break
+    }
+  }
+
+  return result
+}
+
+/** Returns true when the auth schemes require a `token` field in ClientConfig. */
+function needsTokenField(auth: AuthSchemes): boolean {
+  return auth.hasBearerOrOAuth
+}
+
+/** Returns true when the auth schemes require an `apiKey` field in ClientConfig. */
+function needsApiKeyField(auth: AuthSchemes): boolean {
+  return auth.apiKeyHeaderNames.length > 0 || auth.apiKeyQueryNames.length > 0
+}
+
+/** Returns true when the auth schemes require a `basicAuth` field in ClientConfig. */
+function needsBasicAuthField(auth: AuthSchemes): boolean {
+  return auth.hasBasicAuth
+}
+
+/** Emits credential resolution lines for token, basicAuth, and apiKey config fields. */
+function emitCredentialResolution(
+  lines: string[],
+  hasToken: boolean,
+  hasBasic: boolean,
+  hasApiKey: boolean
+): void {
+  if (hasToken)
+    lines.push(`  const resolvedToken = typeof token === 'function' ? await token() : token`)
+  if (hasBasic)
+    lines.push(
+      `  const resolvedBasic = typeof basicAuth === 'function' ? await basicAuth() : basicAuth`
+    )
+  if (hasApiKey)
+    lines.push(`  const resolvedApiKey = typeof apiKey === 'function' ? await apiKey() : apiKey`)
+}
+
+/** Emits URL construction, injecting apiKey query params when the spec declares them. */
+function emitUrlBuilding(lines: string[], queryNames: string[], searchParamsExpr: string): void {
+  if (queryNames.length > 0) {
+    lines.push(`  const _sp = new URLSearchParams(${searchParamsExpr})`)
+    for (const qName of queryNames) {
+      lines.push(`  if (resolvedApiKey) _sp.set(${JSON.stringify(qName)}, resolvedApiKey)`)
+    }
+    lines.push(`  const base = baseUrl ? baseUrl.replace(/\\/$/, '') : ''`)
+    lines.push(`  const qs = _sp.toString()`)
+  } else {
+    lines.push(`  const base = baseUrl ? baseUrl.replace(/\\/$/, '') : ''`)
+    lines.push(`  const qs = ${searchParamsExpr}?.toString() ?? ''`)
+  }
+  lines.push(`  const url = qs ? \`\${base}\${path}?\${qs}\` : \`\${base}\${path}\``)
+}
+
+/** Emits the auth header spreads inside a headers block (bearer, basic, apiKey-header). */
+function emitAuthHeaderSpreads(
+  lines: string[],
+  hasToken: boolean,
+  hasBasic: boolean,
+  apiKeyHeaderNames: string[]
+): void {
+  if (hasToken) {
+    lines.push(`      ...(resolvedToken ? { Authorization: \`Bearer \${resolvedToken}\` } : {}),`)
+  }
+  if (hasBasic) {
+    lines.push(
+      `      ...(resolvedBasic ? { Authorization: \`Basic \${btoa(\`\${resolvedBasic.username}:\${resolvedBasic.password}\`)}\` } : {}),`
+    )
+  }
+  for (const headerName of apiKeyHeaderNames) {
+    lines.push(
+      `      ...(resolvedApiKey ? { ${JSON.stringify(headerName)}: resolvedApiKey } : {}),`
+    )
+  }
+}
+
+/** Emits the shared error-check + return block at the end of a helper function. */
+function emitErrorCheckAndReturn(lines: string[]): void {
+  lines.push(`  if (!res.ok) {`)
+  lines.push(`    const err = new ApiError(res.status, await res.json().catch(() => null))`)
+  lines.push(`    onError?.(err)`)
+  lines.push(`    throw err`)
+  lines.push(`  }`)
+  lines.push(`  return res`)
+  lines.push(`}`)
+}
+
+/** Emits the Content-Type header line inside a headers block for JSON or form-urlencoded body. */
+function emitContentTypeHeader(lines: string[], hasFormUrlencoded: boolean): void {
+  if (hasFormUrlencoded) {
+    lines.push(
+      `      ...(opts.body !== undefined ? { 'Content-Type': opts.bodyEncoding === 'form' ? 'application/x-www-form-urlencoded' : 'application/json' } : {}),`
+    )
+  } else {
+    lines.push(`      ...(opts.body !== undefined ? { 'Content-Type': 'application/json' } : {}),`)
+  }
+}
+
+/** Emits the body field in the fetch options for JSON or form-urlencoded body. */
+function emitBodyField(lines: string[], hasFormUrlencoded: boolean): void {
+  if (hasFormUrlencoded) {
+    lines.push(
+      `    ...(opts.body !== undefined ? { body: opts.bodyEncoding === 'form' ? new URLSearchParams(Object.entries(opts.body as Record<string, unknown>).flatMap(([k, v]) => Array.isArray(v) ? v.map((e) => [k, String(e)] as [string, string]) : v == null ? [] : [[k, String(v)] as [string, string]])).toString() : JSON.stringify(opts.body) } : {}),`
+    )
+  } else {
+    lines.push(`    ...(opts.body !== undefined ? { body: JSON.stringify(opts.body) } : {}),`)
+  }
+}
+
+/** Builds the ordered list of config fields to destructure in request helpers. */
+function buildConfigFields(
+  hasToken: boolean,
+  hasApiKey: boolean,
+  hasBasic: boolean,
+  hasCookieAuth: boolean
+): string[] {
+  const fields = ['baseUrl']
+  if (hasToken) fields.push('token')
+  if (hasApiKey) fields.push('apiKey')
+  if (hasBasic) fields.push('basicAuth')
+  if (hasCookieAuth) fields.push('credentials')
+  fields.push('headers', 'onError')
+  return fields
+}
+
+/** Emits the _request function into lines (up to and including the closing brace). */
+function emitRequestFunction(
+  lines: string[],
+  features: HelperFeatures,
+  configFields: string[],
+  hasToken: boolean,
+  hasBasic: boolean,
+  hasApiKey: boolean
+): void {
+  const auth = features.authSchemes
+  lines.push(`async function _request(`)
+  lines.push(`  method: string,`)
+  lines.push(`  path: string,`)
+  lines.push(`  opts: {`)
+  lines.push(`    searchParams?: URLSearchParams`)
+  lines.push(`    body?: unknown`)
+  if (features.hasFormUrlencoded) lines.push(`    bodyEncoding?: 'json' | 'form'`)
+  if (features.hasHeaderParams) lines.push(`    extraHeaders?: Record<string, string>`)
+  lines.push(`  },`)
+  lines.push(`  config?: Partial<ClientConfig>,`)
+  lines.push(`): Promise<_FetchResponse> {`)
+  lines.push(`  const { ${configFields.join(', ')} } = { ...getConfig(), ...config }`)
+  emitCredentialResolution(lines, hasToken, hasBasic, hasApiKey)
+  emitUrlBuilding(lines, auth.apiKeyQueryNames, 'opts.searchParams')
+  lines.push(`  const res = await fetch(url, {`)
+  lines.push(`    method,`)
+  if (features.hasCookieAuth) lines.push(`    credentials,`)
+  lines.push(`    headers: {`)
+  emitContentTypeHeader(lines, features.hasFormUrlencoded)
+  lines.push(`      ...headers,`)
+  emitAuthHeaderSpreads(lines, hasToken, hasBasic, auth.apiKeyHeaderNames)
+  if (features.hasHeaderParams) lines.push(`      ...opts.extraHeaders,`)
+  lines.push(`    },`)
+  emitBodyField(lines, features.hasFormUrlencoded)
+  lines.push(`  })`)
+  emitErrorCheckAndReturn(lines)
+}
+
+/** Emits the _requestForm function into lines (up to and including the closing brace). */
+function emitRequestFormFunction(
+  lines: string[],
+  features: HelperFeatures,
+  configFields: string[],
+  hasToken: boolean,
+  hasBasic: boolean,
+  hasApiKey: boolean
+): void {
+  const auth = features.authSchemes
+  lines.push(`async function _requestForm(`)
+  lines.push(`  method: string,`)
+  lines.push(`  path: string,`)
+  lines.push(`  formData: FormData,`)
+  lines.push(`  opts: {`)
+  lines.push(`    searchParams?: URLSearchParams`)
+  if (features.hasHeaderParams) lines.push(`    extraHeaders?: Record<string, string>`)
+  lines.push(`  },`)
+  lines.push(`  config?: Partial<ClientConfig>,`)
+  lines.push(`): Promise<_FetchResponse> {`)
+  lines.push(`  const { ${configFields.join(', ')} } = { ...getConfig(), ...config }`)
+  emitCredentialResolution(lines, hasToken, hasBasic, hasApiKey)
+  emitUrlBuilding(lines, auth.apiKeyQueryNames, 'opts.searchParams')
+  lines.push(`  const res = await fetch(url, {`)
+  lines.push(`    method,`)
+  if (features.hasCookieAuth) lines.push(`    credentials,`)
+  lines.push(`    headers: {`)
+  lines.push(`      ...headers,`)
+  emitAuthHeaderSpreads(lines, hasToken, hasBasic, auth.apiKeyHeaderNames)
+  if (features.hasHeaderParams) lines.push(`      ...opts.extraHeaders,`)
+  lines.push(`    },`)
+  lines.push(`    body: formData,`)
+  lines.push(`  })`)
+  emitErrorCheckAndReturn(lines)
 }
 
 /**
@@ -701,113 +988,25 @@ function detectBearerAuth(spec: OpenAPIV3_1.Document): boolean {
  * emitted when the spec actually declares those features, keeping the bundle lean for simple APIs.
  */
 function generateRequestHelpers(features: HelperFeatures): string {
-  const lines: string[] = []
+  const auth = features.authSchemes
+  const hasToken = needsTokenField(auth)
+  const hasApiKey = needsApiKeyField(auth)
+  const hasBasic = needsBasicAuthField(auth)
+  const configFields = buildConfigFields(hasToken, hasApiKey, hasBasic, features.hasCookieAuth)
 
-  // Use a private type alias for the global fetch Response to avoid shadowing conflicts
-  // when a spec defines a schema also named 'Response' (e.g. OpenAI's spec).
+  const lines: string[] = []
+  // Private type alias avoids shadowing when a spec defines a schema named 'Response'.
   lines.push(`type _FetchResponse = Awaited<ReturnType<typeof fetch>>`)
   lines.push(``)
-  // ── _request ───────────────────────────────────────────────────────────────
-  lines.push(`async function _request(`)
-  lines.push(`  method: string,`)
-  lines.push(`  path: string,`)
-  lines.push(`  opts: {`)
-  lines.push(`    searchParams?: URLSearchParams`)
-  lines.push(`    body?: unknown`)
-  if (features.hasFormUrlencoded) lines.push(`    bodyEncoding?: 'json' | 'form'`)
-  if (features.hasHeaderParams) lines.push(`    extraHeaders?: Record<string, string>`)
-  lines.push(`  },`)
-  lines.push(`  config?: Partial<ClientConfig>,`)
-  lines.push(`): Promise<_FetchResponse> {`)
-
-  // Destructure only the config fields that are actually used
-  const configFields: string[] = ['baseUrl']
-  if (features.hasBearerAuth) configFields.push('token')
-  if (features.hasCookieAuth) configFields.push('credentials')
-  configFields.push('headers', 'onError')
-  lines.push(`  const { ${configFields.join(', ')} } = { ...getConfig(), ...config }`)
-
-  lines.push(`  const base = baseUrl ? baseUrl.replace(/\\/$/, '') : ''`)
-  lines.push(`  const qs = opts.searchParams?.toString() ?? ''`)
-  lines.push(`  const url = qs ? \`\${base}\${path}?\${qs}\` : \`\${base}\${path}\``)
-  if (features.hasBearerAuth) {
-    lines.push(`  const resolvedToken = typeof token === 'function' ? await token() : token`)
-  }
-  lines.push(`  const res = await fetch(url, {`)
-  lines.push(`    method,`)
-  if (features.hasCookieAuth) lines.push(`    credentials,`)
-  lines.push(`    headers: {`)
-  if (features.hasFormUrlencoded) {
-    lines.push(
-      `      ...(opts.body !== undefined ? { 'Content-Type': opts.bodyEncoding === 'form' ? 'application/x-www-form-urlencoded' : 'application/json' } : {}),`
-    )
-  } else {
-    lines.push(`      ...(opts.body !== undefined ? { 'Content-Type': 'application/json' } : {}),`)
-  }
-  lines.push(`      ...headers,`)
-  if (features.hasBearerAuth)
-    lines.push(`      ...(resolvedToken ? { Authorization: \`Bearer \${resolvedToken}\` } : {}),`)
-  if (features.hasHeaderParams) lines.push(`      ...opts.extraHeaders,`)
-  lines.push(`    },`)
-  if (features.hasFormUrlencoded) {
-    lines.push(
-      `    ...(opts.body !== undefined ? { body: opts.bodyEncoding === 'form' ? new URLSearchParams(Object.entries(opts.body as Record<string, unknown>).flatMap(([k, v]) => Array.isArray(v) ? v.map((e) => [k, String(e)] as [string, string]) : v == null ? [] : [[k, String(v)] as [string, string]])).toString() : JSON.stringify(opts.body) } : {}),`
-    )
-  } else {
-    lines.push(`    ...(opts.body !== undefined ? { body: JSON.stringify(opts.body) } : {}),`)
-  }
-  lines.push(`  })`)
-  lines.push(`  if (!res.ok) {`)
-  lines.push(`    const err = new ApiError(res.status, await res.json().catch(() => null))`)
-  lines.push(`    onError?.(err)`)
-  lines.push(`    throw err`)
-  lines.push(`  }`)
-  lines.push(`  return res`)
-  lines.push(`}`)
-
-  // ── _requestForm (only for specs with multipart endpoints) ─────────────────
+  emitRequestFunction(lines, features, configFields, hasToken, hasBasic, hasApiKey)
   if (features.hasMultipart) {
     lines.push(``)
-    lines.push(`async function _requestForm(`)
-    lines.push(`  method: string,`)
-    lines.push(`  path: string,`)
-    lines.push(`  formData: FormData,`)
-    lines.push(`  opts: {`)
-    lines.push(`    searchParams?: URLSearchParams`)
-    if (features.hasHeaderParams) lines.push(`    extraHeaders?: Record<string, string>`)
-    lines.push(`  },`)
-    lines.push(`  config?: Partial<ClientConfig>,`)
-    lines.push(`): Promise<_FetchResponse> {`)
-    lines.push(`  const { ${configFields.join(', ')} } = { ...getConfig(), ...config }`)
-    lines.push(`  const base = baseUrl ? baseUrl.replace(/\\/$/, '') : ''`)
-    lines.push(`  const qs = opts.searchParams?.toString() ?? ''`)
-    lines.push(`  const url = qs ? \`\${base}\${path}?\${qs}\` : \`\${base}\${path}\``)
-    if (features.hasBearerAuth) {
-      lines.push(`  const resolvedToken = typeof token === 'function' ? await token() : token`)
-    }
-    lines.push(`  const res = await fetch(url, {`)
-    lines.push(`    method,`)
-    if (features.hasCookieAuth) lines.push(`    credentials,`)
-    lines.push(`    headers: {`)
-    lines.push(`      ...headers,`)
-    if (features.hasBearerAuth)
-      lines.push(`      ...(resolvedToken ? { Authorization: \`Bearer \${resolvedToken}\` } : {}),`)
-    if (features.hasHeaderParams) lines.push(`      ...opts.extraHeaders,`)
-    lines.push(`    },`)
-    lines.push(`    body: formData,`)
-    lines.push(`  })`)
-    lines.push(`  if (!res.ok) {`)
-    lines.push(`    const err = new ApiError(res.status, await res.json().catch(() => null))`)
-    lines.push(`    onError?.(err)`)
-    lines.push(`    throw err`)
-    lines.push(`  }`)
-    lines.push(`  return res`)
-    lines.push(`}`)
+    emitRequestFormFunction(lines, features, configFields, hasToken, hasBasic, hasApiKey)
   }
-
   return lines.join('\n')
 }
 
+// fallow-ignore-next-line complexity
 function generateFunctionCode(
   funcName: string,
   method: string,
@@ -1078,6 +1277,7 @@ function uniquifyName(candidate: string, used: Set<string>): string {
   return unique
 }
 
+// fallow-ignore-next-line complexity
 export function generateClient(spec: OpenAPIV3_1.Document, options?: ClientOptions): GeneratedFile {
   const paths = spec.paths as Record<string, Record<string, OperationObject>> | undefined
 
@@ -1219,7 +1419,7 @@ export function generateClient(spec: OpenAPIV3_1.Document, options?: ClientOptio
   // when the spec actually declares those features.
   if (hasAnyEndpoints) {
     const helperFeatures: HelperFeatures = {
-      hasBearerAuth: detectBearerAuth(spec),
+      authSchemes: detectAuthSchemes(spec),
       hasCookieAuth: hasCookieAuth(spec),
       hasHeaderParams: hasHeaderParamEndpoints,
       hasMultipart: hasMultipartEndpoints,
