@@ -224,8 +224,9 @@ function queryOptionsFuncName(funcName: string): string {
 
 /**
  * Builds the queryKey call string used in both the factory and the hooks.
- * Path params are assumed to already be non-null (the hook widens them and
- * applies an enabled guard, but the factory receives plain non-null strings).
+ * When nonNullPathParams is true, each path param is suffixed with ! (for the
+ * useQuery hook, which widens param types to allow null/undefined and uses an
+ * enabled guard). When false (factory, suspense hook), params are plain strings.
  */
 function buildQueryKeyCall(
   keyFactoryName: string,
@@ -235,26 +236,14 @@ function buildQueryKeyCall(
   nonNullPathParams: boolean
 ): string {
   const suffix = nonNullPathParams ? '!' : ''
+  const base = `${keyFactoryName}.${keyEntry.key}`
 
-  if (pathParams.length === 0 && hasQueryParams) {
-    return `${keyFactoryName}.${keyEntry.key}(params)`
+  if (pathParams.length === 0) {
+    return hasQueryParams ? `${base}(params)` : `${base}()`
   }
-  if (pathParams.length === 0 && !hasQueryParams) {
-    return `${keyFactoryName}.${keyEntry.key}()`
-  }
-  if (pathParams.length === 1 && !hasQueryParams) {
-    return `${keyFactoryName}.${keyEntry.key}(${pathParams[0]}${suffix})`
-  }
-  if (pathParams.length === 1 && hasQueryParams) {
-    return `${keyFactoryName}.${keyEntry.key}(${pathParams[0]}${suffix}, params)`
-  }
-  if (!hasQueryParams) {
-    const paramValues = pathParams.map((p) => `${p}${suffix}`).join(', ')
-    return `${keyFactoryName}.${keyEntry.key}(${paramValues})`
-  }
-  // multiple path params + query params
+
   const paramValues = pathParams.map((p) => `${p}${suffix}`).join(', ')
-  return `${keyFactoryName}.${keyEntry.key}(${paramValues}, params)`
+  return hasQueryParams ? `${base}(${paramValues}, params)` : `${base}(${paramValues})`
 }
 
 /**
