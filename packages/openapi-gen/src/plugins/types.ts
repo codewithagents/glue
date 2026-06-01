@@ -20,7 +20,7 @@ function refToTypeName(ref: string): string {
   return toTypeName(parts[parts.length - 1]!)
 }
 
-/** Feature 3: Return an inline comment for date/date-time formats, or '' for others. */
+/** Return an inline comment for date/date-time formats, or '' for others. */
 function formatComment(schema: SchemaObject): string {
   if (schema.type !== 'string') return ''
   const fmt = schema.format as string | undefined
@@ -34,16 +34,25 @@ function schemaToTypeString(schema: SchemaObject | ReferenceObject): string {
     return refToTypeName(schema.$ref)
   }
 
+  // const keyword: single fixed value -> TS literal type
+  const constVal = (schema as SchemaObject & { const?: unknown }).const
+  if (constVal !== undefined) {
+    if (constVal === null) return 'null'
+    if (typeof constVal === 'string') return JSON.stringify(constVal)
+    if (typeof constVal === 'number' || typeof constVal === 'boolean') return String(constVal)
+    return 'unknown'
+  }
+
   // Handle nullable via OpenAPI 3.1 array type: type: ['string', 'null']
   if (Array.isArray(schema.type)) {
     const types = (schema.type as string[]).map((t) => {
       if (t === 'null') return 'null'
-      return primitiveToTs(t)
+      return primitiveToTs(t, schema.format as string | undefined)
     })
     return types.join(' | ')
   }
 
-  // enum — handles string, integer, number, mixed (null values rendered as "null" literal)
+  // enum - handles string, integer, number, mixed (null values rendered as "null" literal)
   if (schema.enum !== undefined && schema.enum.length > 0) {
     return schema.enum
       .map((v: unknown) => {
@@ -82,6 +91,21 @@ function schemaToTypeString(schema: SchemaObject | ReferenceObject): string {
 
   // array
   if (type === 'array') {
+    // prefixItems (OpenAPI 3.1 / JSON Schema 2020-12): fixed-position tuple elements
+    const prefixItems = (
+      schema as SchemaObject & { prefixItems?: (SchemaObject | ReferenceObject)[] }
+    ).prefixItems
+    if (prefixItems !== undefined && prefixItems.length > 0) {
+      const tupleElements = prefixItems.map((item) => schemaToTypeString(item))
+      const arraySchema = schema as ArraySchemaObject
+      const restItems = arraySchema.items as SchemaObject | ReferenceObject | undefined
+      if (restItems !== undefined) {
+        // Tuple with rest: [T0, T1, ...Rest[]]
+        return `[${tupleElements.join(', ')}, ...${schemaToTypeString(restItems)}[]]`
+      }
+      return `[${tupleElements.join(', ')}]`
+    }
+
     const arraySchema = schema as ArraySchemaObject
     const items = arraySchema.items as SchemaObject | ReferenceObject | undefined
     if (items !== undefined) {
@@ -112,19 +136,26 @@ function schemaToTypeString(schema: SchemaObject | ReferenceObject): string {
   }
 
   if (type !== undefined) {
-    return primitiveToTs(type)
+    return primitiveToTs(type, schema.format as string | undefined)
   }
 
   return 'unknown'
 }
 
-function primitiveToTs(type: string): string {
+/**
+ * Map an OpenAPI primitive type to a TypeScript type.
+ * For integer with format int64, returns bigint instead of number
+ * to preserve precision for 64-bit IDs.
+ */
+function primitiveToTs(type: string, format?: string): string {
   switch (type) {
     case 'string':
       return 'string'
     case 'number':
-    case 'integer':
       return 'number'
+    case 'integer':
+      // int64 requires bigint for precision-safe 64-bit IDs (JS number cannot represent >2^53)
+      return format === 'int64' ? 'bigint' : 'number'
     case 'boolean':
       return 'boolean'
     case 'null':
@@ -144,7 +175,7 @@ function inlineObjectType(schema: SchemaObject): string {
     const optional = !required.has(key)
     const propKey = toPropertyKey(key)
     const typStr = schemaToTypeString(propSchema)
-    // Feature 3: add inline format comment for date/date-time string properties
+    // Add inline format comment for date/date-time string properties
     const comment = isRef(propSchema) ? '' : formatComment(propSchema as SchemaObject)
     return `  ${propKey}${optional ? '?' : ''}: ${typStr}${comment}`
   })
@@ -184,7 +215,7 @@ function isObjectSchema(schema: SchemaObject): boolean {
   return schema.type === 'object' || schema.properties !== undefined
 }
 
-/** Feature 5: derive the discriminator literal value for a variant ref */
+/** Derive the discriminator literal value for a variant ref */
 function discriminatorLiteralFor(ref: string, mapping: Record<string, string> | undefined): string {
   if (mapping !== undefined) {
     // Find the key whose value matches the ref
@@ -209,11 +240,21 @@ function generateSchemaDeclaration(
   schema: SchemaObject | ReferenceObject,
   options?: TypesOptions
 ): string {
-  // Sanitize schema name to a valid TypeScript identifier (e.g. 'Foo-bar' → 'FooBar')
+  // Sanitize schema name to a valid TypeScript identifier (e.g. 'Foo-bar' -> 'FooBar')
   const safeName = toTypeName(name)
 
   if (isRef(schema)) {
     return `export type ${safeName} = ${refToTypeName(schema.$ref)}`
+  }
+
+  // const keyword: single fixed value -> TS literal type alias
+  const constVal = (schema as SchemaObject & { const?: unknown }).const
+  if (constVal !== undefined) {
+    if (constVal === null) return `export type ${safeName} = null`
+    if (typeof constVal === 'string') return `export type ${safeName} = ${JSON.stringify(constVal)}`
+    if (typeof constVal === 'number' || typeof constVal === 'boolean')
+      return `export type ${safeName} = ${String(constVal)}`
+    return `export type ${safeName} = unknown`
   }
 
   // Schema-enhanced mode: for object schemas with a matching Zod schema, use z.infer
@@ -279,7 +320,7 @@ function generateSchemaDeclaration(
         const optional = !required.has(key)
         const propKey = toPropertyKey(key)
         const typStr = schemaToTypeString(propSchema)
-        // Feature 3: add inline format comment for date/date-time string properties
+        // Add inline format comment for date/date-time string properties
         const comment = isRef(propSchema) ? '' : formatComment(propSchema as SchemaObject)
         propLines.push(`  ${propKey}${optional ? '?' : ''}: ${typStr}${comment}`)
       }
@@ -290,7 +331,7 @@ function generateSchemaDeclaration(
     return `export interface ${safeName} {\n${propLines.join('\n')}\n}`
   }
 
-  // Feature 5: discriminated union via oneOf/anyOf + discriminator
+  // Discriminated union via oneOf/anyOf + discriminator
   const discriminator = (
     schema as SchemaObject & {
       discriminator?: { propertyName: string; mapping?: Record<string, string> }
@@ -305,7 +346,7 @@ function generateSchemaDeclaration(
     const { propertyName, mapping } = discriminator
     const variants = (compositeVariants as (SchemaObject | ReferenceObject)[]).map((variant) => {
       if (!isRef(variant)) {
-        // Inline schema in discriminated union — emit as plain variant
+        // Inline schema in discriminated union - emit as plain variant
         return schemaToTypeString(variant)
       }
       const ref = (variant as ReferenceObject).$ref
@@ -339,12 +380,12 @@ export function generateTypes(spec: OpenAPIV3_1.Document, options?: TypesOptions
       }
     }
 
-    lines.push('// This file is auto-generated by @codewithagents/openapi-gen — do not edit')
+    lines.push('// This file is auto-generated by @codewithagents/openapi-gen - do not edit')
     lines.push("import type { z } from 'zod'")
     lines.push(`import type { ${importedSchemas.join(', ')} } from '${options.schemaImportPath}'`)
     lines.push('')
   } else {
-    lines.push('// This file is auto-generated by @codewithagents/openapi-gen — do not edit')
+    lines.push('// This file is auto-generated by @codewithagents/openapi-gen - do not edit')
     lines.push('')
   }
 
