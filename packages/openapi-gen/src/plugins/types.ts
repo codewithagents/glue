@@ -1,5 +1,5 @@
 import type { OpenAPIV3_1 } from 'openapi-types'
-import { toPropertyKey, toTypeName } from '../utils/naming.js'
+import { toPropertyKey, toTypeName, uniquifyName, refToTypeName } from '../utils/naming.js'
 
 export interface GeneratedFile {
   filename: string
@@ -14,10 +14,26 @@ function isRef(schema: SchemaObject | ReferenceObject): schema is ReferenceObjec
   return '$ref' in schema
 }
 
-function refToTypeName(ref: string): string {
-  // '#/components/schemas/Foo' -> 'Foo' (sanitized to a valid TS identifier)
-  const parts = ref.split('/')
-  return toTypeName(parts[parts.length - 1]!)
+/**
+ * Build a rename map from raw schema names to unique TypeScript identifiers.
+ * When two or more schema names sanitize to the same identifier (e.g. 'String'
+ * and 'string' both become 'String'), the first one keeps the base name and
+ * subsequent ones receive a numeric suffix ('String_2', 'String_3', ...).
+ * The iteration order of Object.keys() is insertion order, which is deterministic.
+ */
+function buildSchemaRenameMap(spec: OpenAPIV3_1.Document): Map<string, string> {
+  const schemas = spec.components?.schemas as
+    | Record<string, SchemaObject | ReferenceObject>
+    | undefined
+  const map = new Map<string, string>()
+  if (schemas === undefined) return map
+  const used = new Set<string>()
+  for (const name of Object.keys(schemas)) {
+    const candidate = toTypeName(name)
+    const unique = uniquifyName(candidate, used)
+    map.set(name, unique)
+  }
+  return map
 }
 
 /** Return an inline comment for date/date-time formats, or '' for others. */
@@ -29,9 +45,14 @@ function formatComment(schema: SchemaObject): string {
   return ''
 }
 
-function schemaToTypeString(schema: SchemaObject | ReferenceObject): string {
+// fallow-ignore-next-line complexity
+// pre-existing size, tracked in #228
+function schemaToTypeString(
+  schema: SchemaObject | ReferenceObject,
+  renameMap?: Map<string, string>
+): string {
   if (isRef(schema)) {
-    return refToTypeName(schema.$ref)
+    return refToTypeName(schema.$ref, renameMap)
   }
 
   // const keyword: single fixed value -> TS literal type
@@ -68,13 +89,15 @@ function schemaToTypeString(schema: SchemaObject | ReferenceObject): string {
 
   // allOf: intersect all members, then merge in any sibling properties/required
   if (schema.allOf !== undefined && schema.allOf.length > 0) {
-    const parts = (schema.allOf as (SchemaObject | ReferenceObject)[]).map(schemaToTypeString)
+    const parts = (schema.allOf as (SchemaObject | ReferenceObject)[]).map((s) =>
+      schemaToTypeString(s, renameMap)
+    )
     // Sibling properties live outside the allOf array and must be included as an extra member
     const siblingProps = schema.properties as
       | Record<string, SchemaObject | ReferenceObject>
       | undefined
     if (siblingProps !== undefined && Object.keys(siblingProps).length > 0) {
-      parts.push(inlineObjectType(schema))
+      parts.push(inlineObjectType(schema, renameMap))
     }
     if (parts.length === 1) return parts[0]!
     return parts.join(' & ')
@@ -82,12 +105,16 @@ function schemaToTypeString(schema: SchemaObject | ReferenceObject): string {
 
   // anyOf
   if (schema.anyOf !== undefined && schema.anyOf.length > 0) {
-    return (schema.anyOf as (SchemaObject | ReferenceObject)[]).map(schemaToTypeString).join(' | ')
+    return (schema.anyOf as (SchemaObject | ReferenceObject)[])
+      .map((s) => schemaToTypeString(s, renameMap))
+      .join(' | ')
   }
 
   // oneOf
   if (schema.oneOf !== undefined && schema.oneOf.length > 0) {
-    return (schema.oneOf as (SchemaObject | ReferenceObject)[]).map(schemaToTypeString).join(' | ')
+    return (schema.oneOf as (SchemaObject | ReferenceObject)[])
+      .map((s) => schemaToTypeString(s, renameMap))
+      .join(' | ')
   }
 
   const type = schema.type as string | undefined
@@ -99,12 +126,12 @@ function schemaToTypeString(schema: SchemaObject | ReferenceObject): string {
       schema as SchemaObject & { prefixItems?: (SchemaObject | ReferenceObject)[] }
     ).prefixItems
     if (prefixItems !== undefined && prefixItems.length > 0) {
-      const tupleElements = prefixItems.map((item) => schemaToTypeString(item))
+      const tupleElements = prefixItems.map((item) => schemaToTypeString(item, renameMap))
       const arraySchema = schema as ArraySchemaObject
       const restItems = arraySchema.items as SchemaObject | ReferenceObject | undefined
       if (restItems !== undefined) {
         // Tuple with rest: [T0, T1, ...Rest[]]
-        return `[${tupleElements.join(', ')}, ...${schemaToTypeString(restItems)}[]]`
+        return `[${tupleElements.join(', ')}, ...${schemaToTypeString(restItems, renameMap)}[]]`
       }
       return `[${tupleElements.join(', ')}]`
     }
@@ -112,7 +139,7 @@ function schemaToTypeString(schema: SchemaObject | ReferenceObject): string {
     const arraySchema = schema as ArraySchemaObject
     const items = arraySchema.items as SchemaObject | ReferenceObject | undefined
     if (items !== undefined) {
-      return `${schemaToTypeString(items)}[]`
+      return `${schemaToTypeString(items, renameMap)}[]`
     }
     return 'unknown[]'
   }
@@ -127,13 +154,14 @@ function schemaToTypeString(schema: SchemaObject | ReferenceObject): string {
       (schema.properties === undefined || Object.keys(schema.properties).length === 0)
     ) {
       const valType = schemaToTypeString(
-        schema.additionalProperties as SchemaObject | ReferenceObject
+        schema.additionalProperties as SchemaObject | ReferenceObject,
+        renameMap
       )
       return `Record<string, ${valType}>`
     }
     // inline object with properties
     if (schema.properties !== undefined) {
-      return inlineObjectType(schema)
+      return inlineObjectType(schema, renameMap)
     }
     return 'Record<string, unknown>'
   }
@@ -168,7 +196,7 @@ function primitiveToTs(type: string, format?: string): string {
   }
 }
 
-function inlineObjectType(schema: SchemaObject): string {
+function inlineObjectType(schema: SchemaObject, renameMap?: Map<string, string>): string {
   const required = new Set<string>(schema.required ?? [])
   const props = schema.properties as Record<string, SchemaObject | ReferenceObject> | undefined
   if (props === undefined || Object.keys(props).length === 0) {
@@ -177,7 +205,7 @@ function inlineObjectType(schema: SchemaObject): string {
   const lines = Object.entries(props).map(([key, propSchema]) => {
     const optional = !required.has(key)
     const propKey = toPropertyKey(key)
-    const typStr = schemaToTypeString(propSchema)
+    const typStr = schemaToTypeString(propSchema, renameMap)
     // Add inline format comment for date/date-time string properties
     const comment = isRef(propSchema) ? '' : formatComment(propSchema as SchemaObject)
     return `  ${propKey}${optional ? '?' : ''}: ${typStr}${comment}`
@@ -238,16 +266,20 @@ interface TypesOptions {
   schemaImportPath?: string
 }
 
+// fallow-ignore-next-line complexity
+// pre-existing size, tracked in #228
 function generateSchemaDeclaration(
   name: string,
   schema: SchemaObject | ReferenceObject,
-  options?: TypesOptions
+  options?: TypesOptions,
+  renameMap?: Map<string, string>
 ): string {
-  // Sanitize schema name to a valid TypeScript identifier (e.g. 'Foo-bar' -> 'FooBar')
-  const safeName = toTypeName(name)
+  // Use the pre-computed unique name from the rename map when available;
+  // otherwise fall back to the standard sanitization.
+  const safeName = renameMap?.get(name) ?? toTypeName(name)
 
   if (isRef(schema)) {
-    return `export type ${safeName} = ${refToTypeName(schema.$ref)}`
+    return `export type ${safeName} = ${refToTypeName(schema.$ref, renameMap)}`
   }
 
   // const keyword: single fixed value -> TS literal type alias
@@ -296,7 +328,7 @@ function generateSchemaDeclaration(
   // Generating an interface here would only capture the sibling properties and silently
   // drop the allOf base types. schemaToTypeString handles the merge correctly.
   if (schema.allOf !== undefined && schema.allOf.length > 0) {
-    const typeStr = schemaToTypeString(schema)
+    const typeStr = schemaToTypeString(schema, renameMap)
     return `export type ${safeName} = ${typeStr}`
   }
 
@@ -312,7 +344,8 @@ function generateSchemaDeclaration(
       (props === undefined || Object.keys(props).length === 0)
     ) {
       const valType = schemaToTypeString(
-        schema.additionalProperties as SchemaObject | ReferenceObject
+        schema.additionalProperties as SchemaObject | ReferenceObject,
+        renameMap
       )
       return `export type ${safeName} = Record<string, ${valType}>`
     }
@@ -322,7 +355,7 @@ function generateSchemaDeclaration(
       for (const [key, propSchema] of Object.entries(props)) {
         const optional = !required.has(key)
         const propKey = toPropertyKey(key)
-        const typStr = schemaToTypeString(propSchema)
+        const typStr = schemaToTypeString(propSchema, renameMap)
         // Add inline format comment for date/date-time string properties
         const comment = isRef(propSchema) ? '' : formatComment(propSchema as SchemaObject)
         propLines.push(`  ${propKey}${optional ? '?' : ''}: ${typStr}${comment}`)
@@ -350,10 +383,10 @@ function generateSchemaDeclaration(
     const variants = (compositeVariants as (SchemaObject | ReferenceObject)[]).map((variant) => {
       if (!isRef(variant)) {
         // Inline schema in discriminated union - emit as plain variant
-        return schemaToTypeString(variant)
+        return schemaToTypeString(variant, renameMap)
       }
       const ref = (variant as ReferenceObject).$ref
-      const typeName = refToTypeName(ref)
+      const typeName = refToTypeName(ref, renameMap)
       const literalValue = discriminatorLiteralFor(ref, mapping)
       return `(${typeName} & { ${propertyName}: '${literalValue}' })`
     })
@@ -362,8 +395,37 @@ function generateSchemaDeclaration(
   }
 
   // allOf / anyOf / oneOf or other -> type alias
-  const typeStr = schemaToTypeString(schema)
+  const typeStr = schemaToTypeString(schema, renameMap)
   return `export type ${safeName} = ${typeStr}`
+}
+
+/**
+ * Build the file header lines for models.ts.
+ * In schema-enhanced mode, emits the zod import and the named schema imports.
+ * In plain mode, emits only the auto-generated banner.
+ */
+function buildModelsHeader(
+  schemas: Record<string, SchemaObject | ReferenceObject> | undefined,
+  options: TypesOptions | undefined,
+  renameMap: Map<string, string>
+): string[] {
+  const banner = '// This file is auto-generated by @codewithagents/openapi-gen - do not edit'
+  if (options?.schemaNames === undefined || options.schemaImportPath === undefined) {
+    return [banner, '']
+  }
+  const importedSchemas: string[] = []
+  for (const name of Object.keys(schemas ?? {})) {
+    const safeName = renameMap.get(name) ?? toTypeName(name)
+    if (options.schemaNames.has(`${safeName}Schema`)) {
+      importedSchemas.push(`${safeName}Schema`)
+    }
+  }
+  return [
+    banner,
+    "import type { z } from 'zod'",
+    `import type { ${importedSchemas.join(', ')} } from '${options.schemaImportPath}'`,
+    '',
+  ]
 }
 
 export function generateTypes(spec: OpenAPIV3_1.Document, options?: TypesOptions): GeneratedFile {
@@ -371,30 +433,15 @@ export function generateTypes(spec: OpenAPIV3_1.Document, options?: TypesOptions
     | Record<string, SchemaObject | ReferenceObject>
     | undefined
 
-  const lines: string[] = []
+  // Build rename map so duplicate sanitized identifiers get deterministic suffixes.
+  // E.g. schemas 'String' and 'string' both sanitize to 'String'; the second becomes 'String_2'.
+  const renameMap = buildSchemaRenameMap(spec)
 
-  if (options?.schemaNames !== undefined && options.schemaImportPath !== undefined) {
-    // Schema-enhanced mode: build header with Zod imports
-    const importedSchemas: string[] = []
-    for (const name of Object.keys(schemas ?? {})) {
-      const safeName = toTypeName(name)
-      if (options.schemaNames.has(`${safeName}Schema`)) {
-        importedSchemas.push(`${safeName}Schema`)
-      }
-    }
-
-    lines.push('// This file is auto-generated by @codewithagents/openapi-gen - do not edit')
-    lines.push("import type { z } from 'zod'")
-    lines.push(`import type { ${importedSchemas.join(', ')} } from '${options.schemaImportPath}'`)
-    lines.push('')
-  } else {
-    lines.push('// This file is auto-generated by @codewithagents/openapi-gen - do not edit')
-    lines.push('')
-  }
+  const lines: string[] = buildModelsHeader(schemas, options, renameMap)
 
   if (schemas !== undefined) {
     for (const [name, schema] of Object.entries(schemas)) {
-      lines.push(generateSchemaDeclaration(name, schema, options))
+      lines.push(generateSchemaDeclaration(name, schema, options, renameMap))
       lines.push('')
     }
   }

@@ -16,6 +16,40 @@ export function toTypeName(name: string): string {
 }
 
 /**
+ * Returns a name that is unique within the provided set.
+ * If the candidate already exists, appends _2, _3, ... until a free slot is found.
+ * The chosen name is added to the set before returning.
+ */
+export function uniquifyName(candidate: string, used: Set<string>): string {
+  if (!used.has(candidate)) {
+    used.add(candidate)
+    return candidate
+  }
+  let counter = 2
+  while (used.has(`${candidate}_${counter}`)) {
+    counter++
+  }
+  const unique = `${candidate}_${counter}`
+  used.add(unique)
+  return unique
+}
+
+/**
+ * Resolve a JSON Schema $ref (e.g. '#/components/schemas/Foo') to a TypeScript
+ * identifier. When a renameMap is provided (built by the dedup pass), the raw
+ * schema name is looked up first so renamed identifiers are referenced correctly.
+ */
+export function refToTypeName(ref: string, renameMap?: Map<string, string>): string {
+  const parts = ref.split('/')
+  const raw = parts[parts.length - 1]!
+  if (renameMap !== undefined) {
+    const renamed = renameMap.get(raw)
+    if (renamed !== undefined) return renamed
+  }
+  return toTypeName(raw)
+}
+
+/**
  * Return a property key, adding quotes if the name contains special characters
  * that would make it invalid as an unquoted identifier.
  */
