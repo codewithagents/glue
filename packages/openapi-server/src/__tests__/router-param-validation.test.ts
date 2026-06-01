@@ -23,6 +23,14 @@ function makeSpec(paths: OpenAPIV3_1.PathsObject, title = 'Library API'): OpenAP
   }
 }
 
+type FrameworkGen = (spec: OpenAPIV3_1.Document) => { content: string }
+
+const allFrameworks: [string, FrameworkGen][] = [
+  ['Hono', generateRouter],
+  ['Express', generateExpressRouter],
+  ['Fastify', generateFastifyRouter],
+]
+
 // ── No-param specs: output must be unchanged (no drift) ───────────────────────
 
 describe('no-param spec produces no param validation code', () => {
@@ -35,24 +43,8 @@ describe('no-param spec produces no param validation code', () => {
     },
   })
 
-  it('Hono: no _pv/_qv/_hv variables when no params', () => {
-    const { content } = generateRouter(noParamSpec)
-    expect(content).not.toContain('_pv')
-    expect(content).not.toContain('_qv')
-    expect(content).not.toContain('_hv')
-    expect(content).not.toContain("import { z } from 'zod'")
-  })
-
-  it('Express: no _pv/_qv/_hv variables when no params', () => {
-    const { content } = generateExpressRouter(noParamSpec)
-    expect(content).not.toContain('_pv')
-    expect(content).not.toContain('_qv')
-    expect(content).not.toContain('_hv')
-    expect(content).not.toContain("import { z } from 'zod'")
-  })
-
-  it('Fastify: no _pv/_qv/_hv variables when no params', () => {
-    const { content } = generateFastifyRouter(noParamSpec)
+  it.each(allFrameworks)('%s: no _pv/_qv/_hv variables when no params', (_, gen) => {
+    const { content } = gen(noParamSpec)
     expect(content).not.toContain('_pv')
     expect(content).not.toContain('_qv')
     expect(content).not.toContain('_hv')
@@ -65,9 +57,7 @@ describe('optional string-only params produce no validation code (no drift)', ()
     '/books': {
       get: {
         operationId: 'listBooks',
-        parameters: [
-          { name: 'author', in: 'query', required: false, schema: { type: 'string' } },
-        ],
+        parameters: [{ name: 'author', in: 'query', required: false, schema: { type: 'string' } }],
         responses: { '200': { description: 'ok' } },
       },
     },
@@ -80,26 +70,15 @@ describe('optional string-only params produce no validation code (no drift)', ()
     },
   })
 
-  it('Hono: optional string query + plain string path produce no validation code', () => {
-    const { content } = generateRouter(optionalStringSpec)
-    expect(content).not.toContain('_qv')
-    expect(content).not.toContain('_pv')
-    expect(content).not.toContain("import { z } from 'zod'")
-  })
-
-  it('Express: optional string query + plain string path produce no validation code', () => {
-    const { content } = generateExpressRouter(optionalStringSpec)
-    expect(content).not.toContain('_qv')
-    expect(content).not.toContain('_pv')
-    expect(content).not.toContain("import { z } from 'zod'")
-  })
-
-  it('Fastify: optional string query + plain string path produce no validation code', () => {
-    const { content } = generateFastifyRouter(optionalStringSpec)
-    expect(content).not.toContain('_qv')
-    expect(content).not.toContain('_pv')
-    expect(content).not.toContain("import { z } from 'zod'")
-  })
+  it.each(allFrameworks)(
+    '%s: optional string query + plain string path produce no validation code',
+    (_, gen) => {
+      const { content } = gen(optionalStringSpec)
+      expect(content).not.toContain('_qv')
+      expect(content).not.toContain('_pv')
+      expect(content).not.toContain("import { z } from 'zod'")
+    }
+  )
 })
 
 // ── Path param: uuid format validation ────────────────────────────────────────
@@ -151,7 +130,7 @@ describe('path param with format:uuid generates Zod validation', () => {
 
   it("Express: _pv.safeParse passes req.params['id']", () => {
     const { content } = generateExpressRouter(uuidSpec)
-    expect(content).toContain("req.params[\"id\"]")
+    expect(content).toContain('req.params["id"]')
     expect(content).toContain('_pv.success')
   })
 
@@ -187,9 +166,7 @@ describe('path param with format:uuid generates Zod validation', () => {
       '/books/{id}': {
         get: {
           operationId: 'getBook',
-          parameters: [
-            { name: 'id', in: 'path', required: true, schema: { type: 'string' } },
-          ],
+          parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }],
           responses: { '200': { description: 'ok' } },
         },
       },
@@ -231,8 +208,11 @@ describe('required query param generates Zod validation', () => {
     expect(content).toContain('422')
   })
 
-  it('Express: generates _qv with required/optional Zod schema', () => {
-    const { content } = generateExpressRouter(requiredQuerySpec)
+  it.each([
+    ['Express', generateExpressRouter] as const,
+    ['Fastify', generateFastifyRouter] as const,
+  ])('%s: generates _qv with required/optional Zod schema', (_, gen) => {
+    const { content } = gen(requiredQuerySpec)
     expect(content).toContain('_qv')
     expect(content).toContain('genre: z.string()')
     expect(content).toContain('author: z.string().optional()')
@@ -242,13 +222,6 @@ describe('required query param generates Zod validation', () => {
     const { content } = generateExpressRouter(requiredQuerySpec)
     expect(content).toContain('return void res.status(422).json(')
     expect(content).toContain("error: 'Invalid query parameters'")
-  })
-
-  it('Fastify: generates _qv with required/optional Zod schema', () => {
-    const { content } = generateFastifyRouter(requiredQuerySpec)
-    expect(content).toContain('_qv')
-    expect(content).toContain('genre: z.string()')
-    expect(content).toContain('author: z.string().optional()')
   })
 
   it('Fastify: returns 422 via reply.status(422).send() on failure', () => {
@@ -286,15 +259,11 @@ describe('integer query param generates z.number() validation', () => {
     expect(content).toContain('Number(')
   })
 
-  it('Express: generates _qv for integer params', () => {
-    const { content } = generateExpressRouter(intQuerySpec)
-    expect(content).toContain('_qv')
-    expect(content).toContain('limit: z.number().optional()')
-    expect(content).toContain('page: z.number()')
-  })
-
-  it('Fastify: generates _qv for integer params', () => {
-    const { content } = generateFastifyRouter(intQuerySpec)
+  it.each([
+    ['Express', generateExpressRouter] as const,
+    ['Fastify', generateFastifyRouter] as const,
+  ])('%s: generates _qv for integer params', (_, gen) => {
+    const { content } = gen(intQuerySpec)
     expect(content).toContain('_qv')
     expect(content).toContain('limit: z.number().optional()')
     expect(content).toContain('page: z.number()')
@@ -341,8 +310,11 @@ describe('required header param generates Zod validation', () => {
     expect(content).toContain('422')
   })
 
-  it('Express: generates _hv with required/optional header schema', () => {
-    const { content } = generateExpressRouter(headerSpec)
+  it.each([
+    ['Express', generateExpressRouter] as const,
+    ['Fastify', generateFastifyRouter] as const,
+  ])('%s: generates _hv with required/optional header schema', (_, gen) => {
+    const { content } = gen(headerSpec)
     expect(content).toContain('_hv')
     expect(content).toContain('"x-api-key": z.string()')
     expect(content).toContain('"x-trace-id": z.string().optional()')
@@ -383,7 +355,9 @@ describe('422 shape is consistent with body validation shape', () => {
       '/books/{id}': {
         get: {
           operationId: 'getBook',
-          parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string', format: 'uuid' } }],
+          parameters: [
+            { name: 'id', in: 'path', required: true, schema: { type: 'string', format: 'uuid' } },
+          ],
           responses: { '200': { description: 'ok' } },
         },
       },
@@ -412,7 +386,9 @@ describe('422 shape is consistent with body validation shape', () => {
       '/books': {
         get: {
           operationId: 'listBooks',
-          parameters: [{ name: 'x-api-key', in: 'header', required: true, schema: { type: 'string' } }],
+          parameters: [
+            { name: 'x-api-key', in: 'header', required: true, schema: { type: 'string' } },
+          ],
           responses: { '200': { description: 'ok' } },
         },
       },
@@ -473,7 +449,12 @@ describe('additional format constraints generate appropriate Zod modifiers', () 
         get: {
           operationId: 'getUser',
           parameters: [
-            { name: 'email', in: 'path', required: true, schema: { type: 'string', format: 'email' } },
+            {
+              name: 'email',
+              in: 'path',
+              required: true,
+              schema: { type: 'string', format: 'email' },
+            },
           ],
           responses: { '200': { description: 'ok' } },
         },
@@ -489,7 +470,12 @@ describe('additional format constraints generate appropriate Zod modifiers', () 
         get: {
           operationId: 'getEvent',
           parameters: [
-            { name: 'ts', in: 'path', required: true, schema: { type: 'string', format: 'date-time' } },
+            {
+              name: 'ts',
+              in: 'path',
+              required: true,
+              schema: { type: 'string', format: 'date-time' },
+            },
           ],
           responses: { '200': { description: 'ok' } },
         },
@@ -521,7 +507,12 @@ describe('additional format constraints generate appropriate Zod modifiers', () 
         get: {
           operationId: 'getItem',
           parameters: [
-            { name: 'code', in: 'path', required: true, schema: { type: 'string', format: 'custom-format' } },
+            {
+              name: 'code',
+              in: 'path',
+              required: true,
+              schema: { type: 'string', format: 'custom-format' },
+            },
           ],
           responses: { '200': { description: 'ok' } },
         },
@@ -540,7 +531,9 @@ describe('z import is added only when param validation is needed', () => {
       '/items/{id}': {
         get: {
           operationId: 'getItem',
-          parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string', format: 'uuid' } }],
+          parameters: [
+            { name: 'id', in: 'path', required: true, schema: { type: 'string', format: 'uuid' } },
+          ],
           responses: { '200': { description: 'ok' } },
         },
       },
@@ -566,7 +559,9 @@ describe('z import is added only when param validation is needed', () => {
       '/items': {
         get: {
           operationId: 'listItems',
-          parameters: [{ name: 'x-api-key', in: 'header', required: true, schema: { type: 'string' } }],
+          parameters: [
+            { name: 'x-api-key', in: 'header', required: true, schema: { type: 'string' } },
+          ],
           responses: { '200': { description: 'ok' } },
         },
       },
@@ -579,7 +574,9 @@ describe('z import is added only when param validation is needed', () => {
       '/items': {
         get: {
           operationId: 'listItems',
-          parameters: [{ name: 'limit', in: 'query', required: false, schema: { type: 'integer' } }],
+          parameters: [
+            { name: 'limit', in: 'query', required: false, schema: { type: 'integer' } },
+          ],
           responses: { '200': { description: 'ok' } },
         },
       },

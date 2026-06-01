@@ -276,21 +276,20 @@ function getPathParamValidations(
   const parameters = operation.parameters as (ParameterObject | ReferenceObject)[] | undefined
   if (parameters === undefined) return []
 
+  // Build a name-to-zodExpr map from path params to avoid nested loops.
+  const zodByName = new Map<string, string>()
+  for (const p of parameters) {
+    const resolved = resolveParam(p, spec)
+    if (resolved === undefined || resolved.in !== 'path') continue
+    const schema = resolved.schema as OpenAPIV3_1.SchemaObject | ReferenceObject | undefined
+    const zodExpr = pathParamZodExpr(schema)
+    if (zodExpr !== undefined) zodByName.set(resolved.name, zodExpr)
+  }
+
   const result: PathParamValidation[] = []
   for (const rawName of rawPathParamNames) {
-    // Find the resolved parameter for this path param
-    for (const p of parameters) {
-      const resolved = resolveParam(p, spec)
-      if (resolved === undefined || resolved.in !== 'path') continue
-      if (resolved.name !== rawName) continue
-
-      const schema = resolved.schema as OpenAPIV3_1.SchemaObject | ReferenceObject | undefined
-      const zodExpr = pathParamZodExpr(schema)
-      if (zodExpr !== undefined) {
-        result.push({ rawName, zodExpr })
-      }
-      break
-    }
+    const zodExpr = zodByName.get(rawName)
+    if (zodExpr !== undefined) result.push({ rawName, zodExpr })
   }
   return result
 }
@@ -298,10 +297,7 @@ function getPathParamValidations(
 /**
  * Collect header parameters from an operation.
  */
-function getHeaderParams(
-  operation: OperationObject,
-  spec: OpenAPIV3_1.Document
-): HeaderParam[] {
+function getHeaderParams(operation: OperationObject, spec: OpenAPIV3_1.Document): HeaderParam[] {
   const parameters = operation.parameters as (ParameterObject | ReferenceObject)[] | undefined
   if (parameters === undefined) return []
 
@@ -550,6 +546,55 @@ function collectOperations(spec: OpenAPIV3_1.Document): RouteOperation[] {
 interface RouterOptions {
   schemaNames?: Set<string>
   schemaImportPath?: string
+}
+
+interface GeneratorSetup {
+  sortedBodyTypes: string[]
+  usedSchemaNames: Set<string>
+  needsZod: boolean
+}
+
+/** Collect sorted body type names from all operations. */
+function collectSortedBodyTypes(operations: RouteOperation[]): string[] {
+  const bodyTypes = new Set<string>()
+  for (const op of operations) {
+    if (op.bodyInfo?.typeName !== undefined) bodyTypes.add(op.bodyInfo.typeName)
+  }
+  return Array.from(bodyTypes).sort()
+}
+
+/** Collect the subset of schemaNames actually used by the given operations. */
+function collectUsedSchemaNames(
+  operations: RouteOperation[],
+  schemaNames: Set<string>
+): Set<string> {
+  const used = new Set<string>()
+  for (const op of operations) {
+    const typeName = op.bodyInfo?.typeName
+    if (typeName === undefined) continue
+    const schemaName = `${typeName}Schema`
+    if (schemaNames.has(schemaName)) used.add(schemaName)
+  }
+  return used
+}
+
+/**
+ * Collect body type names, used schema names, and whether Zod is needed.
+ * Shared by all three generator functions to avoid duplication.
+ */
+function collectGeneratorSetup(
+  operations: RouteOperation[],
+  options?: RouterOptions
+): GeneratorSetup {
+  const sortedBodyTypes = collectSortedBodyTypes(operations)
+  const usedSchemaNames =
+    options?.schemaNames !== undefined
+      ? collectUsedSchemaNames(operations, options.schemaNames)
+      : new Set<string>()
+  const needsZod =
+    (usedSchemaNames.size > 0 && options?.schemaImportPath !== undefined) ||
+    operationsNeedZodForParams(operations)
+  return { sortedBodyTypes, usedSchemaNames, needsZod }
 }
 
 // ── Hono route handler ────────────────────────────────────────────────────────
@@ -921,33 +966,7 @@ export function generateExpressRouter(
 ): GeneratedFile {
   const serviceName = deriveServiceName(spec)
   const operations = collectOperations(spec)
-
-  // Collect body type names for import from models.js
-  const bodyTypes = new Set<string>()
-  for (const op of operations) {
-    if (op.bodyInfo?.typeName !== undefined) {
-      bodyTypes.add(op.bodyInfo.typeName)
-    }
-  }
-  const sortedBodyTypes = Array.from(bodyTypes).sort()
-
-  // Collect which schema names are actually needed (only for ops with a matching schema)
-  const usedSchemaNames = new Set<string>()
-  if (options?.schemaNames !== undefined) {
-    for (const op of operations) {
-      const typeName = op.bodyInfo?.typeName
-      if (typeName !== undefined) {
-        const schemaName = `${typeName}Schema`
-        if (options.schemaNames.has(schemaName)) {
-          usedSchemaNames.add(schemaName)
-        }
-      }
-    }
-  }
-
-  const needsZod =
-    (usedSchemaNames.size > 0 && options?.schemaImportPath !== undefined) ||
-    operationsNeedZodForParams(operations)
+  const { sortedBodyTypes, usedSchemaNames, needsZod } = collectGeneratorSetup(operations, options)
 
   const lines: string[] = []
   lines.push('// This file is auto-generated. Do not edit manually.')
@@ -997,33 +1016,7 @@ export function generateFastifyRouter(
 ): GeneratedFile {
   const serviceName = deriveServiceName(spec)
   const operations = collectOperations(spec)
-
-  // Collect body type names for import from models.js
-  const bodyTypes = new Set<string>()
-  for (const op of operations) {
-    if (op.bodyInfo?.typeName !== undefined) {
-      bodyTypes.add(op.bodyInfo.typeName)
-    }
-  }
-  const sortedBodyTypes = Array.from(bodyTypes).sort()
-
-  // Collect which schema names are actually needed (only for ops with a matching schema)
-  const usedSchemaNames = new Set<string>()
-  if (options?.schemaNames !== undefined) {
-    for (const op of operations) {
-      const typeName = op.bodyInfo?.typeName
-      if (typeName !== undefined) {
-        const schemaName = `${typeName}Schema`
-        if (options.schemaNames.has(schemaName)) {
-          usedSchemaNames.add(schemaName)
-        }
-      }
-    }
-  }
-
-  const needsZod =
-    (usedSchemaNames.size > 0 && options?.schemaImportPath !== undefined) ||
-    operationsNeedZodForParams(operations)
+  const { sortedBodyTypes, usedSchemaNames, needsZod } = collectGeneratorSetup(operations, options)
 
   const lines: string[] = []
   lines.push('// This file is auto-generated. Do not edit manually.')
@@ -1063,33 +1056,7 @@ export function generateFastifyRouter(
 export function generateRouter(spec: OpenAPIV3_1.Document, options?: RouterOptions): GeneratedFile {
   const serviceName = deriveServiceName(spec)
   const operations = collectOperations(spec)
-
-  // Collect body type names for import from models.js
-  const bodyTypes = new Set<string>()
-  for (const op of operations) {
-    if (op.bodyInfo?.typeName !== undefined) {
-      bodyTypes.add(op.bodyInfo.typeName)
-    }
-  }
-  const sortedBodyTypes = Array.from(bodyTypes).sort()
-
-  // Collect which schema names are actually needed (only for ops with a matching schema)
-  const usedSchemaNames = new Set<string>()
-  if (options?.schemaNames !== undefined) {
-    for (const op of operations) {
-      const typeName = op.bodyInfo?.typeName
-      if (typeName !== undefined) {
-        const schemaName = `${typeName}Schema`
-        if (options.schemaNames.has(schemaName)) {
-          usedSchemaNames.add(schemaName)
-        }
-      }
-    }
-  }
-
-  const needsZod =
-    (usedSchemaNames.size > 0 && options?.schemaImportPath !== undefined) ||
-    operationsNeedZodForParams(operations)
+  const { sortedBodyTypes, usedSchemaNames, needsZod } = collectGeneratorSetup(operations, options)
 
   const lines: string[] = []
   lines.push('// This file is auto-generated. Do not edit manually.')
