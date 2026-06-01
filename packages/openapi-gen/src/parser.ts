@@ -1,6 +1,7 @@
 import SwaggerParser from '@apidevtools/swagger-parser'
 import type { OpenAPIV3_1 } from 'openapi-types'
 import { assertBoundedDepth } from './utils/schema-depth.js'
+import { normalizeNullable } from './utils/normalize-nullable.js'
 
 export async function parseSpec(inputPath: string): Promise<OpenAPIV3_1.Document> {
   const api = (await SwaggerParser.bundle(inputPath)) as OpenAPIV3_1.Document
@@ -13,6 +14,12 @@ export async function parseSpec(inputPath: string): Promise<OpenAPIV3_1.Document
   for (const schema of Object.values(api.components?.schemas ?? {})) {
     assertBoundedDepth(schema)
   }
+
+  // Normalize OpenAPI 3.0 nullable: true (and x-nullable: true) into the 3.1
+  // null-union form so ALL downstream plugins pick up nullability consistently
+  // through the existing type-union / Zod union logic. This runs once, in one
+  // place, before any plugin sees the spec.
+  normalizeNullable(api)
 
   return api
 }

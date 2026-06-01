@@ -1206,31 +1206,31 @@ export type CreateChatCompletionRequest = CreateModelResponseProperties & {
   modalities?: ResponseModalities
   verbosity?: Verbosity
   reasoning_effort?: ReasoningEffort
-  max_completion_tokens?: number
-  frequency_penalty?: number
-  presence_penalty?: number
+  max_completion_tokens?: number | null
+  frequency_penalty?: number | null
+  presence_penalty?: number | null
   web_search_options?: {
     user_location?: {
       type: 'approximate'
       approximate: WebSearchLocation
-    }
+    } | null
     search_context_size?: WebSearchContextSize
   }
-  top_logprobs?: number
+  top_logprobs?: number | null
   response_format?: ResponseFormatText | ResponseFormatJsonSchema | ResponseFormatJsonObject
   audio?: {
     voice: VoiceIdsOrCustomVoice
     format: 'wav' | 'aac' | 'mp3' | 'flac' | 'opus' | 'pcm16'
-  }
-  store?: boolean
-  stream?: boolean
+  } | null
+  store?: boolean | null
+  stream?: boolean | null
   stop?: StopConfiguration
-  logit_bias?: Record<string, number>
-  logprobs?: boolean
-  max_tokens?: number
-  n?: number
-  prediction?: PredictionContent
-  seed?: number
+  logit_bias?: Record<string, number> | null
+  logprobs?: boolean | null
+  max_tokens?: number | null
+  n?: number | null
+  prediction?: PredictionContent | null
+  seed?: number | null
   stream_options?: ChatCompletionStreamOptions
   tools?: ChatCompletionTool | CustomToolChatCompletions[]
   tool_choice?: ChatCompletionToolChoiceOption
@@ -1263,10 +1263,10 @@ export interface CreateChatCompletionStreamResponse {
   choices: {
     delta: ChatCompletionStreamResponseDelta
     logprobs?: {
-      content: ChatCompletionTokenLogprob[]
-      refusal: ChatCompletionTokenLogprob[]
-    }
-    finish_reason: 'stop' | 'length' | 'tool_calls' | 'content_filter' | 'function_call'
+      content: ChatCompletionTokenLogprob[] | null
+      refusal: ChatCompletionTokenLogprob[] | null
+    } | null
+    finish_reason: 'stop' | 'length' | 'tool_calls' | 'content_filter' | 'function_call' | null
     index: number
   }[]
   created: number
@@ -1279,22 +1279,22 @@ export interface CreateChatCompletionStreamResponse {
 
 export interface CreateCompletionRequest {
   model: string | 'gpt-3.5-turbo-instruct' | 'davinci-002' | 'babbage-002'
-  prompt: string | string[] | number[] | number[][]
-  best_of?: number
-  echo?: boolean
-  frequency_penalty?: number
-  logit_bias?: Record<string, number>
-  logprobs?: number
-  max_tokens?: number
-  n?: number
-  presence_penalty?: number
-  seed?: number
+  prompt: string | string[] | number[] | number[][] | null
+  best_of?: number | null
+  echo?: boolean | null
+  frequency_penalty?: number | null
+  logit_bias?: Record<string, number> | null
+  logprobs?: number | null
+  max_tokens?: number | null
+  n?: number | null
+  presence_penalty?: number | null
+  seed?: number | null
   stop?: StopConfiguration
-  stream?: boolean
+  stream?: boolean | null
   stream_options?: ChatCompletionStreamOptions
-  suffix?: string
-  temperature?: number
-  top_p?: number
+  suffix?: string | null
+  temperature?: number | null
+  top_p?: number | null
   user?: string
 }
 
@@ -1487,18 +1487,20 @@ export interface CreateFineTuningJobRequest {
     learning_rate_multiplier?: 'auto' | number
     n_epochs?: 'auto' | number
   }
-  suffix?: string
-  validation_file?: string
-  integrations?: {
-    type: 'wandb'
-    wandb: {
-      project: string
-      name?: string
-      entity?: string
-      tags?: string[]
-    }
-  }[]
-  seed?: number
+  suffix?: string | null
+  validation_file?: string | null
+  integrations?:
+    | {
+        type: 'wandb'
+        wandb: {
+          project: string
+          name?: string | null
+          entity?: string | null
+          tags?: string[]
+        }
+      }[]
+    | null
+  seed?: number | null
   method?: FineTuneMethod
   metadata?: Metadata
 }
@@ -1515,7 +1517,7 @@ export interface CreateImageEditRequest {
   image: string | string[]
   prompt: string
   mask?: string
-  background?: 'transparent' | 'opaque' | 'auto'
+  background?: 'transparent' | 'opaque' | 'auto' | null
   model?:
     | string
     | 'gpt-image-1.5'
@@ -1523,27 +1525,35 @@ export interface CreateImageEditRequest {
     | 'gpt-image-1'
     | 'gpt-image-1-mini'
     | 'chatgpt-image-latest'
-  n?: number
-  size?: string | '256x256' | '512x512' | '1024x1024' | '1536x1024' | '1024x1536' | 'auto'
-  response_format?: 'url' | 'b64_json'
-  output_format?: 'png' | 'jpeg' | 'webp'
-  output_compression?: number
+    | null
+  n?: number | null
+  size?: string | '256x256' | '512x512' | '1024x1024' | '1536x1024' | '1024x1536' | 'auto' | null
+  response_format?: 'url' | 'b64_json' | null
+  output_format?: 'png' | 'jpeg' | 'webp' | null
+  output_compression?: number | null
   user?: string
   input_fidelity?: InputFidelity | null
-  stream?: boolean
+  stream?: boolean | null
   partial_images?: PartialImages
-  quality?: 'standard' | 'low' | 'medium' | 'high' | 'auto'
+  quality?: 'standard' | 'low' | 'medium' | 'high' | 'auto' | null
 }
 
 export interface CreateImageRequest {
   prompt: string
-  model?: string | 'gpt-image-1.5' | 'dall-e-2' | 'dall-e-3' | 'gpt-image-1' | 'gpt-image-1-mini'
-  n?: number
-  quality?: 'standard' | 'hd' | 'low' | 'medium' | 'high' | 'auto'
-  response_format?: 'url' | 'b64_json'
-  output_format?: 'png' | 'jpeg' | 'webp'
-  output_compression?: number
-  stream?: boolean
+  model?:
+    | string
+    | 'gpt-image-1.5'
+    | 'dall-e-2'
+    | 'dall-e-3'
+    | 'gpt-image-1'
+    | 'gpt-image-1-mini'
+    | null
+  n?: number | null
+  quality?: 'standard' | 'hd' | 'low' | 'medium' | 'high' | 'auto' | null
+  response_format?: 'url' | 'b64_json' | null
+  output_format?: 'png' | 'jpeg' | 'webp' | null
+  output_compression?: number | null
+  stream?: boolean | null
   partial_images?: PartialImages
   size?:
     | string
@@ -1555,18 +1565,19 @@ export interface CreateImageRequest {
     | '512x512'
     | '1792x1024'
     | '1024x1792'
-  moderation?: 'low' | 'auto'
-  background?: 'transparent' | 'opaque' | 'auto'
-  style?: 'vivid' | 'natural'
+    | null
+  moderation?: 'low' | 'auto' | null
+  background?: 'transparent' | 'opaque' | 'auto' | null
+  style?: 'vivid' | 'natural' | null
   user?: string
 }
 
 export interface CreateImageVariationRequest {
   image: string
-  model?: string | 'dall-e-2'
-  n?: number
-  response_format?: 'url' | 'b64_json'
-  size?: '256x256' | '512x512' | '1024x1024'
+  model?: string | 'dall-e-2' | null
+  n?: number | null
+  response_format?: 'url' | 'b64_json' | null
+  size?: '256x256' | '512x512' | '1024x1024' | null
   user?: string
 }
 
@@ -1681,20 +1692,20 @@ export type CreateResponse = CreateModelResponseProperties &
 
 export interface CreateRunRequest {
   assistant_id: string
-  model?: string | AssistantSupportedModels
+  model?: string | AssistantSupportedModels | null
   reasoning_effort?: ReasoningEffort
-  instructions?: string
-  additional_instructions?: string
-  additional_messages?: CreateMessageRequest[]
-  tools?: AssistantToolsCode | AssistantToolsFileSearch | AssistantToolsFunction[]
+  instructions?: string | null
+  additional_instructions?: string | null
+  additional_messages?: CreateMessageRequest[] | null
+  tools?: AssistantToolsCode | AssistantToolsFileSearch | AssistantToolsFunction[] | null
   metadata?: Metadata
-  temperature?: number
-  top_p?: number
-  stream?: boolean
-  max_prompt_tokens?: number
-  max_completion_tokens?: number
-  truncation_strategy?: TruncationObject & unknown
-  tool_choice?: AssistantsApiToolChoiceOption & unknown
+  temperature?: number | null
+  top_p?: number | null
+  stream?: boolean | null
+  max_prompt_tokens?: number | null
+  max_completion_tokens?: number | null
+  truncation_strategy?: (TruncationObject & unknown) | null
+  tool_choice?: (AssistantsApiToolChoiceOption & unknown) | null
   parallel_tool_calls?: ParallelToolCalls
   response_format?: AssistantsApiResponseFormatOption
 }
@@ -1756,8 +1767,9 @@ export interface CreateThreadAndRunRequest {
     | 'gpt-3.5-turbo-1106'
     | 'gpt-3.5-turbo-0125'
     | 'gpt-3.5-turbo-16k-0613'
-  instructions?: string
-  tools?: AssistantToolsCode | AssistantToolsFileSearch | AssistantToolsFunction[]
+    | null
+  instructions?: string | null
+  tools?: AssistantToolsCode | AssistantToolsFileSearch | AssistantToolsFunction[] | null
   tool_resources?: {
     code_interpreter?: {
       file_ids?: string[]
@@ -1765,15 +1777,15 @@ export interface CreateThreadAndRunRequest {
     file_search?: {
       vector_store_ids?: string[]
     }
-  }
+  } | null
   metadata?: Metadata
-  temperature?: number
-  top_p?: number
-  stream?: boolean
-  max_prompt_tokens?: number
-  max_completion_tokens?: number
-  truncation_strategy?: TruncationObject & unknown
-  tool_choice?: AssistantsApiToolChoiceOption & unknown
+  temperature?: number | null
+  top_p?: number | null
+  stream?: boolean | null
+  max_prompt_tokens?: number | null
+  max_completion_tokens?: number | null
+  truncation_strategy?: (TruncationObject & unknown) | null
+  tool_choice?: (AssistantsApiToolChoiceOption & unknown) | null
   parallel_tool_calls?: ParallelToolCalls
   response_format?: AssistantsApiResponseFormatOption
 }
@@ -5265,6 +5277,7 @@ export interface RealtimeSessionCreateRequestGA {
         group_id?: string
         metadata?: Record<string, unknown>
       }
+    | null
   tools?: RealtimeFunctionTool | MCPTool[]
   tool_choice?: ToolChoiceOptions | ToolChoiceFunction | ToolChoiceMCP
   parallel_tool_calls?: boolean
@@ -6369,30 +6382,30 @@ export interface RunObject {
     submit_tool_outputs: {
       tool_calls: RunToolCallObject[]
     }
-  }
+  } | null
   last_error: {
     code: 'server_error' | 'rate_limit_exceeded' | 'invalid_prompt'
     message: string
-  }
-  expires_at: number
-  started_at: number
-  cancelled_at: number
-  failed_at: number
-  completed_at: number
+  } | null
+  expires_at: number | null
+  started_at: number | null
+  cancelled_at: number | null
+  failed_at: number | null
+  completed_at: number | null
   incomplete_details: {
     reason?: 'max_completion_tokens' | 'max_prompt_tokens'
-  }
+  } | null
   model: string
   instructions: string
   tools: AssistantToolsCode | AssistantToolsFileSearch | AssistantToolsFunction[]
   metadata: Metadata
   usage: RunCompletionUsage
-  temperature?: number
-  top_p?: number
-  max_prompt_tokens: number
-  max_completion_tokens: number
-  truncation_strategy: TruncationObject & unknown
-  tool_choice: AssistantsApiToolChoiceOption & unknown
+  temperature?: number | null
+  top_p?: number | null
+  max_prompt_tokens: number | null
+  max_completion_tokens: number | null
+  truncation_strategy: (TruncationObject & unknown) | null
+  tool_choice: (AssistantsApiToolChoiceOption & unknown) | null
   parallel_tool_calls: ParallelToolCalls
   response_format: AssistantsApiResponseFormatOption
 }
@@ -6678,7 +6691,7 @@ export interface StaticChunkingStrategyResponseParam {
   static: StaticChunkingStrategy
 }
 
-export type StopConfiguration = string | string[]
+export type StopConfiguration = string | null | string[] | null
 
 export interface SubmitToolOutputsRunRequest {
   tool_outputs: {
@@ -6886,8 +6899,8 @@ export interface UpdateVectorStoreFileAttributesRequest {
 }
 
 export interface UpdateVectorStoreRequest {
-  name?: string
-  expires_after?: VectorStoreExpirationAfter & unknown
+  name?: string | null
+  expires_after?: (VectorStoreExpirationAfter & unknown) | null
   metadata?: Metadata
 }
 
@@ -6904,7 +6917,7 @@ export interface Upload {
   status: 'pending' | 'completed' | 'cancelled' | 'expired'
   expires_at: number
   object?: 'upload'
-  file?: OpenAIFile & unknown
+  file?: (OpenAIFile & unknown) | null
 }
 
 export interface UploadCertificateRequest {
