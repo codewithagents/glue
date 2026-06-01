@@ -56,12 +56,6 @@ const KNOWN_TYPECHECK_FAILURES = new Set<string>([
   'box', // TS2769/TS2304 - operation name collision + unresolved name
   'pinecone', // TS2345/TS2339 - spec redefines FetchRequest/FetchResponse names
   //
-  // Duplicate identifier generation (#219):
-  'aws_sns', // TS2300 duplicate 'String'/'Endpoint'
-  'bbc', // TS2300 duplicate 'DateRange'
-  'snyk', // TS2300 duplicate 'AggregatedProjectIssues'/'DepGraph'
-  'twilio', // TS2300 duplicate 'StartTime'
-  //
   // Unresolved / misnamed nested type references (#220):
   'brex', // TS2305 models.ts missing 'Company'/'Schema'
   'digitalocean', // TS2305 missing 'Items'/'Schema'/'_0'
