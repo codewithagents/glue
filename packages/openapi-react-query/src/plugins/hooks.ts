@@ -595,6 +595,25 @@ function operationHasRequiredQueryParams(operation: OperationObject): boolean {
 
 // ── Main generator ─────────────────────────────────────────────────────────────
 
+/**
+ * Returns a name that is unique within the provided set.
+ * If the candidate already exists, appends _2, _3, ... until a free slot is found.
+ * The chosen name is added to the set before returning.
+ */
+function uniquifyName(candidate: string, used: Set<string>): string {
+  if (!used.has(candidate)) {
+    used.add(candidate)
+    return candidate
+  }
+  let counter = 2
+  while (used.has(`${candidate}_${counter}`)) {
+    counter++
+  }
+  const unique = `${candidate}_${counter}`
+  used.add(unique)
+  return unique
+}
+
 export function generateHooks(
   spec: OpenAPIV3_1.Document,
   options: HookGenOptions
@@ -604,6 +623,8 @@ export function generateHooks(
 
   // Collect all operations
   const operations: OperationMeta[] = []
+  const usedFuncNames = new Set<string>()
+  const usedHookNames = new Set<string>()
 
   if (paths !== undefined) {
     for (const [path, pathItem] of Object.entries(paths)) {
@@ -611,14 +632,17 @@ export function generateHooks(
         const operation = pathItem[method] as OperationObject | undefined
         if (operation === undefined) continue
 
+        // Derive and deduplicate the client function name. Must mirror the dedup
+        // logic in openapi-gen/client.ts so the import list stays in sync.
         let funcName: string
         if (operation.operationId !== undefined) {
           funcName = sanitizeOperationId(operation.operationId)
         } else {
           funcName = deriveOperationName(method, path)
         }
+        funcName = uniquifyName(funcName, usedFuncNames)
 
-        const hookName = 'use' + capitalize(funcName)
+        const hookName = uniquifyName('use' + capitalize(funcName), usedHookNames)
         const pathParams = extractPathParams(path)
         const { hasBody, bodyTypeName } = getBodyInfo(operation)
         const hasQueryParams = operationHasQueryParams(operation)
