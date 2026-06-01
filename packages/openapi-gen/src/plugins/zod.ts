@@ -67,13 +67,32 @@ function hasSelfRef(
   return false
 }
 
-function primitiveToZod(type: string): string {
+/**
+ * Serialize a JSON value as a TypeScript literal expression.
+ * Used for `default` and `const` values.
+ */
+function serializeLiteral(value: unknown): string {
+  if (value === null) return 'null'
+  if (typeof value === 'string') return JSON.stringify(value)
+  if (typeof value === 'number' || typeof value === 'boolean') return String(value)
+  // Arrays and objects: use JSON.stringify (produces valid JS literal)
+  return JSON.stringify(value)
+}
+
+/**
+ * Return the Zod v4 base expression for a primitive type.
+ * For integer with format int64, returns z.bigint() instead of z.number()
+ * to preserve precision for 64-bit IDs.
+ */
+function primitiveToZod(type: string, format?: string): string {
   switch (type) {
     case 'string':
       return 'z.string()'
     case 'number':
-    case 'integer':
       return 'z.number()'
+    case 'integer':
+      // int64 requires bigint for precision-safe 64-bit IDs (JS number cannot represent >2^53)
+      return format === 'int64' ? 'z.bigint()' : 'z.number()'
     case 'boolean':
       return 'z.boolean()'
     case 'null':
@@ -83,21 +102,50 @@ function primitiveToZod(type: string): string {
   }
 }
 
-/** Chain OpenAPI string constraints onto a base Zod string expression. */
+/**
+ * Return the Zod v4 base for a string schema, using top-level format validators
+ * (z.email(), z.url(), z.uuid(), z.iso.datetime(), z.iso.date()) where applicable.
+ * These are the Zod v4 equivalents of the deprecated chained .email()/.url()/.uuid() methods.
+ * byte/binary formats stay as z.string() (no runtime validation, correct base type).
+ */
+function stringBase(format: string | undefined): string {
+  switch (format) {
+    case 'email':
+      return 'z.email()'
+    case 'url':
+      return 'z.url()'
+    case 'uuid':
+      return 'z.uuid()'
+    case 'date-time':
+      return 'z.iso.datetime()'
+    case 'date':
+      return 'z.iso.date()'
+    default:
+      return 'z.string()'
+  }
+}
+
+/**
+ * Chain OpenAPI string constraints (minLength, maxLength, pattern) onto a base Zod string
+ * expression. Format-based validators are handled in stringBase() instead.
+ */
 function applyStringConstraints(base: string, schema: SchemaObject): string {
   let s = base
   if (typeof schema.minLength === 'number') s += `.min(${schema.minLength})`
   if (typeof schema.maxLength === 'number') s += `.max(${schema.maxLength})`
   if (typeof schema.pattern === 'string')
     s += `.regex(new RegExp(${JSON.stringify(schema.pattern)}))`
-  const format = schema.format as string | undefined
-  if (format === 'email') s += '.email()'
-  else if (format === 'url') s += '.url()'
-  else if (format === 'uuid') s += '.uuid()'
   return s
 }
 
-/** Chain OpenAPI numeric range constraints onto a base Zod number expression. */
+/** Return full Zod expression for a string schema (base + constraints). */
+function stringSchemaExpr(schema: SchemaObject): string {
+  const format = schema.format as string | undefined
+  const base = stringBase(format)
+  return applyStringConstraints(base, schema)
+}
+
+/** Chain OpenAPI numeric range constraints and multipleOf onto a Zod number expression. */
 function applyNumberConstraints(base: string, schema: SchemaObject): string {
   let s = base
   const min =
@@ -108,6 +156,7 @@ function applyNumberConstraints(base: string, schema: SchemaObject): string {
     (typeof schema.exclusiveMaximum === 'number' ? schema.exclusiveMaximum : undefined)
   if (typeof min === 'number') s += `.min(${min})`
   if (typeof max === 'number') s += `.max(${max})`
+  if (typeof schema.multipleOf === 'number') s += `.multipleOf(${schema.multipleOf})`
   return s
 }
 
@@ -116,34 +165,50 @@ function schemaToZod(schema: SchemaObject | ReferenceObject): string {
     return refToSchemaName(schema.$ref)
   }
 
+  // const keyword: single fixed value -> z.literal(value)
+  // Must be checked before type/enum handling (const overrides type in JSON Schema)
+  const constVal = (schema as SchemaObject & { const?: unknown }).const
+  if (constVal !== undefined) {
+    return `z.literal(${serializeLiteral(constVal)})`
+  }
+
   // OpenAPI 3.1 array type: type: ['string', 'null']
   if (Array.isArray(schema.type)) {
     const types = schema.type as string[]
     const isNullable = types.includes('null')
     const nonNull = types.filter((t) => t !== 'null')
     if (nonNull.length === 1) {
-      let base = primitiveToZod(nonNull[0]!)
-      if (nonNull[0] === 'string') base = applyStringConstraints(base, schema)
-      else if (nonNull[0] === 'number' || nonNull[0] === 'integer')
+      let base: string
+      if (nonNull[0] === 'string') {
+        base = stringSchemaExpr(schema)
+      } else if (nonNull[0] === 'integer') {
+        base = primitiveToZod('integer', schema.format as string | undefined)
         base = applyNumberConstraints(base, schema)
-      return isNullable ? `${base}.nullable()` : base
+      } else if (nonNull[0] === 'number') {
+        base = primitiveToZod('number')
+        base = applyNumberConstraints(base, schema)
+      } else {
+        base = primitiveToZod(nonNull[0]!)
+      }
+      const expr = isNullable ? `${base}.nullable()` : base
+      return applyDefault(expr, schema)
     }
     const parts = types.map((t) => (t === 'null' ? 'z.null()' : primitiveToZod(t)))
-    return `z.union([${parts.join(', ')}])`
+    return applyDefault(`z.union([${parts.join(', ')}])`, schema)
   }
 
-  // String enum → z.enum([...])
+  // String enum -> z.enum([...])
   // Use JSON.stringify to produce double-quoted strings, safe for values with apostrophes ("won't fix").
-  // Cast null values to string "null" — some specs mix null with string enums (technically invalid OpenAPI
+  // Cast null values to string "null" - some specs mix null with string enums (technically invalid OpenAPI
   // but common in practice, e.g. GitHub's dismissed_reason: [null, "false positive", "won't fix"]).
   if (schema.enum !== undefined && schema.enum.length > 0 && schema.type === 'string') {
     const vals = (schema.enum as (string | null)[])
       .map((v) => JSON.stringify(v ?? 'null'))
       .join(', ')
-    return `z.enum([${vals}])`
+    return applyDefault(`z.enum([${vals}])`, schema)
   }
 
-  // Mixed/number/integer enum → z.union([z.literal(...), ...])
+  // Mixed/number/integer enum -> z.union([z.literal(...), ...])
   // Must quote strings (JSON.stringify), leave numbers/null as-is.
   if (schema.enum !== undefined && schema.enum.length > 0) {
     const literals = (schema.enum as unknown[])
@@ -153,7 +218,7 @@ function schemaToZod(schema: SchemaObject | ReferenceObject): string {
         return `z.literal(${String(v)})`
       })
       .join(', ')
-    return `z.union([${literals}])`
+    return applyDefault(`z.union([${literals}])`, schema)
   }
 
   // allOf: chain with .and(), merging any sibling properties/required as an extra member
@@ -170,13 +235,13 @@ function schemaToZod(schema: SchemaObject | ReferenceObject): string {
     return parts.slice(1).reduce((acc, part) => `${acc}.and(${part})`, parts[0]!)
   }
 
-  // anyOf → z.union([...])
+  // anyOf -> z.union([...])
   if (schema.anyOf !== undefined && schema.anyOf.length > 0) {
     const parts = (schema.anyOf as (SchemaObject | ReferenceObject)[]).map(schemaToZod)
     return `z.union([${parts.join(', ')}])`
   }
 
-  // oneOf → z.union([...])
+  // oneOf -> z.union([...])
   if (schema.oneOf !== undefined && schema.oneOf.length > 0) {
     const parts = (schema.oneOf as (SchemaObject | ReferenceObject)[]).map(schemaToZod)
     return `z.union([${parts.join(', ')}])`
@@ -187,6 +252,22 @@ function schemaToZod(schema: SchemaObject | ReferenceObject): string {
   // Array
   if (type === 'array') {
     const arraySchema = schema as unknown as ArraySchemaObject
+
+    // prefixItems (OpenAPI 3.1 / JSON Schema 2020-12): fixed-position tuple elements
+    const prefixItems = (
+      schema as SchemaObject & { prefixItems?: (SchemaObject | ReferenceObject)[] }
+    ).prefixItems
+    if (prefixItems !== undefined && prefixItems.length > 0) {
+      const tupleElements = prefixItems.map((item) => schemaToZod(item))
+      let base = `z.tuple([${tupleElements.join(', ')}])`
+      // items after prefixItems is the rest type in JSON Schema 2020-12
+      const restItems = arraySchema.items as SchemaObject | ReferenceObject | undefined
+      if (restItems !== undefined) {
+        base += `.rest(${schemaToZod(restItems)})`
+      }
+      return applyDefault(base, schema)
+    }
+
     const items = arraySchema.items as SchemaObject | ReferenceObject | undefined
     let base: string
     if (items !== undefined) {
@@ -197,12 +278,16 @@ function schemaToZod(schema: SchemaObject | ReferenceObject): string {
     const s = schema as SchemaObject
     if (typeof s.minItems === 'number') base += `.min(${s.minItems})`
     if (typeof s.maxItems === 'number') base += `.max(${s.maxItems})`
-    return base
+    // uniqueItems: refine to enforce distinct values at runtime
+    if ((s as SchemaObject & { uniqueItems?: boolean }).uniqueItems === true) {
+      base += `.refine((a) => new Set(a).size === a.length, { message: 'Items must be unique' })`
+    }
+    return applyDefault(base, schema)
   }
 
   // Object
   if (type === 'object') {
-    // additionalProperties only → z.record()
+    // additionalProperties only (no explicit properties) -> z.record()
     if (
       schema.additionalProperties !== undefined &&
       schema.additionalProperties !== false &&
@@ -210,24 +295,44 @@ function schemaToZod(schema: SchemaObject | ReferenceObject): string {
       (schema.properties === undefined || Object.keys(schema.properties).length === 0)
     ) {
       const valZod = schemaToZod(schema.additionalProperties as SchemaObject | ReferenceObject)
-      return `z.record(z.string(), ${valZod})`
+      return applyDefault(`z.record(z.string(), ${valZod})`, schema)
     }
 
     if (schema.properties !== undefined && Object.keys(schema.properties).length > 0) {
-      return inlineObjectZod(schema)
+      return applyDefault(inlineObjectZod(schema), schema)
     }
 
-    return 'z.record(z.string(), z.unknown())'
+    return applyDefault('z.record(z.string(), z.unknown())', schema)
   }
 
   if (type !== undefined) {
-    const base = primitiveToZod(type)
-    if (type === 'string') return applyStringConstraints(base, schema)
-    if (type === 'number' || type === 'integer') return applyNumberConstraints(base, schema)
-    return base
+    let base: string
+    if (type === 'string') {
+      base = stringSchemaExpr(schema)
+    } else if (type === 'integer') {
+      base = primitiveToZod('integer', schema.format as string | undefined)
+      if (base !== 'z.bigint()') {
+        base = applyNumberConstraints(base, schema)
+      }
+    } else if (type === 'number') {
+      base = primitiveToZod('number')
+      base = applyNumberConstraints(base, schema)
+    } else {
+      base = primitiveToZod(type)
+    }
+    return applyDefault(base, schema)
   }
 
   return 'z.unknown()'
+}
+
+/**
+ * If the schema has a `default` value, append `.default(value)` to the zod expression.
+ * Skips if the expression already ends with a complex refine (for readability).
+ */
+function applyDefault(expr: string, schema: SchemaObject): string {
+  if (schema.default === undefined) return expr
+  return `${expr}.default(${serializeLiteral(schema.default)})`
 }
 
 function inlineObjectZod(schema: SchemaObject): string {
@@ -239,9 +344,10 @@ function inlineObjectZod(schema: SchemaObject): string {
     const suffix = required.has(key) ? '' : '.optional()'
     return `  ${propKey}: ${zodStr}${suffix}`
   })
-  // .passthrough() keeps unknown server fields in the parsed output,
-  // making schemas forward-compatible when the server adds new optional fields.
-  return `z.object({\n${lines.join(',\n')}\n}).passthrough()`
+  // additionalProperties: false means no extra keys are allowed -> use .strict()
+  // otherwise use .passthrough() to keep unknown server fields (forward-compatible)
+  const tail = schema.additionalProperties === false ? '.strict()' : '.passthrough()'
+  return `z.object({\n${lines.join(',\n')}\n})${tail}`
 }
 
 /** Collect all #/components/schemas/ ref names reachable from a schema tree. */
@@ -343,14 +449,14 @@ function generateSchemaDeclaration(
   schema: SchemaObject | ReferenceObject,
   inCycle = false
 ): string {
-  // Sanitize schema name to a valid TS identifier (e.g. 'Foo-bar' → 'FooBar')
+  // Sanitize schema name to a valid TS identifier (e.g. 'Foo-bar' -> 'FooBar')
   const safeName = toTypeName(name)
   const useLazy = inCycle || (!isRef(schema) && hasSelfRef(schema, safeName))
 
   if (useLazy) {
     // Wrap in z.lazy() for circular/self-referential schemas.
     // z.lazy() defers evaluation until first use, by which point all
-    // schema variables are declared — safe even for mutual cycles.
+    // schema variables are declared - safe even for mutual cycles.
     const inner = schemaToZod(schema)
     return `export const ${safeName}Schema: z.ZodType = z.lazy(() => ${inner})`
   }
@@ -364,13 +470,14 @@ export function generateZodSchemas(spec: OpenAPIV3_1.Document): GeneratedFile {
     | undefined
 
   const lines: string[] = [
-    '// Bootstrapped by @codewithagents/openapi-gen — this file is yours.',
+    '// Bootstrapped by @codewithagents/openapi-gen - this file is yours.',
     '// Add error messages, refinements, and business rules freely.',
     '// Re-running the generator will NOT overwrite this file.',
     '// Requires zod v4 (z.record takes two args, z.lazy for circular refs).',
     '//',
     '// Object schemas include .passthrough() so new optional server fields are',
-    '// preserved when the API evolves — without breaking existing consumers.',
+    '// preserved when the API evolves - without breaking existing consumers.',
+    '// Schemas with additionalProperties: false use .strict() instead.',
     '//',
     '// Form wizard pattern: extend API schemas for UI-only fields.',
     '// The generated client strips unknown keys before sending, so extra form',
@@ -382,7 +489,7 @@ export function generateZodSchemas(spec: OpenAPIV3_1.Document): GeneratedFile {
     '//   })',
     '//',
     '// Use CreateOrderFormSchema for React Hook Form validation, then pass the',
-    '// full form values to the generated client — it strips to API fields only.',
+    '// full form values to the generated client - it strips to API fields only.',
     '',
     "import { z } from 'zod'",
     '',
@@ -390,7 +497,7 @@ export function generateZodSchemas(spec: OpenAPIV3_1.Document): GeneratedFile {
 
   if (schemas !== undefined) {
     // Sanitize schema names so the topo sort and ref-collection use consistent identifiers.
-    // Schema names like 'Foo-bar' become 'FooBar' — safe for use as TS variable names.
+    // Schema names like 'Foo-bar' become 'FooBar' - safe for use as TS variable names.
     const sanitizedSchemas: Record<string, SchemaObject | ReferenceObject> = {}
     for (const [name, schema] of Object.entries(schemas)) {
       sanitizedSchemas[toTypeName(name)] = schema

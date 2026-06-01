@@ -396,30 +396,43 @@ describe('string validation constraints', () => {
     expect(out).toContain('z.string().regex(new RegExp("^[a-z]+$"))')
   })
 
-  it('format: email → .email()', () => {
-    expect(genSingle('A', { type: 'string', format: 'email' })).toContain('z.string().email()')
+  it('format: email → z.email() (Zod v4 top-level validator)', () => {
+    expect(genSingle('A', { type: 'string', format: 'email' })).toContain('z.email()')
   })
 
-  it('format: url → .url()', () => {
-    expect(genSingle('A', { type: 'string', format: 'url' })).toContain('z.string().url()')
+  it('format: url → z.url() (Zod v4 top-level validator)', () => {
+    expect(genSingle('A', { type: 'string', format: 'url' })).toContain('z.url()')
   })
 
-  it('format: uuid → .uuid()', () => {
-    expect(genSingle('A', { type: 'string', format: 'uuid' })).toContain('z.string().uuid()')
+  it('format: uuid → z.uuid() (Zod v4 top-level validator)', () => {
+    expect(genSingle('A', { type: 'string', format: 'uuid' })).toContain('z.uuid()')
   })
 
-  it('combined: maxLength + email', () => {
+  it('format: date-time → z.iso.datetime() (Zod v4 ISO datetime validator)', () => {
+    expect(genSingle('A', { type: 'string', format: 'date-time' })).toContain('z.iso.datetime()')
+  })
+
+  it('format: date → z.iso.date() (Zod v4 ISO date validator)', () => {
+    expect(genSingle('A', { type: 'string', format: 'date' })).toContain('z.iso.date()')
+  })
+
+  it('format: byte/binary stays as z.string() base (no special runtime validator)', () => {
+    expect(genSingle('A', { type: 'string', format: 'byte' })).toContain('z.string()')
+    expect(genSingle('A', { type: 'string', format: 'binary' })).toContain('z.string()')
+  })
+
+  it('combined: maxLength + email uses z.email().max(n)', () => {
     const out = genSingle('A', { type: 'string', maxLength: 255, format: 'email' })
-    expect(out).toContain('z.string().max(255).email()')
+    expect(out).toContain('z.email().max(255)')
   })
 
-  it('string property in object gets constraints', () => {
+  it('string property in object gets Zod v4 format validators', () => {
     const out = genSingle('User', {
       type: 'object',
       required: ['email'],
       properties: { email: { type: 'string', format: 'email', maxLength: 255 } },
     })
-    expect(out).toContain('email: z.string().max(255).email()')
+    expect(out).toContain('email: z.email().max(255)')
   })
 
   it('nullable string with constraint: type: [string, null] + minLength', () => {
@@ -590,5 +603,213 @@ describe('coverage: multi-type array with null member (zod.ts line 118 TRUE bran
     expect(out).toContain('z.null()')
     expect(out).toContain('z.string()')
     expect(out).toContain('z.number()')
+  })
+})
+
+describe('int64 format -> bigint', () => {
+  it('integer with format int64 -> z.bigint()', () => {
+    const out = genSingle('Id', { type: 'integer', format: 'int64' })
+    // Check the schema declaration line specifically to avoid matching header comments
+    expect(out).toContain('IdSchema = z.bigint()')
+  })
+
+  it('integer with format int32 -> z.number() (only int64 gets bigint)', () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const out = genSingle('Id', { type: 'integer', format: 'int32' } as any)
+    expect(out).toContain('IdSchema = z.number()')
+    expect(out).not.toContain('z.bigint()')
+  })
+
+  it('integer with no format -> z.number()', () => {
+    const out = genSingle('Count', { type: 'integer' })
+    expect(out).toContain('CountSchema = z.number()')
+    expect(out).not.toContain('z.bigint()')
+  })
+
+  it('int64 as object property', () => {
+    const out = genSingle('Obj', {
+      type: 'object',
+      required: ['id'],
+      properties: { id: { type: 'integer', format: 'int64' } },
+    })
+    expect(out).toContain('id: z.bigint()')
+  })
+
+  it('nullable int64 array type: [integer, null] with int64 format', () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const out = genSingle('Id', { type: ['integer', 'null'], format: 'int64' } as any)
+    expect(out).toContain('z.bigint().nullable()')
+  })
+})
+
+describe('default keyword', () => {
+  it('string with default -> .default("value")', () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const out = genSingle('A', { type: 'string', default: 'hello' } as any)
+    expect(out).toContain('z.string().default("hello")')
+  })
+
+  it('number with default -> .default(n)', () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const out = genSingle('A', { type: 'number', default: 0 } as any)
+    expect(out).toContain('z.number().default(0)')
+  })
+
+  it('boolean with default false -> .default(false)', () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const out = genSingle('A', { type: 'boolean', default: false } as any)
+    expect(out).toContain('z.boolean().default(false)')
+  })
+
+  it('object property with default', () => {
+    const out = genSingle('Config', {
+      type: 'object',
+      properties: {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        enabled: { type: 'boolean', default: true } as any,
+      },
+    })
+    expect(out).toContain('z.boolean().default(true)')
+  })
+
+  it('no default -> no .default() call', () => {
+    const out = genSingle('A', { type: 'string' })
+    expect(out).not.toContain('.default(')
+  })
+})
+
+describe('const keyword -> z.literal()', () => {
+  it('const string -> z.literal("value")', () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const out = genSingle('A', { const: 'fixed' } as any)
+    expect(out).toContain('z.literal("fixed")')
+  })
+
+  it('const number -> z.literal(42)', () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const out = genSingle('A', { const: 42 } as any)
+    expect(out).toContain('z.literal(42)')
+  })
+
+  it('const null -> z.literal(null)', () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const out = genSingle('A', { const: null } as any)
+    expect(out).toContain('z.literal(null)')
+  })
+
+  it('const boolean -> z.literal(true)', () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const out = genSingle('A', { const: true } as any)
+    expect(out).toContain('z.literal(true)')
+  })
+
+  it('const property in object schema', () => {
+    const out = genSingle('Obj', {
+      type: 'object',
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      properties: { kind: { const: 'circle' } as any },
+    })
+    expect(out).toContain('z.literal("circle")')
+  })
+})
+
+describe('multipleOf constraint', () => {
+  it('integer with multipleOf -> .multipleOf(n)', () => {
+    const out = genSingle('A', { type: 'integer', multipleOf: 5 })
+    expect(out).toContain('z.number().multipleOf(5)')
+  })
+
+  it('number with multipleOf -> .multipleOf(n)', () => {
+    const out = genSingle('A', { type: 'number', multipleOf: 0.5 })
+    expect(out).toContain('z.number().multipleOf(0.5)')
+  })
+
+  it('multipleOf combined with min/max', () => {
+    const out = genSingle('A', { type: 'integer', minimum: 0, maximum: 100, multipleOf: 5 })
+    expect(out).toContain('z.number().min(0).max(100).multipleOf(5)')
+  })
+
+  it('no multipleOf -> no .multipleOf() call', () => {
+    const out = genSingle('A', { type: 'integer' })
+    expect(out).not.toContain('.multipleOf(')
+  })
+})
+
+describe('uniqueItems constraint', () => {
+  it('array with uniqueItems: true -> .refine() for uniqueness', () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const out = genSingle('A', {
+      type: 'array',
+      items: { type: 'string' },
+      uniqueItems: true,
+    } as any)
+    expect(out).toContain('.refine(')
+    expect(out).toContain('unique')
+  })
+
+  it('array without uniqueItems -> no .refine() added', () => {
+    const out = genSingle('A', { type: 'array', items: { type: 'string' } })
+    expect(out).not.toContain('.refine(')
+  })
+})
+
+describe('additionalProperties: false -> .strict()', () => {
+  it('object with additionalProperties: false -> .strict() instead of .passthrough()', () => {
+    const out = genSingle('A', {
+      type: 'object',
+      properties: { name: { type: 'string' } },
+      additionalProperties: false,
+    })
+    // The schema declaration should end with .strict()
+    expect(out).toContain('}).strict()')
+    // The schema declaration should NOT use .passthrough()
+    expect(out).not.toContain('}).passthrough()')
+  })
+
+  it('object without additionalProperties: false -> .passthrough()', () => {
+    const out = genSingle('A', {
+      type: 'object',
+      properties: { name: { type: 'string' } },
+    })
+    // The schema declaration should end with .passthrough()
+    expect(out).toContain('}).passthrough()')
+    // The schema declaration should NOT use .strict()
+    expect(out).not.toContain('}).strict()')
+  })
+})
+
+describe('prefixItems -> z.tuple()', () => {
+  it('array with prefixItems -> z.tuple([...])', () => {
+    const out = genSingle('A', {
+      type: 'array',
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      prefixItems: [{ type: 'string' }, { type: 'number' }],
+    } as any)
+    expect(out).toContain('z.tuple([z.string(), z.number()])')
+  })
+
+  it('tuple with rest items -> z.tuple([...]).rest(...)', () => {
+    const out = genSingle('A', {
+      type: 'array',
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      prefixItems: [{ type: 'string' }],
+      items: { type: 'number' },
+    } as any)
+    expect(out).toContain('z.tuple([z.string()]).rest(z.number())')
+  })
+
+  it('tuple with $ref elements', () => {
+    const out = gen({
+      Point: { type: 'object', properties: { x: { type: 'number' }, y: { type: 'number' } } },
+      Pair: {
+        type: 'array',
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        prefixItems: [
+          { $ref: '#/components/schemas/Point' },
+          { $ref: '#/components/schemas/Point' },
+        ],
+      } as any,
+    })
+    expect(out).toContain('z.tuple([PointSchema, PointSchema])')
   })
 })

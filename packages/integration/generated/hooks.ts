@@ -5,7 +5,7 @@ import {
   type UseQueryOptions,
   useMutation,
   type UseMutationOptions,
-} from "@tanstack/react-query";
+} from '@tanstack/react-query'
 import {
   createTask,
   deleteTask,
@@ -14,16 +14,15 @@ import {
   updateTask,
   uploadTaskAttachment,
   type ApiError,
-} from "./client.js";
+} from './client.js'
 
 // ── Query key factories ──────────────────────────────────────
 
 export const taskKeys = {
-  all: () => ["tasks"] as const,
-  list: (params?: Parameters<typeof listTasks>[0]) =>
-    ["tasks", "list", params] as const,
-  detail: (id: string) => ["tasks", id] as const,
-};
+  all: () => ['tasks'] as const,
+  list: (params?: Parameters<typeof listTasks>[0]) => ['tasks', 'list', params] as const,
+  detail: (id: string) => ['tasks', id] as const,
+}
 
 // ── Queries ──────────────────────────────────────────────────
 
@@ -31,8 +30,8 @@ export function useListTasks(
   params?: Parameters<typeof listTasks>[0],
   options?: Omit<
     UseQueryOptions<Awaited<ReturnType<typeof listTasks>>, ApiError>,
-    "queryKey" | "queryFn"
-  >,
+    'queryKey' | 'queryFn'
+  >
 ) {
   return useQuery<Awaited<ReturnType<typeof listTasks>>, ApiError>({
     queryKey: taskKeys.list(params),
@@ -40,15 +39,15 @@ export function useListTasks(
     staleTime: 30000,
     gcTime: 300000,
     ...options,
-  });
+  })
 }
 
 export function useGetTask(
   id: string | undefined | null,
   options?: Omit<
     UseQueryOptions<Awaited<ReturnType<typeof getTask>>, ApiError>,
-    "queryKey" | "queryFn"
-  >,
+    'queryKey' | 'queryFn'
+  >
 ) {
   return useQuery<Awaited<ReturnType<typeof getTask>>, ApiError>({
     queryKey: taskKeys.detail(id!),
@@ -57,7 +56,7 @@ export function useGetTask(
     gcTime: 300000,
     enabled: id != null && (options?.enabled ?? true),
     ...options,
-  });
+  })
 }
 
 // ── Mutations ────────────────────────────────────────────────
@@ -69,8 +68,8 @@ export function useCreateTask(
       ApiError,
       Parameters<typeof createTask>[0]
     >,
-    "mutationFn"
-  >,
+    'mutationFn'
+  >
 ) {
   return useMutation<
     Awaited<ReturnType<typeof createTask>>,
@@ -79,7 +78,7 @@ export function useCreateTask(
   >({
     mutationFn: (vars) => createTask(vars),
     ...options,
-  });
+  })
 }
 
 export function useUploadTaskAttachment(
@@ -89,8 +88,8 @@ export function useUploadTaskAttachment(
       ApiError,
       Parameters<typeof uploadTaskAttachment>[0]
     >,
-    "mutationFn"
-  >,
+    'mutationFn'
+  >
 ) {
   return useMutation<
     Awaited<ReturnType<typeof uploadTaskAttachment>>,
@@ -99,7 +98,7 @@ export function useUploadTaskAttachment(
   >({
     mutationFn: (vars) => uploadTaskAttachment(vars),
     ...options,
-  });
+  })
 }
 
 export function useUpdateTask(
@@ -109,8 +108,8 @@ export function useUpdateTask(
       ApiError,
       { id: string; body: Parameters<typeof updateTask>[1] }
     >,
-    "mutationFn"
-  >,
+    'mutationFn'
+  >
 ) {
   return useMutation<
     Awaited<ReturnType<typeof updateTask>>,
@@ -119,21 +118,17 @@ export function useUpdateTask(
   >({
     mutationFn: ({ id, body }) => updateTask(id, body),
     ...options,
-  });
+  })
 }
 
 export function useDeleteTask(
   options?: Omit<
-    UseMutationOptions<
-      Awaited<ReturnType<typeof deleteTask>>,
-      ApiError,
-      string
-    >,
-    "mutationFn"
-  >,
+    UseMutationOptions<Awaited<ReturnType<typeof deleteTask>>, ApiError, string>,
+    'mutationFn'
+  >
 ) {
   return useMutation<Awaited<ReturnType<typeof deleteTask>>, ApiError, string>({
     mutationFn: (id) => deleteTask(id),
     ...options,
-  });
+  })
 }
