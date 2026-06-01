@@ -43,12 +43,7 @@ describe.each(cases)('compat — $name', ({ specPath }) => {
 //
 // To update: reproduce locally, adjust the set, add a one-line reason comment.
 // ---------------------------------------------------------------------------
-const KNOWN_TYPECHECK_FAILURES = new Set([
-  // TS1005 "',' expected" -- generator emits `[object Object]` literal for
-  // additionalProperties schemas whose value is an inline schema object rather
-  // than a $ref, producing invalid TypeScript syntax in models.ts.
-  'docker',
-])
+const KNOWN_TYPECHECK_FAILURES = new Set([])
 
 type SpecCase = { name: string; specPath: string }
 

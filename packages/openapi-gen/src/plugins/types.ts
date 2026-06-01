@@ -52,8 +52,16 @@ function schemaToTypeString(schema: SchemaObject | ReferenceObject): string {
     return types.join(' | ')
   }
 
-  // enum - handles string, integer, number, mixed (null values rendered as "null" literal)
-  if (schema.enum !== undefined && schema.enum.length > 0) {
+  // enum - handles string, integer, number, boolean, mixed null values rendered as "null" literal.
+  // Non-primitive enum members cannot be represented as TypeScript literal types;
+  // keep resolving them through the regular schema path instead.
+  if (
+    schema.enum !== undefined &&
+    schema.enum.length > 0 &&
+    schema.enum.every(
+      (v: unknown) => v === null || ['string', 'number', 'boolean'].includes(typeof v)
+    )
+  ) {
     return schema.enum
       .map((v: unknown) => {
         if (v === null) return 'null'

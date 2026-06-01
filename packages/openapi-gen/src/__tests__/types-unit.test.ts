@@ -140,6 +140,19 @@ describe('object types', () => {
     const out = genSingle('M', { type: 'object', additionalProperties: { type: 'string' } })
     expect(out).toContain('Record<string, string>')
   })
+  it('additionalProperties with object enum falls back to the inline schema type', () => {
+    const out = genSingle('M', {
+      type: 'object',
+      properties: {
+        ports: {
+          type: 'object',
+          additionalProperties: { type: 'object', default: {}, enum: [{}] },
+        },
+      },
+    })
+    expect(out).toContain('ports?: Record<string, Record<string, unknown>>')
+    expect(out).not.toContain('[object Object]')
+  })
   it('empty object → Record<string, unknown>', () => {
     const out = genSingle('E', { type: 'object' })
     expect(out).toContain('Record<string, unknown>')
