@@ -413,6 +413,72 @@ export type CreateCheckoutSessionRequest = z.infer<typeof CreateCheckoutSessionR
 
 export type CreateCheckoutSessionResponse = z.infer<typeof CreateCheckoutSessionResponseSchema>
 
+export interface CreateCheckoutSessionResponseWritable {
+  accountInfo?: AccountInfo
+  additionalAmount?: Amount
+  additionalData?: Record<string, string>
+  allowedPaymentMethods?: string[]
+  amount: Amount
+  applicationInfo?: ApplicationInfo
+  authenticationData?: AuthenticationData
+  billingAddress?: BillingAddress
+  blockedPaymentMethods?: string[]
+  captureDelayHours?: number
+  channel?: 'iOS' | 'Android' | 'Web'
+  company?: Company
+  countryCode?: string
+  dateOfBirth?: string /* date-time */
+  deliverAt?: string /* date-time */
+  deliveryAddress?: DeliveryAddress
+  enableOneClick?: boolean
+  enablePayOut?: boolean
+  enableRecurring?: boolean
+  expiresAt: string /* date-time */
+  fundOrigin?: FundOrigin
+  fundRecipient?: FundRecipient
+  installmentOptions?: Record<string, CheckoutSessionInstallmentOption>
+  lineItems?: LineItem[]
+  mandate?: Mandate
+  mcc?: string
+  merchantAccount: string
+  merchantOrderReference?: string
+  metadata?: Record<string, string>
+  mode?: 'embedded' | 'hosted'
+  mpiData?: ThreeDSecureData
+  platformChargebackLogic?: PlatformChargebackLogic
+  recurringExpiry?: string
+  recurringFrequency?: string
+  recurringProcessingModel?: 'CardOnFile' | 'Subscription' | 'UnscheduledCardOnFile'
+  redirectFromIssuerMethod?: string
+  redirectToIssuerMethod?: string
+  reference: string
+  returnUrl: string
+  riskData?: RiskData
+  sessionData?: string
+  shopperEmail?: string
+  shopperIP?: string
+  shopperInteraction?: 'Ecommerce' | 'ContAuth' | 'Moto' | 'POS'
+  shopperLocale?: string
+  shopperName?: ShopperName
+  shopperReference?: string
+  shopperStatement?: string
+  showInstallmentAmount?: boolean
+  showRemovePaymentMethodButton?: boolean
+  socialSecurityNumber?: string
+  splitCardFundingSources?: boolean
+  splits?: Split[]
+  store?: string
+  storeFiltrationMode?: 'exclusive' | 'inclusive' | 'skipFilter'
+  storePaymentMethod?: boolean
+  storePaymentMethodMode?: 'askForConsent' | 'disabled' | 'enabled'
+  telephoneNumber?: string
+  themeId?: string
+  threeDS2RequestData?: CheckoutSessionThreeDS2RequestData
+  threeDSAuthenticationOnly?: boolean
+  trustedShopper?: boolean
+  url?: string
+}
+
 export type CreateOrderRequest = z.infer<typeof CreateOrderRequestSchema>
 
 export type CreateOrderResponse = z.infer<typeof CreateOrderResponseSchema>
@@ -570,6 +636,58 @@ export type PaymentDetailsResponse = z.infer<typeof PaymentDetailsResponseSchema
 export type PaymentLinkRequest = z.infer<typeof PaymentLinkRequestSchema>
 
 export type PaymentLinkResponse = z.infer<typeof PaymentLinkResponseSchema>
+
+export interface PaymentLinkResponseWritable {
+  allowedPaymentMethods?: string[]
+  amount: Amount
+  applicationInfo?: ApplicationInfo
+  billingAddress?: Address
+  blockedPaymentMethods?: string[]
+  captureDelayHours?: number
+  countryCode?: string
+  dateOfBirth?: string /* date */
+  deliverAt?: string /* date-time */
+  deliveryAddress?: Address
+  description?: string
+  expiresAt?: string /* date-time */
+  fundOrigin?: FundOrigin
+  fundRecipient?: FundRecipient
+  installmentOptions?: Record<string, InstallmentOption>
+  lineItems?: LineItem[]
+  manualCapture?: boolean
+  mcc?: string
+  merchantAccount: string
+  merchantOrderReference?: string
+  metadata?: Record<string, string>
+  platformChargebackLogic?: PlatformChargebackLogic
+  recurringProcessingModel?: 'CardOnFile' | 'Subscription' | 'UnscheduledCardOnFile'
+  reference: string
+  requiredShopperFields?:
+    | 'billingAddress'
+    | 'deliveryAddress'
+    | 'shopperEmail'
+    | 'shopperName'
+    | 'telephoneNumber'[]
+  returnUrl?: string
+  reusable?: boolean
+  riskData?: RiskData
+  shopperEmail?: string
+  shopperLocale?: string
+  shopperName?: Name
+  shopperReference?: string
+  shopperStatement?: string
+  showRemovePaymentMethodButton?: boolean
+  socialSecurityNumber?: string
+  splitCardFundingSources?: boolean
+  splits?: Split[]
+  status: 'active' | 'completed' | 'expired' | 'paid' | 'paymentPending'
+  store?: string
+  storePaymentMethodMode?: 'askForConsent' | 'disabled' | 'enabled'
+  telephoneNumber?: string
+  themeId?: string
+  threeDS2RequestData?: CheckoutSessionThreeDS2RequestData
+  updatedAt?: string /* date-time */
+}
 
 export type PaymentMethod = z.infer<typeof PaymentMethodSchema>
 

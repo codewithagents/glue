@@ -17,11 +17,70 @@ export type ErrorResponse = z.infer<typeof ErrorResponseSchema>
 
 export type File = z.infer<typeof FileSchema>
 
+export interface FileWritable {
+  id?: string
+  name?: string
+  size?: number
+  section?: {
+    id?: string
+  }
+  content?: string
+}
+
 export type Vault = z.infer<typeof VaultSchema>
+
+export interface VaultWritable {
+  id?: string
+  name?: string
+  description?: string
+  attributeVersion?: number
+  contentVersion?: number
+  items?: number
+  type?: 'USER_CREATED' | 'PERSONAL' | 'EVERYONE' | 'TRANSFER'
+}
 
 export type GeneratorRecipe = z.infer<typeof GeneratorRecipeSchema>
 
 export type Item = z.infer<typeof ItemSchema>
+
+export interface ItemWritable {
+  id?: string
+  title?: string
+  vault: {
+    id: string
+  }
+  category:
+    | 'LOGIN'
+    | 'PASSWORD'
+    | 'API_CREDENTIAL'
+    | 'SERVER'
+    | 'DATABASE'
+    | 'CREDIT_CARD'
+    | 'MEMBERSHIP'
+    | 'PASSPORT'
+    | 'SOFTWARE_LICENSE'
+    | 'OUTDOOR_LICENSE'
+    | 'SECURE_NOTE'
+    | 'WIRELESS_ROUTER'
+    | 'BANK_ACCOUNT'
+    | 'DRIVER_LICENSE'
+    | 'IDENTITY'
+    | 'REWARD_PROGRAM'
+    | 'DOCUMENT'
+    | 'EMAIL_ACCOUNT'
+    | 'SOCIAL_SECURITY_NUMBER'
+    | 'MEDICAL_RECORD'
+    | 'SSH_KEY'
+    | 'CUSTOM'
+  urls?: {
+    label?: string
+    primary?: boolean
+    href: string
+  }[]
+  favorite?: boolean
+  tags?: string[]
+  version?: number
+}
 
 export type FullItem = Item & {
   sections?: {
@@ -34,7 +93,43 @@ export type FullItem = Item & {
 
 export type Field = z.infer<typeof FieldSchema>
 
+export interface FieldWritable {
+  id: string
+  section?: {
+    id?: string
+  }
+  type: 'STRING' | 'EMAIL' | 'CONCEALED' | 'URL' | 'TOTP' | 'DATE' | 'MONTH_YEAR' | 'MENU'
+  purpose?: '' | 'USERNAME' | 'PASSWORD' | 'NOTES'
+  label?: string
+  value?: string
+  generate?: boolean
+  recipe?: GeneratorRecipe
+}
+
 export type APIRequest = z.infer<typeof APIRequestSchema>
+
+export interface APIRequestWritable {
+  requestId?: string
+  action?: 'READ' | 'CREATE' | 'UPDATE' | 'DELETE'
+  result?: 'SUCCESS' | 'DENY'
+  actor?: {
+    id?: string
+    account?: string
+    jti?: string
+    userAgent?: string
+    requestIp?: string
+  }
+  resource?: {
+    type?: 'ITEM' | 'VAULT'
+    vault?: {
+      id?: string
+    }
+    item?: {
+      id?: string
+    }
+    itemVersion?: number
+  }
+}
 
 export type Patch = {
   op: 'add' | 'remove' | 'replace'
