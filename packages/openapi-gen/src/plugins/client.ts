@@ -1,5 +1,5 @@
 import type { OpenAPIV3_1 } from 'openapi-types'
-import { toPropertyKey, toTypeName } from '../utils/naming.js'
+import { toPropertyKey, toTypeName, uniquifyName, refToTypeName } from '../utils/naming.js'
 import type { GeneratedFile } from './types.js'
 
 type OperationObject = OpenAPIV3_1.OperationObject
@@ -11,17 +11,6 @@ type ResponseObject = OpenAPIV3_1.ResponseObject
 
 const SUPPORTED_METHODS = ['get', 'post', 'put', 'patch', 'delete'] as const
 type _SupportedMethod = (typeof SUPPORTED_METHODS)[number]
-
-function refToTypeName(ref: string, renameMap?: Map<string, string>): string {
-  // '#/components/schemas/Foo' -> 'Foo' (sanitized to a valid TS identifier)
-  const parts = ref.split('/')
-  const raw = parts[parts.length - 1]!
-  if (renameMap !== undefined) {
-    const renamed = renameMap.get(raw)
-    if (renamed !== undefined) return renamed
-  }
-  return toTypeName(raw)
-}
 
 function isRef(obj: unknown): obj is ReferenceObject {
   return typeof obj === 'object' && obj !== null && '$ref' in obj
@@ -449,27 +438,8 @@ function getQueryParams(
     .filter((p) => p.name.length > 0) // skip params that reduce to empty string after normalization
   return raw.map((p) => ({
     ...p,
-    name: uniquifyQueryParamName(p.name, usedParamNames),
+    name: uniquifyName(p.name, usedParamNames),
   }))
-}
-
-/**
- * Returns a query param name that is unique within the provided set.
- * If the candidate already exists, appends _2, _3, ... until a free slot is found.
- * The chosen name is added to the set before returning.
- */
-function uniquifyQueryParamName(candidate: string, used: Set<string>): string {
-  if (!used.has(candidate)) {
-    used.add(candidate)
-    return candidate
-  }
-  let counter = 2
-  while (used.has(`${candidate}_${counter}`)) {
-    counter++
-  }
-  const unique = `${candidate}_${counter}`
-  used.add(unique)
-  return unique
 }
 
 // Feature 2: Header parameters
@@ -1351,25 +1321,6 @@ export function hasCookieAuth(spec: OpenAPIV3_1.Document): boolean {
   return Object.values(schemes).some(
     (s) => !isRef(s) && (s as any).type === 'apiKey' && (s as any).in === 'cookie'
   )
-}
-
-/**
- * Returns a name that is unique within the provided set.
- * If the candidate already exists, appends _2, _3, ... until a free slot is found.
- * The chosen name is added to the set before returning.
- */
-function uniquifyName(candidate: string, used: Set<string>): string {
-  if (!used.has(candidate)) {
-    used.add(candidate)
-    return candidate
-  }
-  let counter = 2
-  while (used.has(`${candidate}_${counter}`)) {
-    counter++
-  }
-  const unique = `${candidate}_${counter}`
-  used.add(unique)
-  return unique
 }
 
 // fallow-ignore-next-line complexity
