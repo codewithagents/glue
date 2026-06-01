@@ -487,7 +487,7 @@ interface MultipartField {
 
 interface RequestBodyInfo {
   typeName: string
-  kind: 'json' | 'multipart'
+  kind: 'json' | 'multipart' | 'form'
   multipartFields?: MultipartField[]
 }
 
@@ -542,10 +542,17 @@ function getRequestBodyInfo(operation: OperationObject): RequestBodyInfo | undef
 
   // Fall back to JSON
   const jsonContent = content['application/json']
-  if (jsonContent === undefined || jsonContent.schema === undefined) return undefined
+  if (jsonContent !== undefined && jsonContent.schema !== undefined) {
+    const schema = jsonContent.schema
+    return { typeName: inlineSchemaToTs(schema), kind: 'json' }
+  }
 
-  const schema = jsonContent.schema
-  return { typeName: inlineSchemaToTs(schema), kind: 'json' }
+  // Fall back to application/x-www-form-urlencoded
+  const formContent = content['application/x-www-form-urlencoded']
+  if (formContent === undefined || formContent.schema === undefined) return undefined
+
+  const formSchema = formContent.schema
+  return { typeName: inlineSchemaToTs(formSchema), kind: 'form' }
 }
 
 /** Feature 4: Collect non-2xx error responses that have a JSON $ref schema and return @throws tags */
@@ -645,6 +652,8 @@ interface HelperFeatures {
   hasHeaderParams: boolean
   /** Any endpoint is multipart/form-data → emit `_requestForm` helper */
   hasMultipart: boolean
+  /** Any endpoint uses application/x-www-form-urlencoded → emit bodyEncoding branch in `_request` */
+  hasFormUrlencoded: boolean
 }
 
 /** Returns true when the spec has any non-cookie security scheme or a global/operation-level security requirement. */
@@ -697,6 +706,7 @@ function generateRequestHelpers(features: HelperFeatures): string {
   lines.push(`  opts: {`)
   lines.push(`    searchParams?: URLSearchParams`)
   lines.push(`    body?: unknown`)
+  if (features.hasFormUrlencoded) lines.push(`    bodyEncoding?: 'json' | 'form'`)
   if (features.hasHeaderParams) lines.push(`    extraHeaders?: Record<string, string>`)
   lines.push(`  },`)
   lines.push(`  config?: Partial<ClientConfig>,`)
@@ -719,13 +729,25 @@ function generateRequestHelpers(features: HelperFeatures): string {
   lines.push(`    method,`)
   if (features.hasCookieAuth) lines.push(`    credentials,`)
   lines.push(`    headers: {`)
-  lines.push(`      ...(opts.body !== undefined ? { 'Content-Type': 'application/json' } : {}),`)
+  if (features.hasFormUrlencoded) {
+    lines.push(
+      `      ...(opts.body !== undefined ? { 'Content-Type': opts.bodyEncoding === 'form' ? 'application/x-www-form-urlencoded' : 'application/json' } : {}),`
+    )
+  } else {
+    lines.push(`      ...(opts.body !== undefined ? { 'Content-Type': 'application/json' } : {}),`)
+  }
   lines.push(`      ...headers,`)
   if (features.hasBearerAuth)
     lines.push(`      ...(resolvedToken ? { Authorization: \`Bearer \${resolvedToken}\` } : {}),`)
   if (features.hasHeaderParams) lines.push(`      ...opts.extraHeaders,`)
   lines.push(`    },`)
-  lines.push(`    ...(opts.body !== undefined ? { body: JSON.stringify(opts.body) } : {}),`)
+  if (features.hasFormUrlencoded) {
+    lines.push(
+      `    ...(opts.body !== undefined ? { body: opts.bodyEncoding === 'form' ? new URLSearchParams(Object.entries(opts.body as Record<string, unknown>).flatMap(([k, v]) => Array.isArray(v) ? v.map((e) => [k, String(e)] as [string, string]) : v == null ? [] : [[k, String(v)] as [string, string]])).toString() : JSON.stringify(opts.body) } : {}),`
+    )
+  } else {
+    lines.push(`    ...(opts.body !== undefined ? { body: JSON.stringify(opts.body) } : {}),`)
+  }
   lines.push(`  })`)
   lines.push(`  if (!res.ok) {`)
   lines.push(`    const err = new ApiError(res.status, await res.json().catch(() => null))`)
@@ -935,10 +957,15 @@ function generateFunctionCode(
       lines.push(`  const res = await ${call}`)
     }
   } else {
-    // _request: JSON body (if any) goes in opts.body; no FormData
+    // _request: JSON or form body (if any) goes in opts.body; no FormData
     const optsParts: string[] = []
     if (queryParams.length > 0) optsParts.push('searchParams')
-    if (bodyInfo !== undefined && bodyInfo.kind === 'json') optsParts.push('body')
+    if (bodyInfo !== undefined && (bodyInfo.kind === 'json' || bodyInfo.kind === 'form')) {
+      optsParts.push('body')
+    }
+    if (bodyInfo !== undefined && bodyInfo.kind === 'form') {
+      optsParts.push(`bodyEncoding: 'form'`)
+    }
     if (headerParams.length > 0) optsParts.push('extraHeaders')
     const optsLiteral = optsParts.length > 0 ? `{ ${optsParts.join(', ')} }` : '{}'
     const call = `_request('${method.toUpperCase()}', ${pathArg}, ${optsLiteral}, config)`
@@ -1031,6 +1058,7 @@ export function generateClient(spec: OpenAPIV3_1.Document, options?: ClientOptio
   const collectedSchemaNames = new Set<string>()
   let needsZImport = false
   let hasMultipartEndpoints = false
+  let hasFormUrlencodedEndpoints = false
   let hasHeaderParamEndpoints = false
   let hasAnyEndpoints = false
   const functionBlocks: string[] = []
@@ -1061,6 +1089,7 @@ export function generateClient(spec: OpenAPIV3_1.Document, options?: ClientOptio
 
         // Track which features are used across the spec (drives conditional helper code-gen)
         if (bodyInfo !== undefined && bodyInfo.kind === 'multipart') hasMultipartEndpoints = true
+        if (bodyInfo !== undefined && bodyInfo.kind === 'form') hasFormUrlencodedEndpoints = true
         if (headerParams.length > 0) hasHeaderParamEndpoints = true
 
         // Schema-enhanced: compute request body and response schema names for this operation
@@ -1165,6 +1194,7 @@ export function generateClient(spec: OpenAPIV3_1.Document, options?: ClientOptio
       hasCookieAuth: hasCookieAuth(spec),
       hasHeaderParams: hasHeaderParamEndpoints,
       hasMultipart: hasMultipartEndpoints,
+      hasFormUrlencoded: hasFormUrlencodedEndpoints,
     }
     lines.push('')
     lines.push(generateRequestHelpers(helperFeatures))
