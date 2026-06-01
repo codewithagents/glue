@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.7.0](https://github.com/codewithagents/openapi-zod-ts/compare/openapi-react-query-v3.6.1...openapi-react-query-v3.7.0) (2026-06-01)
+
+
+### Features
+
+* **openapi-react-query:** queryOptions() factories + SSR prefetch/hydration ([#188](https://github.com/codewithagents/openapi-zod-ts/issues/188)) ([#233](https://github.com/codewithagents/openapi-zod-ts/issues/233)) ([04dd665](https://github.com/codewithagents/openapi-zod-ts/commit/04dd6650dac8f05f65b371585381458b1a88d44a))
+
 ## [3.6.1](https://github.com/codewithagents/openapi-zod-ts/compare/openapi-react-query-v3.6.0...openapi-react-query-v3.6.1) (2026-06-01)
 
 

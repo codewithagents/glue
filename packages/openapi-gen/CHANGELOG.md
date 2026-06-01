@@ -1,5 +1,18 @@
 # Changelog
 
+## [4.7.0](https://github.com/codewithagents/openapi-zod-ts/compare/openapi-gen-v4.6.1...openapi-gen-v4.7.0) (2026-06-01)
+
+
+### Features
+
+* **openapi-gen:** DX core — --input/--output flags, JS config + defineConfig, --watch ([#192](https://github.com/codewithagents/openapi-zod-ts/issues/192)) ([#236](https://github.com/codewithagents/openapi-zod-ts/issues/236)) ([0cf3959](https://github.com/codewithagents/openapi-zod-ts/commit/0cf3959818b396efeda6ec53defb88f9891912ea))
+* **openapi-gen:** readOnly/writeOnly request/response type variant split ([#211](https://github.com/codewithagents/openapi-zod-ts/issues/211)) ([#237](https://github.com/codewithagents/openapi-zod-ts/issues/237)) ([7e78796](https://github.com/codewithagents/openapi-zod-ts/commit/7e78796d4408d57817df83cee4137bc816c0c8a4))
+
+
+### Bug Fixes
+
+* **openapi-gen:** resolve deep/non-component $refs; empty tsc-gate allowlist ([#220](https://github.com/codewithagents/openapi-zod-ts/issues/220)) ([#235](https://github.com/codewithagents/openapi-zod-ts/issues/235)) ([0f5a8d4](https://github.com/codewithagents/openapi-zod-ts/commit/0f5a8d4252fbfd4b417ad8cb9aa6b7f167193fb3))
+
 ## [4.6.1](https://github.com/codewithagents/openapi-zod-ts/compare/openapi-gen-v4.6.0...openapi-gen-v4.6.1) (2026-06-01)
 
 
