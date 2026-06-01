@@ -146,6 +146,7 @@ export async function buyMuseumTickets(
 export async function getTicketCode(
   ticketId: string,
   config?: Partial<ClientConfig>
-): Promise<void> {
-  await _request('GET', `/tickets/${encodeURIComponent(ticketId)}/qr`, {}, config)
+): Promise<Blob> {
+  const res = await _request('GET', `/tickets/${encodeURIComponent(ticketId)}/qr`, {}, config)
+  return res.blob()
 }

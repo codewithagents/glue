@@ -217,15 +217,67 @@ function deriveOperationName(method: string, path: string): string {
   return prefix + joined
 }
 
+/** Discriminator for how the generated client should parse the success response body. */
+type ResponseBodyKind = 'json' | 'text' | 'binary' | 'event-stream' | 'void'
+
+/**
+ * Classify a single media type string into a ResponseBodyKind.
+ * - json: application/json or any *+json suffix
+ * - event-stream: text/event-stream (excluded from the text category)
+ * - text: any other text/* media type
+ * - binary: everything else (octet-stream, pdf, images, sdp, zip, etc.)
+ */
+function classifyMediaType(mediaType: string): ResponseBodyKind {
+  const mt = mediaType.toLowerCase().split(';')[0]!.trim()
+  if (mt === 'application/json' || mt.endsWith('+json')) return 'json'
+  if (mt === 'text/event-stream') return 'event-stream'
+  if (mt.startsWith('text/')) return 'text'
+  return 'binary'
+}
+
+/**
+ * Given a response content map, pick the best media type using priority:
+ * json > text > binary > event-stream.
+ * Returns the chosen kind and the matching media type string, or null when content is empty.
+ */
+function pickResponseContent(
+  content: Record<string, { schema?: SchemaObject | ReferenceObject }>
+): {
+  kind: ResponseBodyKind
+  mediaType: string
+  entry: { schema?: SchemaObject | ReferenceObject }
+} | null {
+  const order: ResponseBodyKind[] = ['json', 'text', 'binary', 'event-stream']
+  const byKind = new Map<
+    ResponseBodyKind,
+    { mediaType: string; entry: { schema?: SchemaObject | ReferenceObject } }
+  >()
+
+  for (const [mt, entry] of Object.entries(content)) {
+    const kind = classifyMediaType(mt)
+    if (!byKind.has(kind)) {
+      byKind.set(kind, { mediaType: mt, entry })
+    }
+  }
+
+  for (const kind of order) {
+    const found = byKind.get(kind)
+    if (found !== undefined) return { kind, ...found }
+  }
+  return null
+}
+
 function getReturnType(operation: OperationObject): {
   typeName: string
   isArray: boolean
   isVoid: boolean
+  bodyKind: ResponseBodyKind
 } {
   const responses = operation.responses as
     | Record<string, ResponseObject | ReferenceObject>
     | undefined
-  if (responses === undefined) return { typeName: 'unknown', isArray: false, isVoid: false }
+  if (responses === undefined)
+    return { typeName: 'unknown', isArray: false, isVoid: false, bodyKind: 'json' }
 
   // Check 200 first, then 201
   for (const code of ['200', '201']) {
@@ -239,20 +291,39 @@ function getReturnType(operation: OperationObject): {
       | undefined
     if (content === undefined) continue
 
-    const jsonContent = content['application/json']
-    if (jsonContent === undefined || jsonContent.schema === undefined) continue
+    const picked = pickResponseContent(content)
+    if (picked === null) continue
 
-    const resolved = resolveSchema(jsonContent.schema)
-    return { ...resolved, isVoid: false }
+    if (picked.kind === 'json') {
+      if (picked.entry.schema === undefined) continue
+      const resolved = resolveSchema(picked.entry.schema)
+      return { ...resolved, isVoid: false, bodyKind: 'json' }
+    }
+
+    if (picked.kind === 'text') {
+      return { typeName: 'string', isArray: false, isVoid: false, bodyKind: 'text' }
+    }
+
+    if (picked.kind === 'event-stream') {
+      return {
+        typeName: 'ReadableStream<Uint8Array> | null',
+        isArray: false,
+        isVoid: false,
+        bodyKind: 'event-stream',
+      }
+    }
+
+    // binary: application/octet-stream, application/pdf, image/*, application/sdp, etc.
+    return { typeName: 'Blob', isArray: false, isVoid: false, bodyKind: 'binary' }
   }
 
   // Check for 204 (no content) or no successful response
   if (responses['204'] !== undefined || Object.keys(responses).length === 0) {
-    return { typeName: 'void', isArray: false, isVoid: true }
+    return { typeName: 'void', isArray: false, isVoid: true, bodyKind: 'void' }
   }
 
-  // DELETE with no body response
-  return { typeName: 'void', isArray: false, isVoid: true }
+  // No recognized success response body
+  return { typeName: 'void', isArray: false, isVoid: true, bodyKind: 'void' }
 }
 
 function resolveParamRef(
@@ -715,7 +786,7 @@ function generateFunctionCode(
   queryParams: QueryParam[],
   headerParams: HeaderParam[],
   bodyInfo: RequestBodyInfo | undefined,
-  returnType: { typeName: string; isArray: boolean; isVoid: boolean },
+  returnType: { typeName: string; isArray: boolean; isVoid: boolean; bodyKind: ResponseBodyKind },
   deprecated: boolean,
   throwsTags: string[],
   options?: ClientOptions,
@@ -753,6 +824,7 @@ function generateFunctionCode(
   // Per-request config override — enables SSR without mutating the global singleton
   sigParts.push(`config?: Partial<ClientConfig>`)
 
+  // For non-json body kinds, isArray is always false; the typeName is the full type string.
   const returnTs = returnType.isVoid
     ? 'Promise<void>'
     : returnType.isArray
@@ -877,21 +949,32 @@ function generateFunctionCode(
     }
   }
 
-  // Return / response parsing
+  // Return / response parsing — switch on the body kind determined from the spec.
   if (!returnType.isVoid) {
-    // Schema-enhanced: response validation
-    if (
-      options?.schemaNames !== undefined &&
-      responseSchemaName !== undefined &&
-      options.schemaNames.has(`${responseSchemaName.name}Schema`)
-    ) {
-      if (responseSchemaName.isArray) {
-        lines.push(`  return z.array(${responseSchemaName.name}Schema).parse(await res.json())`)
-      } else {
-        lines.push(`  return ${responseSchemaName.name}Schema.parse(await res.json())`)
-      }
+    const kind = returnType.bodyKind
+    if (kind === 'text') {
+      lines.push(`  return res.text()`)
+    } else if (kind === 'binary') {
+      lines.push(`  return res.blob()`)
+    } else if (kind === 'event-stream') {
+      // Full SSE parsing (EventSource / TransformStream) is tracked separately.
+      // Expose the raw ReadableStream so callers can implement their own consumer.
+      lines.push(`  return res.body`)
     } else {
-      lines.push(`  return res.json()`)
+      // json kind: apply Zod validation when schema-enhanced, otherwise plain res.json()
+      if (
+        options?.schemaNames !== undefined &&
+        responseSchemaName !== undefined &&
+        options.schemaNames.has(`${responseSchemaName.name}Schema`)
+      ) {
+        if (responseSchemaName.isArray) {
+          lines.push(`  return z.array(${responseSchemaName.name}Schema).parse(await res.json())`)
+        } else {
+          lines.push(`  return ${responseSchemaName.name}Schema.parse(await res.json())`)
+        }
+      } else {
+        lines.push(`  return res.json()`)
+      }
     }
   }
 
@@ -916,6 +999,10 @@ const BUILTIN_TS_TYPES = new Set([
   'undefined',
   'any',
   'never',
+  // Global platform types: never import from ./models
+  'Blob',
+  'ReadableStream',
+  'Uint8Array',
 ])
 
 /**
