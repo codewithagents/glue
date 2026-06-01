@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.4.0](https://github.com/codewithagents/openapi-zod-ts/compare/openapi-server-v1.3.2...openapi-server-v1.4.0) (2026-06-01)
+
+
+### Features
+
+* **cli:** add --help and --version to all three CLIs ([#178](https://github.com/codewithagents/openapi-zod-ts/issues/178)) ([#203](https://github.com/codewithagents/openapi-zod-ts/issues/203)) ([6f641e0](https://github.com/codewithagents/openapi-zod-ts/commit/6f641e05d3d19c1a4394247c3c079556e8a52274))
+
+
+### Bug Fixes
+
+* **openapi-server:** validate path/query/header params ([#177](https://github.com/codewithagents/openapi-zod-ts/issues/177)) ([#202](https://github.com/codewithagents/openapi-zod-ts/issues/202)) ([c592234](https://github.com/codewithagents/openapi-zod-ts/commit/c59223487900d3276512ddc3465946148724a03f))
+
 ## [1.3.2](https://github.com/codewithagents/openapi-zod-ts/compare/openapi-server-v1.3.1...openapi-server-v1.3.2) (2026-05-31)
 
 

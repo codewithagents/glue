@@ -1,5 +1,19 @@
 # Changelog
 
+## [4.4.0](https://github.com/codewithagents/openapi-zod-ts/compare/openapi-gen-v4.3.2...openapi-gen-v4.4.0) (2026-06-01)
+
+
+### Features
+
+* **cli:** add --help and --version to all three CLIs ([#178](https://github.com/codewithagents/openapi-zod-ts/issues/178)) ([#203](https://github.com/codewithagents/openapi-zod-ts/issues/203)) ([6f641e0](https://github.com/codewithagents/openapi-zod-ts/commit/6f641e05d3d19c1a4394247c3c079556e8a52274))
+
+
+### Bug Fixes
+
+* **openapi-gen:** encode application/x-www-form-urlencoded request bodies ([#176](https://github.com/codewithagents/openapi-zod-ts/issues/176)) ([#201](https://github.com/codewithagents/openapi-zod-ts/issues/201)) ([15a5138](https://github.com/codewithagents/openapi-zod-ts/commit/15a5138e28dac55760e839c5cbea1e2d8e6ffa38))
+* **openapi-gen:** normalize OpenAPI 3.0 nullable into the 3.1 null union ([#179](https://github.com/codewithagents/openapi-zod-ts/issues/179)) ([#204](https://github.com/codewithagents/openapi-zod-ts/issues/204)) ([12ff9c0](https://github.com/codewithagents/openapi-zod-ts/commit/12ff9c01a1e6ee3daa11d92d9e1de6daf5edde06))
+* **openapi-gen:** parse non-JSON responses (text/blob/stream) instead of always res.json() ([#175](https://github.com/codewithagents/openapi-zod-ts/issues/175)) ([#200](https://github.com/codewithagents/openapi-zod-ts/issues/200)) ([2b88f5b](https://github.com/codewithagents/openapi-zod-ts/commit/2b88f5b8e307b2b9a80816dd2667a5eb6125f554))
+
 ## [4.3.2](https://github.com/codewithagents/openapi-zod-ts/compare/openapi-gen-v4.3.1...openapi-gen-v4.3.2) (2026-05-31)
 
 

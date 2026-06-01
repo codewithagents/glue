@@ -1,5 +1,17 @@
 # Changelog
 
+## [3.6.0](https://github.com/codewithagents/openapi-zod-ts/compare/openapi-react-query-v3.5.2...openapi-react-query-v3.6.0) (2026-06-01)
+
+
+### Features
+
+* **cli:** add --help and --version to all three CLIs ([#178](https://github.com/codewithagents/openapi-zod-ts/issues/178)) ([#203](https://github.com/codewithagents/openapi-zod-ts/issues/203)) ([6f641e0](https://github.com/codewithagents/openapi-zod-ts/commit/6f641e05d3d19c1a4394247c3c079556e8a52274))
+
+
+### Bug Fixes
+
+* **openapi-react-query:** add public API barrel so dist/index.js is built ([#174](https://github.com/codewithagents/openapi-zod-ts/issues/174)) ([#198](https://github.com/codewithagents/openapi-zod-ts/issues/198)) ([18f7eb0](https://github.com/codewithagents/openapi-zod-ts/commit/18f7eb056880958f74110e0e6df114b68633a5d1))
+
 ## [3.5.2](https://github.com/codewithagents/openapi-zod-ts/compare/openapi-react-query-v3.5.1...openapi-react-query-v3.5.2) (2026-05-31)
 
 
