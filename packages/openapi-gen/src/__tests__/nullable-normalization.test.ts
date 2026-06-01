@@ -345,22 +345,27 @@ describe('allOf + nullable: true', () => {
 // OpenAPI 3.1 regression: existing null-union syntax must work unchanged
 // ---------------------------------------------------------------------------
 
-describe('OpenAPI 3.1 null union (no regression)', () => {
-  it("type: ['string','null'] in 3.1 spec still produces | null in models.ts", () => {
-    const spec: OpenAPIV3_1.Document = {
-      openapi: '3.1.0',
-      info: { title: 'Test', version: '1.0.0' },
-      paths: {},
-      components: {
-        schemas: {
-          Widget: {
-            type: 'object',
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            properties: { name: { type: ['string', 'null'] } as any },
-          },
+/** Factory for a minimal 3.1 spec with a Widget that has a string | null name. */
+function make31NullUnionSpec(): OpenAPIV3_1.Document {
+  return {
+    openapi: '3.1.0',
+    info: { title: 'Test', version: '1.0.0' },
+    paths: {},
+    components: {
+      schemas: {
+        Widget: {
+          type: 'object',
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          properties: { name: { type: ['string', 'null'] } as any },
         },
       },
-    }
+    },
+  }
+}
+
+describe('OpenAPI 3.1 null union (no regression)', () => {
+  it("type: ['string','null'] in 3.1 spec still produces | null in models.ts", () => {
+    const spec = make31NullUnionSpec()
     // Normalization should be a no-op (no nullable: true present)
     normalizeNullable(spec)
     const out = generateTypes(spec).content
@@ -369,20 +374,7 @@ describe('OpenAPI 3.1 null union (no regression)', () => {
   })
 
   it("type: ['string','null'] in 3.1 spec still produces .nullable() in schemas.ts", () => {
-    const spec: OpenAPIV3_1.Document = {
-      openapi: '3.1.0',
-      info: { title: 'Test', version: '1.0.0' },
-      paths: {},
-      components: {
-        schemas: {
-          Widget: {
-            type: 'object',
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            properties: { name: { type: ['string', 'null'] } as any },
-          },
-        },
-      },
-    }
+    const spec = make31NullUnionSpec()
     normalizeNullable(spec)
     const out = generateZodSchemas(spec).content
     expect(out).toContain('z.string().nullable()')
