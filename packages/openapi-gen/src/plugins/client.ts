@@ -1,5 +1,6 @@
 import type { OpenAPIV3_1 } from 'openapi-types'
 import { toPropertyKey, toTypeName, uniquifyName, refToTypeName } from '../utils/naming.js'
+import { isDeepRef, resolveJsonPointer } from '../utils/ref-resolver.js'
 import type { GeneratedFile } from './types.js'
 
 type OperationObject = OpenAPIV3_1.OperationObject
@@ -16,9 +17,32 @@ function isRef(obj: unknown): obj is ReferenceObject {
   return typeof obj === 'object' && obj !== null && '$ref' in obj
 }
 
-/** Convert an inline schema to a TypeScript type string (for use in return/param positions). */
-function inlineSchemaToTs(schema: SchemaObject | ReferenceObject): string {
-  if (isRef(schema)) return refToTypeName((schema as ReferenceObject).$ref)
+/**
+ * Convert an inline schema to a TypeScript type string (for use in return/param positions).
+ * When `spec` is provided, deep $refs are resolved inline rather than using the last-segment name.
+ */
+function inlineSchemaToTs(
+  schema: SchemaObject | ReferenceObject,
+  spec?: OpenAPIV3_1.Document,
+  visited?: Set<string>
+): string {
+  if (isRef(schema)) {
+    const ref = (schema as ReferenceObject).$ref
+    if (spec !== undefined && isDeepRef(ref)) {
+      const visitedSet = visited ?? new Set<string>()
+      if (visitedSet.has(ref)) return 'unknown'
+      visitedSet.add(ref)
+      const resolved = resolveJsonPointer(spec, ref)
+      if (resolved === undefined) {
+        visitedSet.delete(ref)
+        return 'unknown'
+      }
+      const result = inlineSchemaToTs(resolved, spec, visitedSet)
+      visitedSet.delete(ref)
+      return result
+    }
+    return refToTypeName(ref)
+  }
   const s = schema as SchemaObject
   if (Array.isArray(s.type)) {
     return (s.type as string[]).map((t) => (t === 'null' ? 'null' : primitiveToTs(t))).join(' | ')
@@ -28,7 +52,7 @@ function inlineSchemaToTs(schema: SchemaObject | ReferenceObject): string {
       | SchemaObject
       | ReferenceObject
       | undefined
-    if (items !== undefined) return `${inlineSchemaToTs(items)}[]`
+    if (items !== undefined) return `${inlineSchemaToTs(items, spec, visited)}[]`
     return 'unknown[]'
   }
   if (s.type === 'object') return 'Record<string, unknown>'
@@ -36,12 +60,24 @@ function inlineSchemaToTs(schema: SchemaObject | ReferenceObject): string {
   return 'unknown'
 }
 
-function resolveSchema(schema: SchemaObject | ReferenceObject): {
+function resolveSchema(
+  schema: SchemaObject | ReferenceObject,
+  spec?: OpenAPIV3_1.Document
+): {
   typeName: string
   isArray: boolean
 } {
   if (isRef(schema)) {
-    return { typeName: refToTypeName((schema as ReferenceObject).$ref), isArray: false }
+    const ref = (schema as ReferenceObject).$ref
+    if (spec !== undefined && isDeepRef(ref)) {
+      const resolved = resolveJsonPointer(spec, ref)
+      if (resolved !== undefined) {
+        const typeName = inlineSchemaToTs(resolved, spec)
+        return { typeName, isArray: false }
+      }
+      return { typeName: 'unknown', isArray: false }
+    }
+    return { typeName: refToTypeName(ref), isArray: false }
   }
   const s = schema as SchemaObject
   if (s.type === 'array') {
@@ -51,14 +87,22 @@ function resolveSchema(schema: SchemaObject | ReferenceObject): {
       | undefined
     if (items !== undefined) {
       if (isRef(items)) {
-        return { typeName: refToTypeName((items as ReferenceObject).$ref), isArray: true }
+        const ref = (items as ReferenceObject).$ref
+        if (spec !== undefined && isDeepRef(ref)) {
+          const resolved = resolveJsonPointer(spec, ref)
+          if (resolved !== undefined) {
+            return { typeName: inlineSchemaToTs(resolved, spec), isArray: true }
+          }
+          return { typeName: 'unknown', isArray: true }
+        }
+        return { typeName: refToTypeName(ref), isArray: true }
       }
       // primitive array
       return { typeName: primitiveToTs((items as SchemaObject).type as string), isArray: true }
     }
   }
   // For inline objects and primitives, emit the full inline type string
-  const inlineTs = inlineSchemaToTs(s)
+  const inlineTs = inlineSchemaToTs(s, spec)
   return { typeName: inlineTs, isArray: false }
 }
 
@@ -287,7 +331,10 @@ function pickResponseContent(
 }
 
 // fallow-ignore-next-line complexity
-function getReturnType(operation: OperationObject): {
+function getReturnType(
+  operation: OperationObject,
+  spec?: OpenAPIV3_1.Document
+): {
   typeName: string
   isArray: boolean
   isVoid: boolean
@@ -316,7 +363,7 @@ function getReturnType(operation: OperationObject): {
 
     if (picked.kind === 'json') {
       if (picked.entry.schema === undefined) continue
-      const resolved = resolveSchema(picked.entry.schema)
+      const resolved = resolveSchema(picked.entry.schema, spec)
       return { ...resolved, isVoid: false, bodyKind: 'json' }
     }
 
@@ -521,7 +568,10 @@ interface RequestBodyInfo {
 }
 
 // fallow-ignore-next-line complexity
-function getRequestBodyInfo(operation: OperationObject): RequestBodyInfo | undefined {
+function getRequestBodyInfo(
+  operation: OperationObject,
+  spec?: OpenAPIV3_1.Document
+): RequestBodyInfo | undefined {
   const requestBody = operation.requestBody as RequestBodyObject | ReferenceObject | undefined
   if (requestBody === undefined) return undefined
   if (isRef(requestBody)) return undefined
