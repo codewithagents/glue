@@ -1843,3 +1843,216 @@ describe('coverage: requestBody with no content — hasBody but no bodyTypeName'
     expect(content).toContain('export function useCreateItem')
   })
 })
+
+// ── Feature #188: queryOptions factories for RSC / SSR prefetch ───────────────
+
+describe('Feature #188: queryOptions factories', () => {
+  const tasksSpec: OpenAPIV3_1.Document = {
+    openapi: '3.1.0',
+    info: { title: 'Test', version: '1.0.0' },
+    paths: {
+      '/tasks': {
+        get: {
+          operationId: 'listTasks',
+          parameters: [{ name: 'status', in: 'query', schema: { type: 'string' } }],
+          responses: { '200': { description: 'ok' } },
+        },
+      },
+      '/tasks/{id}': {
+        get: {
+          operationId: 'getTask',
+          parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }],
+          responses: { '200': { description: 'ok' } },
+        },
+        post: {
+          operationId: 'createTask',
+          requestBody: {
+            required: true,
+            content: { 'application/json': { schema: { $ref: '#/components/schemas/Task' } } },
+          },
+          responses: { '201': { description: 'created' } },
+        },
+      },
+    },
+    components: {
+      schemas: {
+        Task: { type: 'object' as const, properties: { title: { type: 'string' as const } } },
+      },
+    },
+  }
+
+  const { content: qoContent } = generateHooks(tasksSpec, { staleTime: 30_000, gcTime: 300_000 })
+
+  it('imports queryOptions from @tanstack/react-query when GET ops exist', () => {
+    expect(qoContent).toContain('queryOptions')
+    expect(qoContent).toContain("from '@tanstack/react-query'")
+  })
+
+  it('emits a Query options factories section header', () => {
+    expect(qoContent).toContain('// ── Query options factories')
+  })
+
+  it('generates listTasksQueryOptions for the list GET operation', () => {
+    expect(qoContent).toContain('export function listTasksQueryOptions(')
+  })
+
+  it('generates getTaskQueryOptions for the detail GET operation', () => {
+    expect(qoContent).toContain('export function getTaskQueryOptions(')
+  })
+
+  it('listTasksQueryOptions uses queryOptions() call (not useQuery)', () => {
+    const factoryStart = qoContent.indexOf('export function listTasksQueryOptions')
+    const factoryEnd = qoContent.indexOf('\n}', factoryStart) + 2
+    const factoryBody = qoContent.slice(factoryStart, factoryEnd)
+    expect(factoryBody).toContain('return queryOptions<')
+    expect(factoryBody).not.toContain('useQuery')
+    expect(factoryBody).not.toContain('useSuspenseQuery')
+  })
+
+  it('getTaskQueryOptions uses queryOptions() call (not useQuery)', () => {
+    const factoryStart = qoContent.indexOf('export function getTaskQueryOptions')
+    const factoryEnd = qoContent.indexOf('\n}', factoryStart) + 2
+    const factoryBody = qoContent.slice(factoryStart, factoryEnd)
+    expect(factoryBody).toContain('return queryOptions<')
+    expect(factoryBody).not.toContain('useQuery')
+  })
+
+  it('listTasksQueryOptions has correct queryKey referencing taskKeys.list', () => {
+    const factoryStart = qoContent.indexOf('export function listTasksQueryOptions')
+    const factoryEnd = qoContent.indexOf('\n}', factoryStart) + 2
+    const factoryBody = qoContent.slice(factoryStart, factoryEnd)
+    expect(factoryBody).toContain('queryKey: taskKeys.list(params)')
+  })
+
+  it('getTaskQueryOptions has correct queryKey referencing taskKeys.detail without non-null assertion', () => {
+    // Factory receives a plain required string, no ! needed
+    const factoryStart = qoContent.indexOf('export function getTaskQueryOptions')
+    const factoryEnd = qoContent.indexOf('\n}', factoryStart) + 2
+    const factoryBody = qoContent.slice(factoryStart, factoryEnd)
+    expect(factoryBody).toContain('queryKey: taskKeys.detail(id)')
+    expect(factoryBody).not.toContain('taskKeys.detail(id!)')
+  })
+
+  it('getTaskQueryOptions path param is plain string (not nullish widened)', () => {
+    // Factory takes id: string (not string | undefined | null)
+    const factoryStart = qoContent.indexOf('export function getTaskQueryOptions')
+    const factoryEnd = qoContent.indexOf('\n}', factoryStart) + 2
+    const factoryBody = qoContent.slice(factoryStart, factoryEnd)
+    expect(factoryBody).toContain('id: string')
+    expect(factoryBody).not.toContain('id: string | undefined | null')
+  })
+
+  it('listTasksQueryOptions contains staleTime and gcTime', () => {
+    const factoryStart = qoContent.indexOf('export function listTasksQueryOptions')
+    const factoryEnd = qoContent.indexOf('\n}', factoryStart) + 2
+    const factoryBody = qoContent.slice(factoryStart, factoryEnd)
+    expect(factoryBody).toContain('staleTime: 30000,')
+    expect(factoryBody).toContain('gcTime: 300000,')
+  })
+
+  it('does NOT generate queryOptions factories for mutation (POST/PUT/PATCH/DELETE) operations', () => {
+    // Only GET ops get factories
+    expect(qoContent).not.toContain('createTaskQueryOptions')
+  })
+
+  it('spec with only mutations (no GET) does not import queryOptions', () => {
+    const mutationOnlySpec: OpenAPIV3_1.Document = {
+      openapi: '3.1.0',
+      info: { title: 'Test', version: '1.0.0' },
+      paths: {
+        '/items': {
+          post: {
+            operationId: 'createItem',
+            requestBody: {
+              required: true,
+              content: { 'application/json': { schema: { type: 'object' } } },
+            },
+            responses: { '201': { description: 'created' } },
+          },
+        },
+      },
+    }
+    const { content: mutationOnlyContent } = generateHooks(mutationOnlySpec, {
+      staleTime: 0,
+      gcTime: 0,
+    })
+    // No GET ops, no queryOptions import, no factories section
+    const nonCommentLines = mutationOnlyContent
+      .split('\n')
+      .filter((l) => !l.startsWith('//'))
+      .join('\n')
+    expect(nonCommentLines).not.toContain('queryOptions')
+  })
+
+  it('deprecated GET emits @deprecated JSDoc on the factory', () => {
+    const deprecatedSpec: OpenAPIV3_1.Document = {
+      openapi: '3.1.0',
+      info: { title: 'Test', version: '1.0.0' },
+      paths: {
+        '/legacy': {
+          get: {
+            operationId: 'listLegacy',
+            deprecated: true,
+            responses: { '200': { description: 'ok' } },
+          },
+        },
+      },
+    }
+    const { content: depContent } = generateHooks(deprecatedSpec, { staleTime: 0, gcTime: 0 })
+    const factoryIdx = depContent.indexOf('export function listLegacyQueryOptions')
+    expect(factoryIdx).toBeGreaterThan(-1)
+    const before = depContent.slice(0, factoryIdx)
+    expect(before.slice(before.lastIndexOf('/**'))).toContain('@deprecated')
+  })
+
+  it('queryOptions factory appears before the useQuery hook in the file', () => {
+    const listFactoryIdx = qoContent.indexOf('export function listTasksQueryOptions')
+    const listHookIdx = qoContent.indexOf('export function useListTasks')
+    expect(listFactoryIdx).toBeGreaterThan(-1)
+    expect(listHookIdx).toBeGreaterThan(-1)
+    expect(listFactoryIdx).toBeLessThan(listHookIdx)
+  })
+
+  it('per-resource override applies correct staleTime to factory', () => {
+    const { content: overrideContent } = generateHooks(tasksSpec, {
+      staleTime: 0,
+      gcTime: 300_000,
+      overrides: { tasks: { staleTime: 5000, gcTime: 60_000 } },
+    })
+    const factoryStart = overrideContent.indexOf('export function listTasksQueryOptions')
+    const factoryEnd = overrideContent.indexOf('\n}', factoryStart) + 2
+    const factoryBody = overrideContent.slice(factoryStart, factoryEnd)
+    expect(factoryBody).toContain('staleTime: 5000,')
+    expect(factoryBody).toContain('gcTime: 60000,')
+  })
+
+  it('factory with multiple path params uses plain string params (no non-null assertions)', () => {
+    const multiParamSpec: OpenAPIV3_1.Document = {
+      openapi: '3.1.0',
+      info: { title: 'Test', version: '1.0.0' },
+      paths: {
+        '/projects/{projectId}/tasks/{taskId}': {
+          get: {
+            operationId: 'getProjectTask',
+            parameters: [
+              { name: 'projectId', in: 'path', required: true, schema: { type: 'string' } },
+              { name: 'taskId', in: 'path', required: true, schema: { type: 'string' } },
+            ],
+            responses: { '200': { description: 'ok' } },
+          },
+        },
+      },
+    }
+    const { content: mpContent } = generateHooks(multiParamSpec, { staleTime: 0, gcTime: 0 })
+    const factoryStart = mpContent.indexOf('export function getProjectTaskQueryOptions')
+    expect(factoryStart).toBeGreaterThan(-1)
+    const factoryEnd = mpContent.indexOf('\n}', factoryStart) + 2
+    const factoryBody = mpContent.slice(factoryStart, factoryEnd)
+    // Plain strings, no nullish widening
+    expect(factoryBody).toContain('projectId: string')
+    expect(factoryBody).toContain('taskId: string')
+    expect(factoryBody).not.toContain('projectId!')
+    expect(factoryBody).not.toContain('taskId!')
+    expect(factoryBody).not.toContain('| undefined | null')
+  })
+})

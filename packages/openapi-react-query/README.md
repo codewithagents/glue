@@ -10,6 +10,7 @@
 Generate typed [React Query v5](https://tanstack.com/query/v5) hooks from an OpenAPI 3.x spec. Run once, get a fully typed `useQuery` hook per GET endpoint and a `useMutation` hook per write operation. No hand-written boilerplate.
 
 - **One hook per operation**: a `useQuery` variant for every GET and a `useMutation` for every write. Types are derived directly from the generated client, no duplication.
+- **`queryOptions()` factories**: a plain `xxxQueryOptions()` factory alongside every `useQuery` hook, enabling `queryClient.prefetchQuery()` in Next.js App Router server components and `<HydrationBoundary>` SSR patterns.
 - **Smart detail hooks**: path-param hooks disable automatically when the param is `null` or `undefined`. No `enabled: !!id` at every call site.
 - **Key factories included**: structured cache keys per resource (`all()`, `list(params)`, `detail(id)`) for consistent invalidation.
 - **Auto-invalidate on mutation**: set `auto_invalidate: true` and mutation hooks invalidate related queries on success, with no `useQueryClient` boilerplate required.
@@ -86,7 +87,32 @@ export const taskKeys = {
 }
 ```
 
-**Query hooks**: one per GET operation:
+**queryOptions factories**: one per GET operation, for use in RSC / server-side prefetching:
+
+```ts
+// Plain function — no hooks, safe to call in any context (RSC, loaders, tests)
+export function listTasksQueryOptions(params?, options?) {
+  return queryOptions({
+    queryKey: taskKeys.list(params),
+    queryFn: () => listTasks(params),
+    staleTime: 30000,
+    gcTime: 300000,
+    ...options,
+  })
+}
+
+export function getTaskQueryOptions(id: string, options?) {
+  return queryOptions({
+    queryKey: taskKeys.detail(id),
+    queryFn: () => getTask(id),
+    staleTime: 30000,
+    gcTime: 300000,
+    ...options,
+  })
+}
+```
+
+**Query hooks**: one per GET operation, consuming the factory above:
 
 ```ts
 export function useListTasks(params?, options?) {
@@ -130,6 +156,67 @@ export function useUpdateTask(options?) {
 All types are derived from the generated client, no duplication:
 - Data type: `Awaited<ReturnType<typeof listTasks>>`
 - Variables type: `Parameters<typeof createTask>[0]`
+
+## Next.js App Router SSR prefetch
+
+The generated `queryOptions` factories work in React Server Components (RSC) without any client-boundary workarounds. Prefetch on the server, then pass the dehydrated cache to the client:
+
+```tsx
+// app/tasks/page.tsx  (React Server Component)
+import { dehydrate, HydrationBoundary, QueryClient } from '@tanstack/react-query'
+import { listTasksQueryOptions } from '@/src/api/hooks'
+import { TaskList } from './TaskList'
+
+export default async function TasksPage() {
+  const queryClient = new QueryClient()
+  await queryClient.prefetchQuery(listTasksQueryOptions())
+  // or with params: listTasksQueryOptions({ status: 'open' })
+
+  return (
+    <HydrationBoundary state={dehydrate(queryClient)}>
+      <TaskList />
+    </HydrationBoundary>
+  )
+}
+```
+
+```tsx
+// app/tasks/TaskList.tsx  ('use client')
+'use client'
+import { useListTasks } from '@/src/api/hooks'
+
+export function TaskList() {
+  // Cache is already populated from the server; renders without a loading state
+  const { data } = useListTasks()
+  return <ul>{data?.map(t => <li key={t.id}>{t.title}</li>)}</ul>
+}
+```
+
+For detail pages, pass the id as a plain string (the factory does not widen to `string | undefined | null`):
+
+```tsx
+// app/tasks/[id]/page.tsx  (React Server Component)
+import { dehydrate, HydrationBoundary, QueryClient } from '@tanstack/react-query'
+import { getTaskQueryOptions } from '@/src/api/hooks'
+import { TaskDetail } from './TaskDetail'
+
+export default async function TaskPage({ params }: { params: { id: string } }) {
+  const queryClient = new QueryClient()
+  await queryClient.prefetchQuery(getTaskQueryOptions(params.id))
+
+  return (
+    <HydrationBoundary state={dehydrate(queryClient)}>
+      <TaskDetail id={params.id} />
+    </HydrationBoundary>
+  )
+}
+```
+
+The `queryOptions` factories also work with `useSuspenseQuery` at the call site:
+
+```ts
+const { data } = useSuspenseQuery(getTaskQueryOptions(id))
+```
 
 ## Suspense variants
 
