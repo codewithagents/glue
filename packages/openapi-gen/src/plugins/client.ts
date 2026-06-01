@@ -21,6 +21,25 @@ function isRef(obj: unknown): obj is ReferenceObject {
  * Convert an inline schema to a TypeScript type string (for use in return/param positions).
  * When `spec` is provided, deep $refs are resolved inline rather than using the last-segment name.
  */
+/**
+ * Resolve a deep $ref via JSON pointer and render its target schema inline.
+ * Tracks visited pointers to break cycles (returns 'unknown' on a cycle or an
+ * unresolvable pointer). Shared by inlineSchemaToTs and resolveSchema.
+ */
+function resolveDeepRefToTs(
+  ref: string,
+  spec: OpenAPIV3_1.Document,
+  visited?: Set<string>
+): string {
+  const visitedSet = visited ?? new Set<string>()
+  if (visitedSet.has(ref)) return 'unknown'
+  visitedSet.add(ref)
+  const resolved = resolveJsonPointer(spec, ref)
+  const result = resolved === undefined ? 'unknown' : inlineSchemaToTs(resolved, spec, visitedSet)
+  visitedSet.delete(ref)
+  return result
+}
+
 function inlineSchemaToTs(
   schema: SchemaObject | ReferenceObject,
   spec?: OpenAPIV3_1.Document,
@@ -28,19 +47,7 @@ function inlineSchemaToTs(
 ): string {
   if (isRef(schema)) {
     const ref = (schema as ReferenceObject).$ref
-    if (spec !== undefined && isDeepRef(ref)) {
-      const visitedSet = visited ?? new Set<string>()
-      if (visitedSet.has(ref)) return 'unknown'
-      visitedSet.add(ref)
-      const resolved = resolveJsonPointer(spec, ref)
-      if (resolved === undefined) {
-        visitedSet.delete(ref)
-        return 'unknown'
-      }
-      const result = inlineSchemaToTs(resolved, spec, visitedSet)
-      visitedSet.delete(ref)
-      return result
-    }
+    if (spec !== undefined && isDeepRef(ref)) return resolveDeepRefToTs(ref, spec, visited)
     return refToTypeName(ref)
   }
   const s = schema as SchemaObject
@@ -60,6 +67,15 @@ function inlineSchemaToTs(
   return 'unknown'
 }
 
+/**
+ * Render a $ref to a type name: deep refs are resolved + inlined (when spec is
+ * available), component refs use their last-segment name.
+ */
+function refTypeNameOrInline(ref: string, spec?: OpenAPIV3_1.Document): string {
+  if (spec !== undefined && isDeepRef(ref)) return resolveDeepRefToTs(ref, spec)
+  return refToTypeName(ref)
+}
+
 function resolveSchema(
   schema: SchemaObject | ReferenceObject,
   spec?: OpenAPIV3_1.Document
@@ -68,16 +84,7 @@ function resolveSchema(
   isArray: boolean
 } {
   if (isRef(schema)) {
-    const ref = (schema as ReferenceObject).$ref
-    if (spec !== undefined && isDeepRef(ref)) {
-      const resolved = resolveJsonPointer(spec, ref)
-      if (resolved !== undefined) {
-        const typeName = inlineSchemaToTs(resolved, spec)
-        return { typeName, isArray: false }
-      }
-      return { typeName: 'unknown', isArray: false }
-    }
-    return { typeName: refToTypeName(ref), isArray: false }
+    return { typeName: refTypeNameOrInline((schema as ReferenceObject).$ref, spec), isArray: false }
   }
   const s = schema as SchemaObject
   if (s.type === 'array') {
@@ -87,23 +94,17 @@ function resolveSchema(
       | undefined
     if (items !== undefined) {
       if (isRef(items)) {
-        const ref = (items as ReferenceObject).$ref
-        if (spec !== undefined && isDeepRef(ref)) {
-          const resolved = resolveJsonPointer(spec, ref)
-          if (resolved !== undefined) {
-            return { typeName: inlineSchemaToTs(resolved, spec), isArray: true }
-          }
-          return { typeName: 'unknown', isArray: true }
+        return {
+          typeName: refTypeNameOrInline((items as ReferenceObject).$ref, spec),
+          isArray: true,
         }
-        return { typeName: refToTypeName(ref), isArray: true }
       }
       // primitive array
       return { typeName: primitiveToTs((items as SchemaObject).type as string), isArray: true }
     }
   }
   // For inline objects and primitives, emit the full inline type string
-  const inlineTs = inlineSchemaToTs(s, spec)
-  return { typeName: inlineTs, isArray: false }
+  return { typeName: inlineSchemaToTs(s, spec), isArray: false }
 }
 
 function primitiveToTs(type: string | undefined): string {

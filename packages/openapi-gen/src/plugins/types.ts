@@ -46,8 +46,8 @@ function formatComment(schema: SchemaObject): string {
   return ''
 }
 
-// fallow-ignore-next-line complexity
 // pre-existing size, tracked in #228
+// fallow-ignore-next-line complexity
 function schemaToTypeString(
   schema: SchemaObject | ReferenceObject,
   renameMap?: Map<string, string>,
@@ -291,8 +291,8 @@ interface TypesOptions {
   schemaImportPath?: string
 }
 
-// fallow-ignore-next-line complexity
 // pre-existing size, tracked in #228
+// fallow-ignore-next-line complexity
 function generateSchemaDeclaration(
   name: string,
   schema: SchemaObject | ReferenceObject,
