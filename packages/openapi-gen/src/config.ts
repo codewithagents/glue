@@ -98,6 +98,7 @@ export function validateInputPath(resolvedInput: string): void {
 }
 
 /** Load and validate raw config object (may come from JSON parse or JS module default export). */
+// fallow-ignore-next-line complexity
 function validateConfigObject(parsed: unknown, cwd: string): Config {
   if (typeof parsed !== 'object' || parsed === null) {
     throw new Error('Config must be a JSON object')
