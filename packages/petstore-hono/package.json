@@ -14,7 +14,7 @@
     "@codewithagents/openapi-gen": "workspace:*",
     "@codewithagents/openapi-react-query": "workspace:*",
     "@codewithagents/openapi-server": "workspace:*",
-    "@hono/node-server": "^1.13.0",
+    "@hono/node-server": "^2.0.0",
     "@tanstack/react-query": "catalog:",
     "hono": "^4.0.0",
     "react": "catalog:",
@@ -26,10 +26,10 @@
     "@types/node": "catalog:",
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",
-    "@vitejs/plugin-react": "^4.0.0",
-    "concurrently": "^9.0.0",
+    "@vitejs/plugin-react": "^6.0.0",
+    "concurrently": "^10.0.0",
     "tsx": "^4.0.0",
     "typescript": "catalog:",
-    "vite": "^6.0.0"
+    "vite": "^8.0.0"
   }
 }
