@@ -244,7 +244,7 @@ export type PlaylistTracksRefObject = z.infer<typeof PlaylistTracksRefObjectSche
 export type PlaylistUserObject = z.infer<typeof PlaylistUserObjectSchema>
 
 export type PlaylistOwnerObject = PlaylistUserObject & {
-  display_name?: string
+  display_name?: string | null
 }
 
 export type CategoryObject = z.infer<typeof CategoryObjectSchema>

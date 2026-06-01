@@ -473,7 +473,8 @@ describe('enum query params', () => {
     const spec = await parseSpec(join(__dirname, '../__fixtures__/specs/simple-api.yaml'))
     const out = generateClient(spec).content
     // category has enum: ["books", "electronics", "clothing"]
-    expect(out).toContain("'books' | 'electronics' | 'clothing'")
+    // JSON.stringify uses double quotes for string literals
+    expect(out).toContain('"books" | "electronics" | "clothing"')
   })
 
   it('required integer param stays as number (not enum)', async () => {
@@ -589,7 +590,8 @@ describe('feature-showcase fixture', () => {
   })
 
   it('header param is forwarded to fetch headers', () => {
-    expect(content).toContain("'X-Stripe-Signature': params.xStripeSignature")
+    // JSON.stringify now produces double-quoted keys; property name xStripeSignature unchanged
+    expect(content).toContain('"X-Stripe-Signature": params.xStripeSignature')
   })
 
   // Feature 3: Cookie auth — generateClientConfig with defaultCredentials: 'include'

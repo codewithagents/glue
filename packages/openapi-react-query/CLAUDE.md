@@ -1,6 +1,6 @@
 # openapi-react-query
 
-Generate typed React Query v5 hooks from OpenAPI 3.1 specs.
+Generate typed React Query v5 hooks from OpenAPI 3.x specs (3.1 primary target, 3.0.x best-effort).
 
 ## What it generates (`hooks.ts`)
 - **Key factories** per primary resource: `all()`, `list(params)`, `detail(id)`
@@ -16,7 +16,15 @@ Generate typed React Query v5 hooks from OpenAPI 3.1 specs.
 - Build openapi-gen first: `pnpm --filter @codewithagents/openapi-gen build`
 
 ## Config
-Default: `openapi-react-query.config.json` in CWD. Fields: `input_openapi`, `output`, `stale_time?`, `gc_time?`.
+Default: `openapi-react-query.config.json` in CWD. Fields:
+- `input_openapi` (required): path to OpenAPI 3.x spec
+- `output` (required): directory to write generated files
+- `stale_time?`: staleTime in ms for all useQuery hooks (default: 0)
+- `gc_time?`: gcTime in ms for all useQuery hooks (default: 300000)
+- `suspense?`: when true, generates `useSuspense*` variants alongside each `useQuery` hook (default: false)
+- `overrides?`: per-resource cache timing overrides; key is resource name, value is `{ stale_time?, gc_time? }`
+- `auto_invalidate?`: when true, mutation hooks auto-invalidate related resource queries on success (default: false)
+
 `--config <path>` resolves relative paths from config file's directory (same pattern as openapi-gen).
 
 ## Key non-obvious decisions

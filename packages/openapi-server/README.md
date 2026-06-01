@@ -10,7 +10,7 @@
 Generate a typed service interface from your OpenAPI 3.x spec. Framework-agnostic by design: wire it to Hono, Express, Fastify, or any router you already use.
 
 - **Framework-agnostic service interface**: `service.ts` is a plain TypeScript interface with no framework imports. Implement it however you want: Hono, Express, Fastify, Koa, plain `http`, Bun, Deno, or anything else.
-- **Optional router scaffolding**: set `"framework": "hono"` and get a ready-to-mount Hono router as a starting point. Set `"framework": "none"` and wire the interface yourself. The generated code only ever imports what you already have.
+- **Optional router scaffolding**: set `"framework"` to `"hono"`, `"express"`, or `"fastify"` and get a ready-to-mount router as a starting point. Set `"framework": "none"` (the default) and wire the interface yourself. The generated code only ever imports what you already have.
 - **Type-safe contract**: the compiler tells you if your implementation drifts from the spec. Add an endpoint in the spec and forget to implement it. TypeScript fails the build.
 - **Prettier-clean output**: every generated file passes `prettier --check` out of the box.
 - **OpenAPI 3.x**: 3.1.x primary target, 3.0.x best-effort. Full support for `$ref`, `allOf`, `anyOf`, `oneOf`, `nullable`.
@@ -38,7 +38,7 @@ Requires [`@codewithagents/openapi-gen`](../openapi-gen). Run both generators to
 {
   "input_openapi": "./spec/api.json",
   "output": "./generated",
-  "framework": "hono"   // or "none" to skip the router and use any framework
+  "framework": "hono"   // or "express", "fastify", "none" (none = service.ts only, default)
 }
 ```
 
@@ -215,7 +215,7 @@ See the [full configuration reference](https://openapi.codewithagents.de/openapi
 {
   "input_openapi": "./spec/api.json",       // required: path to OpenAPI 3.x spec (JSON or YAML)
   "output": "./generated",                  // required: directory to write generated files
-  "framework": "hono",                      // optional: router target (default: "hono")
+  "framework": "hono",                      // optional: router target (default: "none")
   "input_schema": "./generated/schemas.ts"  // optional: Zod schema file for request validation
 }
 ```
@@ -224,7 +224,7 @@ See the [full configuration reference](https://openapi.codewithagents.de/openapi
 |---|---|---|---|
 | `input_openapi` | Yes | n/a | Path to OpenAPI 3.x spec |
 | `output` | Yes | n/a | Directory to write `service.ts` and `router.ts` |
-| `framework` | No | `"hono"` | Router framework to generate. Use `"none"` to generate only `service.ts` |
+| `framework` | No | `"none"` | Router framework to generate: `"hono"`, `"express"`, `"fastify"`, or `"none"`. Use `"none"` to generate only `service.ts` |
 | `input_schema` | No | none | Path to user-owned Zod schema file. Enables server-side request validation (see below) |
 
 Use `--config <path>` to point at a config file in a different location:

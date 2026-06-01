@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.6](https://github.com/codewithagents/openapi-zod-ts/compare/api-errors-v1.0.5...api-errors-v1.0.6) (2026-05-31)
+
+
+### Bug Fixes
+
+* **security:** reject prototype-pollution field paths in api-errors ([#170](https://github.com/codewithagents/openapi-zod-ts/issues/170)) ([a83e30a](https://github.com/codewithagents/openapi-zod-ts/commit/a83e30a6c2432a4a957c1dbd5c4ed26a5925f59e))
+
 ## [1.0.5](https://github.com/codewithagents/openapi-zod-ts/compare/api-errors-v1.0.4...api-errors-v1.0.5) (2026-05-31)
 
 

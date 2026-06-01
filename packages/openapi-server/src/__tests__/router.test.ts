@@ -56,7 +56,7 @@ describe('generateRouter', () => {
       },
     })
     const result = generateRouter(spec)
-    expect(result.content).toContain("app.get('/pets'")
+    expect(result.content).toContain('app.get("/pets"')
   })
 
   it('POST route uses app.post', () => {
@@ -75,7 +75,7 @@ describe('generateRouter', () => {
       },
     })
     const result = generateRouter(spec)
-    expect(result.content).toContain("app.post('/pets'")
+    expect(result.content).toContain('app.post("/pets"')
   })
 
   it('DELETE route uses app.delete', () => {
@@ -89,7 +89,7 @@ describe('generateRouter', () => {
       },
     })
     const result = generateRouter(spec)
-    expect(result.content).toContain("app.delete('/pets/:id'")
+    expect(result.content).toContain('app.delete("/pets/:id"')
   })
 
   it('path param {id} becomes :id in Hono route', () => {
@@ -103,7 +103,7 @@ describe('generateRouter', () => {
       },
     })
     const result = generateRouter(spec)
-    expect(result.content).toContain("app.get('/pets/:id'")
+    expect(result.content).toContain('app.get("/pets/:id"')
   })
 
   it('path param extracted via c.req.param()', () => {
@@ -117,7 +117,7 @@ describe('generateRouter', () => {
       },
     })
     const result = generateRouter(spec)
-    expect(result.content).toContain("c.req.param('id')")
+    expect(result.content).toContain('c.req.param("id")')
   })
 
   it('query params extracted via c.req.query()', () => {
@@ -262,8 +262,8 @@ describe('generateRouter', () => {
     })
     const result = generateRouter(spec)
     // Should pass both path params
-    expect(result.content).toContain("c.req.param('ownerId')")
-    expect(result.content).toContain("c.req.param('petId')")
+    expect(result.content).toContain('c.req.param("ownerId")')
+    expect(result.content).toContain('c.req.param("petId")')
   })
 
   it('query param name with [] suffix is normalized to a valid TypeScript identifier', () => {
@@ -300,7 +300,7 @@ describe('generateRouter', () => {
     })
     const result = generateRouter(spec)
     // c.req.param uses the raw OpenAPI path param name matching the Hono route :job-id
-    expect(result.content).toContain("c.req.param('job-id')")
+    expect(result.content).toContain('c.req.param("job-id")')
     // The generated code must call the service method
     expect(result.content).toContain('service.getJob(')
   })
@@ -469,7 +469,7 @@ describe('coverage: requestBody as $ref — body type falls back to untyped', ()
     })
     const { content } = generateRouter(spec)
     // Route is still generated, body is just untyped
-    expect(content).toContain("app.post('/items'")
+    expect(content).toContain('app.post("/items"')
     expect(content).toContain('service.createItem(')
   })
 })
@@ -488,7 +488,7 @@ describe('coverage: 200 response as $ref — falls through to default status 200
       },
     })
     const { content } = generateRouter(spec)
-    expect(content).toContain("app.get('/items/:id'")
+    expect(content).toContain('app.get("/items/:id"')
     expect(content).toContain('service.getItem(')
   })
 })
@@ -507,7 +507,7 @@ describe('coverage: requestBody with no content property — falls back to untyp
       },
     })
     const { content } = generateRouter(spec)
-    expect(content).toContain("app.post('/items'")
+    expect(content).toContain('app.post("/items"')
     expect(content).toContain('service.createItem(')
   })
 })
@@ -524,7 +524,7 @@ describe('coverage: operation with no responses — falls back to default status
       },
     })
     const { content } = generateRouter(spec)
-    expect(content).toContain("app.get('/items'")
+    expect(content).toContain('app.get("/items"')
     expect(content).toContain('service.listItems(')
   })
 })
@@ -617,7 +617,7 @@ describe('coverage: schemaNames provided but operation has no body — typeName 
     })
     // GET has no body (typeName undefined) and POST has a schema match
     expect(result.content).toContain('CreateItemRequestSchema')
-    expect(result.content).toContain("app.get('/items'")
+    expect(result.content).toContain('app.get("/items"')
   })
 })
 
@@ -671,7 +671,7 @@ describe('generateExpressRouter', () => {
       },
     })
     const result = generateExpressRouter(spec)
-    expect(result.content).toContain("router.get('/pets'")
+    expect(result.content).toContain('router.get("/pets"')
   })
 
   it('POST route uses router.post', () => {
@@ -690,7 +690,7 @@ describe('generateExpressRouter', () => {
       },
     })
     const result = generateExpressRouter(spec)
-    expect(result.content).toContain("router.post('/pets'")
+    expect(result.content).toContain('router.post("/pets"')
   })
 
   it('DELETE route uses router.delete', () => {
@@ -704,7 +704,7 @@ describe('generateExpressRouter', () => {
       },
     })
     const result = generateExpressRouter(spec)
-    expect(result.content).toContain("router.delete('/pets/:id'")
+    expect(result.content).toContain('router.delete("/pets/:id"')
   })
 
   it('path param {id} becomes :id in route', () => {
@@ -718,7 +718,7 @@ describe('generateExpressRouter', () => {
       },
     })
     const result = generateExpressRouter(spec)
-    expect(result.content).toContain("router.get('/pets/:id'")
+    expect(result.content).toContain('router.get("/pets/:id"')
   })
 
   it('path param extracted via req.params bracket notation with non-null assertion', () => {
@@ -936,7 +936,7 @@ describe('generateFastifyRouter', () => {
     })
     const result = generateFastifyRouter(spec)
     expect(result.content).toContain('app.get')
-    expect(result.content).toContain("'/pets'")
+    expect(result.content).toContain('"/pets"')
   })
 
   it('POST route uses app.post', () => {
@@ -956,7 +956,7 @@ describe('generateFastifyRouter', () => {
     })
     const result = generateFastifyRouter(spec)
     expect(result.content).toContain('app.post')
-    expect(result.content).toContain("'/pets'")
+    expect(result.content).toContain('"/pets"')
   })
 
   it('DELETE route uses app.delete', () => {
@@ -971,7 +971,7 @@ describe('generateFastifyRouter', () => {
     })
     const result = generateFastifyRouter(spec)
     expect(result.content).toContain('app.delete')
-    expect(result.content).toContain("'/pets/:id'")
+    expect(result.content).toContain('"/pets/:id"')
   })
 
   it('path param extracted via req.params dot notation', () => {
@@ -1154,7 +1154,7 @@ describe('generateFastifyRouter', () => {
     })
     const result = generateFastifyRouter(spec)
     // No generics when no params/query/body
-    expect(result.content).toContain("app.get('/health'")
+    expect(result.content).toContain('app.get("/health"')
     expect(result.content).not.toContain('app.get<')
   })
 

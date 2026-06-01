@@ -86,6 +86,14 @@ function queryParamType(schema: SchemaObject | ReferenceObject | undefined): str
   if (schema === undefined) return 'string'
   if (isRef(schema)) return 'string'
   const s = schema as SchemaObject
+  // 3.1 null-union form, e.g. type: ['string', 'null'] (a nullable query param).
+  // A query value is always serialized as a string, so render the underlying
+  // non-null primitive and drop the null member.
+  if (Array.isArray(s.type)) {
+    const nonNull = (s.type as string[]).filter((t) => t !== 'null')
+    if (nonNull.length === 1) return primitiveToTs(nonNull[0])
+    return 'string'
+  }
   if (s.type === 'array') {
     const items = (s as OpenAPIV3_1.ArraySchemaObject).items as SchemaObject | undefined
     if (items !== undefined && (items.type === 'integer' || items.type === 'number')) {
@@ -95,18 +103,35 @@ function queryParamType(schema: SchemaObject | ReferenceObject | undefined): str
   }
   // String enum → union literal type (e.g. 'active' | 'inactive')
   if (s.type === 'string' && Array.isArray(s.enum) && s.enum.length > 0) {
-    return (s.enum as string[]).map((v) => `'${v}'`).join(' | ')
+    return (s.enum as string[]).map((v) => JSON.stringify(v)).join(' | ')
   }
   return primitiveToTs(s.type as string | undefined)
+}
+
+/**
+ * Escape static text for safe embedding inside a template literal.
+ * Escapes backticks, `${` interpolation starts, and backslashes.
+ */
+function escapeTemplateLiteralText(text: string): string {
+  return text.replace(/\\/g, '\\\\').replace(/`/g, '\\`').replace(/\$\{/g, '\\${')
 }
 
 /** Convert a path like /api/v1/tasks/{id} to a template literal string with encodeURIComponent calls */
 function pathToUrlExpression(path: string): string {
   // Replace {param} with ${encodeURIComponent(sanitizedParam)}
   // Sanitize param names like 'change-set-id' → 'changeSetId' for valid TS identifiers
-  return path.replace(/\{([^}]+)\}/g, (_match, paramName: string) => {
-    return `\${encodeURIComponent(${sanitizeOperationId(paramName)})}`
-  })
+  // Static segments are escaped so backticks, ${, and backslashes in spec paths cannot break out.
+  return path
+    .split(/\{([^}]+)\}/)
+    .map((segment, index) => {
+      if (index % 2 === 0) {
+        // Static path segment — escape for template literal embedding
+        return escapeTemplateLiteralText(segment)
+      }
+      // Parameter name segment
+      return `\${encodeURIComponent(${sanitizeOperationId(segment)})}`
+    })
+    .join('')
 }
 
 /**
@@ -200,15 +225,67 @@ function deriveOperationName(method: string, path: string): string {
   return prefix + joined
 }
 
+/** Discriminator for how the generated client should parse the success response body. */
+type ResponseBodyKind = 'json' | 'text' | 'binary' | 'event-stream' | 'void'
+
+/**
+ * Classify a single media type string into a ResponseBodyKind.
+ * - json: application/json or any *+json suffix
+ * - event-stream: text/event-stream (excluded from the text category)
+ * - text: any other text/* media type
+ * - binary: everything else (octet-stream, pdf, images, sdp, zip, etc.)
+ */
+function classifyMediaType(mediaType: string): ResponseBodyKind {
+  const mt = mediaType.toLowerCase().split(';')[0]!.trim()
+  if (mt === 'application/json' || mt.endsWith('+json')) return 'json'
+  if (mt === 'text/event-stream') return 'event-stream'
+  if (mt.startsWith('text/')) return 'text'
+  return 'binary'
+}
+
+/**
+ * Given a response content map, pick the best media type using priority:
+ * json > text > binary > event-stream.
+ * Returns the chosen kind and the matching media type string, or null when content is empty.
+ */
+function pickResponseContent(
+  content: Record<string, { schema?: SchemaObject | ReferenceObject }>
+): {
+  kind: ResponseBodyKind
+  mediaType: string
+  entry: { schema?: SchemaObject | ReferenceObject }
+} | null {
+  const order: ResponseBodyKind[] = ['json', 'text', 'binary', 'event-stream']
+  const byKind = new Map<
+    ResponseBodyKind,
+    { mediaType: string; entry: { schema?: SchemaObject | ReferenceObject } }
+  >()
+
+  for (const [mt, entry] of Object.entries(content)) {
+    const kind = classifyMediaType(mt)
+    if (!byKind.has(kind)) {
+      byKind.set(kind, { mediaType: mt, entry })
+    }
+  }
+
+  for (const kind of order) {
+    const found = byKind.get(kind)
+    if (found !== undefined) return { kind, ...found }
+  }
+  return null
+}
+
 function getReturnType(operation: OperationObject): {
   typeName: string
   isArray: boolean
   isVoid: boolean
+  bodyKind: ResponseBodyKind
 } {
   const responses = operation.responses as
     | Record<string, ResponseObject | ReferenceObject>
     | undefined
-  if (responses === undefined) return { typeName: 'unknown', isArray: false, isVoid: false }
+  if (responses === undefined)
+    return { typeName: 'unknown', isArray: false, isVoid: false, bodyKind: 'json' }
 
   // Check 200 first, then 201
   for (const code of ['200', '201']) {
@@ -222,20 +299,39 @@ function getReturnType(operation: OperationObject): {
       | undefined
     if (content === undefined) continue
 
-    const jsonContent = content['application/json']
-    if (jsonContent === undefined || jsonContent.schema === undefined) continue
+    const picked = pickResponseContent(content)
+    if (picked === null) continue
 
-    const resolved = resolveSchema(jsonContent.schema)
-    return { ...resolved, isVoid: false }
+    if (picked.kind === 'json') {
+      if (picked.entry.schema === undefined) continue
+      const resolved = resolveSchema(picked.entry.schema)
+      return { ...resolved, isVoid: false, bodyKind: 'json' }
+    }
+
+    if (picked.kind === 'text') {
+      return { typeName: 'string', isArray: false, isVoid: false, bodyKind: 'text' }
+    }
+
+    if (picked.kind === 'event-stream') {
+      return {
+        typeName: 'ReadableStream<Uint8Array> | null',
+        isArray: false,
+        isVoid: false,
+        bodyKind: 'event-stream',
+      }
+    }
+
+    // binary: application/octet-stream, application/pdf, image/*, application/sdp, etc.
+    return { typeName: 'Blob', isArray: false, isVoid: false, bodyKind: 'binary' }
   }
 
   // Check for 204 (no content) or no successful response
   if (responses['204'] !== undefined || Object.keys(responses).length === 0) {
-    return { typeName: 'void', isArray: false, isVoid: true }
+    return { typeName: 'void', isArray: false, isVoid: true, bodyKind: 'void' }
   }
 
-  // DELETE with no body response
-  return { typeName: 'void', isArray: false, isVoid: true }
+  // No recognized success response body
+  return { typeName: 'void', isArray: false, isVoid: true, bodyKind: 'void' }
 }
 
 function resolveParamRef(
@@ -360,6 +456,21 @@ function headerNameToCamelCase(headerName: string): string {
     .join('')
 }
 
+/**
+ * Convert a header name to a safe JS identifier.
+ * Uses `headerNameToCamelCase` as the primary conversion (preserves existing public API
+ * for standard `X-Foo-Bar` headers) then strips any remaining non-identifier characters
+ * that could appear in unusual header names (e.g. apostrophes in "User's-Token").
+ */
+function safeHeaderIdentifier(headerName: string): string {
+  const camel = headerNameToCamelCase(headerName)
+  // Strip any characters that are not valid in a JS identifier (keeps letters, digits, $, _)
+  const stripped = camel.replace(/[^a-zA-Z0-9_$]/g, '')
+  // Ensure the result doesn't start with a digit
+  if (/^[0-9]/.test(stripped)) return `_${stripped}`
+  return stripped.length > 0 ? stripped : '_'
+}
+
 function getHeaderParams(
   pathItem: PathItemObject,
   operation: OperationObject,
@@ -368,7 +479,7 @@ function getHeaderParams(
   return mergeParams(pathItem, operation, spec)
     .filter((p) => p.in === 'header' && p.name.length > 0) // skip params with empty names
     .map((p) => ({
-      name: headerNameToCamelCase(p.name),
+      name: safeHeaderIdentifier(p.name),
       headerName: p.name,
       required: p.required === true,
       type: queryParamType(p.schema as SchemaObject | ReferenceObject | undefined),
@@ -384,7 +495,7 @@ interface MultipartField {
 
 interface RequestBodyInfo {
   typeName: string
-  kind: 'json' | 'multipart'
+  kind: 'json' | 'multipart' | 'form'
   multipartFields?: MultipartField[]
 }
 
@@ -439,10 +550,17 @@ function getRequestBodyInfo(operation: OperationObject): RequestBodyInfo | undef
 
   // Fall back to JSON
   const jsonContent = content['application/json']
-  if (jsonContent === undefined || jsonContent.schema === undefined) return undefined
+  if (jsonContent !== undefined && jsonContent.schema !== undefined) {
+    const schema = jsonContent.schema
+    return { typeName: inlineSchemaToTs(schema), kind: 'json' }
+  }
 
-  const schema = jsonContent.schema
-  return { typeName: inlineSchemaToTs(schema), kind: 'json' }
+  // Fall back to application/x-www-form-urlencoded
+  const formContent = content['application/x-www-form-urlencoded']
+  if (formContent === undefined || formContent.schema === undefined) return undefined
+
+  const formSchema = formContent.schema
+  return { typeName: inlineSchemaToTs(formSchema), kind: 'form' }
 }
 
 /** Feature 4: Collect non-2xx error responses that have a JSON $ref schema and return @throws tags */
@@ -542,6 +660,8 @@ interface HelperFeatures {
   hasHeaderParams: boolean
   /** Any endpoint is multipart/form-data → emit `_requestForm` helper */
   hasMultipart: boolean
+  /** Any endpoint uses application/x-www-form-urlencoded → emit bodyEncoding branch in `_request` */
+  hasFormUrlencoded: boolean
 }
 
 /** Returns true when the spec has any non-cookie security scheme or a global/operation-level security requirement. */
@@ -594,6 +714,7 @@ function generateRequestHelpers(features: HelperFeatures): string {
   lines.push(`  opts: {`)
   lines.push(`    searchParams?: URLSearchParams`)
   lines.push(`    body?: unknown`)
+  if (features.hasFormUrlencoded) lines.push(`    bodyEncoding?: 'json' | 'form'`)
   if (features.hasHeaderParams) lines.push(`    extraHeaders?: Record<string, string>`)
   lines.push(`  },`)
   lines.push(`  config?: Partial<ClientConfig>,`)
@@ -616,13 +737,25 @@ function generateRequestHelpers(features: HelperFeatures): string {
   lines.push(`    method,`)
   if (features.hasCookieAuth) lines.push(`    credentials,`)
   lines.push(`    headers: {`)
-  lines.push(`      ...(opts.body !== undefined ? { 'Content-Type': 'application/json' } : {}),`)
+  if (features.hasFormUrlencoded) {
+    lines.push(
+      `      ...(opts.body !== undefined ? { 'Content-Type': opts.bodyEncoding === 'form' ? 'application/x-www-form-urlencoded' : 'application/json' } : {}),`
+    )
+  } else {
+    lines.push(`      ...(opts.body !== undefined ? { 'Content-Type': 'application/json' } : {}),`)
+  }
   lines.push(`      ...headers,`)
   if (features.hasBearerAuth)
     lines.push(`      ...(resolvedToken ? { Authorization: \`Bearer \${resolvedToken}\` } : {}),`)
   if (features.hasHeaderParams) lines.push(`      ...opts.extraHeaders,`)
   lines.push(`    },`)
-  lines.push(`    ...(opts.body !== undefined ? { body: JSON.stringify(opts.body) } : {}),`)
+  if (features.hasFormUrlencoded) {
+    lines.push(
+      `    ...(opts.body !== undefined ? { body: opts.bodyEncoding === 'form' ? new URLSearchParams(Object.entries(opts.body as Record<string, unknown>).flatMap(([k, v]) => Array.isArray(v) ? v.map((e) => [k, String(e)] as [string, string]) : v == null ? [] : [[k, String(v)] as [string, string]])).toString() : JSON.stringify(opts.body) } : {}),`
+    )
+  } else {
+    lines.push(`    ...(opts.body !== undefined ? { body: JSON.stringify(opts.body) } : {}),`)
+  }
   lines.push(`  })`)
   lines.push(`  if (!res.ok) {`)
   lines.push(`    const err = new ApiError(res.status, await res.json().catch(() => null))`)
@@ -683,7 +816,7 @@ function generateFunctionCode(
   queryParams: QueryParam[],
   headerParams: HeaderParam[],
   bodyInfo: RequestBodyInfo | undefined,
-  returnType: { typeName: string; isArray: boolean; isVoid: boolean },
+  returnType: { typeName: string; isArray: boolean; isVoid: boolean; bodyKind: ResponseBodyKind },
   deprecated: boolean,
   throwsTags: string[],
   options?: ClientOptions,
@@ -721,6 +854,7 @@ function generateFunctionCode(
   // Per-request config override — enables SSR without mutating the global singleton
   sigParts.push(`config?: Partial<ClientConfig>`)
 
+  // For non-json body kinds, isArray is always false; the typeName is the full type string.
   const returnTs = returnType.isVoid
     ? 'Promise<void>'
     : returnType.isArray
@@ -744,8 +878,8 @@ function generateFunctionCode(
 
   // Build URL path arg (template literal when path params present, plain string otherwise)
   const urlExpression = pathToUrlExpression(path)
-  const hasPathParams = urlExpression !== path
-  const pathArg = hasPathParams ? '`' + urlExpression + '`' : `'${path}'`
+  const hasPathParams = path.includes('{')
+  const pathArg = hasPathParams ? '`' + urlExpression + '`' : JSON.stringify(path)
 
   // URLSearchParams (query params) — still built in caller, passed to helper
   if (queryParams.length > 0) {
@@ -793,7 +927,7 @@ function generateFunctionCode(
     const spreadParts = headerParams
       .map(
         (hp) =>
-          `    ...(params?.${hp.name} != null ? { '${hp.headerName}': params.${hp.name} } : {}),`
+          `    ...(params?.${hp.name} != null ? { ${JSON.stringify(hp.headerName)}: params.${hp.name} } : {}),`
       )
       .join('\n')
     lines.push(`  const extraHeaders: Record<string, string> = {`)
@@ -831,10 +965,15 @@ function generateFunctionCode(
       lines.push(`  const res = await ${call}`)
     }
   } else {
-    // _request: JSON body (if any) goes in opts.body; no FormData
+    // _request: JSON or form body (if any) goes in opts.body; no FormData
     const optsParts: string[] = []
     if (queryParams.length > 0) optsParts.push('searchParams')
-    if (bodyInfo !== undefined && bodyInfo.kind === 'json') optsParts.push('body')
+    if (bodyInfo !== undefined && (bodyInfo.kind === 'json' || bodyInfo.kind === 'form')) {
+      optsParts.push('body')
+    }
+    if (bodyInfo !== undefined && bodyInfo.kind === 'form') {
+      optsParts.push(`bodyEncoding: 'form'`)
+    }
     if (headerParams.length > 0) optsParts.push('extraHeaders')
     const optsLiteral = optsParts.length > 0 ? `{ ${optsParts.join(', ')} }` : '{}'
     const call = `_request('${method.toUpperCase()}', ${pathArg}, ${optsLiteral}, config)`
@@ -845,21 +984,32 @@ function generateFunctionCode(
     }
   }
 
-  // Return / response parsing
+  // Return / response parsing — switch on the body kind determined from the spec.
   if (!returnType.isVoid) {
-    // Schema-enhanced: response validation
-    if (
-      options?.schemaNames !== undefined &&
-      responseSchemaName !== undefined &&
-      options.schemaNames.has(`${responseSchemaName.name}Schema`)
-    ) {
-      if (responseSchemaName.isArray) {
-        lines.push(`  return z.array(${responseSchemaName.name}Schema).parse(await res.json())`)
-      } else {
-        lines.push(`  return ${responseSchemaName.name}Schema.parse(await res.json())`)
-      }
+    const kind = returnType.bodyKind
+    if (kind === 'text') {
+      lines.push(`  return res.text()`)
+    } else if (kind === 'binary') {
+      lines.push(`  return res.blob()`)
+    } else if (kind === 'event-stream') {
+      // Full SSE parsing (EventSource / TransformStream) is tracked separately.
+      // Expose the raw ReadableStream so callers can implement their own consumer.
+      lines.push(`  return res.body`)
     } else {
-      lines.push(`  return res.json()`)
+      // json kind: apply Zod validation when schema-enhanced, otherwise plain res.json()
+      if (
+        options?.schemaNames !== undefined &&
+        responseSchemaName !== undefined &&
+        options.schemaNames.has(`${responseSchemaName.name}Schema`)
+      ) {
+        if (responseSchemaName.isArray) {
+          lines.push(`  return z.array(${responseSchemaName.name}Schema).parse(await res.json())`)
+        } else {
+          lines.push(`  return ${responseSchemaName.name}Schema.parse(await res.json())`)
+        }
+      } else {
+        lines.push(`  return res.json()`)
+      }
     }
   }
 
@@ -884,6 +1034,10 @@ const BUILTIN_TS_TYPES = new Set([
   'undefined',
   'any',
   'never',
+  // Global platform types: never import from ./models
+  'Blob',
+  'ReadableStream',
+  'Uint8Array',
 ])
 
 /**
@@ -912,6 +1066,7 @@ export function generateClient(spec: OpenAPIV3_1.Document, options?: ClientOptio
   const collectedSchemaNames = new Set<string>()
   let needsZImport = false
   let hasMultipartEndpoints = false
+  let hasFormUrlencodedEndpoints = false
   let hasHeaderParamEndpoints = false
   let hasAnyEndpoints = false
   const functionBlocks: string[] = []
@@ -942,6 +1097,7 @@ export function generateClient(spec: OpenAPIV3_1.Document, options?: ClientOptio
 
         // Track which features are used across the spec (drives conditional helper code-gen)
         if (bodyInfo !== undefined && bodyInfo.kind === 'multipart') hasMultipartEndpoints = true
+        if (bodyInfo !== undefined && bodyInfo.kind === 'form') hasFormUrlencodedEndpoints = true
         if (headerParams.length > 0) hasHeaderParamEndpoints = true
 
         // Schema-enhanced: compute request body and response schema names for this operation
@@ -1046,6 +1202,7 @@ export function generateClient(spec: OpenAPIV3_1.Document, options?: ClientOptio
       hasCookieAuth: hasCookieAuth(spec),
       hasHeaderParams: hasHeaderParamEndpoints,
       hasMultipart: hasMultipartEndpoints,
+      hasFormUrlencoded: hasFormUrlencodedEndpoints,
     }
     lines.push('')
     lines.push(generateRequestHelpers(helperFeatures))

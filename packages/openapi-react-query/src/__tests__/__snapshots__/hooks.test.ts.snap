@@ -9,9 +9,9 @@ import { createTask, deleteTask, getTask, listTasks, updateTask, type ApiError }
 // ── Query key factories ──────────────────────────────────────
 
 export const taskKeys = {
-  all: () => ['tasks'] as const,
-  list: (params?: Parameters<typeof listTasks>[0]) => ['tasks', 'list', params] as const,
-  detail: (id: string) => ['tasks', id] as const,
+  all: () => ["tasks"] as const,
+  list: (params?: Parameters<typeof listTasks>[0]) => ["tasks", 'list', params] as const,
+  detail: (id: string) => ["tasks", id] as const,
 }
 
 // ── Queries ──────────────────────────────────────────────────
@@ -100,9 +100,9 @@ import { createTask, deleteTask, getTask, listTasks, updateTask, type ApiError }
 // ── Query key factories ──────────────────────────────────────
 
 export const taskKeys = {
-  all: () => ['tasks'] as const,
-  list: (params?: Parameters<typeof listTasks>[0]) => ['tasks', 'list', params] as const,
-  detail: (id: string) => ['tasks', id] as const,
+  all: () => ["tasks"] as const,
+  list: (params?: Parameters<typeof listTasks>[0]) => ["tasks", 'list', params] as const,
+  detail: (id: string) => ["tasks", id] as const,
 }
 
 // ── Queries ──────────────────────────────────────────────────
@@ -217,9 +217,9 @@ import { createTask, deleteTask, getTask, listTasks, updateTask, type ApiError }
 // ── Query key factories ──────────────────────────────────────
 
 export const taskKeys = {
-  all: () => ['tasks'] as const,
-  list: (params?: Parameters<typeof listTasks>[0]) => ['tasks', 'list', params] as const,
-  detail: (id: string) => ['tasks', id] as const,
+  all: () => ["tasks"] as const,
+  list: (params?: Parameters<typeof listTasks>[0]) => ["tasks", 'list', params] as const,
+  detail: (id: string) => ["tasks", id] as const,
 }
 
 // ── Queries ──────────────────────────────────────────────────
@@ -291,9 +291,9 @@ import { createTask, deleteTask, getTask, listTasks, updateTask, type ApiError }
 // ── Query key factories ──────────────────────────────────────
 
 export const taskKeys = {
-  all: () => ['tasks'] as const,
-  list: (params?: Parameters<typeof listTasks>[0]) => ['tasks', 'list', params] as const,
-  detail: (id: string) => ['tasks', id] as const,
+  all: () => ["tasks"] as const,
+  list: (params?: Parameters<typeof listTasks>[0]) => ["tasks", 'list', params] as const,
+  detail: (id: string) => ["tasks", id] as const,
 }
 
 // ── Queries ──────────────────────────────────────────────────
@@ -365,9 +365,9 @@ import { createTask, deleteTask, getTask, listTasks, updateTask, type ApiError }
 // ── Query key factories ──────────────────────────────────────
 
 export const taskKeys = {
-  all: () => ['tasks'] as const,
-  list: (params?: Parameters<typeof listTasks>[0]) => ['tasks', 'list', params] as const,
-  detail: (id: string) => ['tasks', id] as const,
+  all: () => ["tasks"] as const,
+  list: (params?: Parameters<typeof listTasks>[0]) => ["tasks", 'list', params] as const,
+  detail: (id: string) => ["tasks", id] as const,
 }
 
 // ── Queries ──────────────────────────────────────────────────

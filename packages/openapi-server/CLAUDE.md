@@ -1,13 +1,13 @@
 # openapi-server
 
-Generate a typed server-side service interface and a Hono router from an OpenAPI 3.1 spec.
+Generate a typed server-side service interface and an optional framework router from an OpenAPI 3.x spec (3.1 primary target, 3.0.x best-effort).
 
 ## Generates
 
 | File | Description |
 |---|---|
 | `service.ts` | TypeScript interface — one method per operation; implement this to wire your business logic |
-| `router.ts` | Hono router (`createRouter(service)`) — routes + optional Zod validation |
+| `router.ts` | Framework router (`createRouter(service)`): routes with optional Zod validation. Only generated when `framework` is not `"none"`. |
 
 ## Two-pass generation (schema-enhanced mode)
 
@@ -20,7 +20,7 @@ When `input_schema` is set in config:
 
 ## Config
 
-Default: `openapi-server.config.json` in CWD. Fields: `input_openapi`, `output`, `framework?` (`"hono"` | `"none"`), `input_schema?`.
+Default: `openapi-server.config.json` in CWD. Fields: `input_openapi`, `output`, `framework?` (`"hono"` | `"express"` | `"fastify"` | `"none"`, default: `"none"`), `input_schema?`.
 
 ## Key non-obvious decisions
 

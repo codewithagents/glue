@@ -1,27 +1,40 @@
 #!/usr/bin/env node
-import { resolve, dirname } from 'node:path'
+import { readFileSync } from 'node:fs'
 import { generate } from './generator.js'
+import { parseCliArgs } from './cli-args.js'
 
-const args = process.argv.slice(2)
-const configIdx = args.indexOf('--config')
+const parsed = parseCliArgs(process.argv, process.cwd())
 
-let cwd = process.cwd()
-let configFile: string | undefined
-
-if (configIdx !== -1) {
-  const next = args[configIdx + 1]
-  if (next === undefined || next.startsWith('--')) {
-    console.error('Error: --config requires a file path argument')
-    console.error('Usage: openapi-react-query [--config <path-to-config.json>]')
-    process.exit(1)
-  }
-  configFile = resolve(cwd, next)
-  // Relative paths inside the config resolve from the config file's directory,
-  // not from the shell's CWD. This matches how most tooling works.
-  cwd = dirname(configFile)
+if (parsed.action === 'help') {
+  console.log(
+    [
+      'Usage: openapi-react-query [--config <path>]',
+      '',
+      'Generate typed React Query v5 hooks from an OpenAPI 3.1 spec.',
+      '',
+      'Options:',
+      '  --config <path>   Path to config file (default: openapi-react-query.config.json in cwd)',
+      '  --help, -h        Show this help message',
+      '  --version, -v     Show version number',
+    ].join('\n')
+  )
+  process.exit(0)
 }
 
-generate(cwd, configFile).catch((err: Error) => {
+if (parsed.action === 'version') {
+  const pkg = JSON.parse(
+    readFileSync(new URL('../package.json', import.meta.url), 'utf-8')
+  ) as { version: string }
+  console.log(pkg.version)
+  process.exit(0)
+}
+
+if (parsed.action === 'error') {
+  console.error(parsed.message)
+  process.exit(1)
+}
+
+generate(parsed.cwd, parsed.configFile).catch((err: Error) => {
   console.error(`Error: ${err.message}`)
   process.exit(1)
 })

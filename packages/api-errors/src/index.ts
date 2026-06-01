@@ -170,6 +170,40 @@ function tryParseRfc9457Detail(
 }
 
 // ---------------------------------------------------------------------------
+// Safety
+// ---------------------------------------------------------------------------
+
+/**
+ * Field-path segments that must never be forwarded to a path-aware setter.
+ * A path-aware setter (e.g. React Hook Form's `setError`) splits the field name
+ * on `.`/`[]` and walks/creates nested objects, so a malicious field like
+ * `__proto__.polluted` from an untrusted error body would otherwise become a
+ * prototype-pollution write in the consuming app.
+ */
+const FORBIDDEN_FIELD_SEGMENTS = new Set(['__proto__', 'constructor', 'prototype'])
+
+/**
+ * Upper bound on the number of field errors returned. A hostile body with a huge
+ * `errors` map or array would otherwise produce an unbounded list (and an equal
+ * number of `setError` calls / re-renders downstream).
+ */
+const MAX_FIELD_ERRORS = 1000
+
+/** True if no path segment of `field` is a prototype-pollution gadget key. */
+function isSafeFieldPath(field: string): boolean {
+  for (const segment of field.split(/[.[\]]+/)) {
+    if (FORBIDDEN_FIELD_SEGMENTS.has(segment)) return false
+  }
+  return true
+}
+
+/** Drop unsafe field paths and cap the result before it leaves the library. */
+function finalize(result: FieldError[]): FieldError[] {
+  const safe = result.filter((e) => isSafeFieldPath(e.field))
+  return safe.length > MAX_FIELD_ERRORS ? safe.slice(0, MAX_FIELD_ERRORS) : safe
+}
+
+// ---------------------------------------------------------------------------
 // Public API
 // ---------------------------------------------------------------------------
 
@@ -237,26 +271,26 @@ export function extractFieldErrors(error: unknown, options?: MapApiErrorsOptions
 
     // Array of flat error objects
     if (Array.isArray(body)) {
-      return tryParseFlatArray(body, fallbackField, transformField) ?? []
+      return finalize(tryParseFlatArray(body, fallbackField, transformField) ?? [])
     }
 
     if (!isObject(body)) return []
 
     // Try RFC 7807 / Spring Boot 3 format first (object-style errors map)
     const rfc7807 = tryParseRfc7807(body, fallbackField, transformField)
-    if (rfc7807 !== null) return rfc7807
+    if (rfc7807 !== null) return finalize(rfc7807)
 
     // Try Spring Boot default format (array-style errors list)
     const springArray = tryParseSpringArray(body, fallbackField, transformField)
-    if (springArray !== null) return springArray
+    if (springArray !== null) return finalize(springArray)
 
     // Try simple flat object
     const flat = tryParseFlatObject(body, fallbackField, transformField)
-    if (flat !== null) return flat
+    if (flat !== null) return finalize(flat)
 
     // Try RFC 9457 top-level detail as a last-resort root error
     const rfc9457 = tryParseRfc9457Detail(body, fallbackField, transformField)
-    if (rfc9457 !== null) return rfc9457
+    if (rfc9457 !== null) return finalize(rfc9457)
 
     return []
   } catch {

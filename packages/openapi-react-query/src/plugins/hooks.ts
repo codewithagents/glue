@@ -156,7 +156,7 @@ function buildKeyFactory(resource: string, entries: KeyEntry[]): string {
   const factoryName = `${toKeyFactoryName(resource)}Keys`
   const lines: string[] = []
   lines.push(`export const ${factoryName} = {`)
-  lines.push(`  all: () => ['${resource}'] as const,`)
+  lines.push(`  all: () => [${JSON.stringify(resource)}] as const,`)
 
   for (const entry of entries) {
     const paramsOptional = !entry.hasRequiredQueryParams
@@ -174,36 +174,36 @@ function buildKeyFactory(resource: string, entries: KeyEntry[]): string {
     if (entry.pathParams.length === 0 && entry.hasQueryParams) {
       // list: (params?) => ['resource', 'list', params]
       lines.push(
-        `  ${entry.key}: (${paramsArg}) => ['${resource}', '${entry.key}', params] as const,`
+        `  ${entry.key}: (${paramsArg}) => [${JSON.stringify(resource)}, '${entry.key}', params] as const,`
       )
     } else if (entry.pathParams.length === 0 && !entry.hasQueryParams) {
       // list with no params
-      lines.push(`  ${entry.key}: () => ['${resource}', '${entry.key}'] as const,`)
+      lines.push(`  ${entry.key}: () => [${JSON.stringify(resource)}, '${entry.key}'] as const,`)
     } else if (entry.pathParams.length === 1 && !entry.hasQueryParams) {
       // detail: (id) => ['resource', id]  or  getItemUsage: (id) => ['resource', 'getItemUsage', id]
       const param = entry.pathParams[0]!
       lines.push(
-        `  ${entry.key}: (${param}: string) => ['${resource}', ${keySegment}${param}] as const,`
+        `  ${entry.key}: (${param}: string) => [${JSON.stringify(resource)}, ${keySegment}${param}] as const,`
       )
     } else if (entry.pathParams.length === 1 && entry.hasQueryParams) {
       // detail with query params
       const param = entry.pathParams[0]!
       lines.push(
-        `  ${entry.key}: (${param}: string, ${paramsArg}) => ['${resource}', ${keySegment}${param}, params] as const,`
+        `  ${entry.key}: (${param}: string, ${paramsArg}) => [${JSON.stringify(resource)}, ${keySegment}${param}, params] as const,`
       )
     } else if (!entry.hasQueryParams) {
       // multiple path params, no query params
       const paramList = entry.pathParams.map((p) => `${p}: string`).join(', ')
       const paramValues = entry.pathParams.join(', ')
       lines.push(
-        `  ${entry.key}: (${paramList}) => ['${resource}', ${keySegment}${paramValues}] as const,`
+        `  ${entry.key}: (${paramList}) => [${JSON.stringify(resource)}, ${keySegment}${paramValues}] as const,`
       )
     } else {
       // multiple path params + query params
       const paramList = entry.pathParams.map((p) => `${p}: string`).join(', ')
       const paramValues = entry.pathParams.join(', ')
       lines.push(
-        `  ${entry.key}: (${paramList}, ${paramsArg}) => ['${resource}', ${keySegment}${paramValues}, params] as const,`
+        `  ${entry.key}: (${paramList}, ${paramsArg}) => [${JSON.stringify(resource)}, ${keySegment}${paramValues}, params] as const,`
       )
     }
   }

@@ -6,6 +6,8 @@ dist/
 coverage/
 .stryker-tmp/
 reports/mutation/
+reports/
+*.tgz
 examples/generated-rq/
 examples/generated-server/
 .astro/

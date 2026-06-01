@@ -1,6 +1,6 @@
 # openapi-gen
 
-Generate TypeScript models, native fetch client, and Zod schemas from an OpenAPI 3.1 spec.
+Generate TypeScript models, native fetch client, and Zod schemas from an OpenAPI 3.x spec (3.1 primary target, 3.0.x best-effort).
 
 ## Generates
 - `models.ts` — TypeScript interfaces

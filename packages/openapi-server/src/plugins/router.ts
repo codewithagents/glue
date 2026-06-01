@@ -60,7 +60,7 @@ function deriveServiceName(spec: OpenAPIV3_1.Document): string {
     .map((s) => s.charAt(0).toUpperCase() + s.slice(1))
     .join('')
   if (pascal.length === 0) return 'ApiService'
-  // Guard against numeric-start identifiers (e.g. '1Password Connect' → '_1PasswordConnect')
+  // Guard against numeric-start identifiers (e.g. '1Password Connect' -> '_1PasswordConnect')
   const safePascal = /^[0-9]/.test(pascal) ? `_${pascal}` : pascal
   if (safePascal.endsWith('Service')) return safePascal
   return `${safePascal}Service`
@@ -70,14 +70,14 @@ function deriveServiceName(spec: OpenAPIV3_1.Document): string {
  * Converts a raw operationId into a valid camelCase JS identifier.
  * Handles kebab-case, snake_case, dots, spaces, parens, braces and other
  * non-alphanumeric separators found in real-world OpenAPI specs.
- * e.g. "post-applePay-sessions"   → "postApplePaySessions"
- * e.g. "calendar.calendars.insert" → "calendarCalendarsInsert"
- * e.g. "Get User Profile"          → "getUserProfile"
- * e.g. "forgotPassword(oneTimeCode)" → "forgotPasswordOneTimeCode"
+ * e.g. "post-applePay-sessions"   -> "postApplePaySessions"
+ * e.g. "calendar.calendars.insert" -> "calendarCalendarsInsert"
+ * e.g. "Get User Profile"          -> "getUserProfile"
+ * e.g. "forgotPassword(oneTimeCode)" -> "forgotPasswordOneTimeCode"
  */
 function sanitizeOperationId(id: string): string {
   const parts = id
-    .replace(/'/g, '') // strip apostrophes without splitting ("user's" → "users")
+    .replace(/'/g, '') // strip apostrophes without splitting ("user's" -> "users")
     .split(/[^a-zA-Z0-9]+/) // split on any non-alphanumeric sequence
     .filter(Boolean)
   if (parts.length === 0) return 'unknown'
@@ -177,6 +177,258 @@ function getQueryParams(operation: OperationObject, spec: OpenAPIV3_1.Document):
   return result
 }
 
+// ── Param validation helpers ──────────────────────────────────────────────────
+
+/** Represents a path parameter that needs Zod format validation. */
+interface PathParamValidation {
+  /** Raw name as it appears in the URL path (e.g. 'job-id'). */
+  rawName: string
+  /** Zod chain expression for the value (e.g. 'z.string().uuid()'). */
+  zodExpr: string
+}
+
+/** Represents a header parameter to validate. */
+interface HeaderParam {
+  /** Header name as defined in the spec (e.g. 'x-api-key'). */
+  rawName: string
+  /** Whether the header is required. */
+  required: boolean
+}
+
+/**
+ * Map a schema format string to a Zod chain modifier.
+ * Returns an empty string when no specific format validation is needed.
+ */
+function formatToZodModifier(format: string): string {
+  switch (format) {
+    case 'uuid':
+      return '.uuid()'
+    case 'email':
+      return '.email()'
+    case 'uri':
+    case 'url':
+      return '.url()'
+    case 'date-time':
+      return '.datetime()'
+    default:
+      return ''
+  }
+}
+
+/**
+ * Build a Zod expression for a path parameter based on its schema.
+ * Returns undefined when the parameter does not need format validation
+ * (simple string with no format constraint or non-string types used as strings in URLs).
+ */
+function pathParamZodExpr(
+  schema: OpenAPIV3_1.SchemaObject | ReferenceObject | undefined
+): string | undefined {
+  if (schema === undefined || isRef(schema)) return undefined
+  const s = schema as OpenAPIV3_1.SchemaObject
+  if (s.type !== 'string') return undefined
+  const format = s.format as string | undefined
+  if (format === undefined) return undefined
+  const modifier = formatToZodModifier(format)
+  if (modifier === '') return undefined
+  return `z.string()${modifier}`
+}
+
+/**
+ * Build a Zod expression for a query or header parameter based on its schema.
+ * Number/integer types use z.number() (after coercion by extraction code).
+ * String types use z.string(). Boolean types use z.boolean().
+ * Appends .optional() for non-required params.
+ */
+function paramZodExpr(
+  tsType: string,
+  required: boolean,
+  schema?: OpenAPIV3_1.SchemaObject | ReferenceObject
+): string {
+  let base: string
+  if (tsType === 'number') {
+    base = 'z.number()'
+  } else if (tsType === 'boolean') {
+    base = 'z.boolean()'
+  } else {
+    // string
+    if (schema !== undefined && !isRef(schema)) {
+      const s = schema as OpenAPIV3_1.SchemaObject
+      const format = s.format as string | undefined
+      const modifier = format !== undefined ? formatToZodModifier(format) : ''
+      base = `z.string()${modifier}`
+    } else {
+      base = 'z.string()'
+    }
+  }
+  return required ? base : `${base}.optional()`
+}
+
+/**
+ * Collect path parameters that have Zod format constraints.
+ * Only returns entries for params that need format validation (e.g. uuid).
+ * Simple string params with no format constraint are excluded.
+ */
+function getPathParamValidations(
+  operation: OperationObject,
+  spec: OpenAPIV3_1.Document,
+  rawPathParamNames: string[]
+): PathParamValidation[] {
+  const parameters = operation.parameters as (ParameterObject | ReferenceObject)[] | undefined
+  if (parameters === undefined) return []
+
+  // Build a name-to-zodExpr map from path params to avoid nested loops.
+  const zodByName = new Map<string, string>()
+  for (const p of parameters) {
+    const resolved = resolveParam(p, spec)
+    if (resolved === undefined || resolved.in !== 'path') continue
+    const schema = resolved.schema as OpenAPIV3_1.SchemaObject | ReferenceObject | undefined
+    const zodExpr = pathParamZodExpr(schema)
+    if (zodExpr !== undefined) zodByName.set(resolved.name, zodExpr)
+  }
+
+  const result: PathParamValidation[] = []
+  for (const rawName of rawPathParamNames) {
+    const zodExpr = zodByName.get(rawName)
+    if (zodExpr !== undefined) result.push({ rawName, zodExpr })
+  }
+  return result
+}
+
+/**
+ * Collect header parameters from an operation.
+ */
+function getHeaderParams(operation: OperationObject, spec: OpenAPIV3_1.Document): HeaderParam[] {
+  const parameters = operation.parameters as (ParameterObject | ReferenceObject)[] | undefined
+  if (parameters === undefined) return []
+
+  const result: HeaderParam[] = []
+  for (const p of parameters) {
+    const resolved = resolveParam(p, spec)
+    if (resolved === undefined || resolved.in !== 'header') continue
+    result.push({
+      rawName: resolved.name,
+      required: resolved.required === true,
+    })
+  }
+  return result
+}
+
+/**
+ * Determine whether query params need a Zod validation block.
+ * Triggered when any param is required or has a non-string type (to catch NaN/invalid input).
+ */
+function queryParamsNeedValidation(queryParams: QueryParam[]): boolean {
+  return queryParams.some((q) => q.required || q.tsType !== 'string')
+}
+
+/**
+ * Emit Zod validation lines for query parameters into the handler line buffer.
+ * Uses the already-extracted params object (after Number() coercion).
+ * Uses short variable name _qv to keep the 422 return line under Prettier's print width.
+ * @param indent - outer handler indent (e.g. '  ')
+ */
+function emitQueryValidation(lines: string[], queryParams: QueryParam[], indent: string): void {
+  const inner = `${indent}  `
+  const fieldIndent = `${indent}    `
+  const fields = queryParams
+    .map((q) => {
+      const expr = paramZodExpr(q.tsType, q.required)
+      return `${fieldIndent}${q.name}: ${expr}`
+    })
+    .join(',\n')
+  lines.push(`${inner}// Validate query parameters: returns 422 with Zod issues on failure`)
+  lines.push(`${inner}const _qv = z.object({`)
+  lines.push(fields)
+  lines.push(`${inner}}).safeParse(params)`)
+}
+
+/**
+ * Emit Zod validation lines for path parameters (format constraints) into the handler line buffer.
+ * Uses short variable name _pv to keep the 422 return line under Prettier's print width.
+ * @param indent - outer handler indent (e.g. '  ')
+ * @param framework - used to generate the correct param accessor syntax
+ */
+function emitPathValidation(
+  lines: string[],
+  validations: PathParamValidation[],
+  indent: string,
+  framework: 'hono' | 'express' | 'fastify'
+): void {
+  const inner = `${indent}  `
+  const fieldIndent = `${indent}    `
+  const schemaFields = validations
+    .map((v) => {
+      const key = /[^a-zA-Z0-9_$]/.test(v.rawName) ? JSON.stringify(v.rawName) : v.rawName
+      return `${fieldIndent}${key}: ${v.zodExpr}`
+    })
+    .join(',\n')
+  const rawFields = validations
+    .map((v) => {
+      const key = /[^a-zA-Z0-9_$]/.test(v.rawName) ? JSON.stringify(v.rawName) : v.rawName
+      let access: string
+      if (framework === 'hono') {
+        access = `c.req.param(${JSON.stringify(v.rawName)})`
+      } else if (framework === 'express') {
+        access = `req.params[${JSON.stringify(v.rawName)}]`
+      } else {
+        access = /[^a-zA-Z0-9_$]/.test(v.rawName)
+          ? `req.params[${JSON.stringify(v.rawName)}]`
+          : `req.params.${v.rawName}`
+      }
+      return `${fieldIndent}${key}: ${access}`
+    })
+    .join(',\n')
+  lines.push(`${inner}// Validate path parameters: returns 422 with Zod issues on failure`)
+  lines.push(`${inner}const _pv = z.object({`)
+  lines.push(schemaFields)
+  lines.push(`${inner}}).safeParse({`)
+  lines.push(rawFields)
+  lines.push(`${inner}})`)
+}
+
+/**
+ * Emit Zod validation lines for header parameters into the handler line buffer.
+ * Uses short variable name _hv to keep the 422 return line under Prettier's print width.
+ * @param indent - outer handler indent (e.g. '  ')
+ * @param framework - used to generate the correct header accessor syntax
+ */
+function emitHeaderValidation(
+  lines: string[],
+  headerParams: HeaderParam[],
+  indent: string,
+  framework: 'hono' | 'express' | 'fastify'
+): void {
+  const inner = `${indent}  `
+  const fieldIndent = `${indent}    `
+  const schemaFields = headerParams
+    .map((h) => {
+      const key = JSON.stringify(h.rawName)
+      const expr = h.required ? 'z.string()' : 'z.string().optional()'
+      return `${fieldIndent}${key}: ${expr}`
+    })
+    .join(',\n')
+  const rawFields = headerParams
+    .map((h) => {
+      const key = JSON.stringify(h.rawName)
+      let access: string
+      if (framework === 'hono') {
+        access = `c.req.header(${key})`
+      } else if (framework === 'express') {
+        access = `req.headers[${key}] as string | undefined`
+      } else {
+        access = `req.headers[${key}]`
+      }
+      return `${fieldIndent}${key}: ${access}`
+    })
+    .join(',\n')
+  lines.push(`${inner}// Validate request headers: returns 422 with Zod issues on failure`)
+  lines.push(`${inner}const _hv = z.object({`)
+  lines.push(schemaFields)
+  lines.push(`${inner}}).safeParse({`)
+  lines.push(rawFields)
+  lines.push(`${inner}})`)
+}
+
 interface BodyInfo {
   typeName: string | undefined
 }
@@ -245,7 +497,9 @@ interface RouteOperation {
   path: string
   honoPath: string
   pathParams: string[]
+  pathParamValidations: PathParamValidation[]
   queryParams: QueryParam[]
+  headerParams: HeaderParam[]
   bodyInfo: BodyInfo | undefined
   responseStatus: ResponseStatus
 }
@@ -263,7 +517,9 @@ function collectOperations(spec: OpenAPIV3_1.Document): RouteOperation[] {
 
       const methodName = deriveMethodName(operation.operationId, method, path)
       const pathParams = extractPathParamsFromPath(path)
+      const pathParamValidations = getPathParamValidations(operation, spec, pathParams)
       const queryParams = getQueryParams(operation, spec)
+      const headerParams = getHeaderParams(operation, spec)
       const bodyInfo = getBodyInfo(operation)
       const responseStatus = getResponseStatus(operation, method)
 
@@ -273,7 +529,9 @@ function collectOperations(spec: OpenAPIV3_1.Document): RouteOperation[] {
         path,
         honoPath: toHonoPath(path),
         pathParams,
+        pathParamValidations,
         queryParams,
+        headerParams,
         bodyInfo,
         responseStatus,
       })
@@ -283,10 +541,78 @@ function collectOperations(spec: OpenAPIV3_1.Document): RouteOperation[] {
   return operations
 }
 
+// ── Shared options interface ──────────────────────────────────────────────────
+
+interface RouterOptions {
+  schemaNames?: Set<string>
+  schemaImportPath?: string
+}
+
+interface GeneratorSetup {
+  sortedBodyTypes: string[]
+  usedSchemaNames: Set<string>
+  needsZod: boolean
+}
+
+/** Collect sorted body type names from all operations. */
+function collectSortedBodyTypes(operations: RouteOperation[]): string[] {
+  const bodyTypes = new Set<string>()
+  for (const op of operations) {
+    if (op.bodyInfo?.typeName !== undefined) bodyTypes.add(op.bodyInfo.typeName)
+  }
+  return Array.from(bodyTypes).sort()
+}
+
+/** Collect the subset of schemaNames actually used by the given operations. */
+function collectUsedSchemaNames(
+  operations: RouteOperation[],
+  schemaNames: Set<string>
+): Set<string> {
+  const used = new Set<string>()
+  for (const op of operations) {
+    const typeName = op.bodyInfo?.typeName
+    if (typeName === undefined) continue
+    const schemaName = `${typeName}Schema`
+    if (schemaNames.has(schemaName)) used.add(schemaName)
+  }
+  return used
+}
+
+/**
+ * Collect body type names, used schema names, and whether Zod is needed.
+ * Shared by all three generator functions to avoid duplication.
+ */
+function collectGeneratorSetup(
+  operations: RouteOperation[],
+  options?: RouterOptions
+): GeneratorSetup {
+  const sortedBodyTypes = collectSortedBodyTypes(operations)
+  const usedSchemaNames =
+    options?.schemaNames !== undefined
+      ? collectUsedSchemaNames(operations, options.schemaNames)
+      : new Set<string>()
+  const needsZod =
+    (usedSchemaNames.size > 0 && options?.schemaImportPath !== undefined) ||
+    operationsNeedZodForParams(operations)
+  return { sortedBodyTypes, usedSchemaNames, needsZod }
+}
+
+// ── Hono route handler ────────────────────────────────────────────────────────
+
 // fallow-ignore-next-line complexity
 function buildRouteHandler(op: RouteOperation, indent: string, schemaNames?: Set<string>): string {
   const lines: string[] = []
-  lines.push(`${indent}app.${op.httpMethod}('${op.honoPath}', async (c) => {`)
+  lines.push(`${indent}app.${op.httpMethod}(${JSON.stringify(op.honoPath)}, async (c) => {`)
+
+  // Path param format validation (e.g. uuid)
+  if (op.pathParamValidations.length > 0) {
+    emitPathValidation(lines, op.pathParamValidations, indent, 'hono')
+    lines.push(`${indent}  if (!_pv.success) {`)
+    lines.push(
+      `${indent}    return c.json({ error: 'Invalid path parameters', issues: _pv.error.issues }, 422)`
+    )
+    lines.push(`${indent}  }`)
+  }
 
   // Query params extraction
   if (op.queryParams.length > 0) {
@@ -300,6 +626,26 @@ function buildRouteHandler(op: RouteOperation, indent: string, schemaNames?: Set
       .join(',\n')
     lines.push(`${indent}  const params = {`)
     lines.push(fields)
+    lines.push(`${indent}  }`)
+
+    // Validate query params when there are required or typed (non-string) params
+    if (queryParamsNeedValidation(op.queryParams)) {
+      emitQueryValidation(lines, op.queryParams, indent)
+      lines.push(`${indent}  if (!_qv.success) {`)
+      lines.push(
+        `${indent}    return c.json({ error: 'Invalid query parameters', issues: _qv.error.issues }, 422)`
+      )
+      lines.push(`${indent}  }`)
+    }
+  }
+
+  // Header param validation
+  if (op.headerParams.length > 0) {
+    emitHeaderValidation(lines, op.headerParams, indent, 'hono')
+    lines.push(`${indent}  if (!_hv.success) {`)
+    lines.push(
+      `${indent}    return c.json({ error: 'Invalid request headers', issues: _hv.error.issues }, 422)`
+    )
     lines.push(`${indent}  }`)
   }
 
@@ -328,7 +674,7 @@ function buildRouteHandler(op: RouteOperation, indent: string, schemaNames?: Set
   // Build service call args
   const serviceArgs: string[] = []
   for (const p of op.pathParams) {
-    serviceArgs.push(`c.req.param('${p}')`)
+    serviceArgs.push(`c.req.param(${JSON.stringify(p)})`)
   }
   if (op.bodyInfo !== undefined) {
     serviceArgs.push(bodyVarName)
@@ -353,14 +699,7 @@ function buildRouteHandler(op: RouteOperation, indent: string, schemaNames?: Set
   return lines.join('\n')
 }
 
-// ── Shared options interface ──────────────────────────────────────────────────
-
-interface RouterOptions {
-  schemaNames?: Set<string>
-  schemaImportPath?: string
-}
-
-// ── Express router generator ───────────────────────────────────────────────────
+// ── Express route handler ─────────────────────────────────────────────────────
 
 // fallow-ignore-next-line complexity
 function buildExpressRouteHandler(
@@ -370,8 +709,18 @@ function buildExpressRouteHandler(
 ): string {
   const lines: string[] = []
   lines.push(
-    `${indent}router.${op.httpMethod}('${op.honoPath}', async (req: Request, res: Response) => {`
+    `${indent}router.${op.httpMethod}(${JSON.stringify(op.honoPath)}, async (req: Request, res: Response) => {`
   )
+
+  // Path param format validation (e.g. uuid)
+  if (op.pathParamValidations.length > 0) {
+    emitPathValidation(lines, op.pathParamValidations, indent, 'express')
+    lines.push(`${indent}  if (!_pv.success) {`)
+    lines.push(
+      `${indent}    return void res.status(422).json({ error: 'Invalid path parameters', issues: _pv.error.issues })`
+    )
+    lines.push(`${indent}  }`)
+  }
 
   // Query params extraction
   if (op.queryParams.length > 0) {
@@ -388,6 +737,26 @@ function buildExpressRouteHandler(
       .join(',\n')
     lines.push(`${indent}  const params = {`)
     lines.push(fields)
+    lines.push(`${indent}  }`)
+
+    // Validate query params when there are required or typed (non-string) params
+    if (queryParamsNeedValidation(op.queryParams)) {
+      emitQueryValidation(lines, op.queryParams, indent)
+      lines.push(`${indent}  if (!_qv.success) {`)
+      lines.push(
+        `${indent}    return void res.status(422).json({ error: 'Invalid query parameters', issues: _qv.error.issues })`
+      )
+      lines.push(`${indent}  }`)
+    }
+  }
+
+  // Header param validation
+  if (op.headerParams.length > 0) {
+    emitHeaderValidation(lines, op.headerParams, indent, 'express')
+    lines.push(`${indent}  if (!_hv.success) {`)
+    lines.push(
+      `${indent}    return void res.status(422).json({ error: 'Invalid request headers', issues: _hv.error.issues })`
+    )
     lines.push(`${indent}  }`)
   }
 
@@ -443,75 +812,7 @@ function buildExpressRouteHandler(
   return lines.join('\n')
 }
 
-// fallow-ignore-next-line complexity
-export function generateExpressRouter(
-  spec: OpenAPIV3_1.Document,
-  options?: RouterOptions
-): GeneratedFile {
-  const serviceName = deriveServiceName(spec)
-  const operations = collectOperations(spec)
-
-  // Collect body type names for import from models.js
-  const bodyTypes = new Set<string>()
-  for (const op of operations) {
-    if (op.bodyInfo?.typeName !== undefined) {
-      bodyTypes.add(op.bodyInfo.typeName)
-    }
-  }
-  const sortedBodyTypes = Array.from(bodyTypes).sort()
-
-  // Collect which schema names are actually needed (only for ops with a matching schema)
-  const usedSchemaNames = new Set<string>()
-  if (options?.schemaNames !== undefined) {
-    for (const op of operations) {
-      const typeName = op.bodyInfo?.typeName
-      if (typeName !== undefined) {
-        const schemaName = `${typeName}Schema`
-        if (options.schemaNames.has(schemaName)) {
-          usedSchemaNames.add(schemaName)
-        }
-      }
-    }
-  }
-
-  const lines: string[] = []
-  lines.push('// This file is auto-generated. Do not edit manually.')
-  lines.push(
-    '// Express: apply express.json() middleware before mounting this router so req.body is populated.'
-  )
-  lines.push('')
-  lines.push("import { Router } from 'express'")
-  lines.push("import type { Request, Response } from 'express'")
-  if (sortedBodyTypes.length > 0) {
-    lines.push(`import type { ${sortedBodyTypes.join(', ')} } from './models.js'`)
-  }
-  lines.push(`import type { ${serviceName} } from './service.js'`)
-  if (usedSchemaNames.size > 0 && options?.schemaImportPath !== undefined) {
-    lines.push(`import { z } from 'zod'`)
-    const sortedUsedSchemas = Array.from(usedSchemaNames).sort()
-    lines.push(`import { ${sortedUsedSchemas.join(', ')} } from '${options.schemaImportPath}'`)
-  }
-  lines.push('')
-  lines.push(`export function createRouter(service: ${serviceName}): Router {`)
-  lines.push('  const router = Router()')
-  lines.push('')
-
-  for (const op of operations) {
-    lines.push(buildExpressRouteHandler(op, '  ', options?.schemaNames))
-    lines.push('')
-  }
-
-  lines.push('  return router')
-  lines.push('}')
-  lines.push('')
-
-  return {
-    filename: 'router.ts',
-    content: lines.join('\n'),
-  }
-}
-
-// ── Fastify router generator ───────────────────────────────────────────────────
+// ── Fastify route handler ─────────────────────────────────────────────────────
 
 // fallow-ignore-next-line complexity
 function buildFastifyRouteHandler(
@@ -547,13 +848,48 @@ function buildFastifyRouteHandler(
   }
 
   const generic = genericParts.length > 0 ? `<{ ${genericParts.join('; ')} }>` : ''
-  lines.push(`${indent}app.${op.httpMethod}${generic}('${op.honoPath}', async (req, reply) => {`)
+  lines.push(
+    `${indent}app.${op.httpMethod}${generic}(${JSON.stringify(op.honoPath)}, async (req, reply) => {`
+  )
+
+  // Path param format validation (e.g. uuid)
+  if (op.pathParamValidations.length > 0) {
+    emitPathValidation(lines, op.pathParamValidations, indent, 'fastify')
+    lines.push(`${indent}  if (!_pv.success) {`)
+    lines.push(`${indent}    return reply.status(422).send({`)
+    lines.push(`${indent}      error: 'Invalid path parameters',`)
+    lines.push(`${indent}      issues: _pv.error.issues,`)
+    lines.push(`${indent}    })`)
+    lines.push(`${indent}  }`)
+  }
 
   // Query params extraction
   if (op.queryParams.length > 0) {
     const fields = op.queryParams.map((q) => `    ${q.name}: req.query.${q.name}`).join(',\n')
     lines.push(`${indent}  const params = {`)
     lines.push(fields)
+    lines.push(`${indent}  }`)
+
+    // Validate query params when there are required or typed (non-string) params
+    if (queryParamsNeedValidation(op.queryParams)) {
+      emitQueryValidation(lines, op.queryParams, indent)
+      lines.push(`${indent}  if (!_qv.success) {`)
+      lines.push(`${indent}    return reply.status(422).send({`)
+      lines.push(`${indent}      error: 'Invalid query parameters',`)
+      lines.push(`${indent}      issues: _qv.error.issues,`)
+      lines.push(`${indent}    })`)
+      lines.push(`${indent}  }`)
+    }
+  }
+
+  // Header param validation
+  if (op.headerParams.length > 0) {
+    emitHeaderValidation(lines, op.headerParams, indent, 'fastify')
+    lines.push(`${indent}  if (!_hv.success) {`)
+    lines.push(`${indent}    return reply.status(422).send({`)
+    lines.push(`${indent}      error: 'Invalid request headers',`)
+    lines.push(`${indent}      issues: _hv.error.issues,`)
+    lines.push(`${indent}    })`)
     lines.push(`${indent}  }`)
   }
 
@@ -606,6 +942,73 @@ function buildFastifyRouteHandler(
   return lines.join('\n')
 }
 
+// ── Zod import helpers ────────────────────────────────────────────────────────
+
+/**
+ * Returns true when any operation in the list generates param validation code
+ * that requires Zod (path format validation, required/typed query params, or header params).
+ */
+function operationsNeedZodForParams(operations: RouteOperation[]): boolean {
+  for (const op of operations) {
+    if (op.pathParamValidations.length > 0) return true
+    if (queryParamsNeedValidation(op.queryParams)) return true
+    if (op.headerParams.length > 0) return true
+  }
+  return false
+}
+
+// ── Express router generator ──────────────────────────────────────────────────
+
+// fallow-ignore-next-line complexity
+export function generateExpressRouter(
+  spec: OpenAPIV3_1.Document,
+  options?: RouterOptions
+): GeneratedFile {
+  const serviceName = deriveServiceName(spec)
+  const operations = collectOperations(spec)
+  const { sortedBodyTypes, usedSchemaNames, needsZod } = collectGeneratorSetup(operations, options)
+
+  const lines: string[] = []
+  lines.push('// This file is auto-generated. Do not edit manually.')
+  lines.push(
+    '// Express: apply express.json() middleware before mounting this router so req.body is populated.'
+  )
+  lines.push('')
+  lines.push("import { Router } from 'express'")
+  lines.push("import type { Request, Response } from 'express'")
+  if (sortedBodyTypes.length > 0) {
+    lines.push(`import type { ${sortedBodyTypes.join(', ')} } from './models.js'`)
+  }
+  lines.push(`import type { ${serviceName} } from './service.js'`)
+  if (needsZod) {
+    lines.push(`import { z } from 'zod'`)
+  }
+  if (usedSchemaNames.size > 0 && options?.schemaImportPath !== undefined) {
+    const sortedUsedSchemas = Array.from(usedSchemaNames).sort()
+    lines.push(`import { ${sortedUsedSchemas.join(', ')} } from '${options.schemaImportPath}'`)
+  }
+  lines.push('')
+  lines.push(`export function createRouter(service: ${serviceName}): Router {`)
+  lines.push('  const router = Router()')
+  lines.push('')
+
+  for (const op of operations) {
+    lines.push(buildExpressRouteHandler(op, '  ', options?.schemaNames))
+    lines.push('')
+  }
+
+  lines.push('  return router')
+  lines.push('}')
+  lines.push('')
+
+  return {
+    filename: 'router.ts',
+    content: lines.join('\n'),
+  }
+}
+
+// ── Fastify router generator ──────────────────────────────────────────────────
+
 // fallow-ignore-next-line complexity
 export function generateFastifyRouter(
   spec: OpenAPIV3_1.Document,
@@ -613,29 +1016,7 @@ export function generateFastifyRouter(
 ): GeneratedFile {
   const serviceName = deriveServiceName(spec)
   const operations = collectOperations(spec)
-
-  // Collect body type names for import from models.js
-  const bodyTypes = new Set<string>()
-  for (const op of operations) {
-    if (op.bodyInfo?.typeName !== undefined) {
-      bodyTypes.add(op.bodyInfo.typeName)
-    }
-  }
-  const sortedBodyTypes = Array.from(bodyTypes).sort()
-
-  // Collect which schema names are actually needed (only for ops with a matching schema)
-  const usedSchemaNames = new Set<string>()
-  if (options?.schemaNames !== undefined) {
-    for (const op of operations) {
-      const typeName = op.bodyInfo?.typeName
-      if (typeName !== undefined) {
-        const schemaName = `${typeName}Schema`
-        if (options.schemaNames.has(schemaName)) {
-          usedSchemaNames.add(schemaName)
-        }
-      }
-    }
-  }
+  const { sortedBodyTypes, usedSchemaNames, needsZod } = collectGeneratorSetup(operations, options)
 
   const lines: string[] = []
   lines.push('// This file is auto-generated. Do not edit manually.')
@@ -645,8 +1026,10 @@ export function generateFastifyRouter(
     lines.push(`import type { ${sortedBodyTypes.join(', ')} } from './models.js'`)
   }
   lines.push(`import type { ${serviceName} } from './service.js'`)
-  if (usedSchemaNames.size > 0 && options?.schemaImportPath !== undefined) {
+  if (needsZod) {
     lines.push(`import { z } from 'zod'`)
+  }
+  if (usedSchemaNames.size > 0 && options?.schemaImportPath !== undefined) {
     const sortedUsedSchemas = Array.from(usedSchemaNames).sort()
     lines.push(`import { ${sortedUsedSchemas.join(', ')} } from '${options.schemaImportPath}'`)
   }
@@ -673,29 +1056,7 @@ export function generateFastifyRouter(
 export function generateRouter(spec: OpenAPIV3_1.Document, options?: RouterOptions): GeneratedFile {
   const serviceName = deriveServiceName(spec)
   const operations = collectOperations(spec)
-
-  // Collect body type names for import from models.js
-  const bodyTypes = new Set<string>()
-  for (const op of operations) {
-    if (op.bodyInfo?.typeName !== undefined) {
-      bodyTypes.add(op.bodyInfo.typeName)
-    }
-  }
-  const sortedBodyTypes = Array.from(bodyTypes).sort()
-
-  // Collect which schema names are actually needed (only for ops with a matching schema)
-  const usedSchemaNames = new Set<string>()
-  if (options?.schemaNames !== undefined) {
-    for (const op of operations) {
-      const typeName = op.bodyInfo?.typeName
-      if (typeName !== undefined) {
-        const schemaName = `${typeName}Schema`
-        if (options.schemaNames.has(schemaName)) {
-          usedSchemaNames.add(schemaName)
-        }
-      }
-    }
-  }
+  const { sortedBodyTypes, usedSchemaNames, needsZod } = collectGeneratorSetup(operations, options)
 
   const lines: string[] = []
   lines.push('// This file is auto-generated. Do not edit manually.')
@@ -705,8 +1066,10 @@ export function generateRouter(spec: OpenAPIV3_1.Document, options?: RouterOptio
     lines.push(`import type { ${sortedBodyTypes.join(', ')} } from './models.js'`)
   }
   lines.push(`import type { ${serviceName} } from './service.js'`)
-  if (usedSchemaNames.size > 0 && options?.schemaImportPath !== undefined) {
+  if (needsZod) {
     lines.push(`import { z } from 'zod'`)
+  }
+  if (usedSchemaNames.size > 0 && options?.schemaImportPath !== undefined) {
     const sortedUsedSchemas = Array.from(usedSchemaNames).sort()
     lines.push(`import { ${sortedUsedSchemas.join(', ')} } from '${options.schemaImportPath}'`)
   }
