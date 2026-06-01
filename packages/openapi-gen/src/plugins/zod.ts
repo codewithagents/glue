@@ -156,9 +156,16 @@ function schemaToZod(schema: SchemaObject | ReferenceObject): string {
     return `z.union([${literals}])`
   }
 
-  // allOf → chain with .and()
+  // allOf: chain with .and(), merging any sibling properties/required as an extra member
   if (schema.allOf !== undefined && schema.allOf.length > 0) {
     const parts = (schema.allOf as (SchemaObject | ReferenceObject)[]).map(schemaToZod)
+    // Sibling properties outside the allOf array must be merged in as an extra intersection member
+    const siblingProps = schema.properties as
+      | Record<string, SchemaObject | ReferenceObject>
+      | undefined
+    if (siblingProps !== undefined && Object.keys(siblingProps).length > 0) {
+      parts.push(inlineObjectZod(schema))
+    }
     if (parts.length === 1) return parts[0]!
     return parts.slice(1).reduce((acc, part) => `${acc}.and(${part})`, parts[0]!)
   }

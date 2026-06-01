@@ -162,6 +162,64 @@ describe('composition types', () => {
     }
     expect(generateTypes(spec).content).toContain('A & B')
   })
+
+  it('allOf with sibling properties merges siblings into intersection', () => {
+    // A schema with allOf pointing to a base ref PLUS its own sibling properties/required.
+    // Previously the sibling properties were dropped; they must now appear in the output.
+    const spec: OpenAPIV3_1.Document = {
+      openapi: '3.1.0',
+      info: { title: 'T', version: '1' },
+      paths: {},
+      components: {
+        schemas: {
+          Base: { type: 'object', properties: { id: { type: 'string' } }, required: ['id'] },
+          Extended: {
+            allOf: [{ $ref: '#/components/schemas/Base' }],
+            properties: { extra: { type: 'number' } },
+            required: ['extra'],
+          },
+        },
+      },
+    }
+    const out = generateTypes(spec).content
+    // Must include the allOf base
+    expect(out).toContain('Base')
+    // Must include the sibling property (was being dropped before the fix)
+    expect(out).toContain('extra')
+    // Sibling required=true: must not have ? modifier
+    expect(out).toMatch(/extra\s*:/)
+    expect(out).not.toMatch(/extra\?/)
+    // Emitted as type alias (not interface) since allOf is present
+    expect(out).toContain('export type Extended =')
+  })
+
+  it('base + extension pattern: extension required props survive', () => {
+    // Common pattern: ExtendedFoo extends BaseFoo with additional required fields.
+    // The extension required array was silently dropped because isObjectSchema returned false.
+    const spec: OpenAPIV3_1.Document = {
+      openapi: '3.1.0',
+      info: { title: 'T', version: '1' },
+      paths: {},
+      components: {
+        schemas: {
+          Animal: { type: 'object', properties: { name: { type: 'string' } }, required: ['name'] },
+          Dog: {
+            allOf: [{ $ref: '#/components/schemas/Animal' }],
+            properties: { breed: { type: 'string' }, age: { type: 'number' } },
+            required: ['breed'],
+          },
+        },
+      },
+    }
+    const out = generateTypes(spec).content
+    // Sibling required field must appear without ?
+    expect(out).toMatch(/breed\s*:/)
+    expect(out).not.toMatch(/breed\?/)
+    // Sibling optional field must appear with ?
+    expect(out).toContain('age?:')
+    // Base ref preserved
+    expect(out).toContain('Animal')
+  })
   it('anyOf → union with |', () => {
     const spec: OpenAPIV3_1.Document = {
       openapi: '3.1.0',
