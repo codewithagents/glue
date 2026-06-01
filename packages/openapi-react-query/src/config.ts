@@ -1,5 +1,11 @@
-import { readFile } from 'node:fs/promises'
-import { join, resolve } from 'node:path'
+import {
+  loadConfigFile,
+  validateConfigPath,
+  validateInputPath,
+  validateOutputPath,
+} from '@codewithagents/openapi-gen/config-core'
+
+export { validateConfigPath, validateInputPath, validateOutputPath }
 
 export interface ReactQueryConfig {
   /** Path to OpenAPI 3.1 spec file (JSON or YAML) */
@@ -18,154 +24,61 @@ export interface ReactQueryConfig {
   auto_invalidate?: boolean
 }
 
-const FORBIDDEN_OUTPUT_PREFIXES = [
-  '/etc',
-  '/usr',
-  '/bin',
-  '/sbin',
-  '/lib',
-  '/lib64',
-  '/sys',
-  '/proc',
-  '/dev',
-  '/boot',
-  '/run',
-  'C:\\Windows',
-  'C:\\Program Files',
-]
-
-const FORBIDDEN_INPUT_PREFIXES = [
-  '/etc',
-  '/usr',
-  '/bin',
-  '/sbin',
-  '/lib',
-  '/lib64',
-  '/sys',
-  '/proc',
-  '/dev',
-  'C:\\Windows',
-  'C:\\Program Files',
-]
-
-export function validateConfigPath(configPath: string): void {
-  // Must end in .json — prevents accidentally loading non-config files
-  if (!configPath.endsWith('.json')) {
-    throw new Error(`Config file must be a .json file, got: ${configPath}`)
+function validateTiming(resource: string, timing: unknown): void {
+  if (typeof timing !== 'object' || timing === null) {
+    throw new Error(`"overrides.${resource}" must be an object`)
+  }
+  const t = timing as Record<string, unknown>
+  if (t['stale_time'] !== undefined && typeof t['stale_time'] !== 'number') {
+    throw new Error(`"overrides.${resource}.stale_time" must be a number`)
+  }
+  if (t['gc_time'] !== undefined && typeof t['gc_time'] !== 'number') {
+    throw new Error(`"overrides.${resource}.gc_time" must be a number`)
   }
 }
 
-export function validateOutputPath(resolvedOutput: string): void {
-  const normalized = resolvedOutput.replace(/\\/g, '/')
-  for (const forbidden of FORBIDDEN_OUTPUT_PREFIXES) {
-    const normalizedForbidden = forbidden.replace(/\\/g, '/')
-    if (normalized === normalizedForbidden || normalized.startsWith(normalizedForbidden + '/')) {
-      throw new Error(
-        `Output path resolves to a system directory: "${resolvedOutput}". ` +
-          `This looks like a misconfiguration — please check your config file.`
-      )
-    }
+function validateOverrides(value: unknown): void {
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) {
+    throw new Error('"overrides" must be an object')
+  }
+  for (const [resource, timing] of Object.entries(value as Record<string, unknown>)) {
+    validateTiming(resource, timing)
   }
 }
 
-export function validateInputPath(resolvedInput: string): void {
-  const normalized = resolvedInput.replace(/\\/g, '/')
-  for (const forbidden of FORBIDDEN_INPUT_PREFIXES) {
-    const normalizedForbidden = forbidden.replace(/\\/g, '/')
-    if (normalized === normalizedForbidden || normalized.startsWith(normalizedForbidden + '/')) {
-      throw new Error(
-        `Input spec path resolves to a system directory: "${resolvedInput}". ` +
-          `This looks like a misconfiguration — please check your config file.`
-      )
-    }
-  }
+function expectNumber(raw: Record<string, unknown>, key: string, message: string): void {
+  if (raw[key] !== undefined && typeof raw[key] !== 'number') throw new Error(message)
+}
+
+function expectBoolean(raw: Record<string, unknown>, key: string, message: string): void {
+  if (raw[key] !== undefined && typeof raw[key] !== 'boolean') throw new Error(message)
+}
+
+function validateReactQueryFields(raw: Record<string, unknown>): void {
+  expectNumber(raw, 'stale_time', '"stale_time" must be a number (milliseconds)')
+  expectNumber(raw, 'gc_time', '"gc_time" must be a number (milliseconds)')
+  expectBoolean(raw, 'suspense', '"suspense" must be a boolean')
+  expectBoolean(raw, 'auto_invalidate', '"auto_invalidate" must be a boolean')
+  if (raw['overrides'] !== undefined) validateOverrides(raw['overrides'])
 }
 
 export async function loadConfig(cwd: string, configPath?: string): Promise<ReactQueryConfig> {
-  const resolvedConfigPath = configPath ?? join(cwd, 'openapi-react-query.config.json')
-
-  // Security: validate config path extension when explicitly provided
-  if (configPath !== undefined) {
-    validateConfigPath(configPath)
-  }
-
-  let raw: string
-  try {
-    raw = await readFile(resolvedConfigPath, 'utf-8')
-  } catch {
-    throw new Error(`Config file not found: ${resolvedConfigPath}`)
-  }
-
-  let parsed: unknown
-  try {
-    parsed = JSON.parse(raw)
-  } catch {
-    throw new Error(`Config file is not valid JSON: ${resolvedConfigPath}`)
-  }
-
-  if (typeof parsed !== 'object' || parsed === null) {
-    throw new Error('Config must be a JSON object')
-  }
-
-  const config = parsed as Record<string, unknown>
-
-  if (typeof config['input_openapi'] !== 'string' || !config['input_openapi']) {
-    throw new Error('Config missing required field: "input_openapi" (path to OpenAPI 3.1 spec)')
-  }
-  if (typeof config['output'] !== 'string' || !config['output']) {
-    throw new Error('Config missing required field: "output" (output directory)')
-  }
-  if (config['stale_time'] !== undefined && typeof config['stale_time'] !== 'number') {
-    throw new Error('"stale_time" must be a number (milliseconds)')
-  }
-  if (config['gc_time'] !== undefined && typeof config['gc_time'] !== 'number') {
-    throw new Error('"gc_time" must be a number (milliseconds)')
-  }
-  if (config['suspense'] !== undefined && typeof config['suspense'] !== 'boolean') {
-    throw new Error('"suspense" must be a boolean')
-  }
-  if (config['auto_invalidate'] !== undefined && typeof config['auto_invalidate'] !== 'boolean') {
-    throw new Error('"auto_invalidate" must be a boolean')
-  }
-  if (config['overrides'] !== undefined) {
-    if (
-      typeof config['overrides'] !== 'object' ||
-      config['overrides'] === null ||
-      Array.isArray(config['overrides'])
-    ) {
-      throw new Error('"overrides" must be an object')
-    }
-    for (const [resource, timing] of Object.entries(
-      config['overrides'] as Record<string, unknown>
-    )) {
-      if (typeof timing !== 'object' || timing === null) {
-        throw new Error(`"overrides.${resource}" must be an object`)
+  return loadConfigFile<ReactQueryConfig>({
+    cwd,
+    configPath,
+    defaultFileName: 'openapi-react-query.config.json',
+    parse: (raw, base) => {
+      validateReactQueryFields(raw)
+      return {
+        ...base,
+        stale_time: raw['stale_time'] as number | undefined,
+        gc_time: raw['gc_time'] as number | undefined,
+        suspense: raw['suspense'] as boolean | undefined,
+        overrides: raw['overrides'] as
+          | Record<string, { stale_time?: number; gc_time?: number }>
+          | undefined,
+        auto_invalidate: raw['auto_invalidate'] as boolean | undefined,
       }
-      const t = timing as Record<string, unknown>
-      if (t['stale_time'] !== undefined && typeof t['stale_time'] !== 'number') {
-        throw new Error(`"overrides.${resource}.stale_time" must be a number`)
-      }
-      if (t['gc_time'] !== undefined && typeof t['gc_time'] !== 'number') {
-        throw new Error(`"overrides.${resource}.gc_time" must be a number`)
-      }
-    }
-  }
-
-  // Security: validate resolved input and output paths
-  const resolvedInput = resolve(cwd, config['input_openapi'] as string)
-  const resolvedOutput = resolve(cwd, config['output'] as string)
-  validateInputPath(resolvedInput)
-  validateOutputPath(resolvedOutput)
-
-  return {
-    input_openapi: config['input_openapi'] as string,
-    output: config['output'] as string,
-    stale_time: config['stale_time'] as number | undefined,
-    gc_time: config['gc_time'] as number | undefined,
-    suspense: config['suspense'] as boolean | undefined,
-    overrides: config['overrides'] as
-      | Record<string, { stale_time?: number; gc_time?: number }>
-      | undefined,
-    auto_invalidate: config['auto_invalidate'] as boolean | undefined,
-  }
+    },
+  })
 }

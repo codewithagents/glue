@@ -135,7 +135,7 @@ describe('loadConfig', () => {
       configFile,
       JSON.stringify({ input_openapi: 'openapi.json', output: 'src/generated' })
     )
-    await expect(loadConfig(tmpDir, configFile)).rejects.toThrow('Config file must be a .json file')
+    await expect(loadConfig(tmpDir, configFile)).rejects.toThrow('Config file must be a .json,')
   })
 
   it('throws when input_openapi resolves to a forbidden system path', async () => {
@@ -152,14 +152,12 @@ describe('loadConfig', () => {
 describe('config security validation', () => {
   describe('validateConfigPath', () => {
     it('rejects non-.json config file extension', () => {
-      expect(() => validateConfigPath('/project/config.ts')).toThrow(
-        'Config file must be a .json file'
-      )
+      expect(() => validateConfigPath('/project/config.ts')).toThrow('Config file must be a .json,')
     })
 
     it('rejects .yaml extension', () => {
       expect(() => validateConfigPath('/project/config.yaml')).toThrow(
-        'Config file must be a .json file'
+        'Config file must be a .json,'
       )
     })
 
