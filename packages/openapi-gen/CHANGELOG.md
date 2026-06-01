@@ -1,5 +1,17 @@
 # Changelog
 
+## [4.6.0](https://github.com/codewithagents/openapi-zod-ts/compare/openapi-gen-v4.5.0...openapi-gen-v4.6.0) (2026-06-01)
+
+
+### Features
+
+* **openapi-gen:** add signal/timeout, request interceptor + fetch override, and generic ApiError ([#186](https://github.com/codewithagents/openapi-zod-ts/issues/186)) ([#224](https://github.com/codewithagents/openapi-zod-ts/issues/224)) ([036cb83](https://github.com/codewithagents/openapi-zod-ts/commit/036cb835354510b0d95270af27dabc08e054f90a))
+
+
+### Bug Fixes
+
+* **openapi-gen:** widen non-primitive enum values + repair compat-matrix tsc gate ([#214](https://github.com/codewithagents/openapi-zod-ts/issues/214)) ([#222](https://github.com/codewithagents/openapi-zod-ts/issues/222)) ([0bb7c63](https://github.com/codewithagents/openapi-zod-ts/commit/0bb7c633088240fb22a5c356002948d0214ec6af))
+
 ## [4.5.0](https://github.com/codewithagents/openapi-zod-ts/compare/openapi-gen-v4.4.0...openapi-gen-v4.5.0) (2026-06-01)
 
 
