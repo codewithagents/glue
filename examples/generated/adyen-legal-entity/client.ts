@@ -240,7 +240,7 @@ export async function postDocuments(
 ): Promise<Document> {
   const extraHeaders: Record<string, string> = {
     ...(params?.xRequestedVerificationCode != null
-      ? { 'x-requested-verification-code': params.xRequestedVerificationCode }
+      ? { 'x-requested-verification-code': String(params.xRequestedVerificationCode) }
       : {}),
   }
   DocumentSchema.parse(body)
@@ -290,7 +290,7 @@ export async function patchDocumentsId(
 ): Promise<Document> {
   const extraHeaders: Record<string, string> = {
     ...(params?.xRequestedVerificationCode != null
-      ? { 'x-requested-verification-code': params.xRequestedVerificationCode }
+      ? { 'x-requested-verification-code': String(params.xRequestedVerificationCode) }
       : {}),
   }
   DocumentSchema.parse(body)
@@ -330,7 +330,7 @@ export async function postLegalEntities(
 ): Promise<LegalEntity> {
   const extraHeaders: Record<string, string> = {
     ...(params?.xRequestedVerificationCode != null
-      ? { 'x-requested-verification-code': params.xRequestedVerificationCode }
+      ? { 'x-requested-verification-code': String(params.xRequestedVerificationCode) }
       : {}),
   }
   LegalEntityInfoRequiredTypeSchema.parse(body)
@@ -370,7 +370,7 @@ export async function patchLegalEntitiesId(
 ): Promise<LegalEntity> {
   const extraHeaders: Record<string, string> = {
     ...(params?.xRequestedVerificationCode != null
-      ? { 'x-requested-verification-code': params.xRequestedVerificationCode }
+      ? { 'x-requested-verification-code': String(params.xRequestedVerificationCode) }
       : {}),
   }
   LegalEntityInfoSchema.parse(body)
@@ -768,7 +768,7 @@ export async function postTransferInstruments(
 ): Promise<TransferInstrument> {
   const extraHeaders: Record<string, string> = {
     ...(params?.xRequestedVerificationCode != null
-      ? { 'x-requested-verification-code': params.xRequestedVerificationCode }
+      ? { 'x-requested-verification-code': String(params.xRequestedVerificationCode) }
       : {}),
   }
   TransferInstrumentInfoSchema.parse(body)
@@ -808,7 +808,7 @@ export async function patchTransferInstrumentsId(
 ): Promise<TransferInstrument> {
   const extraHeaders: Record<string, string> = {
     ...(params?.xRequestedVerificationCode != null
-      ? { 'x-requested-verification-code': params.xRequestedVerificationCode }
+      ? { 'x-requested-verification-code': String(params.xRequestedVerificationCode) }
       : {}),
   }
   TransferInstrumentInfoSchema.parse(body)
