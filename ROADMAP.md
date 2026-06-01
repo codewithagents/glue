@@ -8,23 +8,23 @@ Every package is a `devDependency` or a peer-dep-only tool. Nothing we publish a
 
 ## Packages
 
-### `@codewithagents/api-errors` — ✅ v0.2.0
+### `@codewithagents/api-errors`: ✅ v1.0.6
 
 Maps backend API error responses to form field errors. Framework-agnostic core with React Hook Form adapter.
 
-**Supported formats:** RFC 7807 Problem Details, Spring Boot validation, flat field/message objects, Axios response wrappers.
+**Supported formats:** RFC 7807 / RFC 9457 Problem Details, Spring Boot validation, flat field/message objects, Axios response wrappers.
 
 ---
 
-### `@codewithagents/openapi-gen` — 🔨 in progress
+### `@codewithagents/openapi-gen`: ✅ v4.3.2
 
-A CLI devDependency that reads an OpenAPI 3.1 spec and an optional user-owned Zod schema, and generates self-contained TypeScript. No runtime package required — the generated code uses only native `fetch`.
+A CLI devDependency that reads an OpenAPI 3.x spec (3.1 primary target, 3.0.x best-effort) and an optional user-owned Zod schema, and generates self-contained TypeScript. No runtime package required; the generated code uses only native `fetch`.
 
 **Two inputs:**
 
 | Field | Required | Description |
 |---|---|---|
-| `input_openapi` | ✅ | Path to OpenAPI 3.1 spec (JSON or YAML) |
+| `input_openapi` | ✅ | Path to OpenAPI 3.x spec (JSON or YAML) |
 | `input_schema` | optional | Path to user-owned Zod schema file. Bootstrapped on first run if absent. |
 
 **Always generated:**
@@ -51,39 +51,39 @@ A CLI devDependency that reads an OpenAPI 3.1 spec and an optional user-owned Zo
 **Subsequent runs:** uses `schemas.ts` as the validation layer. Warns on drift between the OpenAPI spec and user's schema.
 
 **Design constraints:**
-- OpenAPI 3.1 only (JSON Schema 2020-12 alignment)
+- OpenAPI 3.x (3.1 primary target, 3.0.x best-effort)
 - TypeScript 6 only
 - Generated code is readable — looks like code you'd write yourself
 - Zero runtime footprint
 
 ---
 
-### `@codewithagents/openapi-gen-react-query` — 📋 next
+### `@codewithagents/openapi-react-query`: ✅ v3.5.2
 
 Separate package on top of `openapi-gen`. Reads the same `openapi.json` and the output of `openapi-gen`, generates React Query v5 hooks.
 
 ```json
 {
   "devDependencies": {
-    "@codewithagents/openapi-gen": "^1.0.0",
-    "@codewithagents/openapi-gen-react-query": "^1.0.0"
+    "@codewithagents/openapi-gen": "^4.0.0",
+    "@codewithagents/openapi-react-query": "^3.0.0"
   }
 }
 ```
 
-Generates `react-query.ts` — `queryOptions` factories for GET endpoints, `useMutation` hooks for writes. Imports from `openapi-gen`'s `client.ts` output. Peer dep: `@tanstack/react-query`.
+Generates `hooks.ts`: key factories and `useQuery` hooks for GET endpoints, `useMutation` hooks for writes. Imports from `openapi-gen`'s `client.ts` output. Peer dep: `@tanstack/react-query`.
 
 ---
 
-### `@codewithagents/openapi-gen-server` — 📋 planned
+### `@codewithagents/openapi-server`: ✅ v1.3.2
 
-Server-side counterpart. Same `openapi.json`, generates Fastify route definitions using the same Zod schemas. Peer dep: `fastify` + `fastify-type-provider-zod`.
+Server-side counterpart. Same `openapi.json`, generates a typed service interface and optional framework router. Supports Hono, Express, and Fastify out of the box; `"none"` skips the router entirely and lets you wire the interface to any framework.
 
 **The full-stack story:**
 ```
 openapi.json + schemas.ts
     ├── openapi-gen        → client validates responses with user's Zod schemas
-    └── openapi-gen-server → server validates requests with same Zod schemas
+    └── openapi-server     → server validates requests with same Zod schemas
 ```
 
 ---
@@ -94,7 +94,7 @@ openapi.json + schemas.ts
 Every package in this repo is a `devDependency` or generates code that only depends on what the project already has. We never add a runtime dependency a project didn't choose.
 
 **2. Latest only**
-TypeScript 6, OpenAPI 3.1, Zod v4, React Query v5. No legacy compatibility shims. Opinionated cuts mean less code and faster iteration.
+TypeScript 6, OpenAPI 3.x (3.1 primary, 3.0.x best-effort), Zod v4, React Query v5. No legacy compatibility shims. Opinionated cuts mean less code and faster iteration.
 
 **3. Two inputs, one truth**
 `input_openapi` owns structure. `input_schema` owns validation behaviour and messages. Neither can replace the other. The generator merges them.
