@@ -127,7 +127,8 @@ describe('generateClient', () => {
 
   it('exports ApiError class', () => {
     expect(content).toContain('export class ApiError')
-    expect(content).toContain('public readonly status: number')
+    // ApiError is now generic — status is typed as the Status param (default: number)
+    expect(content).toContain('public readonly status: Status')
   })
 
   it('generates getTasks function', () => {

@@ -18,10 +18,10 @@ import {
   SpecialEventSchema,
 } from './schemas.js'
 
-export class ApiError extends Error {
+export class ApiError<Status extends number = number, Body = unknown> extends Error {
   constructor(
-    public readonly status: number,
-    public readonly body: unknown
+    public readonly status: Status,
+    public readonly body: Body
   ) {
     super(`API error ${status}`)
     this.name = 'ApiError'
@@ -30,21 +30,50 @@ export class ApiError extends Error {
 
 type _FetchResponse = Awaited<ReturnType<typeof fetch>>
 
+function _buildSignal(
+  signal: AbortSignal | undefined,
+  timeout: number | undefined
+): AbortSignal | undefined {
+  if (timeout === undefined) return signal
+  const _ts = AbortSignal.timeout(timeout)
+  if (signal === undefined) return _ts
+  if (typeof AbortSignal.any === 'function') return AbortSignal.any([signal, _ts])
+  const _ctrl = new AbortController()
+  const _abort = (s: AbortSignal) => () => {
+    if (!_ctrl.signal.aborted) _ctrl.abort(s.reason)
+  }
+  signal.addEventListener('abort', _abort(signal), { once: true })
+  _ts.addEventListener('abort', _abort(_ts), { once: true })
+  return _ctrl.signal
+}
+
 async function _request(
   method: string,
   path: string,
   opts: {
     searchParams?: URLSearchParams
     body?: unknown
+    signal?: AbortSignal
   },
   config?: Partial<ClientConfig>
 ): Promise<_FetchResponse> {
-  const { baseUrl, basicAuth, headers, onError } = { ...getConfig(), ...config }
+  const {
+    baseUrl,
+    basicAuth,
+    headers,
+    onError,
+    signal: _cfgSignal,
+    timeout,
+    onRequest,
+    fetch: _configFetch,
+  } = { ...getConfig(), ...config }
   const resolvedBasic = typeof basicAuth === 'function' ? await basicAuth() : basicAuth
   const base = baseUrl ? baseUrl.replace(/\/$/, '') : ''
   const qs = opts.searchParams?.toString() ?? ''
   const url = qs ? `${base}${path}?${qs}` : `${base}${path}`
-  const res = await fetch(url, {
+  const fetch = _configFetch ?? globalThis.fetch
+  let _url = url
+  let _init: RequestInit = {
     method,
     headers: {
       ...(opts.body !== undefined ? { 'Content-Type': 'application/json' } : {}),
@@ -54,7 +83,18 @@ async function _request(
         : {}),
     },
     ...(opts.body !== undefined ? { body: JSON.stringify(opts.body) } : {}),
-  })
+  }
+  if (onRequest) {
+    const _or = await onRequest({ url: _url, init: _init })
+    if (_or) {
+      if (_or.url !== undefined) _url = _or.url
+      if (_or.init !== undefined) _init = { ..._init, ..._or.init }
+    }
+  }
+  const _rawSignal = opts.signal ?? _cfgSignal
+  const _resolvedSignal = _buildSignal(_rawSignal, timeout)
+  if (_resolvedSignal !== undefined) _init = { ..._init, signal: _resolvedSignal }
+  const res = await fetch(_url, _init)
   if (!res.ok) {
     const err = new ApiError(res.status, await res.json().catch(() => null))
     onError?.(err)

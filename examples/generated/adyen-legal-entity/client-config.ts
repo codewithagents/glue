@@ -39,6 +39,37 @@ export interface ClientConfig {
    * })
    */
   onError?: (err: Error) => void
+  /**
+   * Default AbortSignal for every request. Useful for cancelling in-flight
+   * requests (e.g. on route change). Overridable per call via the config param.
+   */
+  signal?: AbortSignal
+  /**
+   * Default timeout in milliseconds. When set, every request is aborted with a
+   * TimeoutError after the specified duration. Overridable per call.
+   */
+  timeout?: number
+  /**
+   * Request interceptor called before every fetch. Receives the resolved URL and
+   * RequestInit; may return an object with optional url/init overrides.
+   *
+   * @example
+   * configureClient({
+   *   onRequest: ({ url, init }) => ({ init: { ...init, headers: { ...init.headers, 'X-Request-Id': crypto.randomUUID() } } }),
+   * })
+   */
+  onRequest?: (req: {
+    url: string
+    init: RequestInit
+  }) =>
+    | void
+    | { url?: string; init?: RequestInit }
+    | Promise<void | { url?: string; init?: RequestInit }>
+  /**
+   * Custom fetch implementation. Defaults to globalThis.fetch, resolved at
+   * call time so test mocks of globalThis.fetch are always honoured.
+   */
+  fetch?: typeof globalThis.fetch
 }
 
 let _config: ClientConfig = {
