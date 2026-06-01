@@ -1,6 +1,11 @@
 import type { OpenAPIV3_1 } from 'openapi-types'
 import { toPropertyKey, toTypeName, uniquifyName, refToTypeName } from '../utils/naming.js'
 import { isDeepRef, resolveJsonPointer } from '../utils/ref-resolver.js'
+import {
+  buildWritableVariantMap,
+  readShapeProperties,
+  writeShapeProperties,
+} from '../utils/writable-variants.js'
 
 export interface GeneratedFile {
   filename: string
@@ -298,7 +303,8 @@ function generateSchemaDeclaration(
   schema: SchemaObject | ReferenceObject,
   options?: TypesOptions,
   renameMap?: Map<string, string>,
-  spec?: OpenAPIV3_1.Document
+  spec?: OpenAPIV3_1.Document,
+  writableVariantMap?: Map<string, string>
 ): string {
   // Use the pre-computed unique name from the rename map when available;
   // otherwise fall back to the standard sanitization.
@@ -384,9 +390,15 @@ function generateSchemaDeclaration(
       return `export type ${safeName} = Record<string, ${valType}>`
     }
 
+    // Check if this schema has a writable variant (readOnly/writeOnly properties present)
+    const writableName = writableVariantMap?.get(name)
+    const hasSplit = writableName !== undefined
+
+    // Build the read-shape (X): exclude writeOnly properties when split is active
+    const readProps = hasSplit ? readShapeProperties(schema) : props
     const propLines: string[] = []
-    if (props !== undefined) {
-      for (const [key, propSchema] of Object.entries(props)) {
+    if (readProps !== undefined) {
+      for (const [key, propSchema] of Object.entries(readProps)) {
         const optional = !required.has(key)
         const propKey = toPropertyKey(key)
         const typStr = schemaToTypeString(propSchema, renameMap, spec)
@@ -395,10 +407,30 @@ function generateSchemaDeclaration(
         propLines.push(`  ${propKey}${optional ? '?' : ''}: ${typStr}${comment}`)
       }
     }
-    if (propLines.length === 0) {
-      return `export type ${safeName} = Record<string, unknown>`
+
+    const readDecl =
+      propLines.length === 0
+        ? `export type ${safeName} = Record<string, unknown>`
+        : `export interface ${safeName} {\n${propLines.join('\n')}\n}`
+
+    if (!hasSplit) return readDecl
+
+    // Build the write-shape (XWritable): exclude readOnly properties
+    const writeProps = writeShapeProperties(schema)
+    const writePropLines: string[] = []
+    for (const [key, propSchema] of Object.entries(writeProps)) {
+      const optional = !required.has(key)
+      const propKey = toPropertyKey(key)
+      const typStr = schemaToTypeString(propSchema, renameMap, spec)
+      const comment = isRef(propSchema) ? '' : formatComment(propSchema as SchemaObject)
+      writePropLines.push(`  ${propKey}${optional ? '?' : ''}: ${typStr}${comment}`)
     }
-    return `export interface ${safeName} {\n${propLines.join('\n')}\n}`
+    const writableDecl =
+      writePropLines.length === 0
+        ? `export interface ${writableName} {}`
+        : `export interface ${writableName} {\n${writePropLines.join('\n')}\n}`
+
+    return `${readDecl}\n\n${writableDecl}`
   }
 
   // Discriminated union via oneOf/anyOf + discriminator
@@ -511,11 +543,17 @@ export function generateTypes(spec: OpenAPIV3_1.Document, options?: TypesOptions
   // E.g. schemas 'String' and 'string' both sanitize to 'String'; the second becomes 'String_2'.
   const renameMap = buildSchemaRenameMap(spec)
 
+  // Build the map of component schemas that need a readOnly/writeOnly split.
+  // Keys are raw schema names; values are the resolved unique XWritable variant names.
+  const writableVariantMap = buildWritableVariantMap(spec)
+
   const lines: string[] = buildModelsHeader(schemas, options, renameMap)
 
   if (schemas !== undefined) {
     for (const [name, schema] of Object.entries(schemas)) {
-      lines.push(generateSchemaDeclaration(name, schema, options, renameMap, spec))
+      lines.push(
+        generateSchemaDeclaration(name, schema, options, renameMap, spec, writableVariantMap)
+      )
       lines.push('')
     }
 
