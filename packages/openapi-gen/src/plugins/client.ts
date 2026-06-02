@@ -8,7 +8,10 @@ import {
   deriveOperationName,
 } from '../utils/naming.js'
 import { isDeepRef, resolveJsonPointer } from '../utils/ref-resolver.js'
-import { buildWritableVariantMap } from '../utils/writable-variants.js'
+import {
+  buildWritableVariantMap,
+  resolveBodyRefToWritableName,
+} from '../utils/writable-variants.js'
 import type { GeneratedFile } from './types.js'
 
 type OperationObject = OpenAPIV3_1.OperationObject
@@ -569,12 +572,12 @@ function getRequestBodyInfo(
     // accidentally include readOnly-only fields and are not required to supply
     // writeOnly-only fields that only exist on the response side.
     if (isRef(schema) && writableVariantMap !== undefined) {
-      const rawName = rawSchemaNameFromRef((schema as ReferenceObject).$ref)
-      if (rawName !== undefined) {
-        const writableName = writableVariantMap.get(rawName)
-        if (writableName !== undefined) {
-          return { typeName: writableName, kind: 'json' }
-        }
+      const writableName = resolveBodyRefToWritableName(
+        (schema as ReferenceObject).$ref,
+        writableVariantMap
+      )
+      if (writableName !== undefined) {
+        return { typeName: writableName, kind: 'json' }
       }
     }
     return { typeName: inlineSchemaToTs(schema, spec), kind: 'json' }
@@ -587,12 +590,12 @@ function getRequestBodyInfo(
   const formSchema = formContent.schema
   // Apply writable variant redirect for form bodies with component $refs as well
   if (isRef(formSchema) && writableVariantMap !== undefined) {
-    const rawName = rawSchemaNameFromRef((formSchema as ReferenceObject).$ref)
-    if (rawName !== undefined) {
-      const writableName = writableVariantMap.get(rawName)
-      if (writableName !== undefined) {
-        return { typeName: writableName, kind: 'form' }
-      }
+    const writableName = resolveBodyRefToWritableName(
+      (formSchema as ReferenceObject).$ref,
+      writableVariantMap
+    )
+    if (writableName !== undefined) {
+      return { typeName: writableName, kind: 'form' }
     }
   }
   return { typeName: inlineSchemaToTs(formSchema, spec), kind: 'form' }
@@ -632,16 +635,6 @@ function getThrowsTags(operation: OperationObject): string[] {
   }
 
   return tags
-}
-
-/**
- * Extract the raw (un-sanitized) component schema name from a component $ref.
- * Returns undefined when the ref is not a standard component schema ref.
- * E.g. '#/components/schemas/CreateUserRequest' -> 'CreateUserRequest'
- */
-function rawSchemaNameFromRef(ref: string): string | undefined {
-  const match = /^#\/components\/schemas\/(.+)$/.exec(ref)
-  return match?.[1]
 }
 
 /** Get the $ref schema name from an operation's JSON request body, if any. */
@@ -1365,12 +1358,16 @@ export function hasCookieAuth(spec: OpenAPIV3_1.Document): boolean {
 }
 
 // fallow-ignore-next-line complexity
-export function generateClient(spec: OpenAPIV3_1.Document, options?: ClientOptions): GeneratedFile {
+export function generateClient(
+  spec: OpenAPIV3_1.Document,
+  options?: ClientOptions,
+  writableVariantMap?: Map<string, string>
+): GeneratedFile {
   const paths = spec.paths as Record<string, Record<string, OperationObject>> | undefined
 
-  // Build the map of component schemas that have a readOnly/writeOnly split.
-  // Request bodies referencing a schema with a writable variant will use XWritable.
-  const writableVariantMap = buildWritableVariantMap(spec)
+  // Use the pre-computed map when provided (single source of truth via generator.ts).
+  // Fall back to building it internally so existing callers without the map still work.
+  const resolvedWritableVariantMap = writableVariantMap ?? buildWritableVariantMap(spec)
 
   const collectedTypeNames = new Set<string>()
   const collectedSchemaNames = new Set<string>()
@@ -1426,7 +1423,7 @@ export function generateClient(spec: OpenAPIV3_1.Document, options?: ClientOptio
         const pathParams = getPathParams(pathItem, operation, spec)
         const queryParams = getQueryParams(pathItem, operation, spec)
         const headerParams = getHeaderParams(pathItem, operation, spec)
-        const bodyInfo = getRequestBodyInfo(operation, spec, writableVariantMap)
+        const bodyInfo = getRequestBodyInfo(operation, spec, resolvedWritableVariantMap)
         const returnType = getReturnType(operation, spec)
         const deprecated = operation.deprecated === true
         const throwsTags = getThrowsTags(operation)

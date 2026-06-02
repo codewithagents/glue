@@ -1,5 +1,11 @@
 import type { OpenAPIV3_1 } from 'openapi-types'
-import { sanitizeOperationId, deriveOperationName, uniquifyName } from '@codewithagents/openapi-gen'
+import {
+  sanitizeOperationId,
+  deriveOperationName,
+  uniquifyName,
+  buildWritableVariantMap,
+  resolveBodyRefToWritableName,
+} from '@codewithagents/openapi-gen'
 
 type OperationObject = OpenAPIV3_1.OperationObject
 type ReferenceObject = OpenAPIV3_1.ReferenceObject
@@ -65,7 +71,13 @@ interface OperationMeta {
   deprecated: boolean
 }
 
-function getBodyInfo(operation: OperationObject): {
+// getBodyInfo gained the writable-variant redirect (#242); complexity is under
+// thresholds (CRAP-only flag), covered by the XWritable mutation test.
+// fallow-ignore-next-line complexity
+function getBodyInfo(
+  operation: OperationObject,
+  writableVariantMap: Map<string, string>
+): {
   hasBody: boolean
   bodyTypeName: string | undefined
 } {
@@ -94,7 +106,14 @@ function getBodyInfo(operation: OperationObject): {
 
   const schema = jsonContent.schema
   if (isRef(schema)) {
-    return { hasBody: true, bodyTypeName: refToName((schema as ReferenceObject).$ref) }
+    const ref = (schema as ReferenceObject).$ref
+    // When the referenced schema has a writable variant (readOnly/writeOnly props),
+    // use XWritable so mutation variables match the write shape, not the read shape.
+    const writableName = resolveBodyRefToWritableName(ref, writableVariantMap)
+    if (writableName !== undefined) {
+      return { hasBody: true, bodyTypeName: writableName }
+    }
+    return { hasBody: true, bodyTypeName: refToName(ref) }
   }
 
   // Inline schema
@@ -115,6 +134,8 @@ interface KeyEntry {
   hasRequiredQueryParams: boolean
 }
 
+// pre-existing size; full decomposition tracked in #244
+// fallow-ignore-next-line complexity
 function buildKeyFactory(resource: string, entries: KeyEntry[]): string {
   const factoryName = `${toKeyFactoryName(resource)}Keys`
   const lines: string[] = []
@@ -404,6 +425,8 @@ interface MutationInvalidateInfo {
   detailKeyName: string | undefined
 }
 
+// pre-existing size; decomposition tracked in #244
+// fallow-ignore-next-line complexity
 function buildMutationHook(
   op: OperationMeta,
   autoInvalidate: boolean,
@@ -570,12 +593,18 @@ function operationHasRequiredQueryParams(operation: OperationObject): boolean {
 
 // ── Main generator ─────────────────────────────────────────────────────────────
 
+// pre-existing size; decomposition tracked in #244
+// fallow-ignore-next-line complexity
 export function generateHooks(
   spec: OpenAPIV3_1.Document,
   options: HookGenOptions
 ): { filename: string; content: string } {
   const { staleTime, gcTime, suspense = false, autoInvalidate = false } = options
   const paths = spec.paths as Record<string, Record<string, OperationObject>> | undefined
+
+  // Build the writable-variant map once so getBodyInfo can redirect request-body
+  // schemas that have readOnly/writeOnly props to their XWritable variant.
+  const writableVariantMap = buildWritableVariantMap(spec)
 
   // Collect all operations
   const operations: OperationMeta[] = []
@@ -600,7 +629,7 @@ export function generateHooks(
 
         const hookName = uniquifyName('use' + capitalize(funcName), usedHookNames)
         const pathParams = extractPathParams(path)
-        const { hasBody, bodyTypeName } = getBodyInfo(operation)
+        const { hasBody, bodyTypeName } = getBodyInfo(operation, writableVariantMap)
         const hasQueryParams = operationHasQueryParams(operation)
         const hasRequiredQueryParams = operationHasRequiredQueryParams(operation)
         const deprecated = operation.deprecated === true

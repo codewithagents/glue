@@ -19,3 +19,4 @@ export {
   deriveOperationName,
   RESERVED,
 } from './utils/naming.js'
+export { buildWritableVariantMap, resolveBodyRefToWritableName } from './utils/writable-variants.js'
