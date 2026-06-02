@@ -11,4 +11,11 @@ export { generateZodSchemas } from './plugins/zod.js'
 export { generateServer } from './plugins/server.js'
 export { generate } from './generator.js'
 export type { GenerateOptions } from './generator.js'
-export { toTypeName, toPropertyKey } from './utils/naming.js'
+export {
+  toTypeName,
+  toPropertyKey,
+  uniquifyName,
+  sanitizeOperationId,
+  deriveOperationName,
+  RESERVED,
+} from './utils/naming.js'

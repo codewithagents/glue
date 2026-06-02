@@ -1,5 +1,12 @@
 import type { OpenAPIV3_1 } from 'openapi-types'
-import { toPropertyKey, toTypeName, uniquifyName, refToTypeName } from '../utils/naming.js'
+import {
+  toPropertyKey,
+  toTypeName,
+  uniquifyName,
+  refToTypeName,
+  sanitizeOperationId,
+  deriveOperationName,
+} from '../utils/naming.js'
 import { isDeepRef, resolveJsonPointer } from '../utils/ref-resolver.js'
 import { buildWritableVariantMap } from '../utils/writable-variants.js'
 import type { GeneratedFile } from './types.js'
@@ -189,97 +196,6 @@ function pathToUrlExpression(path: string): string {
       return `\${encodeURIComponent(${sanitizeOperationId(segment)})}`
     })
     .join('')
-}
-
-/**
- * Converts a raw operationId into a valid camelCase JS identifier.
- * Handles kebab-case, snake_case, dots, spaces, parens, braces and other
- * non-alphanumeric separators found in real-world OpenAPI specs.
- * e.g. "post-applePay-sessions"   → "postApplePaySessions"
- * e.g. "calendar.calendars.insert" → "calendarCalendarsInsert"
- * e.g. "Get User Profile"          → "getUserProfile"
- * e.g. "forgotPassword(oneTimeCode)" → "forgotPasswordOneTimeCode"
- */
-function sanitizeOperationId(id: string): string {
-  const parts = id
-    .replace(/'/g, '') // strip apostrophes without splitting ("user's" → "users")
-    .split(/[^a-zA-Z0-9]+/) // split on any non-alphanumeric sequence
-    .filter(Boolean)
-  if (parts.length === 0) return 'unknown'
-  const [first = '', ...rest] = parts
-  const camel =
-    first.charAt(0).toLowerCase() +
-    first.slice(1) +
-    rest.map((p) => p.charAt(0).toUpperCase() + p.slice(1)).join('')
-  // If result starts with a digit, prefix with underscore
-  if (/^[0-9]/.test(camel)) return `_${camel}`
-  // If result is a JS reserved word, prefix with underscore
-  const RESERVED = new Set([
-    'break',
-    'case',
-    'catch',
-    'class',
-    'const',
-    'continue',
-    'debugger',
-    'default',
-    'delete',
-    'do',
-    'else',
-    'export',
-    'extends',
-    'finally',
-    'for',
-    'function',
-    'if',
-    'import',
-    'in',
-    'instanceof',
-    'let',
-    'new',
-    'return',
-    'static',
-    'super',
-    'switch',
-    'this',
-    'throw',
-    'try',
-    'typeof',
-    'var',
-    'void',
-    'while',
-    'with',
-    'yield',
-  ])
-  return RESERVED.has(camel) ? `_${camel}` : camel
-}
-
-function deriveOperationName(method: string, path: string): string {
-  const prefixMap: Record<string, string> = {
-    get: 'get',
-    post: 'create',
-    put: 'update',
-    patch: 'patch',
-    delete: 'delete',
-  }
-  const prefix = prefixMap[method] ?? method
-
-  // Strip /api/v1/ prefix
-  let segments = path.replace(/^\/api\/v\d+\//, '').replace(/^\//, '')
-
-  // Remove path params (e.g., {id}) — keep the segment name for "ById"
-  // toTypeName handles hyphenated segments like 'api-keys' → 'ApiKeys'
-  const parts = segments.split('/').map((seg) => {
-    if (seg.startsWith('{') && seg.endsWith('}')) {
-      const name = seg.slice(1, -1)
-      // Sanitize hyphenated param names: 'change-set-id' → 'ChangeSetId'
-      return 'By' + toTypeName(name)
-    }
-    return toTypeName(seg)
-  })
-
-  const joined = parts.join('')
-  return prefix + joined
 }
 
 /** Discriminator for how the generated client should parse the success response body. */
