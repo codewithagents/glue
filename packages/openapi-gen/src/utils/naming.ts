@@ -50,6 +50,127 @@ export function refToTypeName(ref: string, renameMap?: Map<string, string>): str
 }
 
 /**
+ * Reserved JavaScript keywords. An operation name that matches any of these
+ * is prefixed with an underscore to avoid syntax errors in generated code.
+ */
+export const RESERVED = new Set([
+  'break',
+  'case',
+  'catch',
+  'class',
+  'const',
+  'continue',
+  'debugger',
+  'default',
+  'delete',
+  'do',
+  'else',
+  'export',
+  'extends',
+  'finally',
+  'for',
+  'function',
+  'if',
+  'import',
+  'in',
+  'instanceof',
+  'let',
+  'new',
+  'return',
+  'static',
+  'super',
+  'switch',
+  'this',
+  'throw',
+  'try',
+  'typeof',
+  'var',
+  'void',
+  'while',
+  'with',
+  'yield',
+])
+
+/**
+ * Converts a raw operationId (or path segment) into a valid camelCase JS identifier.
+ * Handles kebab-case, snake_case, dots, spaces, parens, braces and other
+ * non-alphanumeric separators found in real-world OpenAPI specs.
+ * e.g. "post-applePay-sessions"   -> "postApplePaySessions"
+ * e.g. "calendar.calendars.insert" -> "calendarCalendarsInsert"
+ * e.g. "Get User Profile"          -> "getUserProfile"
+ * e.g. "forgotPassword(oneTimeCode)" -> "forgotPasswordOneTimeCode"
+ */
+export function sanitizeOperationId(id: string): string {
+  const parts = id
+    .replace(/'/g, '') // strip apostrophes without splitting ("user's" -> "users")
+    .split(/[^a-zA-Z0-9]+/) // split on any non-alphanumeric sequence
+    .filter(Boolean)
+  if (parts.length === 0) return 'unknown'
+  const [first = '', ...rest] = parts
+  const camel =
+    first.charAt(0).toLowerCase() +
+    first.slice(1) +
+    rest.map((p) => p.charAt(0).toUpperCase() + p.slice(1)).join('')
+  // If result starts with a digit, prefix with underscore
+  if (/^[0-9]/.test(camel)) return `_${camel}`
+  // If result is a JS reserved word, prefix with underscore
+  return RESERVED.has(camel) ? `_${camel}` : camel
+}
+
+/**
+ * Derives a camelCase operation name from an HTTP method and path, for use
+ * when an operation has no operationId. Handles plain path params ({id}),
+ * mixed-brace segments ({lat}.{lon}.{format}), and /api/v{N}/ prefix stripping.
+ *
+ * This is the canonical implementation shared by both the fetch client and
+ * the React Query hook generators. Both must use the same function to ensure
+ * generated hook calls reference client functions that actually exist.
+ *
+ * e.g. GET /tasks             -> "getTasks"
+ * e.g. GET /tasks/{id}        -> "getTasksById"
+ * e.g. GET /{x}/{y}.{fmt}     -> "getByXByYByFmt"  (mixed-brace)
+ */
+// fallow-ignore-next-line complexity
+export function deriveOperationName(method: string, path: string): string {
+  const prefixMap: Record<string, string> = {
+    get: 'get',
+    post: 'create',
+    put: 'update',
+    patch: 'patch',
+    delete: 'delete',
+  }
+  const prefix = prefixMap[method] ?? method
+
+  // Strip /api/v1/ prefix
+  const segments = path.replace(/^\/api\/v\d+\//, '').replace(/^\//, '')
+
+  const parts = segments.split('/').map((seg) => {
+    // Handle mixed segments like "{maxLat}.{format}" — extract each {param} inside.
+    // Exclude both braces ([^{}] not [^}]) to stay linear-time and avoid the
+    // polynomial-ReDoS pattern; param names never contain braces.
+    const paramMatches = seg.match(/\{([^{}]+)\}/g)
+    if (paramMatches !== null && !(seg.startsWith('{') && seg.endsWith('}'))) {
+      return paramMatches
+        .map((m) => {
+          const name = sanitizeOperationId(m.slice(1, -1))
+          return 'By' + name.charAt(0).toUpperCase() + name.slice(1)
+        })
+        .join('')
+    }
+    if (seg.startsWith('{') && seg.endsWith('}')) {
+      const name = seg.slice(1, -1)
+      const sanitized = sanitizeOperationId(name)
+      return 'By' + sanitized.charAt(0).toUpperCase() + sanitized.slice(1)
+    }
+    const sanitized = sanitizeOperationId(seg)
+    return sanitized.charAt(0).toUpperCase() + sanitized.slice(1)
+  })
+
+  const joined = parts.join('')
+  return prefix + joined
+}
+
+/**
  * Return a property key, adding quotes if the name contains special characters
  * that would make it invalid as an unquoted identifier.
  */

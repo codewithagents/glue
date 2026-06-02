@@ -1,0 +1,74 @@
+{
+  "openapi": "3.1.0",
+  "info": { "title": "Mixed-Brace Path Fixture", "version": "1.0.0" },
+  "paths": {
+    "/map/{versionNumber}/tile/{layer}/{style}/{zoom}/{X}/{Y}.pbf": {
+      "get": {
+        "summary": "Get map tile (PBF) — no operationId, mixed-brace segment {Y}.pbf",
+        "parameters": [
+          {
+            "name": "versionNumber",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
+          },
+          { "name": "layer", "in": "path", "required": true, "schema": { "type": "string" } },
+          { "name": "style", "in": "path", "required": true, "schema": { "type": "string" } },
+          { "name": "zoom", "in": "path", "required": true, "schema": { "type": "integer" } },
+          { "name": "X", "in": "path", "required": true, "schema": { "type": "integer" } },
+          { "name": "Y", "in": "path", "required": true, "schema": { "type": "integer" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Map tile (PBF binary)",
+            "content": {
+              "application/octet-stream": { "schema": { "type": "string", "format": "binary" } }
+            }
+          }
+        }
+      }
+    },
+    "/map/{versionNumber}/tile/{layer}/{style}/{zoom}/{X}/{Y}.{format}": {
+      "get": {
+        "summary": "Get map tile — no operationId, segment {Y}.{format} (both brace-wrapped)",
+        "parameters": [
+          {
+            "name": "versionNumber",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
+          },
+          { "name": "layer", "in": "path", "required": true, "schema": { "type": "string" } },
+          { "name": "style", "in": "path", "required": true, "schema": { "type": "string" } },
+          { "name": "zoom", "in": "path", "required": true, "schema": { "type": "integer" } },
+          { "name": "X", "in": "path", "required": true, "schema": { "type": "integer" } },
+          { "name": "Y", "in": "path", "required": true, "schema": { "type": "integer" } },
+          { "name": "format", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Map tile",
+            "content": {
+              "application/octet-stream": { "schema": { "type": "string", "format": "binary" } }
+            }
+          }
+        }
+      }
+    },
+    "/tiles/{id}": {
+      "get": {
+        "operationId": "getTileById",
+        "summary": "Get single tile by id — has operationId, should not be affected",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tile data",
+            "content": { "application/json": { "schema": { "type": "object" } } }
+          }
+        }
+      }
+    }
+  }
+}
