@@ -1,9 +1,5 @@
 import type { OpenAPIV3_1 } from 'openapi-types'
-import {
-  sanitizeOperationId,
-  deriveOperationName,
-  uniquifyName,
-} from '@codewithagents/openapi-gen'
+import { sanitizeOperationId, deriveOperationName, uniquifyName } from '@codewithagents/openapi-gen'
 
 type OperationObject = OpenAPIV3_1.OperationObject
 type ReferenceObject = OpenAPIV3_1.ReferenceObject
@@ -559,64 +555,6 @@ function operationHasQueryParams(operation: OperationObject): boolean {
   })
 }
 
-/**
- * Converts a raw operationId into a valid camelCase JS identifier.
- * Mirrors the logic in openapi-gen/src/plugins/client.ts.
- * e.g. "actions/add-custom-labels" → "actionsAddCustomLabels"
- * e.g. "delete-storedPaymentMethods-id" → "deleteStoredPaymentMethodsId"
- */
-function sanitizeOperationId(id: string): string {
-  const parts = id
-    .replace(/'/g, '')
-    .split(/[^a-zA-Z0-9]+/)
-    .filter(Boolean)
-  if (parts.length === 0) return 'unknown'
-  const [first = '', ...rest] = parts
-  const camel =
-    first.charAt(0).toLowerCase() +
-    first.slice(1) +
-    rest.map((p) => p.charAt(0).toUpperCase() + p.slice(1)).join('')
-  if (/^[0-9]/.test(camel)) return `_${camel}`
-  const RESERVED = new Set([
-    'break',
-    'case',
-    'catch',
-    'class',
-    'const',
-    'continue',
-    'debugger',
-    'default',
-    'delete',
-    'do',
-    'else',
-    'export',
-    'extends',
-    'finally',
-    'for',
-    'function',
-    'if',
-    'import',
-    'in',
-    'instanceof',
-    'let',
-    'new',
-    'return',
-    'static',
-    'super',
-    'switch',
-    'this',
-    'throw',
-    'try',
-    'typeof',
-    'var',
-    'void',
-    'while',
-    'with',
-    'yield',
-  ])
-  return RESERVED.has(camel) ? `_${camel}` : camel
-}
-
 /** Returns true if any query parameter has required: true */
 function operationHasRequiredQueryParams(operation: OperationObject): boolean {
   const params = operation.parameters as
@@ -631,25 +569,6 @@ function operationHasRequiredQueryParams(operation: OperationObject): boolean {
 }
 
 // ── Main generator ─────────────────────────────────────────────────────────────
-
-/**
- * Returns a name that is unique within the provided set.
- * If the candidate already exists, appends _2, _3, ... until a free slot is found.
- * The chosen name is added to the set before returning.
- */
-function uniquifyName(candidate: string, used: Set<string>): string {
-  if (!used.has(candidate)) {
-    used.add(candidate)
-    return candidate
-  }
-  let counter = 2
-  while (used.has(`${candidate}_${counter}`)) {
-    counter++
-  }
-  const unique = `${candidate}_${counter}`
-  used.add(unique)
-  return unique
-}
 
 export function generateHooks(
   spec: OpenAPIV3_1.Document,
