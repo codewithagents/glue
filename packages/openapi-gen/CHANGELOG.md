@@ -1,5 +1,18 @@
 # Changelog
 
+## [4.9.0](https://github.com/codewithagents/openapi-zod-ts/compare/openapi-gen-v4.8.0...openapi-gen-v4.9.0) (2026-06-02)
+
+
+### Features
+
+* **cli:** shared cli-core eliminates byte-identical parseCliArgs across packages ([#238](https://github.com/codewithagents/openapi-zod-ts/issues/238)) ([#252](https://github.com/codewithagents/openapi-zod-ts/issues/252)) ([200af1f](https://github.com/codewithagents/openapi-zod-ts/commit/200af1fcb94bb570bc18d79eedfdd3e0125c8d85))
+
+
+### Bug Fixes
+
+* **openapi-gen,react-query:** share operation-name derivation so client and hooks agree ([#241](https://github.com/codewithagents/openapi-zod-ts/issues/241)) ([#255](https://github.com/codewithagents/openapi-zod-ts/issues/255)) ([5680f19](https://github.com/codewithagents/openapi-zod-ts/commit/5680f19ac445f95954236e5553a96e9882d3f77c))
+* **openapi-react-query:** type mutation variables as the writable variant; single writableVariantMap ([#242](https://github.com/codewithagents/openapi-zod-ts/issues/242), [#243](https://github.com/codewithagents/openapi-zod-ts/issues/243)) ([#256](https://github.com/codewithagents/openapi-zod-ts/issues/256)) ([ecf7c36](https://github.com/codewithagents/openapi-zod-ts/commit/ecf7c36b83c7330e1406fa866b0eb528c09879e5))
+
 ## [4.8.0](https://github.com/codewithagents/openapi-zod-ts/compare/openapi-gen-v4.7.0...openapi-gen-v4.8.0) (2026-06-01)
 
 

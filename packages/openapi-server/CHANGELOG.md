@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.6.0](https://github.com/codewithagents/openapi-zod-ts/compare/openapi-server-v1.5.0...openapi-server-v1.6.0) (2026-06-02)
+
+
+### Features
+
+* **cli:** shared cli-core eliminates byte-identical parseCliArgs across packages ([#238](https://github.com/codewithagents/openapi-zod-ts/issues/238)) ([#252](https://github.com/codewithagents/openapi-zod-ts/issues/252)) ([200af1f](https://github.com/codewithagents/openapi-zod-ts/commit/200af1fcb94bb570bc18d79eedfdd3e0125c8d85))
+
 ## [1.5.0](https://github.com/codewithagents/openapi-zod-ts/compare/openapi-server-v1.4.0...openapi-server-v1.5.0) (2026-06-01)
 
 
