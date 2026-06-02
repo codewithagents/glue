@@ -145,8 +145,10 @@ export function deriveOperationName(method: string, path: string): string {
   const segments = path.replace(/^\/api\/v\d+\//, '').replace(/^\//, '')
 
   const parts = segments.split('/').map((seg) => {
-    // Handle mixed segments like "{maxLat}.{format}" — extract each {param} inside
-    const paramMatches = seg.match(/\{([^}]+)\}/g)
+    // Handle mixed segments like "{maxLat}.{format}" — extract each {param} inside.
+    // Exclude both braces ([^{}] not [^}]) to stay linear-time and avoid the
+    // polynomial-ReDoS pattern; param names never contain braces.
+    const paramMatches = seg.match(/\{([^{}]+)\}/g)
     if (paramMatches !== null && !(seg.startsWith('{') && seg.endsWith('}'))) {
       return paramMatches
         .map((m) => {
