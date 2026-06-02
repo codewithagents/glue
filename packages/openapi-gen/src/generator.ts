@@ -70,10 +70,15 @@ export async function generate(cwd: string, opts?: GenerateOptions | string): Pr
   console.log(`Parsing spec: ${inputPath}`)
   const spec = await parseSpec(inputPath)
 
+  // Build the writable-variant map exactly once so types.ts and client.ts share
+  // the same computation. Both generators fall back to building it internally when
+  // the map is not supplied (backward-compatible for direct callers).
+  const writableVariantMap = buildWritableVariantMap(spec)
+
   const generatedFiles = []
 
   // Phase 1: always generate types
-  generatedFiles.push(generateTypes(spec))
+  generatedFiles.push(generateTypes(spec, undefined, writableVariantMap))
 
   // Phase 2: always generate client config, fetch client, and barrel index
   const cookieAuth = hasCookieAuth(spec)
@@ -83,7 +88,7 @@ export async function generate(cwd: string, opts?: GenerateOptions | string): Pr
       cookieAuth ? { defaultCredentials: 'include', authSchemes } : { authSchemes }
     )
   )
-  generatedFiles.push(generateClient(spec))
+  generatedFiles.push(generateClient(spec, undefined, writableVariantMap))
   generatedFiles.push(generateIndexBarrel())
 
   console.log(`Writing output to: ${outputDir}`)
@@ -141,11 +146,16 @@ export async function generate(cwd: string, opts?: GenerateOptions | string): Pr
         (relPath.startsWith('.') ? '' : './') + relPath.replace(/\.ts$/, '.js')
 
       // Re-generate (overwrite) models.ts and client.ts with schema-enhanced versions
-      const enhancedTypes = generateTypes(spec, { schemaNames: exportedSchemas, schemaImportPath })
-      const enhancedClient = generateClient(spec, {
-        schemaNames: exportedSchemas,
-        schemaImportPath,
-      })
+      const enhancedTypes = generateTypes(
+        spec,
+        { schemaNames: exportedSchemas, schemaImportPath },
+        writableVariantMap
+      )
+      const enhancedClient = generateClient(
+        spec,
+        { schemaNames: exportedSchemas, schemaImportPath },
+        writableVariantMap
+      )
       const enhancedTypesPath = join(outputDir, enhancedTypes.filename)
       const enhancedClientPath = join(outputDir, enhancedClient.filename)
       await writeFile(
