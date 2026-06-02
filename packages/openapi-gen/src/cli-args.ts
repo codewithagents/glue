@@ -1,4 +1,5 @@
-import { resolve, dirname } from 'node:path'
+import { resolve } from 'node:path'
+import { type CliAction as BaseCliAction, parseBaseCliArgs } from './cli-core.js'
 
 /** The parsed result of CLI arguments. */
 export type CliAction =
@@ -16,6 +17,8 @@ export type CliAction =
     }
   | { action: 'error'; message: string }
 
+const CONFIG_USAGE = 'Usage: openapi-gen [--config <path-to-config.json>]'
+
 /**
  * Parse raw process.argv into a structured action.
  *
@@ -28,31 +31,13 @@ export type CliAction =
 export function parseCliArgs(argv: string[], cwd: string): CliAction {
   const args = argv.slice(2)
 
-  if (args.includes('--help') || args.includes('-h')) {
-    return { action: 'help' }
-  }
+  const base: BaseCliAction = parseBaseCliArgs(argv, cwd, CONFIG_USAGE)
 
-  if (args.includes('--version') || args.includes('-v')) {
-    return { action: 'version' }
+  if (base.action === 'help' || base.action === 'version' || base.action === 'error') {
+    return base
   }
 
   const watch = args.includes('--watch')
-
-  let configFile: string | undefined
-  const configIdx = args.indexOf('--config')
-  if (configIdx !== -1) {
-    const next = args[configIdx + 1]
-    if (next === undefined || next.startsWith('--')) {
-      return {
-        action: 'error',
-        message: [
-          'Error: --config requires a file path argument',
-          'Usage: openapi-gen [--config <path-to-config.json>]',
-        ].join('\n'),
-      }
-    }
-    configFile = resolve(cwd, next)
-  }
 
   let inputOverride: string | undefined
   const inputIdx = args.indexOf('--input')
@@ -86,14 +71,10 @@ export function parseCliArgs(argv: string[], cwd: string): CliAction {
     outputOverride = resolve(cwd, next)
   }
 
-  // When --config was provided, resolve cwd from the config file's directory (as before).
-  // When only --input/--output are provided (no --config), keep cwd as-is.
-  const resolvedCwd = configFile !== undefined ? dirname(configFile) : cwd
-
   return {
     action: 'run',
-    configFile,
-    cwd: resolvedCwd,
+    configFile: base.configFile,
+    cwd: base.cwd,
     ...(inputOverride !== undefined && { inputOverride }),
     ...(outputOverride !== undefined && { outputOverride }),
     watch,

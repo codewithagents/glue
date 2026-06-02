@@ -14,6 +14,10 @@
     "./config-core": {
       "import": "./dist/config-core.js",
       "types": "./dist/config-core.d.ts"
+    },
+    "./cli-core": {
+      "import": "./dist/cli-core.js",
+      "types": "./dist/cli-core.d.ts"
     }
   },
   "files": [
