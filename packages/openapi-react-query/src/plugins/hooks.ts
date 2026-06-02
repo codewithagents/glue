@@ -71,6 +71,9 @@ interface OperationMeta {
   deprecated: boolean
 }
 
+// getBodyInfo gained the writable-variant redirect (#242); complexity is under
+// thresholds (CRAP-only flag), covered by the XWritable mutation test.
+// fallow-ignore-next-line complexity
 function getBodyInfo(
   operation: OperationObject,
   writableVariantMap: Map<string, string>
@@ -131,6 +134,8 @@ interface KeyEntry {
   hasRequiredQueryParams: boolean
 }
 
+// pre-existing size; full decomposition tracked in #244
+// fallow-ignore-next-line complexity
 function buildKeyFactory(resource: string, entries: KeyEntry[]): string {
   const factoryName = `${toKeyFactoryName(resource)}Keys`
   const lines: string[] = []
@@ -420,6 +425,8 @@ interface MutationInvalidateInfo {
   detailKeyName: string | undefined
 }
 
+// pre-existing size; decomposition tracked in #244
+// fallow-ignore-next-line complexity
 function buildMutationHook(
   op: OperationMeta,
   autoInvalidate: boolean,
@@ -586,6 +593,8 @@ function operationHasRequiredQueryParams(operation: OperationObject): boolean {
 
 // ── Main generator ─────────────────────────────────────────────────────────────
 
+// pre-existing size; decomposition tracked in #244
+// fallow-ignore-next-line complexity
 export function generateHooks(
   spec: OpenAPIV3_1.Document,
   options: HookGenOptions
