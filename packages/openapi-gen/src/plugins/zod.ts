@@ -160,71 +160,84 @@ function applyNumberConstraints(base: string, schema: SchemaObject): string {
   return s
 }
 
-function schemaToZod(schema: SchemaObject | ReferenceObject): string {
-  if (isRef(schema)) {
-    return refToSchemaName(schema.$ref)
-  }
+/** Handle a $ref schema by returning the referenced schema variable name. */
+function refToZod(schema: ReferenceObject): string {
+  return refToSchemaName(schema.$ref)
+}
 
-  // const keyword: single fixed value -> z.literal(value)
-  // Must be checked before type/enum handling (const overrides type in JSON Schema)
+/**
+ * Handle the `const` keyword: single fixed value -> z.literal(value).
+ * Returns null when no `const` is present (caller continues dispatch).
+ * Must be checked before type/enum handling (const overrides type in JSON Schema).
+ */
+function constToZod(schema: SchemaObject): string | null {
   const constVal = (schema as SchemaObject & { const?: unknown }).const
-  if (constVal !== undefined) {
-    return `z.literal(${serializeLiteral(constVal)})`
-  }
+  if (constVal === undefined) return null
+  return `z.literal(${serializeLiteral(constVal)})`
+}
 
-  // OpenAPI 3.1 array type: type: ['string', 'null']
-  if (Array.isArray(schema.type)) {
-    const types = schema.type as string[]
-    const isNullable = types.includes('null')
-    const nonNull = types.filter((t) => t !== 'null')
-    if (nonNull.length === 1) {
-      let base: string
-      if (nonNull[0] === 'string') {
-        base = stringSchemaExpr(schema)
-      } else if (nonNull[0] === 'integer') {
-        base = primitiveToZod('integer', schema.format as string | undefined)
-        base = applyNumberConstraints(base, schema)
-      } else if (nonNull[0] === 'number') {
-        base = primitiveToZod('number')
-        base = applyNumberConstraints(base, schema)
-      } else {
-        base = primitiveToZod(nonNull[0]!)
-      }
-      const expr = isNullable ? `${base}.nullable()` : base
-      return applyDefault(expr, schema)
+/**
+ * Handle OpenAPI 3.1 array-of-types: type: ['string', 'null'].
+ * Single non-null type becomes base.nullable() when null is in the array.
+ * Multiple types produce z.union([...]).
+ */
+function arrayTypeToZod(schema: SchemaObject): string {
+  const types = schema.type as string[]
+  const isNullable = types.includes('null')
+  const nonNull = types.filter((t) => t !== 'null')
+  if (nonNull.length === 1) {
+    let base: string
+    if (nonNull[0] === 'string') {
+      base = stringSchemaExpr(schema)
+    } else if (nonNull[0] === 'integer') {
+      base = primitiveToZod('integer', schema.format as string | undefined)
+      base = applyNumberConstraints(base, schema)
+    } else if (nonNull[0] === 'number') {
+      base = primitiveToZod('number')
+      base = applyNumberConstraints(base, schema)
+    } else {
+      base = primitiveToZod(nonNull[0]!)
     }
-    const parts = types.map((t) => (t === 'null' ? 'z.null()' : primitiveToZod(t)))
-    return applyDefault(`z.union([${parts.join(', ')}])`, schema)
+    const expr = isNullable ? `${base}.nullable()` : base
+    return applyDefault(expr, schema)
   }
+  const parts = types.map((t) => (t === 'null' ? 'z.null()' : primitiveToZod(t)))
+  return applyDefault(`z.union([${parts.join(', ')}])`, schema)
+}
 
-  // String enum -> z.enum([...])
-  // Use JSON.stringify to produce double-quoted strings, safe for values with apostrophes ("won't fix").
-  // Cast null values to string "null" - some specs mix null with string enums (technically invalid OpenAPI
-  // but common in practice, e.g. GitHub's dismissed_reason: [null, "false positive", "won't fix"]).
-  if (schema.enum !== undefined && schema.enum.length > 0 && schema.type === 'string') {
+/**
+ * Handle `enum` schemas.
+ * String enums use z.enum([...]).
+ * Mixed/number/integer enums use z.union([z.literal(...), ...]).
+ * Use JSON.stringify to produce double-quoted strings, safe for values with apostrophes ("won't fix").
+ * Cast null values to string "null" - some specs mix null with string enums (technically invalid OpenAPI
+ * but common in practice, e.g. GitHub's dismissed_reason: [null, "false positive", "won't fix"]).
+ * Non-primitive values (objects, arrays) are widened to z.unknown() - no valid Zod literal exists.
+ */
+function enumToZod(schema: SchemaObject): string {
+  if (schema.type === 'string') {
     const vals = (schema.enum as (string | null)[])
       .map((v) => JSON.stringify(v ?? 'null'))
       .join(', ')
     return applyDefault(`z.enum([${vals}])`, schema)
   }
+  const literals = (schema.enum as unknown[])
+    .map((v) => {
+      if (typeof v === 'string') return `z.literal(${JSON.stringify(v)})`
+      if (v === null) return `z.literal(null)`
+      if (typeof v === 'number' || typeof v === 'boolean') return `z.literal(${String(v)})`
+      return 'z.unknown()' // object or array enum value - no valid Zod literal representation
+    })
+    .join(', ')
+  return applyDefault(`z.union([${literals}])`, schema)
+}
 
-  // Mixed/number/integer enum -> z.union([z.literal(...), ...])
-  // Must quote strings (JSON.stringify), leave numbers/null as-is.
-  // Non-primitive values (objects, arrays) cannot be expressed as Zod literals,
-  // so they are widened to z.unknown() to avoid emitting invalid syntax like z.literal([object Object]).
-  if (schema.enum !== undefined && schema.enum.length > 0) {
-    const literals = (schema.enum as unknown[])
-      .map((v) => {
-        if (typeof v === 'string') return `z.literal(${JSON.stringify(v)})`
-        if (v === null) return `z.literal(null)`
-        if (typeof v === 'number' || typeof v === 'boolean') return `z.literal(${String(v)})`
-        return 'z.unknown()' // object or array enum value - no valid Zod literal representation
-      })
-      .join(', ')
-    return applyDefault(`z.union([${literals}])`, schema)
-  }
-
-  // allOf: chain with .and(), merging any sibling properties/required as an extra member
+/**
+ * Handle allOf/anyOf/oneOf composite schemas.
+ * allOf chains members with .and(), merging any sibling properties as an extra intersection member.
+ * anyOf and oneOf both produce z.union([...]).
+ */
+function compositeToZod(schema: SchemaObject): string {
   if (schema.allOf !== undefined && schema.allOf.length > 0) {
     const parts = (schema.allOf as (SchemaObject | ReferenceObject)[]).map(schemaToZod)
     // Sibling properties outside the allOf array must be merged in as an extra intersection member
@@ -237,94 +250,130 @@ function schemaToZod(schema: SchemaObject | ReferenceObject): string {
     if (parts.length === 1) return parts[0]!
     return parts.slice(1).reduce((acc, part) => `${acc}.and(${part})`, parts[0]!)
   }
-
-  // anyOf -> z.union([...])
   if (schema.anyOf !== undefined && schema.anyOf.length > 0) {
     const parts = (schema.anyOf as (SchemaObject | ReferenceObject)[]).map(schemaToZod)
     return `z.union([${parts.join(', ')}])`
   }
-
   // oneOf -> z.union([...])
-  if (schema.oneOf !== undefined && schema.oneOf.length > 0) {
-    const parts = (schema.oneOf as (SchemaObject | ReferenceObject)[]).map(schemaToZod)
-    return `z.union([${parts.join(', ')}])`
+  const parts = (schema.oneOf as (SchemaObject | ReferenceObject)[]).map(schemaToZod)
+  return `z.union([${parts.join(', ')}])`
+}
+
+/**
+ * Handle `type: 'array'` schemas.
+ * Supports prefixItems (OpenAPI 3.1 / JSON Schema 2020-12 tuples), plain arrays,
+ * and array constraints (minItems, maxItems, uniqueItems).
+ */
+function arraySchemaToZod(schema: SchemaObject): string {
+  const arraySchema = schema as unknown as ArraySchemaObject
+
+  // prefixItems (OpenAPI 3.1 / JSON Schema 2020-12): fixed-position tuple elements
+  const prefixItems = (
+    schema as SchemaObject & { prefixItems?: (SchemaObject | ReferenceObject)[] }
+  ).prefixItems
+  if (prefixItems !== undefined && prefixItems.length > 0) {
+    const tupleElements = prefixItems.map((item) => schemaToZod(item))
+    let base = `z.tuple([${tupleElements.join(', ')}])`
+    // items after prefixItems is the rest type in JSON Schema 2020-12
+    const restItems = arraySchema.items as SchemaObject | ReferenceObject | undefined
+    if (restItems !== undefined) {
+      base += `.rest(${schemaToZod(restItems)})`
+    }
+    return applyDefault(base, schema)
+  }
+
+  const items = arraySchema.items as SchemaObject | ReferenceObject | undefined
+  let base: string
+  if (items !== undefined) {
+    base = `z.array(${schemaToZod(items)})`
+  } else {
+    base = 'z.array(z.unknown())'
+  }
+  if (typeof schema.minItems === 'number') base += `.min(${schema.minItems})`
+  if (typeof schema.maxItems === 'number') base += `.max(${schema.maxItems})`
+  // uniqueItems: refine to enforce distinct values at runtime
+  if ((schema as SchemaObject & { uniqueItems?: boolean }).uniqueItems === true) {
+    base += `.refine((a) => new Set(a).size === a.length, { message: 'Items must be unique' })`
+  }
+  return applyDefault(base, schema)
+}
+
+/**
+ * Handle `type: 'object'` schemas.
+ * Delegates to z.record() for additionalProperties-only objects,
+ * inlineObjectZod() for objects with explicit properties,
+ * and z.record(z.string(), z.unknown()) as the open-object fallback.
+ */
+function objectSchemaToZod(schema: SchemaObject): string {
+  // additionalProperties only (no explicit properties) -> z.record()
+  if (
+    schema.additionalProperties !== undefined &&
+    schema.additionalProperties !== false &&
+    schema.additionalProperties !== true &&
+    (schema.properties === undefined || Object.keys(schema.properties).length === 0)
+  ) {
+    const valZod = schemaToZod(schema.additionalProperties as SchemaObject | ReferenceObject)
+    return applyDefault(`z.record(z.string(), ${valZod})`, schema)
+  }
+
+  if (schema.properties !== undefined && Object.keys(schema.properties).length > 0) {
+    return applyDefault(inlineObjectZod(schema), schema)
+  }
+
+  return applyDefault('z.record(z.string(), z.unknown())', schema)
+}
+
+/**
+ * Handle scalar primitive types: string, integer, number, boolean, null.
+ * Applies format-based specialisation (stringSchemaExpr, int64 bigint) and
+ * numeric/string constraints before returning the Zod expression.
+ */
+function primitiveTypeToZod(schema: SchemaObject): string {
+  const type = schema.type as string
+  let base: string
+  if (type === 'string') {
+    base = stringSchemaExpr(schema)
+  } else if (type === 'integer') {
+    base = primitiveToZod('integer', schema.format as string | undefined)
+    if (base !== 'z.bigint()') {
+      base = applyNumberConstraints(base, schema)
+    }
+  } else if (type === 'number') {
+    base = primitiveToZod('number')
+    base = applyNumberConstraints(base, schema)
+  } else {
+    base = primitiveToZod(type)
+  }
+  return applyDefault(base, schema)
+}
+
+// fallow-ignore-next-line complexity
+function schemaToZod(schema: SchemaObject | ReferenceObject): string {
+  if (isRef(schema)) return refToZod(schema)
+
+  // const keyword must be checked before type/enum handling (const overrides type in JSON Schema)
+  const constExpr = constToZod(schema)
+  if (constExpr !== null) return constExpr
+
+  // OpenAPI 3.1 array-of-types: type: ['string', 'null']
+  if (Array.isArray(schema.type)) return arrayTypeToZod(schema)
+
+  // enum handling (string enum first, then mixed)
+  if (schema.enum !== undefined && schema.enum.length > 0) return enumToZod(schema)
+
+  // composite: allOf / anyOf / oneOf
+  if (
+    (schema.allOf !== undefined && schema.allOf.length > 0) ||
+    (schema.anyOf !== undefined && schema.anyOf.length > 0) ||
+    (schema.oneOf !== undefined && schema.oneOf.length > 0)
+  ) {
+    return compositeToZod(schema)
   }
 
   const type = schema.type as string | undefined
-
-  // Array
-  if (type === 'array') {
-    const arraySchema = schema as unknown as ArraySchemaObject
-
-    // prefixItems (OpenAPI 3.1 / JSON Schema 2020-12): fixed-position tuple elements
-    const prefixItems = (
-      schema as SchemaObject & { prefixItems?: (SchemaObject | ReferenceObject)[] }
-    ).prefixItems
-    if (prefixItems !== undefined && prefixItems.length > 0) {
-      const tupleElements = prefixItems.map((item) => schemaToZod(item))
-      let base = `z.tuple([${tupleElements.join(', ')}])`
-      // items after prefixItems is the rest type in JSON Schema 2020-12
-      const restItems = arraySchema.items as SchemaObject | ReferenceObject | undefined
-      if (restItems !== undefined) {
-        base += `.rest(${schemaToZod(restItems)})`
-      }
-      return applyDefault(base, schema)
-    }
-
-    const items = arraySchema.items as SchemaObject | ReferenceObject | undefined
-    let base: string
-    if (items !== undefined) {
-      base = `z.array(${schemaToZod(items)})`
-    } else {
-      base = 'z.array(z.unknown())'
-    }
-    const s = schema as SchemaObject
-    if (typeof s.minItems === 'number') base += `.min(${s.minItems})`
-    if (typeof s.maxItems === 'number') base += `.max(${s.maxItems})`
-    // uniqueItems: refine to enforce distinct values at runtime
-    if ((s as SchemaObject & { uniqueItems?: boolean }).uniqueItems === true) {
-      base += `.refine((a) => new Set(a).size === a.length, { message: 'Items must be unique' })`
-    }
-    return applyDefault(base, schema)
-  }
-
-  // Object
-  if (type === 'object') {
-    // additionalProperties only (no explicit properties) -> z.record()
-    if (
-      schema.additionalProperties !== undefined &&
-      schema.additionalProperties !== false &&
-      schema.additionalProperties !== true &&
-      (schema.properties === undefined || Object.keys(schema.properties).length === 0)
-    ) {
-      const valZod = schemaToZod(schema.additionalProperties as SchemaObject | ReferenceObject)
-      return applyDefault(`z.record(z.string(), ${valZod})`, schema)
-    }
-
-    if (schema.properties !== undefined && Object.keys(schema.properties).length > 0) {
-      return applyDefault(inlineObjectZod(schema), schema)
-    }
-
-    return applyDefault('z.record(z.string(), z.unknown())', schema)
-  }
-
-  if (type !== undefined) {
-    let base: string
-    if (type === 'string') {
-      base = stringSchemaExpr(schema)
-    } else if (type === 'integer') {
-      base = primitiveToZod('integer', schema.format as string | undefined)
-      if (base !== 'z.bigint()') {
-        base = applyNumberConstraints(base, schema)
-      }
-    } else if (type === 'number') {
-      base = primitiveToZod('number')
-      base = applyNumberConstraints(base, schema)
-    } else {
-      base = primitiveToZod(type)
-    }
-    return applyDefault(base, schema)
-  }
+  if (type === 'array') return arraySchemaToZod(schema)
+  if (type === 'object') return objectSchemaToZod(schema)
+  if (type !== undefined) return primitiveTypeToZod(schema)
 
   return 'z.unknown()'
 }
