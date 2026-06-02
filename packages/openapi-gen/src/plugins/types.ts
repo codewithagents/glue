@@ -563,7 +563,11 @@ function collectSubDefinitions(
   return collected
 }
 
-export function generateTypes(spec: OpenAPIV3_1.Document, options?: TypesOptions): GeneratedFile {
+export function generateTypes(
+  spec: OpenAPIV3_1.Document,
+  options?: TypesOptions,
+  writableVariantMap?: Map<string, string>
+): GeneratedFile {
   const schemas = spec.components?.schemas as
     | Record<string, SchemaObject | ReferenceObject>
     | undefined
@@ -572,16 +576,16 @@ export function generateTypes(spec: OpenAPIV3_1.Document, options?: TypesOptions
   // E.g. schemas 'String' and 'string' both sanitize to 'String'; the second becomes 'String_2'.
   const renameMap = buildSchemaRenameMap(spec)
 
-  // Build the map of component schemas that need a readOnly/writeOnly split.
-  // Keys are raw schema names; values are the resolved unique XWritable variant names.
-  const writableVariantMap = buildWritableVariantMap(spec)
+  // Use the pre-computed map when provided (single source of truth via generator.ts).
+  // Fall back to building it internally so existing callers without the map still work.
+  const resolvedWritableVariantMap = writableVariantMap ?? buildWritableVariantMap(spec)
 
   const lines: string[] = buildModelsHeader(schemas, options, renameMap)
 
   if (schemas !== undefined) {
     for (const [name, schema] of Object.entries(schemas)) {
       lines.push(
-        generateSchemaDeclaration(name, schema, options, renameMap, spec, writableVariantMap)
+        generateSchemaDeclaration(name, schema, options, renameMap, spec, resolvedWritableVariantMap)
       )
       lines.push('')
     }

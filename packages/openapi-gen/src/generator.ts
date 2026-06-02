@@ -8,6 +8,7 @@ import { generateClient, hasCookieAuth, detectAuthSchemes } from './plugins/clie
 import { generateZodSchemas } from './plugins/zod.js'
 import { generateIndexBarrel } from './plugins/index-barrel.js'
 import { generateServer } from './plugins/server.js'
+import { buildWritableVariantMap } from './utils/writable-variants.js'
 
 /** Options accepted by generate(). */
 export interface GenerateOptions {

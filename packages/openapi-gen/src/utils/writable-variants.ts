@@ -61,6 +61,31 @@ function schemaHasSplitProperties(schema: SchemaObject | ReferenceObject): boole
 }
 
 /**
+ * Extract the raw (un-sanitized) component schema name from a component $ref.
+ * Returns undefined when the ref is not a standard component schema ref.
+ * E.g. '#/components/schemas/CreateUserRequest' -> 'CreateUserRequest'
+ */
+export function rawSchemaNameFromRef(ref: string): string | undefined {
+  const match = /^#\/components\/schemas\/(.+)$/.exec(ref)
+  return match?.[1]
+}
+
+/**
+ * Given a component schema $ref and a writable-variant map, resolve the type name
+ * to use for a request body. When the referenced schema has a writable variant
+ * (i.e. it has readOnly or writeOnly properties), returns the XWritable name.
+ * Otherwise returns undefined (caller falls back to the plain ref type name).
+ */
+export function resolveBodyRefToWritableName(
+  ref: string,
+  writableVariantMap: Map<string, string>
+): string | undefined {
+  const rawName = rawSchemaNameFromRef(ref)
+  if (rawName === undefined) return undefined
+  return writableVariantMap.get(rawName)
+}
+
+/**
  * Build a map from raw schema name to the resolved unique XWritable variant name.
  * Only includes schemas that actually need a split (have readOnly or writeOnly props).
  * XWritable names are uniquified against all top-level schema safe names so they never collide.
